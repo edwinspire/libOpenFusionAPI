@@ -57,52 +57,43 @@ export default class ServerAPI extends EventEmitter {
       logger: true,
     });
 
-    this.fastify.register(fastifyEnv, options).ready((err) => {
-      if (err) console.error(err);
-
-      console.log(this.fastify.config); // or fastify[options.confKey]
-      // output: { PORT: 3000 }
-    });
-
-    this.fastify.register(websocket).then(() => {
-      this.fastify.addHook("preHandler", (request, reply, done) => {
-        console.log(">>>>>>> preHandler");
-
-        // Cargar la aplicación
-
-        //
-
-        // some code
-        done();
-      });
-
-      this.fastify.register(fastifyStatic, {
-        root: join(__dirname, "www"),
-        prefix: "/", // opcional: por defecto '/'
-      });
-
-      this.fastify.get(
-        "/ws/*",
-        { websocket: true },
-        (connection, req) =>{
-          console.log("sssssss");
-
-          connection.socket.on("message", (message) => {
-            // message.toString() === 'hi from client'
-            connection.socket.send("hi from server");
-          });
-        }
-      );
-
-      // Declare a route
-      this.fastify.all("/api/:animal/:cosa", (request, reply) => {
-        reply.send({ hello: "world" });
-      });
-    });
+    this._build();
   }
 
-  async listen() {
-    await this.fastify.listen({ port: 3000 });
-    console.log("Listen on port 3000");
+  async _build() {
+    await this.fastify.register(fastifyEnv, options);
+    await this.fastify.register(websocket);
+    await this.fastify.register(fastifyStatic, {
+      root: join(__dirname, "www"),
+      prefix: "/", // opcional: por defecto '/'
+    });
+
+    this.fastify.addHook("preValidation", (request, reply, done) => {
+      console.log(">>>>>>> preValidation");
+
+      // Cargar la aplicación
+
+      //
+
+      // some code
+      done();
+    });
+
+    this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
+      console.log("sssssss");
+
+      connection.socket.on("message", (message) => {
+        // message.toString() === 'hi from client'
+        connection.socket.send("hi from server");
+      });
+    });
+
+    // Declare a route
+    this.fastify.all("/api/:animal/:cosa", (request, reply) => {
+      reply.send({ hello: "world" });
+    });
+
+    console.log("Listen on PORT " + this.fastify.config.PORT);
+    await this.fastify.listen({ port: this.fastify.config.PORT });
   }
 }
