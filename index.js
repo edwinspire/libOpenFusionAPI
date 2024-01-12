@@ -1,3 +1,3 @@
-import OpenFusionAPI from "./src/lib/server/index.js";
+import OpenFusionAPI from "./src/lib/index.js";
 
 export default OpenFusionAPI;

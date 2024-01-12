@@ -1,12 +1,12 @@
-//import "dotenv/config";
+import "dotenv/config";
 import { EventEmitter } from "node:events";
 import dns from "dns";
 import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
-import fastifyEnv from "@fastify/env";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { defaultApps, getAppByName, getAppWithEndpoints } from "./db/app.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,24 +15,6 @@ console.log(__dirname);
 
 //import { url } from 'node:inspector';
 dns.setDefaultResultOrder("ipv4first");
-
-// Opciones para obtener las variables de enntorno
-const schema = {
-  type: "object",
-  required: ["PORT"],
-  properties: {
-    PORT: {
-      type: "string",
-      default: 3000,
-    },
-  },
-};
-
-const options = {
-  confKey: "config", // optional, default: 'config'
-  schema: schema,
-  // data: data, // optional, default: process.env
-};
 
 // Este bloque permite convertir un error a String con JSON.stringify
 var config = {
@@ -61,15 +43,22 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _build() {
-    await this.fastify.register(fastifyEnv, options);
     await this.fastify.register(websocket);
     await this.fastify.register(fastifyStatic, {
       root: join(__dirname, "www"),
       prefix: "/", // opcional: por defecto '/'
     });
 
+    this.buildDB();
+
     this.fastify.addHook("preValidation", (request, reply, done) => {
       console.log(">>>>>>> preValidation");
+
+      if (!request.url.startsWith('/api')) {
+					console.log(' ::: req.path >>>>', request.url);
+				
+			}
+
 
       // Cargar la aplicación
 
@@ -93,7 +82,33 @@ export default class ServerAPI extends EventEmitter {
       reply.send({ hello: "world" });
     });
 
-    console.log("Listen on PORT " + this.fastify.config.PORT);
-    await this.fastify.listen({ port: this.fastify.config.PORT });
+    const port = process.env.PORT || 3000;
+    console.log("Listen on PORT " + port);
+    await this.fastify.listen({ port: port });
+  }
+
+  /**
+   * @param {boolean} buildDB
+   */
+  buildDB() {
+    let buildDB = process.env.BUILD_DB ?? false;
+
+    if (buildDB) {
+      console.log("Crea la base de datos");
+
+      (async () => {
+        try {
+          await dbRestAPI.sync({ alter: true });
+          await defaultUser();
+          await defaultMethods();
+          await defaultHandlers();
+          await defaultApps();
+          await defaultEndpoints();
+        } catch (error) {
+          console.log(error);
+        }
+      })();
+    }
+    return true;
   }
 }

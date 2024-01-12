@@ -28,10 +28,24 @@
   },
   "homepage": "https://github.com/edwinspire/libOpenFusionAPI#readme",
   "dependencies": {
-    "@fastify/env": "^4.3.0",
+    "@edwinspire/sequential-promises": "github:edwinspire/sequential-promises#v0.01",
+    "@edwinspire/universal-fetch": "github:edwinspire/universal-fetch#v0.0.2",
     "@fastify/static": "^6.12.0",
     "@fastify/websocket": "^8.3.1",
-    "fastify": "^4.25.2"
+    "dotenv": "^16.3.1",
+    "fastify": "^4.25.2",
+    "jsonwebtoken": "^9.0.0",
+    "mariadb": "^3.2.2",
+    "mysql2": "^3.6.3",
+    "oracledb": "^6.2.0",
+    "path-to-regexp": "^6.2.1",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.31.1",
+    "soap": "^0.45.0",
+    "sqlite3": "^5.1.6",
+    "tedious": "^16.6.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/ws": "^8.5.10"
