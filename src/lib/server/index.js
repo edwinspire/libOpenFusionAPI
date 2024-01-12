@@ -64,40 +64,45 @@ export default class ServerAPI extends EventEmitter {
       // output: { PORT: 3000 }
     });
 
-    this.fastify.register(fastifyStatic, {
-      root: join(__dirname, "www"),
-      prefix: "/openfusionapi", // opcional: por defecto '/'
-    });
+    this.fastify.register(websocket).then(() => {
+      this.fastify.addHook("preHandler", (request, reply, done) => {
+        console.log(">>>>>>> preHandler");
 
-    this.fastify.register(websocket);
+        // Cargar la aplicación
 
-    this.fastify.addHook("preHandler", (request, reply, done) => {
-      console.log(">>>>>>> preHandler");
+        //
 
-      // Cargar la aplicación
-
-      //
-
-      // some code
-      done();
-    });
-
-    this.fastify.get("/*", { websocket: true }, (connection, req) => {
-      console.log("sssssss");
-
-      connection.socket.on("message", (message) => {
-        // message.toString() === 'hi from client'
-        connection.socket.send("hi from server");
+        // some code
+        done();
       });
-    });
 
-    // Declare a route
-    this.fastify.all("/:animal/:cosa", (request, reply) => {
-      reply.send({ hello: "world" });
+      this.fastify.register(fastifyStatic, {
+        root: join(__dirname, "www"),
+        prefix: "/", // opcional: por defecto '/'
+      });
+
+      this.fastify.get(
+        "/ws/*",
+        { websocket: true },
+        (connection, req) =>{
+          console.log("sssssss");
+
+          connection.socket.on("message", (message) => {
+            // message.toString() === 'hi from client'
+            connection.socket.send("hi from server");
+          });
+        }
+      );
+
+      // Declare a route
+      this.fastify.all("/api/:animal/:cosa", (request, reply) => {
+        reply.send({ hello: "world" });
+      });
     });
   }
 
   async listen() {
     await this.fastify.listen({ port: 3000 });
+    console.log("Listen on port 3000");
   }
 }
