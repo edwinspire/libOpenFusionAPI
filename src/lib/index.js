@@ -20,6 +20,9 @@ import { runHandler } from "./handler/handler.js";
 import { createFunction } from "./handler/jsFunction.js";
 import { getApiHandler } from "./db/app.js";
 
+import fs from "fs";
+import path from "path";
+
 import {
   validateToken,
   getUserPasswordTokenFromRequest,
@@ -31,18 +34,13 @@ import {
 
 import {
   key_endpoint_method,
-  struct_path,
+  struct_api_path,
   get_url_params,
-  path_params,
-  mqtt_path_params,
-  path_params_to_url,
-  key_url_from_params,
-  internal_url_hooks,
-  websocket_hooks_resource,
-  getPartUrl,
+
   //	defaultSystemPath
 } from "./server/utils_path.js";
-import { error } from "node:console";
+
+const { PORT, PATH_APP_FUNCTIONS } = process.env;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -66,12 +64,13 @@ var config = {
   },
 };
 Object.defineProperty(Error.prototype, "toJSON", config);
+const dir_fn = path.join(process.cwd(), PATH_APP_FUNCTIONS || "fn");
 
 export default class ServerAPI extends EventEmitter {
   constructor({ buildDB = false } = {}) {
     super();
 
-    if (!process.env.PORT) {
+    if (!PORT) {
       throw { error: "PORT is required" };
     }
 
@@ -96,15 +95,10 @@ export default class ServerAPI extends EventEmitter {
     });
 
     this.buildDB();
+    this.loadFunctionFiles();
 
     this.fastify.addHook("preValidation", async (request, reply) => {
       let request_path_params = get_url_params(request.url);
-
-    //  console.log(">>>>>>> preValidation", request_path_params);
-
-      if (!request.url.startsWith("/api")) {
-        console.log(" ::: req.path >>>>", request.url);
-      }
 
       if (request_path_params && request_path_params.path) {
         let path_endpoint_method = key_endpoint_method(
@@ -127,13 +121,17 @@ export default class ServerAPI extends EventEmitter {
           let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
           handlerEndpoint.url = request_path_params.path;
 
-          // Validar si la API es publica o privada
-          if (!handlerEndpoint.params.is_public) {
-            // Validar si está autenticado
-            reply.code(401).send({ error: "Require token" });
-          }
+          if (handlerEndpoint.params.enabled) {
+            // Validar si la API es publica o privada
+            if (!handlerEndpoint.params.is_public) {
+              // Validar si está autenticado
+              reply.code(401).send({ error: "Require token" });
+            }
 
-          request.openfusionapi = { handler: handlerEndpoint };
+            request.openfusionapi = { handler: handlerEndpoint };
+          } else {
+            reply.code().send({ message: "Endpoint unabled." });
+          }
         } else {
           reply.code(404).send({ error: "Not Found" });
         }
@@ -168,8 +166,10 @@ export default class ServerAPI extends EventEmitter {
     });
 
     // Declare a route
-    this.fastify.all(struct_path, async (request, reply) => {
+    this.fastify.all(struct_api_path, async (request, reply) => {
       let handlerEndpoint = request.openfusionapi.handler;
+
+      reply.openfusionapi = reply.openfusionapi ?? {};
 
       if (
         handlerEndpoint.params &&
@@ -190,7 +190,6 @@ export default class ServerAPI extends EventEmitter {
           // Envia los datos que están en cache
           reply.code(200).send(data_cache);
         } else {
-          reply.openfusionapi = reply.openfusionapi ?? {};
 
           reply.openfusionapi.lastResponse = {
             hash_request: hash_request,
@@ -225,10 +224,142 @@ export default class ServerAPI extends EventEmitter {
       }
     });
 
-    const port = process.env.PORT || 3000;
+    const port = PORT || 3000;
     console.log("Listen on PORT " + port);
     await this.fastify.listen({ port: port });
   }
+
+  loadFunctionFiles() {
+    function CreateFnPath(fn_path) {
+      try {
+        if (!fs.existsSync(fn_path)) {
+          // Si no existe, créala recursivamente
+          // @ts-ignore
+          fs.mkdirSync(
+            fn_path,
+            { recursive: true },
+            (/** @type {any} */ err) => {
+              if (err) {
+                console.error("Error al crear la ruta:", err);
+              } else {
+                console.log("Ruta creada exitosamente.");
+              }
+            }
+          );
+        } else {
+          console.log("La ruta ya existe.");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      return fn_path;
+    }
+
+    // Crea las rutas para las funciones personalizadas
+    CreateFnPath(`${dir_fn}/system/dev`);
+    CreateFnPath(`${dir_fn}/system/qa`);
+    CreateFnPath(`${dir_fn}/system/prd`);
+
+    CreateFnPath(`${dir_fn}/public/dev`);
+    CreateFnPath(`${dir_fn}/public/qa`);
+    CreateFnPath(`${dir_fn}/public/prd`);
+
+    getFunctionsFiles(dir_fn).forEach((data_js) => {
+      this._appendFunctionsFiles(
+        data_js.file,
+        data_js.data.appName,
+        data_js.data.environment
+      );
+    });
+  }
+
+  /**
+   * @param {string} filePath
+   * @param {string} _app_name
+   * @param {string} environment
+   */
+  async _appendFunctionsFiles(file_app, _app_name, environment) {
+    try {
+      console.log("Load Module -> ", file_app);
+
+      // Obtener la última parte
+      const fname = file_app.split("/").pop();
+
+      const stat_mod = fs.statSync(file_app);
+
+      if (
+        stat_mod.isFile() &&
+        fname.endsWith(".js") &&
+        fname.startsWith("fn")
+      ) {
+        console.log("Es un archivo:", fname);
+
+        const taskModule = await import(file_app);
+
+        console.log("Module: ", taskModule);
+
+        if (taskModule && taskModule.default) {
+          this._appendAppFunction(
+            _app_name,
+            environment,
+            fname.replace(".js", ""),
+            taskModule.default
+          );
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  _appendAppFunction(appname, environment, functionName, fn) {
+		console.log(appname, environment, functionName);
+		if (functionName.startsWith('fn')) {
+			switch (environment) {
+				case 'dev':
+					if (this._fnDEV.has(appname)) {
+						let fnList = this._fnDEV.get(appname);
+						fnList[functionName] = fn;
+						this._fnDEV.set(appname, fnList);
+					} else {
+						let f = {};
+						// @ts-ignore
+						f[functionName] = fn;
+						this._fnDEV.set(appname, f);
+					}
+					break;
+
+				case 'qa':
+					if (this._fnQA.has(appname)) {
+						let fnList = this._fnQA.get(appname);
+						fnList[functionName] = fn;
+						this._fnQA.set(appname, fnList);
+					} else {
+						let f = {};
+						// @ts-ignore
+						f[functionName] = fn;
+						this._fnQA.set(appname, f);
+					}
+					break;
+
+				case 'prd':
+					if (this._fnPRD.has(appname)) {
+						let fnList = this._fnPRD.get(appname);
+						fnList[functionName] = fn;
+						this._fnPRD.set(appname, fnList);
+					} else {
+						let f = {};
+						// @ts-ignore
+						f[functionName] = fn;
+						this._fnPRD.set(appname, f);
+					}
+
+					break;
+			}
+		} else {
+			throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
+		}
+	}
 
   // Función para buscar en las llaves
   _appExistsOnCache(app) {

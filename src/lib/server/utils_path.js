@@ -1,23 +1,26 @@
 import { match } from "path-to-regexp";
 
 //export const struct_path = '/api/:app/:namespace/:name/:version/:environment';
-export const struct_path = "/api/:app/*";
+export const struct_api_path = "/api/:app/*";
 
 export const internal_url_hooks = "/websocket/internat/prd/hooks";
 export const websocket_hooks_resource = "/websocket/hooks";
 
-const fn_match_url = match("/api/:app*", { decode: decodeURIComponent });
+//const fn_match_url = match("/api/:app*", { decode: decodeURIComponent });
 
+/*
 const mqtt_struct_path =
   "/api/:app/:namespace/:name/:version/:environment/:username/:topic*";
 const fn_mqtt_match_url = match(mqtt_struct_path, {
   decode: decodeURIComponent,
 });
-
-export const path_params = (/** @type {string} */ url) => {
+*/
+/*
+export const path_params = (url) => {
   let reqUrl = new URL(`http://localhost${url}`);
   return fn_match_url(reqUrl.pathname);
 };
+*/
 
 export const get_url_params = (/** @type {string} */ url) => {
   let reqUrl = new URL(`http://localhost${url}`);
@@ -41,20 +44,24 @@ export const get_url_params = (/** @type {string} */ url) => {
   return par;
 };
 
-export const mqtt_path_params = (/** @type {string} */ url) => {
+/*
+export const mqtt_path_params = ( url) => {
   let reqUrl = new URL(`http://localhost${url}`);
   return fn_mqtt_match_url(reqUrl.pathname);
 };
+*/
 
 //export const path_params_to_url = (/** @type {{ app: any; namespace: any; name: any; version: any; environment: any; }} */ params) => {
 //	return `/api/${params.app}/${params.namespace}/${params.name}/${params.version}/${params.environment}`;
 //}
 
+/*
 export const path_params_to_url = (
-  /** @type {{ app: string; environment: string; resource: string; }} */ params
+  params
 ) => {
   return `/api/${params.app}/${params.environment}${params.resource}`;
 };
+*/
 
 export const key_url_from_params = (
   /** @type {{ app: string; method: string; resource: string; }} */ params
@@ -88,6 +95,7 @@ export function validateURL(string_url) {
 /**
  * @param {string} url
  */
+/*
 export function getPartUrl(url) {
   const partes = url.split("/").filter((part) => part !== ""); // Elimina elementos vacíos
 
@@ -103,3 +111,4 @@ export function getPartUrl(url) {
     return { error: "URL no válida" };
   }
 }
+*/
