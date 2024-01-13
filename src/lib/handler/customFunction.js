@@ -18,12 +18,9 @@ export const customFunction = async (
 
 			if (fnresult) {
 			
-				response.locals = response.locals??{};
-
-				// @ts-ignore
-				if (response.locals.lastResponse && response.locals.lastResponse.hash_request) {
+				if (response.openfusionapi.lastResponse && response.openfusionapi.lastResponse.hash_request) {
 					// @ts-ignore
-					response.locals.lastResponse.data = fnresult.data;
+					response.openfusionapi.lastResponse.data = fnresult.data;
 				}
 				// @ts-ignore
 				response.code(fnresult.status).send(fnresult.data);

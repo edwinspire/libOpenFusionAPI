@@ -17,8 +17,6 @@ export const sqlFunction = async (
       data_request = request.body;
     }
 
-    console.log(" >> data_request >>> ", data_request);
-
     if (data_request) {
       // Obtiene los parametros de conexión
       if (data_request.connection) {
@@ -80,21 +78,13 @@ export const sqlFunction = async (
             type: QueryTypes.SELECT,
           });
 
-          //let data;
-
-          // data = result_query;
-          response.locals = response.locals ?? {};
-
-          // @ts-ignore
           if (
-            response.locals.lastResponse &&
-            response.locals.lastResponse.hash_request
+            response.openfusionapi.lastResponse &&
+            response.openfusionapi.lastResponse.hash_request
           ) {
-            // @ts-ignore
-            response.locals.lastResponse.data = result_query;
+            response.openfusionapi.lastResponse.data = result_query;
           }
-          //response.locals.lastResponse = result_query;
-          // @ts-ignore
+		  
           response.code(200).send(result_query);
         } else {
           response

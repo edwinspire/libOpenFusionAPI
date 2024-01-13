@@ -29,14 +29,11 @@ export const fetchFunction = async (
 		let resp = await FData[$_REQUEST_.method.toUpperCase()](init);
 
 		let r = await resp.json();
-
-		response.locals = response.locals??{};
-
 		
 		// @ts-ignore
-		if (response.locals.lastResponse && response.locals.lastResponse.hash_request) {
+		if (response.openfusionapi.lastResponse && response.openfusionapi.lastResponse.hash_request) {
 			// @ts-ignore
-			response.locals.lastResponse.data = r;
+			response.openfusionapi.lastResponse.data = r;
 		}
 		
 		

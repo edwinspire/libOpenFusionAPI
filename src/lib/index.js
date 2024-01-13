@@ -21,6 +21,15 @@ import { createFunction } from "./handler/jsFunction.js";
 import { getApiHandler } from "./db/app.js";
 
 import {
+  validateToken,
+  getUserPasswordTokenFromRequest,
+  websocketUnauthorized,
+  getIPFromRequest,
+  getFunctionsFiles,
+  md5,
+} from "./server/utils.js";
+
+import {
   key_endpoint_method,
   struct_path,
   get_url_params,
@@ -66,10 +75,11 @@ export default class ServerAPI extends EventEmitter {
       throw { error: "PORT is required" };
     }
 
-		this._fnDEV = new Map();
-		this._fnQA = new Map();
-		this._fnPRD = new Map();
+    this._fnDEV = new Map();
+    this._fnQA = new Map();
+    this._fnPRD = new Map();
     this._cacheEndpoint = new Map();
+    this._cacheResponse = new Map();
 
     this.fastify = Fastify({
       logger: true,
@@ -90,7 +100,7 @@ export default class ServerAPI extends EventEmitter {
     this.fastify.addHook("preValidation", async (request, reply) => {
       let request_path_params = get_url_params(request.url);
 
-      console.log(">>>>>>> preValidation", request_path_params);
+    //  console.log(">>>>>>> preValidation", request_path_params);
 
       if (!request.url.startsWith("/api")) {
         console.log(" ::: req.path >>>>", request.url);
@@ -105,87 +115,47 @@ export default class ServerAPI extends EventEmitter {
         );
 
         //
-        if (!this._cacheEndpoint.has(path_endpoint_method) && !this._appExistsOnCache(request_path_params.app)) {
+        if (
+          !this._cacheEndpoint.has(path_endpoint_method) &&
+          !this._appExistsOnCache(request_path_params.app)
+        ) {
           // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
-          await  this._loadEndpointsByAPPToCache(request_path_params.app); 
+          await this._loadEndpointsByAPPToCache(request_path_params.app);
         }
 
         if (this._cacheEndpoint.has(path_endpoint_method)) {
           let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
+          handlerEndpoint.url = request_path_params.path;
 
           // Validar si la API es publica o privada
-if(!handlerEndpoint.params.is_public){
-
-// Validar si está autenticado
-reply.code(401).send({error: 'Require token'});
-
-}
-
-request.openfusionapi = {handler: handlerEndpoint}
-
-          /*
-          if (
-            handlerEndpoint.params &&
-            handlerEndpoint.params.cache_time &&
-            handlerEndpoint.params.cache_time > 0
-          ) {
-            console.log("----- CACHE ------");
-
-            let hash_request = md5({
-              body: request.body,
-              query: request.query,
-              url: request.url,
-            });
-            let data_cache = undefined;
-            let now = Date.now();
-            // Eliminamos de la cache si ya ha expirado
-            if (this._cacheRequest.has(hash_request)) {
-              data_cache = this._cacheRequest.get(hash_request);
-              if (
-                data_cache &&
-                data_cache.expiration_date &&
-                data_cache.expiration_date < now
-              ) {
-                this._cacheRequest.delete(hash_request);
-                data_cache = undefined;
-              }
-            }
-
-            if (data_cache) {
-              res.status(200).json(data_cache.data);
-            } else {
-              res.locals.lastResponse = {
-                hash_request: hash_request,
-                expiration_date:
-                  Date.now() + handlerEndpoint.params.cache_time * 1000,
-                data: undefined,
-              };
-
-             await runHandler(
-                request,
-                reply,
-                handlerEndpoint.params,
-                this._getFunctions(request_path_params.app, request_path_params.environment)
-              );
-            }
-          } else {
-          await  runHandler(
-              request,
-              reply,
-              handlerEndpoint.params,
-              this._getFunctions(request_path_params.app, request_path_params.environment)
-            );
+          if (!handlerEndpoint.params.is_public) {
+            // Validar si está autenticado
+            reply.code(401).send({ error: "Require token" });
           }
-          */
 
-
-
+          request.openfusionapi = { handler: handlerEndpoint };
         } else {
           reply.code(404).send({ error: "Not Found" });
         }
       } else {
         reply.code(404).send({ error: "Not Found" });
       }
+    });
+
+    this.fastify.addHook("onResponse", async (request, reply) => {
+      // Guardamos la respuesta en cache
+      if (
+        reply.openfusionapi &&
+        reply.openfusionapi.lastResponse &&
+        reply.openfusionapi.lastResponse.data
+      ) {
+        this._cacheResponse.set(
+          reply.openfusionapi.lastResponse.hash_request,
+          reply.openfusionapi.lastResponse.data
+        );
+      }
+
+      console.log("Fin");
     });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
@@ -197,20 +167,63 @@ request.openfusionapi = {handler: handlerEndpoint}
       });
     });
 
-    
     // Declare a route
-    this.fastify.all(struct_path, async(request, reply) => {
-      
-      await runHandler(
-        request,
-        reply,
-        request.openfusionapi.handler.params,
-        this._getFunctions(request.openfusionapi.handler.params.app, request.openfusionapi.handler.params.environment)
-      );
-     
-      
+    this.fastify.all(struct_path, async (request, reply) => {
+      let handlerEndpoint = request.openfusionapi.handler;
+
+      if (
+        handlerEndpoint.params &&
+        handlerEndpoint.params.cache_time &&
+        handlerEndpoint.params.cache_time > 0
+      ) {
+        console.log("----- CACHE ------");
+
+        let hash_request = md5({
+          body: request.body,
+          query: request.query,
+          url: handlerEndpoint.url,
+        });
+
+        let data_cache = this._cacheResponse.get(hash_request);
+
+        if (data_cache) {
+          // Envia los datos que están en cache
+          reply.code(200).send(data_cache);
+        } else {
+          reply.openfusionapi = reply.openfusionapi ?? {};
+
+          reply.openfusionapi.lastResponse = {
+            hash_request: hash_request,
+            data: undefined,
+          };
+
+          await runHandler(
+            request,
+            reply,
+            handlerEndpoint.params,
+            this._getFunctions(
+              handlerEndpoint.params.app,
+              handlerEndpoint.params.environment
+            )
+          );
+
+          setTimeout(() => {
+            this._cacheResponse.delete(hash_request);
+            console.log("Se elimina la cache de " + hash_request);
+          }, handlerEndpoint.params.cache_time * 1000);
+        }
+      } else {
+        await runHandler(
+          request,
+          reply,
+          handlerEndpoint.params,
+          this._getFunctions(
+            handlerEndpoint.params.app,
+            handlerEndpoint.params.environment
+          )
+        );
+      }
     });
-    
 
     const port = process.env.PORT || 3000;
     console.log("Listen on PORT " + port);
@@ -224,32 +237,31 @@ request.openfusionapi = {handler: handlerEndpoint}
   }
 
   /**
-	 * @param {string} appName
-	 * @param {string} [environment]
-	 */
-	_getFunctions(appName, environment) {
-		let d;
-		let p;
+   * @param {string} appName
+   * @param {string} [environment]
+   */
+  _getFunctions(appName, environment) {
+    let d;
+    let p;
 
-		switch (environment) {
-			case 'dev':
-				d = this._fnDEV.get(appName);
-				p = this._fnDEV.get('public');
-				break;
+    switch (environment) {
+      case "dev":
+        d = this._fnDEV.get(appName);
+        p = this._fnDEV.get("public");
+        break;
 
-			case 'qa':
-				d = this._fnQA.get(appName);
-				p = this._fnQA.get('public');
-				break;
-			case 'prd':
-				d = this._fnPRD.get(appName);
-				p = this._fnPRD.get('public');
-				break;
-		}
+      case "qa":
+        d = this._fnQA.get(appName);
+        p = this._fnQA.get("public");
+        break;
+      case "prd":
+        d = this._fnPRD.get(appName);
+        p = this._fnPRD.get("public");
+        break;
+    }
 
-		return { ...d, ...p };
-	}
-
+    return { ...d, ...p };
+  }
 
   _getApiHandler(app_name, endpointData, appVarsEnv) {
     let returnHandler = {};

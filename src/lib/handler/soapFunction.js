@@ -29,12 +29,9 @@ export const soapFunction = async (
 
 		let soap_response = await SOAPGenericClient(SOAPParameters);
 		
-		response.locals = response.locals??{};
-
-		// @ts-ignore
-		if (response.locals.lastResponse && response.locals.lastResponse.hash_request) {
+		if (response.openfusionapi.lastResponse && response.openfusionapi.lastResponse.hash_request) {
 			// @ts-ignore
-			response.locals.lastResponse.data = soap_response;
+			response.openfusionapi.lastResponse.data = soap_response;
 		  }
 
 		response.code(200).send(soap_response);
