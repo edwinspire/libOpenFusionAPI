@@ -61,17 +61,18 @@ export const jsFunction = async (
 
 let result_fn = await f({ $_REQUEST_: $_REQUEST_, $_UFETCH_: $_UFETCH_, $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_ })();
 
-//console.log('result_fn: ====> ', result_fn);
-// @ts-ignore
+response.locals = response.locals??{};
+
+
 if (response.locals.lastResponse && response.locals.lastResponse.hash_request) {
   // @ts-ignore
   response.locals.lastResponse.data = result_fn;
 }
     response
-      .status(200)
-      .json(result_fn);
+      .code(200)
+      .send(result_fn);
   } catch (error) {
     // @ts-ignore
-    response.status(500).json(error);
+    response.code(500).send(error);
   }
 };

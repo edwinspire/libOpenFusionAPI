@@ -33,6 +33,7 @@ import {
   getPartUrl,
   //	defaultSystemPath
 } from "./server/utils_path.js";
+import { error } from "node:console";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -65,6 +66,9 @@ export default class ServerAPI extends EventEmitter {
       throw { error: "PORT is required" };
     }
 
+		this._fnDEV = new Map();
+		this._fnQA = new Map();
+		this._fnPRD = new Map();
     this._cacheEndpoint = new Map();
 
     this.fastify = Fastify({
@@ -93,7 +97,6 @@ export default class ServerAPI extends EventEmitter {
       }
 
       if (request_path_params && request_path_params.path) {
-
         let path_endpoint_method = key_endpoint_method(
           request_path_params.app,
           request_path_params.resource,
@@ -101,16 +104,89 @@ export default class ServerAPI extends EventEmitter {
           request.method
         );
 
-
         //
-        if (!this._cacheEndpoint.has(path_endpoint_method)) {
+        if (!this._cacheEndpoint.has(path_endpoint_method) && !this._appExistsOnCache(request_path_params.app)) {
           // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
-          this._loadEndpointsByAPPToCache(request_path_params.app);
+          await  this._loadEndpointsByAPPToCache(request_path_params.app); 
+        }
+
+        if (this._cacheEndpoint.has(path_endpoint_method)) {
+          let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
+
+          // Validar si la API es publica o privada
+if(!handlerEndpoint.params.is_public){
+
+// Validar si está autenticado
+reply.code(401).send({error: 'Require token'});
+
+}
+
+request.openfusionapi = {handler: handlerEndpoint}
+
+          /*
+          if (
+            handlerEndpoint.params &&
+            handlerEndpoint.params.cache_time &&
+            handlerEndpoint.params.cache_time > 0
+          ) {
+            console.log("----- CACHE ------");
+
+            let hash_request = md5({
+              body: request.body,
+              query: request.query,
+              url: request.url,
+            });
+            let data_cache = undefined;
+            let now = Date.now();
+            // Eliminamos de la cache si ya ha expirado
+            if (this._cacheRequest.has(hash_request)) {
+              data_cache = this._cacheRequest.get(hash_request);
+              if (
+                data_cache &&
+                data_cache.expiration_date &&
+                data_cache.expiration_date < now
+              ) {
+                this._cacheRequest.delete(hash_request);
+                data_cache = undefined;
+              }
+            }
+
+            if (data_cache) {
+              res.status(200).json(data_cache.data);
+            } else {
+              res.locals.lastResponse = {
+                hash_request: hash_request,
+                expiration_date:
+                  Date.now() + handlerEndpoint.params.cache_time * 1000,
+                data: undefined,
+              };
+
+             await runHandler(
+                request,
+                reply,
+                handlerEndpoint.params,
+                this._getFunctions(request_path_params.app, request_path_params.environment)
+              );
+            }
+          } else {
+          await  runHandler(
+              request,
+              reply,
+              handlerEndpoint.params,
+              this._getFunctions(request_path_params.app, request_path_params.environment)
+            );
+          }
+          */
+
+
+
+        } else {
+          reply.code(404).send({ error: "Not Found" });
         }
       } else {
         reply.code(404).send({ error: "Not Found" });
       }
-});
+    });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
       console.log("sssssss");
@@ -121,19 +197,64 @@ export default class ServerAPI extends EventEmitter {
       });
     });
 
+    
     // Declare a route
-    this.fastify.all(struct_path, (request, reply) => {
-      reply.send({ hello: "world" });
+    this.fastify.all(struct_path, async(request, reply) => {
+      
+      await runHandler(
+        request,
+        reply,
+        request.openfusionapi.handler.params,
+        this._getFunctions(request.openfusionapi.handler.params.app, request.openfusionapi.handler.params.environment)
+      );
+     
+      
     });
+    
 
     const port = process.env.PORT || 3000;
     console.log("Listen on PORT " + port);
     await this.fastify.listen({ port: port });
   }
 
+  // Función para buscar en las llaves
+  _appExistsOnCache(app) {
+    const keys_cache = Array.from(this._cacheEndpoint.keys());
+    return keys_cache.some((k) => k.startsWith(`/api/${app}/`));
+  }
+
+  /**
+	 * @param {string} appName
+	 * @param {string} [environment]
+	 */
+	_getFunctions(appName, environment) {
+		let d;
+		let p;
+
+		switch (environment) {
+			case 'dev':
+				d = this._fnDEV.get(appName);
+				p = this._fnDEV.get('public');
+				break;
+
+			case 'qa':
+				d = this._fnQA.get(appName);
+				p = this._fnQA.get('public');
+				break;
+			case 'prd':
+				d = this._fnPRD.get(appName);
+				p = this._fnPRD.get('public');
+				break;
+		}
+
+		return { ...d, ...p };
+	}
+
+
   _getApiHandler(app_name, endpointData, appVarsEnv) {
     let returnHandler = {};
     returnHandler.params = endpointData;
+    returnHandler.params.app = app_name;
 
     try {
       appVarsEnv =

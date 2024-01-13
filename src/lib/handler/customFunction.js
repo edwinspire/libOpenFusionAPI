@@ -17,22 +17,25 @@ export const customFunction = async (
 			let fnresult = await appFunctions[method.code]($_REQUEST_, response, $_DATA);
 
 			if (fnresult) {
+			
+				response.locals = response.locals??{};
+
 				// @ts-ignore
 				if (response.locals.lastResponse && response.locals.lastResponse.hash_request) {
 					// @ts-ignore
 					response.locals.lastResponse.data = fnresult.data;
 				}
 				// @ts-ignore
-				response.status(fnresult.status).json(fnresult.data);
+				response.code(fnresult.status).send(fnresult.data);
 			} else {
-				response.status(500).json({ error: `Function ${method.code} not return data.` });
+				response.code(500).send({ error: `Function ${method.code} not return data.` });
 			}
 		} else {
-			response.status(404).json({ error: `Function ${method.code} not found.` });
+			response.code(404).send({ error: `Function ${method.code} not found.` });
 		}
 	} catch (error) {
 		console.trace(error);
 		// @ts-ignore
-		response.status(500).json(error);
+		response.code(500).send(error);
 	}
 };

@@ -29,15 +29,20 @@ export const fetchFunction = async (
 		let resp = await FData[$_REQUEST_.method.toUpperCase()](init);
 
 		let r = await resp.json();
+
+		response.locals = response.locals??{};
+
+		
 		// @ts-ignore
 		if (response.locals.lastResponse && response.locals.lastResponse.hash_request) {
 			// @ts-ignore
 			response.locals.lastResponse.data = r;
 		}
 		
-		response.status(resp.status).json(r);
+		
+		response.code(resp.status).send(r);
 	} catch (error) {
 		// @ts-ignore
-		response.status(500).json(error);
+		response.code(500).send(error);
 	}
 };

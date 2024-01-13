@@ -10,27 +10,27 @@ import { customFunction } from "./customFunction.js";
  * @param {{handler: string;code: string;}} method
  * @param {{ [x: string]: (arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void; }} appFunctions
  */
-export function runHandler(request, response, method, appFunctions) {
+export async function runHandler(request, response, method, appFunctions) {
   
   switch (method.handler) {
     case "JS":
-      jsFunction(request, response, method);
+     await jsFunction(request, response, method);
       break;
     case "FETCH":
       // @ts-ignore
-      fetchFunction(request, response, method);
+      await fetchFunction(request, response, method);
       break;
     case "SOAP":
-      soapFunction(request, response, method);
+     await soapFunction(request, response, method);
       break;
     case "SQL":
-      sqlFunction(request, response, method);
+     await sqlFunction(request, response, method);
       break;
     case "FUNCTION":
-      customFunction(request, response, method, appFunctions);
+     await customFunction(request, response, method, appFunctions);
       break;
     default:
-      response.status(404).json(`handler ${method.handler} not valid`);
+      response.code(404).send(`handler ${method.handler} not valid`);
       break;
   }
 }

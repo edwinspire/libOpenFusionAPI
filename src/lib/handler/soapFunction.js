@@ -29,17 +29,19 @@ export const soapFunction = async (
 
 		let soap_response = await SOAPGenericClient(SOAPParameters);
 		
+		response.locals = response.locals??{};
+
 		// @ts-ignore
 		if (response.locals.lastResponse && response.locals.lastResponse.hash_request) {
 			// @ts-ignore
 			response.locals.lastResponse.data = soap_response;
 		  }
 
-		response.status(200).json(soap_response);
+		response.code(200).send(soap_response);
 	} catch (error) {
 		console.trace(error);
 		// @ts-ignore
-		response.status(500).json(error);
+		response.code(500).send(error);
 	}
 
 	////
