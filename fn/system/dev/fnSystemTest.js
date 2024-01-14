@@ -1,4 +1,4 @@
-
-export default ($_REQUEST_, $_DATA)=> {
-  return {test: "System Function Test"};
+export default async ($_REQUEST_, $_DATA) => {
+  let r = { status: 200, data: { result: new Date() } };
+  return r;
 };
