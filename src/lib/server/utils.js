@@ -5,7 +5,7 @@ import path from 'path';
 import { Buffer } from 'node:buffer';
 import jwt from 'jsonwebtoken';
 import uFetch from "@edwinspire/universal-fetch";
-import { internal_url_hooks } from "./utils_path.js";//
+import { internal_url_post_hooks } from "./utils_path.js";//
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
 
 const errors = {
@@ -21,7 +21,7 @@ const jwtKey = JWT_KEY||'oy8632rcv"$/8';
  */
 export async function emitHook(data) {
 	//	console.log('---------------------> hookUpsert', modelName);
-	const urlHooks = 'http://localhost:' + PORT + (PATH_API_HOOKS || internal_url_hooks);
+	const urlHooks = 'http://localhost:' + PORT + (PATH_API_HOOKS || internal_url_post_hooks);
 	const uF = new uFetch(urlHooks);
 	await uF.POST({ data: data });
 	//console.log(await data.json());

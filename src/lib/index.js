@@ -23,6 +23,9 @@ import { getApiHandler } from "./db/app.js";
 import fs from "fs";
 import path from "path";
 
+import Ajv from "ajv";
+const ajv = new Ajv();
+
 import {
   validateToken,
   getUserPasswordTokenFromRequest,
@@ -32,11 +35,13 @@ import {
   md5,
 } from "./server/utils.js";
 
+import { schema_input_hooks } from "./server/schemas/index.js";
+
 import {
   key_endpoint_method,
   struct_api_path,
   get_url_params,
-
+  internal_url_post_hooks,
   //	defaultSystemPath
 } from "./server/utils_path.js";
 
@@ -66,6 +71,11 @@ var config = {
 Object.defineProperty(Error.prototype, "toJSON", config);
 const dir_fn = path.join(process.cwd(), PATH_APP_FUNCTIONS || "fn");
 
+//------------------------
+const validate_schema_input_hooks = ajv.compile(schema_input_hooks);
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
 export default class ServerAPI extends EventEmitter {
   constructor({ buildDB = false } = {}) {
     super();
@@ -117,6 +127,7 @@ export default class ServerAPI extends EventEmitter {
           await this._loadEndpointsByAPPToCache(request_path_params.app);
         }
 
+        ///
         if (this._cacheEndpoint.has(path_endpoint_method)) {
           let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
           handlerEndpoint.url = request_path_params.path;
@@ -135,8 +146,6 @@ export default class ServerAPI extends EventEmitter {
         } else {
           reply.code(404).send({ error: "Not Found" });
         }
-      } else {
-        reply.code(404).send({ error: "Not Found" });
       }
     });
 
@@ -165,6 +174,27 @@ export default class ServerAPI extends EventEmitter {
       });
     });
 
+    // Route to internal Hook
+    this.fastify.post(internal_url_post_hooks, async (request, reply) => {
+      console.log("Ok");
+      // TODO: Evaluar si esta seccion requiere Token valido, ya que el acceso es solo interno
+
+      // Valida que el origen sea solo local
+      let ip_request = getIPFromRequest(request);
+
+      if (ip_request === "127.0.0.1") {
+        // Validar que contenga los campos requeridos
+
+        if (validate_schema_input_hooks(request.body)) {
+          reply.send({ data: ip_request });
+        } else {
+          reply.code(400).send(validate_schema_input_hooks.errors);
+        }
+      } else {
+        reply.code(404).send();
+      }
+    });
+
     // Declare a route
     this.fastify.all(struct_api_path, async (request, reply) => {
       let handlerEndpoint = request.openfusionapi.handler;
@@ -190,7 +220,6 @@ export default class ServerAPI extends EventEmitter {
           // Envia los datos que están en cache
           reply.code(200).send(data_cache);
         } else {
-
           reply.openfusionapi.lastResponse = {
             hash_request: hash_request,
             data: undefined,
@@ -313,53 +342,53 @@ export default class ServerAPI extends EventEmitter {
   }
 
   _appendAppFunction(appname, environment, functionName, fn) {
-		console.log(appname, environment, functionName);
-		if (functionName.startsWith('fn')) {
-			switch (environment) {
-				case 'dev':
-					if (this._fnDEV.has(appname)) {
-						let fnList = this._fnDEV.get(appname);
-						fnList[functionName] = fn;
-						this._fnDEV.set(appname, fnList);
-					} else {
-						let f = {};
-						// @ts-ignore
-						f[functionName] = fn;
-						this._fnDEV.set(appname, f);
-					}
-					break;
+    console.log(appname, environment, functionName);
+    if (functionName.startsWith("fn")) {
+      switch (environment) {
+        case "dev":
+          if (this._fnDEV.has(appname)) {
+            let fnList = this._fnDEV.get(appname);
+            fnList[functionName] = fn;
+            this._fnDEV.set(appname, fnList);
+          } else {
+            let f = {};
+            // @ts-ignore
+            f[functionName] = fn;
+            this._fnDEV.set(appname, f);
+          }
+          break;
 
-				case 'qa':
-					if (this._fnQA.has(appname)) {
-						let fnList = this._fnQA.get(appname);
-						fnList[functionName] = fn;
-						this._fnQA.set(appname, fnList);
-					} else {
-						let f = {};
-						// @ts-ignore
-						f[functionName] = fn;
-						this._fnQA.set(appname, f);
-					}
-					break;
+        case "qa":
+          if (this._fnQA.has(appname)) {
+            let fnList = this._fnQA.get(appname);
+            fnList[functionName] = fn;
+            this._fnQA.set(appname, fnList);
+          } else {
+            let f = {};
+            // @ts-ignore
+            f[functionName] = fn;
+            this._fnQA.set(appname, f);
+          }
+          break;
 
-				case 'prd':
-					if (this._fnPRD.has(appname)) {
-						let fnList = this._fnPRD.get(appname);
-						fnList[functionName] = fn;
-						this._fnPRD.set(appname, fnList);
-					} else {
-						let f = {};
-						// @ts-ignore
-						f[functionName] = fn;
-						this._fnPRD.set(appname, f);
-					}
+        case "prd":
+          if (this._fnPRD.has(appname)) {
+            let fnList = this._fnPRD.get(appname);
+            fnList[functionName] = fn;
+            this._fnPRD.set(appname, fnList);
+          } else {
+            let f = {};
+            // @ts-ignore
+            f[functionName] = fn;
+            this._fnPRD.set(appname, f);
+          }
 
-					break;
-			}
-		} else {
-			throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
-		}
-	}
+          break;
+      }
+    } else {
+      throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
+    }
+  }
 
   // Función para buscar en las llaves
   _appExistsOnCache(app) {
@@ -390,8 +419,8 @@ export default class ServerAPI extends EventEmitter {
         p = this._fnPRD.get("public");
         break;
     }
-
-    return { ...d, ...p };
+    // Si hay funciones publicas con el mismo nombre que la función de aplicación, la funcion de aplicación sobreescribe a la publica
+    return { ...p, ...d };
   }
 
   _getApiHandler(app_name, endpointData, appVarsEnv) {

@@ -3,7 +3,7 @@ import { match } from "path-to-regexp";
 //export const struct_path = '/api/:app/:namespace/:name/:version/:environment';
 export const struct_api_path = "/api/:app/*";
 
-export const internal_url_hooks = "/websocket/internat/prd/hooks";
+export const internal_url_post_hooks = process.env.PATH_API_HOOKS??"/_internal_/system/_hooks_/prd";
 export const websocket_hooks_resource = "/websocket/hooks";
 
 //const fn_match_url = match("/api/:app*", { decode: decodeURIComponent });
