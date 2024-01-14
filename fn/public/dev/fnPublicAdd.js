@@ -1,7 +1,7 @@
 export default async ($_REQUEST_, $_DATA) => {
   let r = { status: 500, data: undefined };
 
-  if ($_DATA.num_a && $_DATA.num_b) {
+  if ($_DATA && $_DATA.num_a && $_DATA.num_b) {
     r.status = 200;
     r.data = { result: $_DATA.num_a + $_DATA.num_b };
   } else {

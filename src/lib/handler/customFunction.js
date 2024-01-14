@@ -10,7 +10,7 @@ export const customFunction = async (
     if (appFunctions && appFunctions[method.code]) {
       let $_DATA = $_REQUEST_.body;
 
-      if (JSON.stringify($_REQUEST_.body) == JSON.stringify({})) {
+      if (!$_DATA) {
         $_DATA = $_REQUEST_.query;
       }
 
