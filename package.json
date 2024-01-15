@@ -1,8 +1,7 @@
 {
-  "name": "libopenfusionapi",
+  "name": "@edwinspire/libopenfusionapi",
   "version": "0.0.1",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
-  "main": "index.js",
   "scripts": {
     "test": "node ./test/index.js"
   },
