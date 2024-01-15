@@ -11,6 +11,7 @@ export const getAppWithEndpoints = async (/** @type {any} */ where, /** @type {b
 		attributes: ['idapp', 'app', 'enabled', 'vars', 'description', 'rowkey'],
 		include: {
 			model: Endpoint,
+			as: 'endpoints',
 			//required: true, // INNER JOIN
 			attributes: [
 				'idendpoint',

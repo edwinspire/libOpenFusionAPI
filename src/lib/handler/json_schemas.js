@@ -1,10 +1,9 @@
 export const schema_return_customFunction = {
     type: "object",
     properties: {
-      env: { type: "string" },
-      app: { type: "string" },
-      data: { type: "object" },
+      code: { type: "number" },
+      data: { type: ["object", "array"] },
     },
-    required: ["env", "app", "data"],
+    required: ["code", "data"],
   };
   

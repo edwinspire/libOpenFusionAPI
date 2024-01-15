@@ -358,7 +358,7 @@ export const Application = dbsequelize.define(
     indexes: [],
     hooks: {
       afterBulkCreate: async (intance) => {
-		/*
+        /*
         await HooksDB({
           model: prefixTableName("application"),
           action: "afterBulkCreate",
@@ -735,5 +735,5 @@ export const Endpoint = dbsequelize.define(
   }
 );
 
-Application.hasMany(Endpoint, { foreignKey: "idapp" });
+Application.hasMany(Endpoint, { foreignKey: "idapp", as: "endpoints" });
 Endpoint.belongsTo(Application, { foreignKey: "idapp" });

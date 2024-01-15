@@ -30,12 +30,12 @@ export async function fnDemo(
  * @param {{ body: { username: string; password: string; }; }} req
  * @param {{ set: (arg0: string, arg1: any) => void; code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} res
  */
-export async function fnLogin(req, res) {
+export async function fnLogin(req, data, res) {
 	let r = { code: 204, data: undefined };
 	try {
-		let user = await login(req.body.username, req.body.password);
+		let user = await login(data.username, data.password);
 
-		res.set('user-token', user.token);
+		res.header('user-token', user.token);
 
 		if (user.login) {
 			//res.code(200).json(user);
@@ -256,7 +256,7 @@ export async function fnSaveApp(req, res) {
 
 		if (data.idapp) {
 			// Inserta / Actualiza los endpoints
-			let promises_upsert = req.body.apiserver_endpoints.map(
+			let promises_upsert = req.body.endpoints.map(
 				(/** @type {import("sequelize").Optional<any, string>} */ ep) => {
 					ep.idapp = data.idapp;
 					if (!ep.idendpoint) {

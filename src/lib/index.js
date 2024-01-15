@@ -2,6 +2,7 @@ import "dotenv/config";
 import { EventEmitter } from "node:events";
 import dns from "dns";
 import Fastify from "fastify";
+import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
 import { fileURLToPath } from "url";
@@ -99,6 +100,9 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _build() {
+    await this.fastify.register(cors, {
+      origin: "*",
+    });
     await this.fastify.register(websocket);
     await this.fastify.register(fastifyStatic, {
       root: join(__dirname, "www"),
@@ -138,7 +142,7 @@ export default class ServerAPI extends EventEmitter {
             // Validar si la API es publica o privada
             if (!handlerEndpoint.params.is_public) {
               // Validar si está autenticado
-              reply.code(401).send({ error: "Require token" });
+   //TODO           reply.code(401).send({ error: "Require token" });
             }
 
             request.openfusionapi = { handler: handlerEndpoint };
@@ -610,20 +614,22 @@ export default class ServerAPI extends EventEmitter {
 
         const appData = appDatas[0];
 
-        for (let i = 0; i < appData.apiserver_endpoints.length; i++) {
-          let endpoint = appData.apiserver_endpoints[i];
+        if (appData.endpoints) {
+          for (let i = 0; i < appData.endpoints.length; i++) {
+            let endpoint = appData.endpoints[i];
 
-          let url_app_endpoint = key_endpoint_method(
-            appData.app,
-            endpoint.resource,
-            endpoint.environment,
-            endpoint.method
-          );
+            let url_app_endpoint = key_endpoint_method(
+              appData.app,
+              endpoint.resource,
+              endpoint.environment,
+              endpoint.method
+            );
 
-          this._cacheEndpoint.set(
-            url_app_endpoint,
-            this._getApiHandler(appData.app, endpoint, appData.vars)
-          );
+            this._cacheEndpoint.set(
+              url_app_endpoint,
+              this._getApiHandler(appData.app, endpoint, appData.vars)
+            );
+          }
         }
       }
     } catch (error) {
