@@ -19,6 +19,7 @@ import { prefixTableName } from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
 import { createFunction } from "./handler/jsFunction.js";
 import { getApiHandler } from "./db/app.js";
+import { fnPublic, fnSystem } from "./server/functions/index.js";
 
 import fs from "fs";
 import path from "path";
@@ -106,6 +107,7 @@ export default class ServerAPI extends EventEmitter {
 
     this.buildDB();
     this.loadFunctionFiles();
+    this._addFunctions();
 
     this.fastify.addHook("preValidation", async (request, reply) => {
       let request_path_params = get_url_params(request.url);
@@ -277,6 +279,58 @@ export default class ServerAPI extends EventEmitter {
     const port = PORT || 3000;
     console.log("Listen on PORT " + port);
     await this.fastify.listen({ port: port });
+  }
+
+  _addFunctions() {
+    if (fnSystem) {
+      if (fnSystem.fn_system_prd) {
+        const entries = Object.entries(fnSystem.fn_system_prd);
+        for (let [fName, fn] of entries) {
+          console.log(":::::.> fnSystem >> ", fName, fn);
+          this._appendAppFunction("system", "prd", fName, fn);
+        }
+      }
+
+      if (fnSystem.fn_system_qa) {
+        const entries = Object.entries(fnSystem.fn_system_qa);
+        for (let [fName, fn] of entries) {
+          console.log(":::::.> fnSystem >> ", fName, fn);
+          this._appendAppFunction("system", "qa", fName, fn);
+        }
+      }
+
+      if (fnSystem.fn_system_dev) {
+        const entries = Object.entries(fnSystem.fn_system_dev);
+        for (let [fName, fn] of entries) {
+          console.log(":::::.> fnSystem >> ", fName, fn);
+          this._appendAppFunction("system", "dev", fName, fn);
+        }
+      }
+    }
+
+    if (fnPublic) {
+      if (fnPublic.fn_public_dev) {
+        const entriesP = Object.entries(fnPublic.fn_public_dev);
+        for (let [fName, fn] of entriesP) {
+          //console.log(prop + ": " + fn);
+          this._appendAppFunction("public", "dev", fName, fn);
+        }
+      }
+      if (fnPublic.fn_public_qa) {
+        const entriesP = Object.entries(fnPublic.fn_public_qa);
+        for (let [fName, fn] of entriesP) {
+          //console.log(prop + ": " + fn);
+          this._appendAppFunction("public", "qa", fName, fn);
+        }
+      }
+      if (fnPublic.fn_public_prd) {
+        const entriesP = Object.entries(fnPublic.fn_public_prd);
+        for (let [fName, fn] of entriesP) {
+          //console.log(prop + ": " + fn);
+          this._appendAppFunction("public", "dev", fName, fn);
+        }
+      }
+    }
   }
 
   _deleteEndpointsByAppName(app_name) {

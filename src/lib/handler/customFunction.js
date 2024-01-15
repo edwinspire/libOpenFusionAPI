@@ -1,10 +1,12 @@
-// @ts-ignore
+import Ajv from "ajv";
+const ajv = new Ajv();
+const validate_schema_out_customFunction = ajv.compile(schema_input_hooks);
 
 export const customFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
+  /** @type {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method,
-  /** @type {{ [x: string]: ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void) | ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }, arg2: any) => any); }} */ appFunctions
+  /** @type {{ [x: string]: ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void) | ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }, arg2: any) => any); }} */ appFunctions
 ) => {
   try {
     if (appFunctions && appFunctions[method.code]) {
@@ -16,13 +18,13 @@ export const customFunction = async (
 
       let fnresult = await appFunctions[method.code]($_REQUEST_, $_DATA);
 
-      if (fnresult) {
-        if (!fnresult.data || !fnresult.status) {
+      if (validate_schema_out_customFunction(fnresult)) {
+        if (!fnresult.data || !fnresult.code) {
           throw {
             error:
               "Custom functions " +
               method.code +
-              ' must return the "status" and "data" properties.',
+              ' must return the "code" and "data" properties.',
           };
         }
 
@@ -34,11 +36,9 @@ export const customFunction = async (
           response.openfusionapi.lastResponse.data = fnresult.data;
         }
         // @ts-ignore
-        response.code(fnresult.status).send(fnresult.data);
+        response.code(fnresult.code).send(fnresult.data);
       } else {
-        response
-          .code(500)
-          .send({ error: `Function ${method.code} not return data.` });
+        response.code(500).send(validate_schema_out_customFunction.errors);
       }
     } else {
       response.code(404).send({ error: `Function ${method.code} not found.` });
