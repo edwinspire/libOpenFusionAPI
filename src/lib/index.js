@@ -104,8 +104,20 @@ export default class ServerAPI extends EventEmitter {
       origin: "*",
     });
     await this.fastify.register(websocket);
+    
+    
+    
+const www_dir = 'www';
+const rutaDirectorio = path.join(process.cwd(), www_dir);
+
+// Verificar si el directorio existe
+if (!fs.existsSync(rutaDirectorio)) {
+  // Crear el directorio si no existe
+  fs.mkdirSync(rutaDirectorio);
+}
+    
     await this.fastify.register(fastifyStatic, {
-      root: join(__dirname, "www"),
+      root: rutaDirectorio,
       prefix: "/", // opcional: por defecto '/'
     });
 

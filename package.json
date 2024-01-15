@@ -10,6 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/edwinspire/libOpenFusionAPI.git"
   },
+  "main": "index.js",
   "keywords": [
     "Node",
     "javascript",
