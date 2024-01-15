@@ -176,17 +176,38 @@ export default class ServerAPI extends EventEmitter {
 
     // Route to internal Hook
     this.fastify.post(internal_url_post_hooks, async (request, reply) => {
-      console.log("Ok");
       // TODO: Evaluar si esta seccion requiere Token valido, ya que el acceso es solo interno
 
       // Valida que el origen sea solo local
       let ip_request = getIPFromRequest(request);
 
-      if (ip_request === "127.0.0.1") {
-        // Validar que contenga los campos requeridos
+      if (
+        ip_request === "127.0.0.1" ||
+        ip_request === "::1" ||
+        ip_request === "::ffff:127.0.0.1"
+      ) {
+        // TODO: Manejar un web hook por cada aplicación
+
+        // TODO: Hacer mas pruebas y verificar que pasa con  validate_schema_input_hooks cuando hay varios hilos. Se pueden llegar a mesclar las respuesta?
 
         if (validate_schema_input_hooks(request.body)) {
-          reply.send({ data: ip_request });
+          reply.send({ result: true });
+
+          if (req.body.data && req.body.data.model) {
+            //					let path = this._path_ws_hooks + '/' + req.body.model;
+
+            //						console.log('\n\nWS HOOKS >>>>> ', path);
+
+            if (
+              req.body.data.model == prefixTableName("application") &&
+              req.body.data.action &&
+              req.body.data.action === "afterUpsert"
+            ) {
+              // TODO: Buscar la forma de identificar la aplicación modificada y borrar de caché solo la que se modificó
+              // this._deleteEndpointsByAppName();
+              this._cacheApi.clear();
+            }
+          }
         } else {
           reply.code(400).send(validate_schema_input_hooks.errors);
         }
@@ -256,6 +277,15 @@ export default class ServerAPI extends EventEmitter {
     const port = PORT || 3000;
     console.log("Listen on PORT " + port);
     await this.fastify.listen({ port: port });
+  }
+
+  _deleteEndpointsByAppName(app_name) {
+    let list_endpoints = Array.from(this._cacheEndpoint.keys());
+    list_endpoints.forEach((lep) => {
+      if (lep.includes("/api/" + app_name)) {
+        this._cacheEndpoint.delete(lep);
+      }
+    });
   }
 
   loadFunctionFiles() {
