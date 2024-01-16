@@ -485,12 +485,19 @@ export const ApiUser = dbsequelize.define(
     password: {
       type: DataTypes.TEXT,
       allowNull: false,
-    } /*
-		jwt: {
-			type: DataTypes.TEXT,
-			allowNull: false,
-			defaultValue: ''
-			},*/,
+    },
+    start_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: "2000-01-01",
+      comment: 'User validity start date.'
+    },
+    end_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: "9999-01-01",
+      comment: 'End of validity date of the user.'
+    },
     idapp: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -507,9 +514,10 @@ export const ApiUser = dbsequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    validity_time: {
+    exp_time: {
       type: DataTypes.BIGINT,
-      defaultValue: 60,
+      defaultValue: 6000,
+      comment: "Token expiration time",
     },
     notes: {
       type: DataTypes.TEXT,
@@ -566,7 +574,7 @@ export const ApiUser = dbsequelize.define(
   }
 );
 
-Application.hasMany(ApiUser, { foreignKey: "idapp" });
+Application.hasMany(ApiUser, { foreignKey: "idapp", as: 'users' });
 ApiUser.belongsTo(Application, { foreignKey: "idapp" });
 
 export const Endpoint = dbsequelize.define(
@@ -583,7 +591,7 @@ export const Endpoint = dbsequelize.define(
       type: DataTypes.SMALLINT,
       defaultValue: 0,
     },
-    enabled: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false},
+    enabled: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false },
     idapp: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -593,18 +601,18 @@ export const Endpoint = dbsequelize.define(
       type: DataTypes.STRING(4),
       allowNull: false,
       defaultValue: "dev",
-      comment: 'Environment where it will be available. dev, qa, prd.'
+      comment: "Environment where it will be available. dev, qa, prd.",
     },
 
     resource: {
       type: DataTypes.STRING(300),
       allowNull: false,
-      comment: 'Endpoint path.'
+      comment: "Endpoint path.",
     },
     method: {
       type: DataTypes.STRING(10),
       allowNull: false,
-      comment: 'HTTP Method'
+      comment: "HTTP Method",
     },
     handler: {
       type: DataTypes.STRING(15),
@@ -614,7 +622,8 @@ export const Endpoint = dbsequelize.define(
       type: DataTypes.SMALLINT,
       allowNull: false,
       defaultValue: 2,
-      comment:'Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token'
+      comment:
+        "Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token",
     },
     code: {
       type: DataTypes.TEXT,
@@ -650,7 +659,8 @@ export const Endpoint = dbsequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      comment: 'Time in which the data will be kept in cache. Zero to disable the cache.'
+      comment:
+        "Time in which the data will be kept in cache. Zero to disable the cache.",
     },
   },
   {

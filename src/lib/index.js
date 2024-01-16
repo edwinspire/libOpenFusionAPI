@@ -6,7 +6,7 @@ import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
 import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { dirname } from "path";
 
 import dbAPIs from "./db/sequelize.js";
 import { defaultApps, getAppByName, getAppWithEndpoints } from "./db/app.js";
@@ -21,6 +21,7 @@ import { runHandler } from "./handler/handler.js";
 import { createFunction } from "./handler/jsFunction.js";
 import { getApiHandler } from "./db/app.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
+import { defaultAPIUser, getAPIUser } from "./db/api_user.js";
 
 import fs from "fs";
 import path from "path";
@@ -326,12 +327,11 @@ export default class ServerAPI extends EventEmitter {
             // Aqui el código para validar usuario y clave de API
             // Este paso puede ser pesado ya que se debe consultar a la base de datos. Es recomendable usarlo en lo minimo
             if (data_aut.Basic.username && data_aut.Basic.password) {
-              await _getTokenAPI(
+              request.openfusionapi.user = await getAPIUser(
                 handler.params.app,
                 data_aut.Basic.username,
                 data_aut.Basic.password
               );
-              request.openfusionapi.user = { data: 1000 }; //TODO: Por implementar
             } else {
               reply.code(401).send({ error: "API require a mandatory Token" });
             }
@@ -341,13 +341,6 @@ export default class ServerAPI extends EventEmitter {
           case 2:
             if (data_aut.Bearer.data && data_aut.Bearer.data.for == "api") {
               request.openfusionapi.user = data_aut.Bearer.data;
-            } else if (data_aut.Basic.username && data_aut.Basic.password) {
-              await _getTokenAPI(
-                handler.params.app,
-                data_aut.Basic.username,
-                data_aut.Basic.password
-              );
-              request.openfusionapi.user = { data: 1000 }; //TODO: Por implementar
             } else {
               reply.code(401).send({ error: "API require a mandatory Token" });
             }
@@ -356,6 +349,12 @@ export default class ServerAPI extends EventEmitter {
           case 3:
             if (data_aut.Bearer.data && data_aut.Bearer.data.for == "api") {
               request.openfusionapi.user = data_aut.Bearer.data;
+            } else if (data_aut.Basic.username && data_aut.Basic.password) {
+              request.openfusionapi.user = await getAPIUser(
+                handler.params.app,
+                data_aut.Basic.username,
+                data_aut.Basic.password
+              );
             } else {
               reply.code(401).send({ error: "API require a mandatory Token" });
             }
@@ -369,9 +368,7 @@ export default class ServerAPI extends EventEmitter {
     }
   }
 
-  async _getTokenAPI(appname, user, password) {
-    return true;
-  }
+  
 
   async _functions(
     req,
@@ -773,6 +770,7 @@ export default class ServerAPI extends EventEmitter {
           await defaultHandlers();
           await defaultApps();
           await defaultEndpoints();
+          await defaultAPIUser();
         } catch (error) {
           console.log(error);
         }

@@ -111,6 +111,7 @@ export function getApiHandler(app_name, endpointData, appVarsEnv) {
 		let appVars = appVarsEnv[endpointData.environment];
 
 		if (endpointData.enabled) {
+			/*
 			// @ts-ignore
 			if (returnHandler.params.is_public) {
 				returnHandler.authentication = async () => {
@@ -119,10 +120,11 @@ export function getApiHandler(app_name, endpointData, appVarsEnv) {
 				};
 			} else {
 				// @ts-ignore
-				returnHandler.authentication = async (/** @type {string} */ jw_token) => {
+				returnHandler.authentication = async ( jw_token) => {
 					return checkAPIToken(app_name, endpointData, jw_token);
 				};
 			}
+			*/
 
 			// @ts-ignore
 			returnHandler.params.code = returnHandler.params.code || '';
