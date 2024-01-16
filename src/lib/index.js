@@ -160,7 +160,7 @@ export default class ServerAPI extends EventEmitter {
 
             if (handlerEndpoint.params.enabled) {
               request.openfusionapi = { handler: handlerEndpoint };
-              this._check_auth();
+              this._check_auth(handlerEndpoint, request, reply);
             } else {
               reply.code().send({ message: "Endpoint unabled." });
             }
@@ -302,15 +302,75 @@ export default class ServerAPI extends EventEmitter {
     await this.fastify.listen({ port: port });
   }
 
-  _check_auth(handler, request) {
+  async _check_auth(handler, request, reply) {
     // Validar si la API es publica o privada
-    if (!handler.params.is_public) {
-      let data = getUserPasswordTokenFromRequest(request);
-// 
 
+    if (handler.params.access > 0) {
+      let data_aut = getUserPasswordTokenFromRequest(request);
 
-      //                reply.code(401).send({ error: "Require token" });
+      //
+      if (handler.params.app == "system") {
+        // Las APIs de system solo se pueden acceder con token de usuario
+        if (data_aut.Bearer.data && data_aut.Bearer.data.for == "user") {
+          request.openfusionapi.user = data_aut.Bearer.data;
+        } else {
+          reply
+            .code(401)
+            .send({ error: "System APIs require a mandatory Token" });
+        }
+      } else {
+        //
+
+        switch (handler.params.access) {
+          case 1: // Basic
+            // Aqui el código para validar usuario y clave de API
+            // Este paso puede ser pesado ya que se debe consultar a la base de datos. Es recomendable usarlo en lo minimo
+            if (data_aut.Basic.username && data_aut.Basic.password) {
+              await _getTokenAPI(
+                handler.params.app,
+                data_aut.Basic.username,
+                data_aut.Basic.password
+              );
+              request.openfusionapi.user = { data: 1000 }; //TODO: Por implementar
+            } else {
+              reply.code(401).send({ error: "API require a mandatory Token" });
+            }
+
+            break;
+
+          case 2:
+            if (data_aut.Bearer.data && data_aut.Bearer.data.for == "api") {
+              request.openfusionapi.user = data_aut.Bearer.data;
+            } else if (data_aut.Basic.username && data_aut.Basic.password) {
+              await _getTokenAPI(
+                handler.params.app,
+                data_aut.Basic.username,
+                data_aut.Basic.password
+              );
+              request.openfusionapi.user = { data: 1000 }; //TODO: Por implementar
+            } else {
+              reply.code(401).send({ error: "API require a mandatory Token" });
+            }
+
+            break;
+          case 3:
+            if (data_aut.Bearer.data && data_aut.Bearer.data.for == "api") {
+              request.openfusionapi.user = data_aut.Bearer.data;
+            } else {
+              reply.code(401).send({ error: "API require a mandatory Token" });
+            }
+
+            break;
+          default:
+            reply.code(401).send({ error: "Unknown authorization type." });
+            break;
+        }
+      }
     }
+  }
+
+  async _getTokenAPI(appname, user, password) {
+    return true;
   }
 
   async _functions(

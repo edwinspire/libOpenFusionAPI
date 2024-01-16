@@ -87,7 +87,7 @@ export const endpoins_default = [
 		environment: 'prd',
 		method: 'WS',
 		handler: 'NA',
-		is_public: true,
+		access: 0,
 		for_user: true,
 		for_api: true,
 		code: ''
@@ -99,7 +99,7 @@ export const endpoins_default = [
 		environment: 'dev',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: true,
+		access: 0,
 		for_user: true,
 		for_api: true,
 		code: 'fnToken'
@@ -111,7 +111,7 @@ export const endpoins_default = [
 		resource: '/api/token/0.01',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: true,
+		access: 0,
 		for_user: true,
 		for_api: true,
 		code: 'fnToken'
@@ -123,7 +123,7 @@ export const endpoins_default = [
 		resource: '/api/token/0.01',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: true,
+		access: 0,
 		for_user: true,
 		for_api: true,
 		code: 'fnToken'
@@ -136,7 +136,7 @@ export const endpoins_default = [
 		resource: '/api/apps/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetApps'
@@ -148,7 +148,7 @@ export const endpoins_default = [
 		resource: '/api/apps/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetApps'
@@ -160,7 +160,7 @@ export const endpoins_default = [
 		resource: '/api/apps/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetApps'
@@ -173,7 +173,7 @@ export const endpoins_default = [
 		resource: '/api/app/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetAppById'
@@ -185,7 +185,7 @@ export const endpoins_default = [
 		resource: '/api/app/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetAppById'
@@ -197,7 +197,7 @@ export const endpoins_default = [
 		resource: '/api/app/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetAppById'
@@ -210,7 +210,7 @@ export const endpoins_default = [
 		resource: '/api/app/0.01',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnSaveApp'
@@ -222,7 +222,7 @@ export const endpoins_default = [
 		resource: '/api/app/0.01',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnSaveApp'
@@ -234,7 +234,7 @@ export const endpoins_default = [
 		resource: '/api/app/0.01',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnSaveApp'
@@ -247,7 +247,7 @@ export const endpoins_default = [
 		resource: '/system/login/0.01',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: true,
+		access: 0,
 		for_user: true,
 		for_api: true,
 		code: 'fnLogin'
@@ -260,7 +260,7 @@ export const endpoins_default = [
 		resource: '/system/logout/0.01',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnLogout'
@@ -272,7 +272,7 @@ export const endpoins_default = [
 		resource: '/system/handler/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetHandler'
@@ -285,7 +285,7 @@ export const endpoins_default = [
 		resource: '/system/method/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetMethod'
@@ -298,7 +298,7 @@ export const endpoins_default = [
 		resource: '/system/environment/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: false,
+		access: 2,
 		for_user: true,
 		for_api: false,
 		code: 'fnGetEnvironment'
@@ -311,7 +311,7 @@ export const endpoins_default = [
 		resource: '/main/test_functions/0.01',
 		method: 'GET',
 		handler: 'FUNCTION',
-		is_public: true,
+		access: 0,
 		code: 'fnPublicAdd'
 	},
 
@@ -322,7 +322,7 @@ export const endpoins_default = [
 		resource: '/main/test_functions/0.01',
 		method: 'POST',
 		handler: 'FUNCTION',
-		is_public: true,
+		access: 0,
 		code: 'fnPublicDemo'
 	},
 
@@ -333,7 +333,7 @@ export const endpoins_default = [
 		resource: '/main/test_fetch/0.01',
 		method: 'GET',
 		handler: 'FETCH',
-		is_public: true,
+		access: 0,
 		code: 'https://api.github.com/users/edwinspire'
 	},
 	{
@@ -343,7 +343,7 @@ export const endpoins_default = [
 		resource: '/main/test_fetch/0.01',
 		method: 'WS',
 		handler: 'NA',
-		is_public: true,
+		access: 0,
 		code: 'https://api.github.com/users/edwinspire'
 	},
 
@@ -354,7 +354,7 @@ export const endpoins_default = [
 		resource: '/main/test_fetch/0.02',
 		method: 'GET',
 		handler: 'FETCH',
-		is_public: true,
+		access: 0,
 		code: '$_VAR_FETCH'
 	},
 
@@ -365,7 +365,7 @@ export const endpoins_default = [
 		resource: '/main/test_javascript/0.01',
 		method: 'GET',
 		handler: 'JS',
-		is_public: true,
+		access: 0,
 		code: '$_RETURN_DATA_ = {name: $_REQUEST_.query.name};'
 	},
 
@@ -376,7 +376,7 @@ export const endpoins_default = [
 		resource: '/main/test_javascript/0.02',
 		method: 'GET',
 		handler: 'JS',
-		is_public: false,
+		access: 2,
 		code: '$_RETURN_DATA_ = $_VARS_APP;'
 	},
 
@@ -387,7 +387,7 @@ export const endpoins_default = [
 		resource: '/main/test_soap/0.01',
 		method: 'GET',
 		handler: 'SOAP',
-		is_public: true,
+		access: 0,
 		code: '{\n  "wsdl": "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",\n  "FunctionName": "NumberToDollars",\n  "BasicAuthSecurity": {\n    "User": "any",\n    "Password": "any"\n  }\n}'
 	},
 
@@ -398,7 +398,7 @@ export const endpoins_default = [
 		resource: '/main/test_soap/0.02',
 		method: 'GET',
 		handler: 'SOAP',
-		is_public: true,
+		access: 0,
 		code: '"$_VAR_SOAP_TEST"'
 	},
 
@@ -409,7 +409,7 @@ export const endpoins_default = [
 		resource: '/main/test_sql/0.03',
 		method: 'GET',
 		handler: 'SQL',
-		is_public: true,
+		access: 0,
 		code: '{"config": {"database": "memory",\n  "username": "",\n  "password": "",\n  "options": {\n    "host": "localhost",\n    "dialect": "sqlite"\n  }},  "query": "SELECT 1097 AS test_sql;"\n}'
 	},
 	{
@@ -419,7 +419,7 @@ export const endpoins_default = [
 		resource: '/main/test_sql/0.02',
 		method: 'GET',
 		handler: 'SQL',
-		is_public: true,
+		access: 0,
 		code: '{"config": {"database": "memory",\n  "username": "",\n  "password": "",\n  "options": {\n    "host": "localhost",\n    "dialect": "sqlite"\n  }},\n  "query": "SELECT $name as nombre;"\n}'
 	},
 	{
@@ -429,7 +429,7 @@ export const endpoins_default = [
 		resource: '/main/test_sql/0.03',
 		method: 'GET',
 		handler: 'SQL',
-		is_public: true,
+		access: 0,
 		code: '{"config": { "database": "omsv2",\n  "username": "postgres",\n  "password": "pg4321",\n  "options": {\n    "host": "132.128.241.18",\n    "port": 5454,\n    "dialect": "postgres"\n  }}, "query": "SELECT NOW();"\n}'
 	},
 	{
@@ -439,7 +439,7 @@ export const endpoins_default = [
 		resource: '/main/test_sql/0.04',
 		method: 'GET',
 		handler: 'SQL',
-		is_public: true,
+		access: 0,
 		code: '{"config": { "database": "msdb",\n  "username": "sa",\n  "password": "sqlkarma",\n  "options": {\n    "host": "192.168.138.30",\n    "dialect": "mssql",\n    "encrypt": false\n  }}, "query": "SELECT\\n    job_id AS [Job ID],\\n    name AS [Job Name],\\n    enabled AS [Is Enabled]\\nFROM\\n    msdb.dbo.sysjobs;"\n}'
 	},
 	{
@@ -449,7 +449,7 @@ export const endpoins_default = [
 		resource: '/main/test_sql/0.05',
 		method: 'GET',
 		handler: 'SQL',
-		is_public: true,
+		access: 0,
 		code: '{\n  "config": "$_VAR_SQLITE",\n  "query": "SELECT $name as nombre, strftime(\'%Y-%m-%d %H-%M-%S\',\'now\') AS dt;"\n}'
 	},
 
@@ -460,7 +460,7 @@ export const endpoins_default = [
 		resource: '/main/test_ws/0.01',
 		method: 'WS',
 		handler: 'NA',
-		is_public: false,
+		access: 2,
 		code: '{"userAuthentication":false,"tokenAuthentication":false,"broadcast":true}'
 	},
 	{
@@ -470,7 +470,7 @@ export const endpoins_default = [
 		resource: '/main/test_ws/0.02',
 		method: 'WS',
 		handler: 'NA',
-		is_public: true,
+		access: 0,
 		code: '{"userAuthentication":true,"tokenAuthentication":false,"broadcast":false}'
 	},
 	{
@@ -480,7 +480,7 @@ export const endpoins_default = [
 		resource: '/main/test_ws/0.03',
 		method: 'WS',
 		handler: 'NA',
-		is_public: false,
+		access: 2,
 		code: '{"userAuthentication":false,"tokenAuthentication":true,"broadcast":false}'
 	},
 
@@ -491,7 +491,7 @@ export const endpoins_default = [
 		resource: '/main/test_mqtt/0.01',
 		method: 'MQTT',
 		handler: 'NA',
-		is_public: true,
+		access: 0,
 		code: '{"subscribe":true,"publish":true,"broadcast":false}'
 	},
 
@@ -502,7 +502,7 @@ export const endpoins_default = [
 		resource: '/main/test_javascript/array_objects/0.01',
 		method: 'GET',
 		handler: 'JS',
-		is_public: true,
+		access: 0,
 		code: '$_RETURN_DATA_ = [];\n\nwhile ($_RETURN_DATA_.length < 30) {\n  const objeto = { value1: Math.floor(Math.random() * 1000), value2: Math.floor(Math.random() * 1000) };\n  $_RETURN_DATA_.push(objeto);\n}\n'
 	},
 	{
@@ -512,7 +512,7 @@ export const endpoins_default = [
 		resource: '/main/test_javascript/fetch/0.01',
 		method: 'GET',
 		handler: 'JS',
-		is_public: true,
+		access: 0,
 		code: "let uf = new $_UFETCH_();\nlet r1 = await uf.get('http://localhost:3000/api/demo/main/test_javascript_return_array_objects/v0.01/dev');\n\n$_RETURN_DATA_ = await r1.json();\n"
 	},
 	{
@@ -522,7 +522,7 @@ export const endpoins_default = [
 		resource: '/main/test_javascript/two_fetch_ByBlocks/0.01',
 		method: 'GET',
 		handler: 'JS',
-		is_public: true,
+		access: 0,
 		code: "let uf = new $_UFETCH_();\n// First fetch\nlet r1 = await uf.get('http://localhost:3000/api/demo/main/test_javascript_return_array_objects/v0.01/dev');\nlet r1j = await r1.json();\n\n// Second fetch with Secuential Promise\nlet rblock = await $_SECUENTIAL_PROMISES_.ByBlocks(async(data)=>{\nlet val = data.value1+data.value2; \n\nlet r2 = await uf.get('http://localhost:3000/api/demo/main/test_soap/v0.01/dev', {dNum: val});\nlet r2j = await r2.json();\n  \n  return r2j;  \n}, r1j, 2);\n\n\n\n$_RETURN_DATA_ = await rblock;\n"
 	}
 ];

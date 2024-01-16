@@ -613,7 +613,7 @@ export const Endpoint = dbsequelize.define(
     access: {
       type: DataTypes.SMALLINT,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue: 2,
       comment:'Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token'
     },
     code: {
