@@ -55,7 +55,7 @@ export async function getAPIToken(app_name, username, password) {
             app: app_name,
             attr: au,
           },
-          au.exp_time * 1000 + new Date()
+          (au.exp_time * 1000) + Date.now()
         );
 
         return token;
