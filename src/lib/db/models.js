@@ -374,7 +374,7 @@ export const Application = dbsequelize.define(
         await HooksDB({
           model: prefixTableName("application"),
           action: "afterUpsert",
-          row: instance.app,
+          row: instance,
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
@@ -583,9 +583,7 @@ export const Endpoint = dbsequelize.define(
       type: DataTypes.SMALLINT,
       defaultValue: 0,
     },
-    enabled: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false },
-    for_user: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false },
-    for_api: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: true },
+    enabled: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false},
     idapp: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -595,24 +593,28 @@ export const Endpoint = dbsequelize.define(
       type: DataTypes.STRING(4),
       allowNull: false,
       defaultValue: "dev",
+      comment: 'Environment where it will be available. dev, qa, prd.'
     },
 
     resource: {
       type: DataTypes.STRING(300),
       allowNull: false,
+      comment: 'Endpoint path.'
     },
     method: {
       type: DataTypes.STRING(10),
       allowNull: false,
+      comment: 'HTTP Method'
     },
     handler: {
       type: DataTypes.STRING(15),
       allowNull: false,
     },
-    is_public: {
-      type: DataTypes.BOOLEAN,
+    access: {
+      type: DataTypes.SMALLINT,
       allowNull: false,
-      defaultValue: true,
+      defaultValue: 0,
+      comment:'Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token'
     },
     code: {
       type: DataTypes.TEXT,
@@ -648,6 +650,7 @@ export const Endpoint = dbsequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+      comment: 'Time in which the data will be kept in cache. Zero to disable the cache.'
     },
   },
   {

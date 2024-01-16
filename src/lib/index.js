@@ -104,18 +104,16 @@ export default class ServerAPI extends EventEmitter {
       origin: "*",
     });
     await this.fastify.register(websocket);
-    
-    
-    
-const www_dir = 'www';
-const rutaDirectorio = path.join(process.cwd(), www_dir);
 
-// Verificar si el directorio existe
-if (!fs.existsSync(rutaDirectorio)) {
-  // Crear el directorio si no existe
-  fs.mkdirSync(rutaDirectorio);
-}
-    
+    const www_dir = "www";
+    const rutaDirectorio = path.join(process.cwd(), www_dir);
+
+    // Verificar si el directorio existe
+    if (!fs.existsSync(rutaDirectorio)) {
+      // Crear el directorio si no existe
+      fs.mkdirSync(rutaDirectorio);
+    }
+
     await this.fastify.register(fastifyStatic, {
       root: rutaDirectorio,
       prefix: "/", // opcional: por defecto '/'
@@ -145,24 +143,30 @@ if (!fs.existsSync(rutaDirectorio)) {
           await this._loadEndpointsByAPPToCache(request_path_params.app);
         }
 
-        ///
-        if (this._cacheEndpoint.has(path_endpoint_method)) {
-          let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
-          handlerEndpoint.url = request_path_params.path;
-
-          if (handlerEndpoint.params.enabled) {
-            // Validar si la API es publica o privada
-            if (!handlerEndpoint.params.is_public) {
-              // Validar si está autenticado
-   //TODO           reply.code(401).send({ error: "Require token" });
-            }
-
-            request.openfusionapi = { handler: handlerEndpoint };
-          } else {
-            reply.code().send({ message: "Endpoint unabled." });
+        if (request_path_params.path == "/api/system/functions/prd") {
+          try {
+            //	console.log('Functions >>>>>>>');
+            // @ts-ignore
+            this._functions(request, reply);
+          } catch (error) {
+            // @ts-ignore
+            reply.code(500).send({ error: error.message });
           }
         } else {
-          reply.code(404).send({ error: "Not Found" });
+          ///
+          if (this._cacheEndpoint.has(path_endpoint_method)) {
+            let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
+            handlerEndpoint.url = request_path_params.path;
+
+            if (handlerEndpoint.params.enabled) {
+              request.openfusionapi = { handler: handlerEndpoint };
+              this._check_auth();
+            } else {
+              reply.code().send({ message: "Endpoint unabled." });
+            }
+          } else {
+            reply.code(404).send({ error: "Not Found" });
+          }
         }
       }
     });
@@ -179,8 +183,6 @@ if (!fs.existsSync(rutaDirectorio)) {
           reply.openfusionapi.lastResponse.data
         );
       }
-
-      console.log("Fin");
     });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
@@ -211,19 +213,22 @@ if (!fs.existsSync(rutaDirectorio)) {
         if (validate_schema_input_hooks(request.body)) {
           reply.send({ result: true });
 
-          if (req.body.data && req.body.data.model) {
-            //					let path = this._path_ws_hooks + '/' + req.body.model;
-
-            //						console.log('\n\nWS HOOKS >>>>> ', path);
-
+          if (request.body.data && request.body.data.db.model) {
             if (
-              req.body.data.model == prefixTableName("application") &&
-              req.body.data.action &&
-              req.body.data.action === "afterUpsert"
+              request.body.data.db.model == prefixTableName("application") &&
+              request.body.data.db.action &&
+              request.body.data.db.action === "afterUpsert"
             ) {
-              // TODO: Buscar la forma de identificar la aplicación modificada y borrar de caché solo la que se modificó
-              // this._deleteEndpointsByAppName();
-              this._cacheApi.clear();
+              if (
+                request.body.data.db &&
+                Array.isArray(request.body.data.db.row)
+              ) {
+                request.body.data.db.row.forEach((row) => {
+                  if (row) {
+                    this._deleteEndpointsByAppName(row.app);
+                  }
+                });
+              }
             }
           }
         } else {
@@ -295,6 +300,48 @@ if (!fs.existsSync(rutaDirectorio)) {
     const port = PORT || 3000;
     console.log("Listen on PORT " + port);
     await this.fastify.listen({ port: port });
+  }
+
+  _check_auth(handler, request) {
+    // Validar si la API es publica o privada
+    if (!handler.params.is_public) {
+      let data = getUserPasswordTokenFromRequest(request);
+// 
+
+
+      //                reply.code(401).send({ error: "Require token" });
+    }
+  }
+
+  async _functions(
+    req,
+    /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ res
+  ) {
+    try {
+      if (req && req.query && req.query.appName && req.query.environment) {
+        // @ts-ignore
+        res
+          .code(200)
+          .send(
+            this._getNameFunctions(req.query.appName, req.query.environment)
+          );
+      } else {
+        res.code(400).send({ error: "appName and environment are required" });
+      }
+    } catch (error) {
+      console.trace(error);
+      // @ts-ignore
+      res.code(500).send({ error: error.message });
+    }
+  }
+
+  _getNameFunctions(appName, environment) {
+    let f = this._getFunctions(appName, environment);
+    if (f) {
+      return Object.keys(f);
+    }
+
+    return [];
   }
 
   _addFunctions() {

@@ -206,15 +206,12 @@ export function getUserPasswordTokenFromRequest(req) {
 
   if (authHeader && authHeader.startsWith("Bearer")) {
     token = authHeader.split(" ")[1];
-
     data_token = checkToken(token);
   }
 
   return {
-    username: username,
-    password: password,
-    token: token,
-    data_token: data_token,
+    Basic: { username: username, password: password },
+    Bearer: { token: token, data: data_token },
   };
 }
 

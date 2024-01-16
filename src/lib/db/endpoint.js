@@ -77,7 +77,7 @@ export const defaultEndpoints = async () => {
 				o = await Endpoint.findOrCreate({
 					where: { idapp: element.idapp, environment: element.environment, resource: element.resource, method: element.method }, // Campos para la cláusula WHERE
 					// @ts-ignore
-					defaults: { code: element.code, handler: element.handler, is_public: element.is_public, for_user: element.for_user, for_api: element.for_api }, // Campos para actualizar si se encuentra
+					defaults: { code: element.code, handler: element.handler, access: element.access, }, // Campos para actualizar si se encuentra
 				});
 			} catch (error) {
 				o = error;

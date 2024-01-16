@@ -16,9 +16,7 @@ export const getAppWithEndpoints = async (/** @type {any} */ where, /** @type {b
 			attributes: [
 				'idendpoint',
 				'enabled',
-				'is_public',
-				'for_user',
-				'for_api',
+				'access',
 				'environment',
 				'resource',
 				'method',
@@ -48,39 +46,9 @@ export const getAppById = async (
 	raw = false
 ) => {
 	try {
-		/*
-		const app = await Application.findByPk(idapp, {
-			attributes: ['idapp', 'app', 'data', 'vars']
-		});
-*/
+		
 		const app = await getAppWithEndpoints({ idapp: idapp }, raw);
-		/*
-		const app = await Application.findAll({
-			where: { idapp: idapp },
-			attributes: ['idapp', 'app', 'description', 'enabled', 'vars', 'rowkey'],
-			include: {
-				model: Endpoint,
-				required: true, // INNER JOIN
-				attributes: [
-					'idendpoint',
-					'enabled',
-					'namespace',
-					'name',
-					'version',
-					'environment',
-					'method',
-					'handler',
-					'is_public',
-					'code',
-					'description',
-					'rowkey'
-				]
-			},
-			raw: raw, 
-			nest: false
-		});
-		*/
-
+		
 		return app;
 	} catch (error) {
 		console.error('Error retrieving app:', error);
