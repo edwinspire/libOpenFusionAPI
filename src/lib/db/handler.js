@@ -20,6 +20,7 @@ export const defaultHandlers = () => {
       { id: "FETCH", text: `FETCH`, description:  'Make fetch requests. It works like a proxy.'},
       { id: "JS", text: `JAVASCRIPT`, description:  'Run basic Javascript code.' },
       { id: "SOAP", text: `SOAP`, description:  'Useful for consuming SOAP services.' },
+      { id: "SOAPFn", text: `SOAP Function`, description:  'Useful for consuming only one Function from SOAP services.' },
       { id: "SQL", text: `SQL`, description:  'Make SQL queries to different databases.' },
       { id: "FUNCTION", text: `FUNCTION`, description:  'Calls custom functions written on the server.' }
     ];

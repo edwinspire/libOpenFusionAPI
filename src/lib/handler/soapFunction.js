@@ -60,7 +60,7 @@ export const SOAPGenericClient = async (
   // console.log("SOAPGenericClient", SOAPParameters);
 
   try {
-    if (validate_schema_input_genericSOAP()) {
+    if (validate_schema_input_genericSOAP(SOAPParameters)) {
       let client = await soap.createClientAsync(SOAPParameters.wsdl);
 
       // console.log('Client >>>>>> SOAP: ', client);

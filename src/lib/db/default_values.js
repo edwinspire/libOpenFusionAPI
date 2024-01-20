@@ -16,7 +16,7 @@ export const varsDemo = {
     },
     $_VAR_SOAP_TEST: {
       wsdl: "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",
-      FunctionName: "NumberToDollars",
+      functionName: "NumberToDollars",
       BasicAuthSecurity: {
         User: "any",
         Password: "any",
@@ -38,7 +38,7 @@ export const varsDemo = {
     },
     $_VAR_SOAP_TEST: {
       wsdl: "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",
-      FunctionName: "NumberToDollars",
+      functionName: "NumberToDollars",
       BasicAuthSecurity: {
         User: "any",
         Password: "any",
@@ -60,7 +60,7 @@ export const varsDemo = {
     },
     $_VAR_SOAP_TEST: {
       wsdl: "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",
-      FunctionName: "NumberToDollars",
+      functionName: "NumberToDollars",
       BasicAuthSecurity: {
         User: "any",
         Password: "any",
@@ -394,7 +394,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "SOAPFn",
     access: 0,
-    code: '{\n  "wsdl": "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",\n  "FunctionName": "NumberToDollars",\n  "BasicAuthSecurity": {\n    "User": "any",\n    "Password": "any"\n  }\n}',
+    code: '{\n  "wsdl": "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",\n  "functionName": "NumberToDollars",\n  "BasicAuthSecurity": {\n    "User": "any",\n    "Password": "any"\n  }\n}',
   },
 
   {

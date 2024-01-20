@@ -19,5 +19,5 @@ export const schema_input_genericSOAP = {
     },
     BearerSecurity: { type: "string" },
   },
-  required: ["wsdl", "function"],
+  required: ["wsdl", "functionName"],
 };

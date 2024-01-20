@@ -485,9 +485,8 @@ export const ApiUser = dbsequelize.define(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      defaultValue: ''
     },
-    
     password: {
       type: DataTypes.TEXT,
       allowNull: false,
