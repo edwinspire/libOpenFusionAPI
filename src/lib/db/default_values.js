@@ -396,7 +396,16 @@ export const endpoins_default = [
     access: 0,
     code: '{\n  "wsdl": "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",\n  "functionName": "NumberToDollars",\n  "BasicAuthSecurity": {\n    "User": "any",\n    "Password": "any"\n  }\n}',
   },
-
+  {
+    enabled: true,
+    idapp: "c4ca4238a0b923820dcc509a6f75849b",
+    environment: "dev",
+    resource: "/main/test_soap/full_functions",
+    method: "POST",
+    handler: "SOAP",
+    access: 0,
+    code: '{\n  "wsdl": "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",\n  "BasicAuthSecurity": {\n    "User": "any",\n    "Password": "any"\n  }\n}',
+  },
   {
     enabled: true,
     idapp: "c4ca4238a0b923820dcc509a6f75849b",

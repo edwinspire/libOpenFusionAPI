@@ -55,12 +55,22 @@ export const soapFunction = async (
 };
 
 export const SOAPGenericClient = async (
-  /** @type {{ wsdl: string; FunctionName: string | any[]; BasicAuthSecurity: { User: any; Password: any; }; RequestArgs: any; }} */ SOAPParameters
+  /** @type {{ wsdl: string; functionName: string | any[]; BasicAuthSecurity: { User: any; Password: any; }; RequestArgs: any; }} */ SOAPParameters
 ) => {
   // console.log("SOAPGenericClient", SOAPParameters);
 
   try {
-    if (validate_schema_input_genericSOAP(SOAPParameters)) {
+    let describe = false;
+
+    if (
+      SOAPParameters["describe()"] ||
+      (SOAPParameters.RequestArgs && SOAPParameters.RequestArgs["describe()"])
+    ) {
+      describe = true;
+      SOAPParameters.functionName = SOAPParameters.functionName || "undefined";
+    }
+
+    if (describe || validate_schema_input_genericSOAP(SOAPParameters)) {
       let client = await soap.createClientAsync(SOAPParameters.wsdl);
 
       // console.log('Client >>>>>> SOAP: ', client);
@@ -83,10 +93,9 @@ export const SOAPGenericClient = async (
 
       let r;
 
-      if (SOAPParameters.describe) {
+      if (describe) {
         r = client.describe();
       } else {
-        //console.log("SOAPGenericClient createClient", client);
         let result = await client[SOAPParameters.functionName + "Async"](
           SOAPParameters.RequestArgs
         );
@@ -112,13 +121,7 @@ function joinObj(objA, objB) {
 
   // Iterar sobre las propiedades del objB
   for (const propiedad in objB) {
-    if (objB.hasOwnProperty(propiedad)) {
-      // Si la propiedad ya existe en resultado, reemplazar el valor
-      // de lo contrario, agregar la propiedad al resultado
-      r[propiedad] = r.hasOwnProperty(propiedad)
-        ? objB[propiedad]
-        : r[propiedad];
-    }
+    r[propiedad] = objB[propiedad];
   }
 
   return r;
