@@ -25,7 +25,7 @@ export const defaultMethods = () => {
 			{ id: 'POST', text: `POST` },
 			{ id: 'PUT', text: `PUT` },
 			{ id: 'WS', text: `WS` },
-			{ id: 'MQTT', text: `MQTT` }
+			{ id: 'OPTIONS', text: `OPTIONS` }
 		];
 
 		methods.forEach(async (m) => {
