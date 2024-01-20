@@ -21,6 +21,8 @@ export const customFunction = async (
       let fnresult = await appFunctions[method.code]($_REQUEST_, $_DATA, response);
 
       if (validate_schema_out_customFunction(fnresult)) {
+        
+        /*
         if (!fnresult.data || !fnresult.code) {
           throw {
             error:
@@ -29,6 +31,7 @@ export const customFunction = async (
               ' must return the "code" and "data" properties.',
           };
         }
+        */
 
         if (
           response.openfusionapi.lastResponse &&

@@ -1,5 +1,12 @@
 //import { uFetch } from "@edwinspire/universal-fetch";
 import soap from 'soap';
+import Ajv from "ajv";
+import { schema_return_customFunction } from "./json_schemas.js";
+
+const ajv = new Ajv();
+const validate_schema_out_customFunction = ajv.compile(schema_return_customFunction);
+
+
 /*
 import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
@@ -44,7 +51,8 @@ export const soapFunction = async (
 	////
 };
 
-const SOAPGenericClient = async (
+
+export const SOAPGenericClient = async (
 	/** @type {{ wsdl: string; FunctionName: string | any[]; BasicAuthSecurity: { User: any; Password: any; }; RequestArgs: any; }} */ SOAPParameters
 ) => {
 	// console.log("SOAPGenericClient", SOAPParameters);
