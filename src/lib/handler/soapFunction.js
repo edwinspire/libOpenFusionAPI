@@ -1,10 +1,10 @@
 //import { uFetch } from "@edwinspire/universal-fetch";
 import soap from 'soap';
 import Ajv from "ajv";
-import { schema_return_customFunction } from "./json_schemas.js";
+import { schema_input_genericSOAP } from "./json_schemas.js";
 
 const ajv = new Ajv();
-const validate_schema_out_customFunction = ajv.compile(schema_return_customFunction);
+const validate_schema_input_genericSOAP = ajv.compile(schema_input_genericSOAP);
 
 
 /*
@@ -35,11 +35,11 @@ export const soapFunction = async (
 		}
 
 		let soap_response = await SOAPGenericClient(SOAPParameters);
-		
+
 		if (response.openfusionapi.lastResponse && response.openfusionapi.lastResponse.hash_request) {
 			// @ts-ignore
 			response.openfusionapi.lastResponse.data = soap_response;
-		  }
+		}
 
 		response.code(200).send(soap_response);
 	} catch (error) {
@@ -58,38 +58,38 @@ export const SOAPGenericClient = async (
 	// console.log("SOAPGenericClient", SOAPParameters);
 
 	try {
-		if (SOAPParameters && SOAPParameters.wsdl && SOAPParameters.wsdl.length > 0) {
-			if (SOAPParameters.FunctionName && SOAPParameters.FunctionName.length > 0) {
-				//      console.log("SOAPGenericClient createClient", wsdl);
-				//         console.log("SOAPGenericClient createClient", wsdl);
 
-				let client = await soap.createClientAsync(SOAPParameters.wsdl);
+		if (validate_schema_input_genericSOAP()) {
+			//      console.log("SOAPGenericClient createClient", wsdl);
+			//         console.log("SOAPGenericClient createClient", wsdl);
 
-				// console.log('Client >>>>>> SOAP: ', client);
+			let client = await soap.createClientAsync(SOAPParameters.wsdl);
 
-				if (SOAPParameters.BasicAuthSecurity && SOAPParameters.BasicAuthSecurity.User) {
-					client.setSecurity(
-						new soap.BasicAuthSecurity(
-							SOAPParameters.BasicAuthSecurity.User,
-							SOAPParameters.BasicAuthSecurity.Password
-						)
-					);
-				}
+			// console.log('Client >>>>>> SOAP: ', client);
 
-				//console.log("SOAPGenericClient createClient", client);
-				let result = await client[SOAPParameters.FunctionName + 'Async'](
-					SOAPParameters.RequestArgs
+			if (SOAPParameters.BasicAuthSecurity && SOAPParameters.BasicAuthSecurity.User) {
+				client.setSecurity(
+					new soap.BasicAuthSecurity(
+						SOAPParameters.BasicAuthSecurity.User,
+						SOAPParameters.BasicAuthSecurity.Password
+					)
 				);
-				let r = await result;
-
-				//     console.log("SOAPGenericClient result", r);
-				return r[0];
-			} else {
-				return { error: 'No se ha definido la funcion SOAP' };
 			}
+
+			//console.log("SOAPGenericClient createClient", client);
+			let result = await client[SOAPParameters.FunctionName + 'Async'](
+				SOAPParameters.RequestArgs
+			);
+			let r = await result;
+
+			//     console.log("SOAPGenericClient result", r);
+			return r[0];
+
 		} else {
-			return { error: 'No se ha definido la URL del WSDL' };
+			return { error: validate_schema_input_genericSOAP.errors }
 		}
+
+
 	} catch (error) {
 		console.trace(error);
 		// @ts-ignore
