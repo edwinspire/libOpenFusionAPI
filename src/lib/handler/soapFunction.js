@@ -22,18 +22,19 @@ export const soapFunction = async (
     let SOAPParameters = JSON.parse(method.code);
 
     //    console.log(SOAPParameters);
+    let dataRequest = {};
 
-    if (!SOAPParameters.RequestArgs) {
-      if ($_REQUEST_.method == "GET") {
-        // Obtiene los datos del query
-        SOAPParameters.RequestArgs = $_REQUEST_.query;
-      } else if ($_REQUEST_.method == "POST") {
-        // Obtiene los datos del body
-        SOAPParameters.RequestArgs = $_REQUEST_.body;
-      }
+    if ($_REQUEST_.method == "GET") {
+      // Obtiene los datos del query
+      dataRequest = $_REQUEST_.query;
+    } else if ($_REQUEST_.method == "POST") {
+      // Obtiene los datos del body
+      dataRequest = $_REQUEST_.body;
     }
 
-    let soap_response = await SOAPGenericClient(SOAPParameters);
+    dataRequest = joinObj(SOAPParameters, dataRequest);
+
+    let soap_response = await SOAPGenericClient(dataRequest);
 
     if (
       response.openfusionapi.lastResponse &&
@@ -60,9 +61,6 @@ export const SOAPGenericClient = async (
 
   try {
     if (validate_schema_input_genericSOAP()) {
-      //      console.log("SOAPGenericClient createClient", wsdl);
-      //         console.log("SOAPGenericClient createClient", wsdl);
-
       let client = await soap.createClientAsync(SOAPParameters.wsdl);
 
       // console.log('Client >>>>>> SOAP: ', client);
@@ -83,14 +81,21 @@ export const SOAPGenericClient = async (
         );
       }
 
-      //console.log("SOAPGenericClient createClient", client);
-      let result = await client[SOAPParameters.functionName + "Async"](
-        SOAPParameters.RequestArgs
-      );
-      let r = await result;
+      let r;
+
+      if (SOAPParameters.describe) {
+        r = client.describe();
+      } else {
+        //console.log("SOAPGenericClient createClient", client);
+        let result = await client[SOAPParameters.functionName + "Async"](
+          SOAPParameters.RequestArgs
+        );
+        let r1 = await result;
+        r = r1[0];
+      }
 
       //     console.log("SOAPGenericClient result", r);
-      return r[0];
+      return r;
     } else {
       return { error: validate_schema_input_genericSOAP.errors };
     }
@@ -100,3 +105,21 @@ export const SOAPGenericClient = async (
     return error;
   }
 };
+
+function joinObj(objA, objB) {
+  // Crear un nuevo objeto para evitar modificar los objetos originales
+  const r = { ...objA };
+
+  // Iterar sobre las propiedades del objB
+  for (const propiedad in objB) {
+    if (objB.hasOwnProperty(propiedad)) {
+      // Si la propiedad ya existe en resultado, reemplazar el valor
+      // de lo contrario, agregar la propiedad al resultado
+      r[propiedad] = r.hasOwnProperty(propiedad)
+        ? objB[propiedad]
+        : r[propiedad];
+    }
+  }
+
+  return r;
+}

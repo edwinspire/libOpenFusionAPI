@@ -1,7 +1,7 @@
 //import { uFetch } from "@edwinspire/universal-fetch";
 import { SOAPGenericClient } from './soapFunction.js';
 
-export const soapBasicFunction = async (
+export const soapFnFunction = async (
 	/** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
 	/** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
 	/** @type {{ handler?: string; code: any; }} */ method
