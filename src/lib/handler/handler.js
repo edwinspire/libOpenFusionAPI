@@ -2,7 +2,7 @@ import { jsFunction } from "./jsFunction.js";
 import { fetchFunction } from "./fetchFunction.js";
 import { soapFunction } from "./soapFunction.js";
 import { sqlFunction } from "./sqlFunction.js";
-import { soapFnFunction } from "./soapFnFunction.js";
+//import { soapFnFunction } from "./soapFnFunction.js";
 import { customFunction } from "./customFunction.js";
 
 /**
@@ -23,9 +23,11 @@ export async function runHandler(request, response, method, appFunctions) {
     case "SOAP":
       await soapFunction(request, response, method);
       break;
+      /*
     case "SOAPFn":
       await soapFnFunction(request, response, method);
       break;
+      */
     case "SQL":
       await sqlFunction(request, response, method);
       break;

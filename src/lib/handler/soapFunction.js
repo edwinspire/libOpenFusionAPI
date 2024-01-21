@@ -27,12 +27,12 @@ export const soapFunction = async (
     if ($_REQUEST_.method == "GET") {
       // Obtiene los datos del query
       dataRequest = $_REQUEST_.query;
+      SOAPParameters.RequestArgs = dataRequest;
     } else if ($_REQUEST_.method == "POST") {
       // Obtiene los datos del body
       dataRequest = $_REQUEST_.body;
+      dataRequest = joinObj(SOAPParameters, dataRequest);
     }
-
-    dataRequest = joinObj(SOAPParameters, dataRequest);
 
     let soap_response = await SOAPGenericClient(dataRequest);
 
