@@ -31,6 +31,7 @@ const ajv = new Ajv();
 
 import {
   validateToken,
+  checkToken,
   getUserPasswordTokenFromRequest,
   websocketUnauthorized,
   getIPFromRequest,
@@ -132,7 +133,8 @@ export default class ServerAPI extends EventEmitter {
           request_path_params.app,
           request_path_params.resource,
           request_path_params.environment,
-          request.method
+          request.method,
+          request.ws
         );
 
         //
@@ -368,8 +370,6 @@ export default class ServerAPI extends EventEmitter {
     }
   }
 
-  
-
   async _functions(
     req,
     /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ res
@@ -597,7 +597,9 @@ export default class ServerAPI extends EventEmitter {
   // Función para buscar en las llaves
   _appExistsOnCache(app) {
     const keys_cache = Array.from(this._cacheEndpoint.keys());
-    return keys_cache.some((k) => k.startsWith(`/api/${app}/`));
+    return keys_cache.some(
+      (k) => k.startsWith(`/api/${app}/`) || k.startsWith(`/ws/${app}/`)
+    );
   }
 
   /**
@@ -720,7 +722,7 @@ export default class ServerAPI extends EventEmitter {
   /**
    * @param {any} app
    */
-  async _loadEndpointsByAPPToCache(app) {
+  async _loadEndpointsByAPPToCache(app, ws) {
     try {
       // Carga los endpoints de una App a cache
       let appDataResult = await getAppWithEndpoints({ app: app }, false);
@@ -738,7 +740,8 @@ export default class ServerAPI extends EventEmitter {
               appData.app,
               endpoint.resource,
               endpoint.environment,
-              endpoint.method
+              endpoint.method,
+              endpoint.method == "WS"
             );
 
             this._cacheEndpoint.set(

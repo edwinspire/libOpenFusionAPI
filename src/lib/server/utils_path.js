@@ -24,7 +24,7 @@ export const path_params = (url) => {
 
 export const get_url_params = (/** @type {string} */ url) => {
   let reqUrl = new URL(`http://localhost${url}`);
-  let fn = match("/api/:parts*", { decode: decodeURIComponent });
+  let fn = match("/(api|ws)\/:parts*", { decode: decodeURIComponent });
   let par = fn(reqUrl.pathname);
 
   if (par.params) {
@@ -69,8 +69,8 @@ export const key_url_from_params = (
   return `/api/${params.app}${params.resource}/${params.method}`;
 };
 
-export const key_endpoint_method = (app, resource, environment, method) => {
-  return `/api/${app}${resource}/${environment}|${method}`;
+export const key_endpoint_method = (app, resource, environment, method, ws) => {
+  return `${ws ? '/ws/' : '/api/'}${app}${resource}/${environment}|${ws ? 'WS' : method}`;
 };
 
 /**
