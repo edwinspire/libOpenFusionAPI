@@ -503,17 +503,6 @@ export const endpoins_default = [
     enabled: true,
     idapp: "c4ca4238a0b923820dcc509a6f75849b",
     environment: "dev",
-    resource: "/main/test_mqtt/0.01",
-    method: "MQTT",
-    handler: "NA",
-    access: 0,
-    code: '{"subscribe":true,"publish":true,"broadcast":false}',
-  },
-
-  {
-    enabled: true,
-    idapp: "c4ca4238a0b923820dcc509a6f75849b",
-    environment: "dev",
     resource: "/main/test_javascript/array_objects/0.01",
     method: "GET",
     handler: "JS",
@@ -541,4 +530,3 @@ export const endpoins_default = [
     code: "let uf = new $_UFETCH_();\n// First fetch\nlet r1 = await uf.get('http://localhost:3000/api/demo/main/test_javascript_return_array_objects/v0.01/dev');\nlet r1j = await r1.json();\n\n// Second fetch with Secuential Promise\nlet rblock = await $_SECUENTIAL_PROMISES_.ByBlocks(async(data)=>{\nlet val = data.value1+data.value2; \n\nlet r2 = await uf.get('http://localhost:3000/api/demo/main/test_soap/v0.01/dev', {dNum: val});\nlet r2j = await r2.json();\n  \n  return r2j;  \n}, r1j, 2);\n\n\n\n$_RETURN_DATA_ = await rblock;\n",
   },
 ];
-
