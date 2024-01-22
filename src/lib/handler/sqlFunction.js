@@ -8,11 +8,11 @@ export const sqlFunction = async (
   try {
     let paramsSQL = JSON.parse(method.code);
     let data_bind = {};
-    let data_request;
+    let data_request = {};
 
     if (request.method == "GET") {
       // Obtiene los datos del query
-      data_request = request.query;
+      data_request.bind = request.query;
     } else if (request.method == "POST") {
       data_request = request.body;
     }
@@ -46,15 +46,15 @@ export const sqlFunction = async (
       }
 
       for (let param in bind_json) {
-        // eslint-disable-next-line no-prototype-builtins
-        if (bind_json.hasOwnProperty(param)) {
-          // @ts-ignore
-          const valor = bind_json[param];
-          console.log(`Clave: ${param}, Valor: ${valor}`);
 
-          // @ts-ignore
+        //if (bind_json && bind_json.hasOwnProperty(param)) {
+
+          const valor = bind_json[param];
+//          console.log(`Clave: ${param}, Valor: ${valor}`);
           data_bind[param] = valor;
-        }
+
+        //}
+
       }
 
       if (paramsSQL.config.database) {
