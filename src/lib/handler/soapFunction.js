@@ -26,8 +26,8 @@ export const soapFunction = async (
 
     if ($_REQUEST_.method == "GET") {
       // Obtiene los datos del query
-      dataRequest = $_REQUEST_.query;
-      SOAPParameters.RequestArgs = dataRequest;
+      SOAPParameters.RequestArgs = $_REQUEST_.query;
+      dataRequest = SOAPParameters;
     } else if ($_REQUEST_.method == "POST") {
       // Obtiene los datos del body
       dataRequest = $_REQUEST_.body;
