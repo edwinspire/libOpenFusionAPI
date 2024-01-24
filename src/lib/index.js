@@ -12,6 +12,7 @@ import dbAPIs from "./db/sequelize.js";
 import { defaultApps, getAppByName, getAppWithEndpoints } from "./db/app.js";
 import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
+import { defaultAPIUserMapping } from "./db/api_user mapping.js";
 import { getRoleById } from "./db/role.js";
 import { createPathRequest } from "./db/path_request.js";
 import { defaultMethods } from "./db/method.js";
@@ -774,6 +775,7 @@ export default class ServerAPI extends EventEmitter {
           await defaultApps();
           await defaultEndpoints();
           await defaultAPIUser();
+          await defaultAPIUserMapping();
         } catch (error) {
           console.log(error);
         }

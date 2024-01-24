@@ -342,7 +342,7 @@ export const Application = dbsequelize.define(
       type: DataTypes.SMALLINT,
       defaultValue: 0,
     },
-    iduser: { type: DataTypes.BIGINT },
+    iduser: { type: DataTypes.BIGINT, comment: 'User creator' },
     enabled: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false },
     description: {
       type: DataTypes.TEXT,
@@ -503,10 +503,12 @@ export const ApiUser = dbsequelize.define(
       defaultValue: "9999-01-01",
       comment: 'End of validity date of the user.'
     },
+    /*
     idapp: {
       type: DataTypes.UUID,
       allowNull: false,
     },
+    */
     env_dev: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
@@ -536,7 +538,7 @@ export const ApiUser = dbsequelize.define(
     indexes: [
       {
         unique: true,
-        fields: ["idapp", "username"],
+        fields: ["username"],
       },
     ],
     hooks: {
@@ -579,8 +581,18 @@ export const ApiUser = dbsequelize.define(
   }
 );
 
-Application.hasMany(ApiUser, { foreignKey: "idapp", as: 'users' });
-ApiUser.belongsTo(Application, { foreignKey: "idapp" });
+//Application.hasMany(ApiUser, { foreignKey: "idapp", as: 'users' });
+//ApiUser.belongsTo(Application, { foreignKey: "idapp" });
+
+// Definir el modelo de la tabla "app_users"
+export const APIUserMapping = dbsequelize.define(prefixTableName("api_user_mapping"), {
+  // No es necesario definir "idapp" y "idau" aquí, ya que serán claves foráneas
+});
+
+// Establecer las relaciones y las claves foráneas
+APIUserMapping.belongsTo(Application, { foreignKey: 'idapp', primaryKey: true });
+APIUserMapping.belongsTo(ApiUser, { foreignKey: 'idau', primaryKey: true });
+
 
 export const Endpoint = dbsequelize.define(
   prefixTableName("endpoint"),
