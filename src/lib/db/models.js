@@ -8,6 +8,15 @@ import { v4 as uuidv4 } from "uuid";
 import { emitHook } from "../server/utils.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
+const JSON_TYPE =
+  dbsequelize.getDialect() === "mssql" ? DataTypes.TEXT : DataTypes.JSON;
+
+function JSON_TYPE_Adapter(instance, fieldName) {
+  return dbsequelize.getDialect() === "mssql" &&
+    typeof instance[fieldName] === "object"
+    ? JSON.stringify(instance[fieldName])
+    : instance[fieldName];
+}
 
 /**
  * @param {string} table_name
@@ -109,6 +118,14 @@ export const User = dbsequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    for_api: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    for_system: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     username: {
       type: DataTypes.STRING,
       unique: true,
@@ -135,6 +152,11 @@ export const User = dbsequelize.define(
 			type: DataTypes.STRING
 		},
 		*/
+    exp_time: {
+      type: DataTypes.BIGINT,
+      defaultValue: 6000,
+      comment: "Token expiration time",
+    },
     last_login: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -342,14 +364,13 @@ export const Application = dbsequelize.define(
       type: DataTypes.SMALLINT,
       defaultValue: 0,
     },
-    iduser: { type: DataTypes.BIGINT, comment: 'User creator' },
+    iduser: { type: DataTypes.BIGINT, comment: "User creator" },
     enabled: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false },
     description: {
       type: DataTypes.TEXT,
     },
     vars: {
-      type:
-        dbsequelize.getDialect() === "mssql" ? DataTypes.TEXT : DataTypes.JSON,
+      type: JSON_TYPE,
     },
   },
   {
@@ -413,11 +434,15 @@ export const Application = dbsequelize.define(
           instance.idapp = uuidv4();
         }
 
-        instance.vars =
+        instance.vars = JSON_TYPE_Adapter(instance, 'vars');
+
+        /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.vars === "object"
             ? JSON.stringify(instance.vars)
             : instance.vars;
+*/
+
         //	console.log(">>>>>>>>>>>>>>>>>>>>>>", instance);
       },
       beforeCreate: (instance) => {
@@ -428,11 +453,13 @@ export const Application = dbsequelize.define(
           instance.idapp = uuidv4();
         }
 
-        instance.vars =
+        instance.vars = JSON_TYPE_Adapter(instance, 'vars');
+        /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.vars === "object"
             ? JSON.stringify(instance.vars)
             : instance.vars;
+            */
         //	console.log(">>>>>>>>>>>>>>>>>>>>>>", instance);
       },
       beforeBulkCreate: (instance) => {
@@ -440,11 +467,13 @@ export const Application = dbsequelize.define(
           instance.forEach((ins, i) => {
             //	console.log("++++++++>>>>>>>>>>>>>>>>>>>>>>", ins.vars);
 
-            instance[i].vars =
-              dbsequelize.getDialect() === "mssql" &&
+            instance[i].vars = JSON_TYPE_Adapter(instance[i], 'vars');
+            /*  
+            dbsequelize.getDialect() === "mssql" &&
               typeof instance[i].vars === "object"
                 ? JSON.stringify(instance[i].vars)
                 : instance[i].vars;
+                */
             //	console.log(">>>>>>>>>>>>>>>>>>>>>>", instance[i].vars);
           });
         }
@@ -485,7 +514,7 @@ export const ApiUser = dbsequelize.define(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: ''
+      defaultValue: "",
     },
     password: {
       type: DataTypes.TEXT,
@@ -495,13 +524,13 @@ export const ApiUser = dbsequelize.define(
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: "2000-01-01",
-      comment: 'User validity start date.'
+      comment: "User validity start date.",
     },
     end_date: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: "9999-01-01",
-      comment: 'End of validity date of the user.'
+      comment: "End of validity date of the user.",
     },
     /*
     idapp: {
@@ -585,14 +614,26 @@ export const ApiUser = dbsequelize.define(
 //ApiUser.belongsTo(Application, { foreignKey: "idapp" });
 
 // Definir el modelo de la tabla "app_users"
-export const APIUserMapping = dbsequelize.define(prefixTableName("api_user_mapping"), {
-  // No es necesario definir "idapp" y "idau" aquí, ya que serán claves foráneas
-});
+export const APIUserMapping = dbsequelize.define(
+  prefixTableName("api_user_mapping"),
+  {
+    // No es necesario definir "idapp" y "idau" aquí, ya que serán claves foráneas
+  }
+);
 
 // Establecer las relaciones y las claves foráneas
-APIUserMapping.belongsTo(Application, { foreignKey: 'idapp', primaryKey: true });
-APIUserMapping.belongsTo(ApiUser, { foreignKey: 'idau', primaryKey: true });
+//APIUserMapping.belongsTo(Application, { foreignKey: 'idapp', primaryKey: true });
+//APIUserMapping.belongsTo(ApiUser, { foreignKey: 'idau', primaryKey: true });
 
+// Establecer las relaciones
+ApiUser.hasMany(APIUserMapping, { foreignKey: "idau", as: "api_user_map" });
+APIUserMapping.belongsTo(ApiUser, { foreignKey: "idau", as: "api_user" });
+
+Application.hasMany(APIUserMapping, { foreignKey: "idapp" });
+APIUserMapping.belongsTo(Application, {
+  foreignKey: "idapp",
+  as: "application",
+});
 
 export const Endpoint = dbsequelize.define(
   prefixTableName("endpoint"),
@@ -657,14 +698,12 @@ export const Endpoint = dbsequelize.define(
       defaultValue: "",
     },
     headers_test: {
-      type:
-        dbsequelize.getDialect() === "mssql" ? DataTypes.TEXT : DataTypes.JSON,
+      type: JSON_TYPE,
       allowNull: true,
       defaultValue: {},
     },
     data_test: {
-      type:
-        dbsequelize.getDialect() === "mssql" ? DataTypes.TEXT : DataTypes.JSON,
+      type: JSON_TYPE,
       allowNull: true,
       defaultValue: {},
     },
@@ -730,17 +769,21 @@ export const Endpoint = dbsequelize.define(
           instance.idendpoint = uuidv4();
         }
 
-        instance.data_test =
+        instance.data_test = JSON_TYPE_Adapter(instance, 'data_test');
+        /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.data_test === "object"
             ? JSON.stringify(instance.data_test)
             : instance.data_test;
+            */
 
-        instance.headers_test =
+        instance.headers_test = JSON_TYPE_Adapter(instance, 'headers_test');
+        /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.headers_test === "object"
             ? JSON.stringify(instance.headers_test)
             : instance.headers_test;
+            */
       },
       beforeBulkCreate: (instance) => {
         /*

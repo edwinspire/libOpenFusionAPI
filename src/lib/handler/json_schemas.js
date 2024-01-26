@@ -2,7 +2,7 @@ export const schema_return_customFunction = {
   type: "object",
   properties: {
     code: { type: "number" },
-    data: { type: ["object", "array"] },
+    data: { type: ["object", "array", 'boolean'] },
   },
   required: ["code", "data"],
 };

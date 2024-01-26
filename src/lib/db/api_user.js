@@ -1,6 +1,6 @@
-import { ApiUser, Application, prefixTableName } from "./models.js";
+import { ApiUser, Application, APIUserMapping } from "./models.js";
 import { GenToken, EncryptPwd, customError } from "../server/utils.js";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 
 // Usage examples
 export const defaultAPIUser = async () => {
@@ -31,40 +31,98 @@ export const defaultAPIUser = async () => {
 };
 
 /**
- * @param {string} app_name
  * @param {string} username
  * @param {string} password
  */
-export async function getAPIToken(app_name, username, password) {
+export async function getAPIToken(username, password) {
   try {
-    let user = await getAPIUser(app_name, username, password);
+    let user = await getAPIUserByCredentials(username, password);
 
     if (user) {
-      let u = user.toJSON();
-
-      if (u.users && Array.isArray(u.users) && u.users.length > 0) {
-        //				console.log('------->>>>>>>>>>>>>>>>> ', u);
-
-        let au = u.users[0];
-
-        // Envía el Token en el Header
+      
+      // Envía el Token en el Header
         let token = GenToken(
           {
             for: "api",
-            user: username,
-            app: app_name,
-            attr: au,
+            user: user.username,
+            //app: '',
+            attr: user.api_user_map,
           },
-          (au.exp_time * 1000) + Date.now()
+          user.exp_time * 1000 + Date.now()
         );
 
         return token;
-      } else {
-        return false;
-      }
+     
     } else {
       return false;
     }
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+
+/**
+ * @param {string} username
+ * @param {string} password
+ */
+export async function getAPIUserByCredentials(username, password) {
+  try {
+    let user = await ApiUser.findAll({
+      attributes: [
+        "idau",
+        "username",
+        "env_dev",
+        "env_qa",
+        "env_prd",
+        "exp_time",
+      ],
+      include: [
+        {
+          model: APIUserMapping,
+          attributes: ["idapp"],
+          as: "api_user_map",
+          required: true,
+          include: [
+            {
+              model: Application,
+              required: true,
+              as: "application",
+              attributes: ["app"],
+              where: { enabled: true },
+            },
+          ],
+        },
+      ],
+      where: {
+        username: username,
+        password: EncryptPwd(password),
+        enabled: true,
+        start_date: { [Sequelize.Op.lte]: Sequelize.literal("CURRENT_DATE") },
+        end_date: { [Sequelize.Op.gte]: Sequelize.literal("CURRENT_DATE") },
+      },
+      raw: false,
+      nest: true,
+    });
+
+    let data_user;
+    if (user && Array.isArray(user) && user.length > 0) {
+      let u0 = user[0];
+      data_user = {};
+
+//      data_user.idau = u0.idau;
+      data_user.username = u0.username;
+      data_user.env_dev = u0.env_dev;
+      data_user.env_qa = u0.env_qa;
+      data_user.env_prd = u0.env_prd;
+      data_user.exp_time = u0.exp_time;
+
+      data_user.attr = u0.api_user_map.map((um) => {
+        return um.application.dataValues.app;
+      });
+    }
+
+    return data_user;
   } catch (error) {
     console.log(error);
     return false;

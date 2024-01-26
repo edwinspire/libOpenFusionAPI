@@ -249,6 +249,19 @@ export const endpoins_default = [
     code: "fnLogin",
   },
 
+
+  {
+    enabled: true,
+    idapp: "cfcd208495d565ef66e7dff9f98764da",
+    environment: "prd",
+    resource: "/system/api/token",
+    method: "POST",
+    handler: "FUNCTION",
+    access: 0,
+
+    code: "fnAPIToken",
+  },
+
   {
     enabled: true,
     idapp: "cfcd208495d565ef66e7dff9f98764da",

@@ -30,12 +30,41 @@ export async function fnDemo(
  * @param {{ body: { username: string; password: string; }; }} req
  * @param {{ set: (arg0: string, arg1: any) => void; code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} res
  */
+export async function fnAPIToken(req, data, res) {
+  let r = { code: 204, data: undefined };
+  try {
+    let user = await getAPIToken(req.body.username, req.body.password);
+
+    if (user) {
+      res.header("OFAPI-API-TOKEN", user.token);
+      //res.code(200).json(user);
+      r.data = { token: user };
+      r.code = 200;
+    } else {
+      //			res.code(401).json(user);
+      r.data = user;
+      r.code = 401;
+    }
+  } catch (error) {
+    //console.log(error);
+    // @ts-ignore
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+/**
+ * @param {{ body: { username: string; password: string; }; }} req
+ * @param {{ set: (arg0: string, arg1: any) => void; code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} res
+ */
 export async function fnLogin(req, data, res) {
   let r = { code: 204, data: undefined };
   try {
     let user = await login(req.body.username, req.body.password);
 
-    res.header("user-token", user.token);
+    res.header("OFAPI-USER-TOKEN", user.token);
 
     if (user.login) {
       //res.code(200).json(user);
@@ -64,14 +93,9 @@ export async function fnToken(req, data, res) {
   let r = { code: 204, data: undefined };
   try {
     if (data.appname && data.username && data.password) {
-      let token = await getAPIToken(
-        data.appname,
-        data.username,
-        data.password
-      );
+      let token = await getAPIToken(data.appname, data.username, data.password);
 
       if (token) {
-
         res.header("api-token", token);
 
         //	res.code(200).json({ token });
