@@ -143,8 +143,8 @@ export const User = dbsequelize.define(
     email: {
       type: DataTypes.STRING,
     },
-    idrole: {
-      type: DataTypes.UUID,
+    roles: {
+      type: JSON_TYPE,
       allowNull: false,
     },
     /*
@@ -192,80 +192,6 @@ export const User = dbsequelize.define(
   }
 );
 
-// Definir el modelo de la tabla 'Role'
-export const Role = dbsequelize.define(
-  prefixTableName("role"),
-  {
-    idrole: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      allowNull: false,
-      unique: true,
-      defaultValue: uuidv4(),
-    },
-    rowkey: {
-      type: DataTypes.SMALLINT,
-      defaultValue: 0,
-    },
-    enabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    role: {
-      type: DataTypes.STRING(50),
-      unique: true,
-      allowNull: false,
-    },
-    create_app: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    read_app: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    update_app: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    delete_app: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    notes: {
-      type: DataTypes.TEXT,
-      defaultValue: "",
-    },
-  },
-  {
-    freezeTableName: true,
-    timestamps: true,
-    indexes: [
-      {
-        unique: true,
-        fields: ["role"],
-      },
-    ],
-    hooks: {
-      afterUpsert: async () => {
-        // @ts-ignore
-        await HooksDB({
-          model: prefixTableName("role"),
-          action: "afterUpsert",
-        });
-      },
-      beforeValidate: () => {
-        //	console.log('>>> beforeValidate >>>> ', instance);
-        /*
-				instance.attrs =
-					dbsequelize.getDialect() === 'mssql' && typeof instance.attrs === 'object'
-						? JSON.stringify(instance.attrs)
-						: instance.attrs;
-						*/
-      },
-    },
-  }
-);
 
 // Definir el modelo de la tabla 'Method'
 export const Method = dbsequelize.define(
