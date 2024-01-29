@@ -395,7 +395,7 @@ export const endpoins_default = [
     resource: "/main/test_javascript/0.02",
     method: "GET",
     handler: "JS",
-    access: 2,
+    access: 3,
     code: "$_RETURN_DATA_ = $_VARS_APP;",
   },
 

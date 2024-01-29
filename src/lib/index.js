@@ -306,6 +306,39 @@ export default class ServerAPI extends EventEmitter {
     await this.fastify.listen({ port: port });
   }
 
+  _check_auth_Bearer(handler, data_aut) {
+    return (
+      data_aut.Bearer.data &&
+      data_aut.Bearer.data.role &&
+      (data_aut.Bearer.data.role.admin ||
+        (data_aut.Bearer.data.role.attrs[handler.params.app] &&
+          data_aut.Bearer.data.role.attrs[handler.params.app][
+            handler.params.environment
+          ]))
+    );
+  }
+
+  async _check_auth_Basic(handler, data_aut, request, reply) {
+    let user = await login(data_aut.Basic.username, data_aut.Basic.password);
+
+    if (user.login) {
+      let data_user = checkToken(user.token);
+
+      // Simulamos un Bearer para usar el mismo método 
+      data_aut.Bearer.data = data_user;
+
+      if (this._check_auth_Bearer(handler, data_aut)) {
+        request.openfusionapi.user = data_user;
+      } else {
+        reply
+          .code(401)
+          .send({ error: "The API requires a valid Token." });
+      }
+    } else {
+      reply.code(401).send({ error: "The API requires a valid Token." });
+    }
+  }
+
   async _check_auth(handler, request, reply) {
     // Validar si la API es publica o privada
 
@@ -316,12 +349,12 @@ export default class ServerAPI extends EventEmitter {
       if (handler.params.app == "system") {
         // Las APIs de system solo se pueden acceder con token de usuario
         // TODO: Validar los casos cuando no son admin pero si tiene las atribuciones para system
-        if (data_aut.Bearer.data && data_aut.Bearer.data.role && (data_aut.Bearer.data.role.admin)) {
+        if (this._check_auth_Bearer(handler, data_aut)) {
           request.openfusionapi.user = data_aut.Bearer.data;
         } else {
           reply
             .code(401)
-            .send({ error: "System APIs require a mandatory Token" });
+            .send({ error: "The System API requires a valid Token." });
         }
       } else {
         //
@@ -331,36 +364,28 @@ export default class ServerAPI extends EventEmitter {
             // Aqui el código para validar usuario y clave de API
             // Este paso puede ser pesado ya que se debe consultar a la base de datos. Es recomendable usarlo en lo minimo
             if (data_aut.Basic.username && data_aut.Basic.password) {
-              request.openfusionapi.user = await getAPIUser(
-                handler.params.app,
-                data_aut.Basic.username,
-                data_aut.Basic.password
-              );
+              await this._check_auth_Basic(handler, data_aut, request, reply);
             } else {
-              reply.code(401).send({ error: "API require a mandatory Token" });
+              reply.code(401).send({ error: "The API requires a valid Token." });
             }
 
             break;
 
           case 2:
-            if (data_aut.Bearer.data) {
+            if (this._check_auth_Bearer(handler, data_aut)) {
               request.openfusionapi.user = data_aut.Bearer.data;
             } else {
-              reply.code(401).send({ error: "API require a mandatory Token" });
+              reply.code(401).send({ error: "The API requires a valid Token." });
             }
 
             break;
           case 3:
-            if (data_aut.Bearer.data && data_aut.Bearer.data.for == "api") {
+            if (this._check_auth_Bearer(handler, data_aut)) {
               request.openfusionapi.user = data_aut.Bearer.data;
             } else if (data_aut.Basic.username && data_aut.Basic.password) {
-              request.openfusionapi.user = await getAPIUser(
-                handler.params.app,
-                data_aut.Basic.username,
-                data_aut.Basic.password
-              );
+              await this._check_auth_Basic(handler, data_aut, request, reply);
             } else {
-              reply.code(401).send({ error: "API require a mandatory Token" });
+              reply.code(401).send({ error: "The API requires a valid Token." });
             }
 
             break;
@@ -777,7 +802,7 @@ export default class ServerAPI extends EventEmitter {
           await defaultApps();
           await defaultEndpoints();
           //await defaultAPIUser();
-        //  await defaultAPIUserMapping();
+          //  await defaultAPIUserMapping();
         } catch (error) {
           console.log(error);
         }
