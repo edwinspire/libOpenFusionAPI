@@ -1,5 +1,5 @@
 import { login } from "../../../../db/user.js";
-import { getAPIToken } from "../../../../db/api_user.js";
+//import { getAPIToken } from "../../../../db/api_user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";
@@ -26,34 +26,6 @@ export async function fnDemo(
   return r;
 }
 
-/**
- * @param {{ body: { username: string; password: string; }; }} req
- * @param {{ set: (arg0: string, arg1: any) => void; code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} res
- */
-export async function fnAPIToken(req, data, res) {
-  let r = { code: 204, data: undefined };
-  try {
-    let user = await getAPIToken(req.body.username, req.body.password);
-
-    if (user) {
-      res.header("OFAPI-API-TOKEN", user.token);
-      //res.code(200).json(user);
-      r.data = { token: user };
-      r.code = 200;
-    } else {
-      //			res.code(401).json(user);
-      r.data = user;
-      r.code = 401;
-    }
-  } catch (error) {
-    //console.log(error);
-    // @ts-ignore
-    r.data = error;
-    r.code = 500;
-    //res.code(500).json({ error: error.message });
-  }
-  return r;
-}
 
 /**
  * @param {{ body: { username: string; password: string; }; }} req
@@ -64,9 +36,10 @@ export async function fnLogin(req, data, res) {
   try {
     let user = await login(req.body.username, req.body.password);
 
-    res.header("OFAPI-USER-TOKEN", user.token);
+    res.header("OFAPI-TOKEN", '');
 
     if (user.login) {
+      res.header("OFAPI-TOKEN", user.token);
       //res.code(200).json(user);
       r.data = user;
       r.code = 200;
@@ -90,38 +63,7 @@ export async function fnLogin(req, data, res) {
  * @param {{ set: (arg0: string, arg1: string) => void; code: (arg0: number) => { (): any; new (): any; json: { (arg0: { token?: string; error?: any; }): void; new (): any; }; }; }} res
  */
 export async function fnToken(req, data, res) {
-  let r = { code: 204, data: undefined };
-  try {
-    if (data.appname && data.username && data.password) {
-      let token = await getAPIToken(data.appname, data.username, data.password);
-
-      if (token) {
-        res.header("api-token", token);
-
-        //	res.code(200).json({ token });
-        // @ts-ignore
-        r.data = { token: token };
-        r.code = 200;
-      } else {
-        //res.code(401).json({});
-        // @ts-ignore
-        r.data = {};
-        r.code = 401;
-      }
-    } else {
-      //res.code(401).json({ error: 'Parameters are missing' });
-      // @ts-ignore
-      r.data = { error: "Parameters are missing" };
-      r.code = 401;
-    }
-  } catch (error) {
-    //		console.log(error);
-    // @ts-ignore
-    r.data = error;
-    r.code = 500;
-    //		res.code(500).json({ error: error.message });
-  }
-  return r;
+return fnLogin(req, data, res);
 }
 
 /**
@@ -132,7 +74,7 @@ export async function fnLogout(req, res) {
   let r = { data: undefined, code: 204 };
   try {
     // TODO: ver la forma de hacer un logout correctamente e invalide el token
-    res.set("user-token", undefined);
+    res.set("OFAPI-TOKEN", undefined);
 
     /*
 		res.code(200).json({

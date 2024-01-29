@@ -12,10 +12,14 @@ const JSON_TYPE =
   dbsequelize.getDialect() === "mssql" ? DataTypes.TEXT : DataTypes.JSON;
 
 function JSON_TYPE_Adapter(instance, fieldName) {
-  return dbsequelize.getDialect() === "mssql" &&
-    typeof instance[fieldName] === "object"
-    ? JSON.stringify(instance[fieldName])
-    : instance[fieldName];
+  if (instance[fieldName]) {
+    return dbsequelize.getDialect() === "mssql" &&
+      typeof instance[fieldName] === "object"
+      ? JSON.stringify(instance[fieldName])
+      : instance[fieldName];
+  } else {
+    return undefined;
+  }
 }
 
 /**
@@ -118,14 +122,6 @@ export const User = dbsequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
-    for_api: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    for_system: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
     username: {
       type: DataTypes.STRING,
       unique: true,
@@ -143,18 +139,25 @@ export const User = dbsequelize.define(
     email: {
       type: DataTypes.STRING,
     },
-    roles: {
-      type: JSON_TYPE,
+    start_date: {
+      type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: "2000-01-01",
+      comment: "User validity start date.",
     },
-    /*
-		token: {
-			type: DataTypes.STRING
-		},
-		*/
+    end_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: "9999-12-31",
+      comment: "End of validity date of the user.",
+    },
+    idrole: {
+      type: DataTypes.STRING(100),
+      defaultValue: "",
+    },
     exp_time: {
       type: DataTypes.BIGINT,
-      defaultValue: 6000,
+      defaultValue: 3600,
       comment: "Token expiration time",
     },
     last_login: {
@@ -188,14 +191,84 @@ export const User = dbsequelize.define(
         // @ts-ignore
         user.rowkey = Math.floor(Math.random() * 1000);
       },
+      beforeValidate: (instance) => {
+        //   instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
+      },
+      beforeUpsert: (instance) => {
+        //instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
+      },
     },
   }
 );
 
+// Definir el modelo de la tabla 'User'
+export const Role = dbsequelize.define(
+  prefixTableName("role"),
+  {
+    idrole: {
+      type: DataTypes.STRING(100),
+      primaryKey: true,
+      allowNull: false,
+      unique: true,
+    },
+    rowkey: {
+      type: DataTypes.SMALLINT,
+      defaultValue: 0,
+    },
+    enabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "",
+      unique: true,
+    },
+    admin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    attrs: {
+      type: JSON_TYPE,
+      defaultValue: {},
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    //indexes: ["name"],
+    hooks: {
+      afterUpsert: async () => {
+        // @ts-ignore
+
+        await HooksDB({
+          model: prefixTableName("role"),
+          action: "afterUpsert",
+        });
+      },
+      beforeUpdate: (/** @type {any} */ user) => {
+        // @ts-ignore
+        //			user.ts = new Date();
+        // @ts-ignore
+        //user.password = EncryptPwd(user.password);
+        // @ts-ignore
+        user.rowkey = Math.floor(Math.random() * 1000);
+      },
+      beforeValidate: (instance) => {
+        instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
+      },
+      beforeUpsert: (instance) => {
+        instance.rowkey = Math.floor(Math.random() * 1000);
+        instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
+      },
+    },
+  }
+);
 
 // Definir el modelo de la tabla 'Method'
 export const Method = dbsequelize.define(
-  prefixTableName("methods"),
+  prefixTableName("method"),
   {
     method: {
       type: DataTypes.STRING(10),
@@ -360,7 +433,7 @@ export const Application = dbsequelize.define(
           instance.idapp = uuidv4();
         }
 
-        instance.vars = JSON_TYPE_Adapter(instance, 'vars');
+        instance.vars = JSON_TYPE_Adapter(instance, "vars");
 
         /*
           dbsequelize.getDialect() === "mssql" &&
@@ -379,7 +452,7 @@ export const Application = dbsequelize.define(
           instance.idapp = uuidv4();
         }
 
-        instance.vars = JSON_TYPE_Adapter(instance, 'vars');
+        instance.vars = JSON_TYPE_Adapter(instance, "vars");
         /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.vars === "object"
@@ -393,7 +466,7 @@ export const Application = dbsequelize.define(
           instance.forEach((ins, i) => {
             //	console.log("++++++++>>>>>>>>>>>>>>>>>>>>>>", ins.vars);
 
-            instance[i].vars = JSON_TYPE_Adapter(instance[i], 'vars');
+            instance[i].vars = JSON_TYPE_Adapter(instance[i], "vars");
             /*  
             dbsequelize.getDialect() === "mssql" &&
               typeof instance[i].vars === "object"
@@ -408,158 +481,13 @@ export const Application = dbsequelize.define(
   }
 );
 
+/*
 User.belongsTo(Role, {
   foreignKey: "idrole",
   targetKey: "idrole",
   as: "role",
 });
-
-export const ApiUser = dbsequelize.define(
-  prefixTableName("api_user"),
-  {
-    idau: {
-      type: DataTypes.BIGINT,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-      unique: true,
-    },
-    rowkey: {
-      type: DataTypes.SMALLINT,
-      defaultValue: 0,
-    },
-    enabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: "",
-    },
-    password: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    start_date: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: "2000-01-01",
-      comment: "User validity start date.",
-    },
-    end_date: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: "9999-01-01",
-      comment: "End of validity date of the user.",
-    },
-    /*
-    idapp: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
-    */
-    env_dev: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    env_qa: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    env_prd: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    exp_time: {
-      type: DataTypes.BIGINT,
-      defaultValue: 6000,
-      comment: "Token expiration time",
-    },
-    notes: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      defaultValue: "",
-    },
-  },
-  {
-    freezeTableName: true,
-    timestamps: true,
-    indexes: [
-      {
-        unique: true,
-        fields: ["username"],
-      },
-    ],
-    hooks: {
-      afterUpsert: async (/** @type {any} */ instance) => {
-        // @ts-ignore
-        instance.rowkey = 999;
-        // @ts-ignore
-        //   console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
-        await HooksDB({
-          model: prefixTableName("api_user"),
-          action: "afterUpsert",
-        });
-      },
-      beforeUpdate: (/** @type {any} */ instance) => {
-        // @ts-ignore
-        instance.rowkey = Math.floor(Math.random() * 1000);
-      },
-      beforeUpsert: async (/** @type {{ rowkey: number; }} */ instance) => {
-        // @ts-ignore
-        instance.rowkey = Math.floor(Math.random() * 1000);
-        //   console.log(">>>>>>>>>>>>>> Se lanza el beforeUpsert", instance);
-        await HooksDB({
-          model: prefixTableName("api_user"),
-          action: "beforeUpsert",
-        });
-      },
-      beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
-        // Acciones a realizar antes de guardar el modelo
-        //console.log('******* Antes de guardar:', instance.jwt);
-        // @ts-ignore
-        instance.rowkey = Math.floor(Math.random() * 1000);
-      },
-      beforeValidate: (/** @type {{ rowkey: number; }} */ instance) => {
-        // Acciones a realizar antes de guardar el modelo
-        //console.log('******* Antes de beforeValidate:', instance.jwt);
-        // @ts-ignore
-        instance.rowkey = Math.floor(Math.random() * 1000);
-      },
-    },
-  }
-);
-
-//Application.hasMany(ApiUser, { foreignKey: "idapp", as: 'users' });
-//ApiUser.belongsTo(Application, { foreignKey: "idapp" });
-
-// Definir el modelo de la tabla "app_users"
-export const APIUserMapping = dbsequelize.define(
-  prefixTableName("api_user_mapping"),
-  {
-    // No es necesario definir "idapp" y "idau" aquí, ya que serán claves foráneas
-  }
-);
-
-// Establecer las relaciones y las claves foráneas
-//APIUserMapping.belongsTo(Application, { foreignKey: 'idapp', primaryKey: true });
-//APIUserMapping.belongsTo(ApiUser, { foreignKey: 'idau', primaryKey: true });
-
-// Establecer las relaciones
-ApiUser.hasMany(APIUserMapping, { foreignKey: "idau", as: "api_user_map" });
-APIUserMapping.belongsTo(ApiUser, { foreignKey: "idau", as: "api_user" });
-
-Application.hasMany(APIUserMapping, { foreignKey: "idapp" });
-APIUserMapping.belongsTo(Application, {
-  foreignKey: "idapp",
-  as: "application",
-});
+*/
 
 export const Endpoint = dbsequelize.define(
   prefixTableName("endpoint"),
@@ -695,7 +623,7 @@ export const Endpoint = dbsequelize.define(
           instance.idendpoint = uuidv4();
         }
 
-        instance.data_test = JSON_TYPE_Adapter(instance, 'data_test');
+        instance.data_test = JSON_TYPE_Adapter(instance, "data_test");
         /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.data_test === "object"
@@ -703,7 +631,7 @@ export const Endpoint = dbsequelize.define(
             : instance.data_test;
             */
 
-        instance.headers_test = JSON_TYPE_Adapter(instance, 'headers_test');
+        instance.headers_test = JSON_TYPE_Adapter(instance, "headers_test");
         /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.headers_test === "object"

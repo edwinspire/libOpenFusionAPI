@@ -71,7 +71,7 @@ export function checkToken(token) {
  * @param {() => void} next
  */
 export function validateToken(req, res, next) {
-  req.headers["data-token"] = ""; // Vacia los datos que llegan en el token
+  req.headers["OFAPI-DTOKEN"] = ""; // Vacia los datos que llegan en el token
   let dataAuth = getUserPasswordTokenFromRequest(req);
 
   // Verificar si se proporcionó un token
@@ -82,7 +82,7 @@ export function validateToken(req, res, next) {
   let data = checkToken(dataAuth.token);
 
   if (data) {
-    req.headers["data-token"] = JSON.stringify(data); // setea los datos del token para usarlo posteriormente
+    req.headers["OFAPI-DTOKEN"] = JSON.stringify(data); // setea los datos del token para usarlo posteriormente
     next();
   } else {
     return res.status(401).json({ error: "Token invalid" });
@@ -174,10 +174,14 @@ export function EncryptPwd(pwd) {
 /**
  * @param {any} data
  */
-export function GenToken(data, exp = Math.floor(Date.now() / 1000) + 60 * 60) {
+export function GenToken(
+  data,
+  exp_seconds = Math.floor(Date.now() / 1000) + 60 * 60
+) {
   console.log("GenToken > ", data);
+  let exp =  Math.floor(Date.now() / 1000) + (exp_seconds);
   // Genera un Token
-  return jwt.sign({ data: data, exp: exp }, jwtKey);
+  return jwt.sign({ data: {...data, _rnd_:(Math.random() * (100 - 0.01) + 0.01).toFixed(2)}, exp: exp }, jwtKey);
 }
 
 /**

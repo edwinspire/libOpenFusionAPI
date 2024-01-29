@@ -1,98 +1,51 @@
-import { Role } from './models.js';
-import { Application } from './models.js';
-import { AppToTable } from '../db/utils.js';
-import { getAllMethods } from '../db/method.js';
+import { Role } from "./models.js";
 
 export const defaultRoles = async () => {
-	try {
-		//	console.log(' defaultRoles >>>>>> ');
+  try {
+    // Crea los roles de admin y demo
+    // Verificar si el usuario "admin" ya existe
+    const existingRolAdmin = await Role.findOne({
+      where: { idrole: "21232f297a57a5a743894a0e4a801fc3" },
+    });
 
-		// create super user
-		const r0 = await Role.findOne({
-			where: { role: 'super' }
-		});
+    if (!existingRolAdmin) {
+      // El usuario "admin" no existe, se realiza la inserción
+      await Role.create({
+        idrole: "21232f297a57a5a743894a0e4a801fc3",
+        name: "admin",
+        admin: true,
+        attrs: {},
+      });
+    }
 
-		console.log('defaultRoles ==> ', r0);
+    const existingRolDemo = await Role.findOne({
+      where: { idrole: "fe01ce2a7fbac8fafaed7c982a04e229" },
+    });
 
-		if (!r0) {
-			await Role.upsert({
-				role: 'super',
-				enabled: true,
-				create_app: true,
-				read_app: true,
-				update_app: true,
-				delete_app: true,
-				notes: 'Super user'
-			});
-		}
-
-		// create super user
-		return await Role.findOne({
-			where: { role: 'super' }
-		});
-	} catch (error) {
-		console.error('Example error:', error);
-		return;
-	}
+    if (!existingRolDemo) {
+      // El usuario "admin" no existe, se realiza la inserción
+      await Role.create({
+        idrole: "fe01ce2a7fbac8fafaed7c982a04e229",
+        name: "demo",
+        admin: false,
+        attrs: {
+          c4ca4238a0b923820dcc509a6f75849b: { dev: true, qa: true, prd: true },
+        },
+      });
+    }
+    return true;
+  } catch (error) {
+    console.error("Role error:", error);
+    return false;
+  }
 };
 
-export const getAllEndpoints = async () => {
-	try {
-		// @ts-ignore
-		let defaultMethods = {};
-		const mtds = await getAllMethods();
+export const getRoleById = async (
+  /** @type {import("sequelize").Identifier} */ idrole
+) => {
+  const role = await Role.findByPk(idrole, {
+    //	attributes: ['idrole', 'enabled', 'role', 'type', 'attrs']
+  });
 
-		if (mtds && Array.isArray(mtds) && mtds.length > 0) {
-			for (let i = 0; i < mtds.length; i++) {
-				let m = mtds[i];
-				// @ts-ignore
-				defaultMethods[m.method] = {
-					// @ts-ignore
-					//method: m.method,
-					// @ts-ignore
-					//enabled: m.enabled,
-					dev: false,
-					qa: false,
-					prd: false
-				};
-			}
-		}
-
-		const apps = await Application.findAll();
-
-		let appDataTable = apps
-			.map((a) => {
-				return AppToTable(a);
-			})
-			.flat()
-			.map((endp) => {
-				let endpointAttr = {
-					url: endp.url,
-					enabled: endp.enabled,
-					// @ts-ignore
-					methods: defaultMethods
-				};
-
-				return endpointAttr;
-			});
-		//console.log("======> ", appDataTable);
-
-		return appDataTable;
-	} catch (error) {
-		console.error('Error retrieving apps:', error);
-		throw error;
-	}
-};
-
-export const getRoleById = async (/** @type {import("sequelize").Identifier} */ idrole) => {
-	try {
-		const role = await Role.findByPk(idrole, {
-			//	attributes: ['idrole', 'enabled', 'role', 'type', 'attrs']
-		});
-
-		return role;
-	} catch (error) {
-		console.error('Error retrieving app:', error);
-		throw error;
-	}
+  return role;
 };

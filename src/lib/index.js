@@ -12,8 +12,8 @@ import dbAPIs from "./db/sequelize.js";
 import { defaultApps, getAppByName, getAppWithEndpoints } from "./db/app.js";
 import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
-import { defaultAPIUserMapping } from "./db/api_user mapping.js";
-import { getRoleById } from "./db/role.js";
+//import { defaultAPIUserMapping } from "./db/api_user mapping.js";
+import { defaultRoles } from "./db/role.js";
 import { createPathRequest } from "./db/path_request.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
@@ -22,7 +22,7 @@ import { runHandler } from "./handler/handler.js";
 import { createFunction } from "./handler/jsFunction.js";
 import { getApiHandler } from "./db/app.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
-import { defaultAPIUser, getAPIUser } from "./db/api_user.js";
+//import { defaultAPIUser, getAPIUser } from "./db/api_user.js";
 
 import fs from "fs";
 import path from "path";
@@ -315,7 +315,8 @@ export default class ServerAPI extends EventEmitter {
       //
       if (handler.params.app == "system") {
         // Las APIs de system solo se pueden acceder con token de usuario
-        if (data_aut.Bearer.data && data_aut.Bearer.data.for == "user") {
+        // TODO: Validar los casos cuando no son admin pero si tiene las atribuciones para system
+        if (data_aut.Bearer.data && data_aut.Bearer.data.role && (data_aut.Bearer.data.role.admin)) {
           request.openfusionapi.user = data_aut.Bearer.data;
         } else {
           reply
@@ -342,7 +343,7 @@ export default class ServerAPI extends EventEmitter {
             break;
 
           case 2:
-            if (data_aut.Bearer.data && data_aut.Bearer.data.for == "api") {
+            if (data_aut.Bearer.data) {
               request.openfusionapi.user = data_aut.Bearer.data;
             } else {
               reply.code(401).send({ error: "API require a mandatory Token" });
@@ -769,13 +770,14 @@ export default class ServerAPI extends EventEmitter {
       (async () => {
         try {
           await dbAPIs.sync({ alter: true });
+          await defaultRoles();
           await defaultUser();
           await defaultMethods();
           await defaultHandlers();
           await defaultApps();
           await defaultEndpoints();
-          await defaultAPIUser();
-          await defaultAPIUserMapping();
+          //await defaultAPIUser();
+        //  await defaultAPIUserMapping();
         } catch (error) {
           console.log(error);
         }

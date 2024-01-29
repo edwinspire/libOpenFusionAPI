@@ -22,17 +22,6 @@ export const customFunction = async (
 
       if (validate_schema_out_customFunction(fnresult)) {
         
-        /*
-        if (!fnresult.data || !fnresult.code) {
-          throw {
-            error:
-              "Custom functions " +
-              method.code +
-              ' must return the "code" and "data" properties.',
-          };
-        }
-        */
-
         if (
           response.openfusionapi.lastResponse &&
           response.openfusionapi.lastResponse.hash_request
