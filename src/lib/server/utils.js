@@ -181,7 +181,7 @@ export function GenToken(
   console.log("GenToken > ", data);
   let exp =  Math.floor(Date.now() / 1000) + (exp_seconds);
   // Genera un Token
-  return jwt.sign({ data: {...data, _rnd_:(Math.random() * (100 - 0.01) + 0.01).toFixed(2)}, exp: exp }, jwtKey);
+  return jwt.sign({ data: {...data, _rnd_:(Math.random() * (100 - 0.01) + 0.01).toFixed(2)}, exp: Number(exp) }, jwtKey);
 }
 
 /**
