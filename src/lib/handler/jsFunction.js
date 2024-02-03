@@ -27,7 +27,7 @@ return $_RETURN_DATA_;
 let codefunction = `
 return async()=>{
   ${app_vars_string}  
-  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_} = $_VARS_;
+  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_} = $_VARS_;
   let $_RETURN_DATA_ = {};
   ${code}
   return $_RETURN_DATA_;  
@@ -59,7 +59,7 @@ export const jsFunction = async (
     }
 
 
-let result_fn = await f({ $_REQUEST_: $_REQUEST_, $_UFETCH_: $_UFETCH_, $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_ })();
+let result_fn = await f({$_REPLY_: response, $_REQUEST_: $_REQUEST_, $_UFETCH_: $_UFETCH_, $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_ })();
 
 if (response.openfusionapi.lastResponse && response.openfusionapi.lastResponse.hash_request) {
   // @ts-ignore
