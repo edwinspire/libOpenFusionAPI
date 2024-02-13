@@ -36,10 +36,17 @@ export async function fnLogin(req, data, res) {
   try {
     let user = await login(req.body.username, req.body.password);
 
-    res.header("OFAPI-TOKEN", '');
+    //res.header("OFAPI-TOKEN", '');
+    res.cookie('OFAPI-TOKEN', '');
 
     if (user.login) {
-      res.header("OFAPI-TOKEN", user.token);
+      //res.header("OFAPI-TOKEN", user.token);
+
+      let aut = `Bearer ${user.token}`;
+      res.header("Authorization", aut);
+
+      res.cookie('OFAPI-TOKEN', user.token);
+
       //res.code(200).json(user);
       r.data = user;
       r.code = 200;

@@ -2,6 +2,7 @@ import "dotenv/config";
 import { EventEmitter } from "node:events";
 import dns from "dns";
 import Fastify from "fastify";
+import cookie from '@fastify/cookie';
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
@@ -37,7 +38,7 @@ import {
   websocketUnauthorized,
   getIPFromRequest,
   getFunctionsFiles,
-  md5,
+  md5, 
 } from "./server/utils.js";
 
 import { schema_input_hooks } from "./server/schemas/index.js";
@@ -50,7 +51,7 @@ import {
   //	defaultSystemPath
 } from "./server/utils_path.js";
 
-const { PORT, PATH_APP_FUNCTIONS } = process.env;
+const { PORT, PATH_APP_FUNCTIONS, JWT_KEY} = process.env;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -103,6 +104,13 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _build() {
+
+    this.fastify.register(cookie, {
+      secret: JWT_KEY, // for cookies signature
+      hook: 'preValidation', // set to false to disable cookie autoparsing or set autoparsing on any of the following hooks: 'onRequest', 'preParsing', 'preHandler', 'preValidation'. default: 'onRequest'
+      parseOptions: {}  // options for parsing cookies
+    })
+
     await this.fastify.register(cors, {
       origin: "*",
     });

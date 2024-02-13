@@ -206,9 +206,7 @@ export function getUserPasswordTokenFromRequest(req) {
       "base64"
     ).toString("utf-8");
     [username, password] = decodedCredentials.split(":");
-  }
-
-  if (authHeader && authHeader.startsWith("Bearer")) {
+  }else  if (authHeader && authHeader.startsWith("Bearer")) {
     token = authHeader.split(" ")[1];
     data_token = checkToken(token);
   }
