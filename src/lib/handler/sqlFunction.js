@@ -14,7 +14,7 @@ export const sqlFunction = async (
       // Obtiene los datos del query
       data_request.bind = request.query;
     } else if (request.method == "POST") {
-      data_request = request.body;
+      data_request = request.body || {}; // Se agrega un valor por default
     }
 
     if (data_request) {
@@ -49,9 +49,9 @@ export const sqlFunction = async (
 
         //if (bind_json && bind_json.hasOwnProperty(param)) {
 
-          const valor = bind_json[param];
-//          console.log(`Clave: ${param}, Valor: ${valor}`);
-          data_bind[param] = valor;
+        const valor = bind_json[param];
+        //          console.log(`Clave: ${param}, Valor: ${valor}`);
+        data_bind[param] = valor;
 
         //}
 
@@ -84,7 +84,7 @@ export const sqlFunction = async (
           ) {
             response.openfusionapi.lastResponse.data = result_query;
           }
-		  
+
           response.code(200).send(result_query);
         } else {
           response
