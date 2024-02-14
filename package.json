@@ -29,7 +29,7 @@
   "homepage": "https://github.com/edwinspire/libOpenFusionAPI#readme",
   "dependencies": {
     "@edwinspire/sequential-promises": "github:edwinspire/sequential-promises#v0.01",
-    "@edwinspire/universal-fetch": "github:edwinspire/universal-fetch#v0.0.2",
+    "@edwinspire/universal-fetch": "github:edwinspire/universal-fetch",
     "@fastify/cookie": "^9.3.1",
     "@fastify/cors": "^8.5.0",
     "@fastify/static": "^6.12.0",
