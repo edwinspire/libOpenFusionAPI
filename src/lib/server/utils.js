@@ -64,30 +64,6 @@ export function checkToken(token) {
   }
 }
 
-// Middleware para validar el token
-/**
- * @param {any} req
- * @param { any } res
- * @param {() => void} next
- */
-export function validateToken(req, res, next) {
-  req.headers["OFAPI-DTOKEN"] = ""; // Vacia los datos que llegan en el token
-  let dataAuth = getUserPasswordTokenFromRequest(req);
-
-  // Verificar si se proporcionó un token
-  if (!dataAuth.token) {
-    return res.status(401).json({ error: "Token not found" });
-  }
-
-  let data = checkToken(dataAuth.token);
-
-  if (data) {
-    req.headers["OFAPI-DTOKEN"] = JSON.stringify(data); // setea los datos del token para usarlo posteriormente
-    next();
-  } else {
-    return res.status(401).json({ error: "Token invalid" });
-  }
-}
 
 // Middleware para validar el token de usuario del systema (Administradores de endpoints)
 /**
