@@ -1,5 +1,5 @@
 import { User, Role } from "./models.js";
-import { getRoleById } from "./role.js";
+//import { getRoleById } from "./role.js";
 import { EncryptPwd, GenToken, customError, md5 } from "../server/utils.js";
 
 export const upsertUser = async (
@@ -68,7 +68,7 @@ export const getUserByCredentials = async (username, password) => {
       "first_name",
       "last_name",
       "email",
-      "idrole",
+      "attrs",
       "exp_time",
     ],
   });
@@ -92,7 +92,7 @@ export const defaultUser = async () => {
         first_name: "super",
         last_name: "user",
         email: "superuser@example.com",
-        idrole: "21232f297a57a5a743894a0e4a801fc3",
+        attrs: {admin: true},
       });
     }
 
@@ -108,9 +108,8 @@ export const defaultUser = async () => {
         password: EncryptPwd("demouser"),
         first_name: "demo",
         last_name: "user",
-        idrole: "fe01ce2a7fbac8fafaed7c982a04e229",
         email: "demo@example.com",
-        attrs: { apps: { c4ca4238a0b923820dcc509a6f75849b: {} } },
+        attrs: {demo: true},
       });
     }
 
@@ -136,6 +135,7 @@ export async function login(username, password) {
     if (user) {
       let u = user.toJSON();
 
+      /*
       // Get data role
       let role_result = await getRoleById(user.idrole);
 
@@ -146,6 +146,7 @@ export async function login(username, password) {
           name: role_result.name,
         };
       }
+      */
 
       let token = GenToken(u, u.exp_time);
 
