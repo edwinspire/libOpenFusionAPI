@@ -95,7 +95,7 @@ export const PathRequest = dbsequelize.define(
         instance.rowkey = Math.floor(Math.random() * 1000);
         instance.headers_create =
           typeof instance.headers_create == "object" ||
-          Array.isArray(instance.headers_create)
+            Array.isArray(instance.headers_create)
             ? JSON.stringify(instance.headers_create)
             : instance.headers_create;
       },
@@ -151,7 +151,7 @@ export const User = dbsequelize.define(
       defaultValue: "9999-12-31",
       comment: "End of validity date of the user.",
     },
-    attrs: {
+    ctrl: {
       type: JSON_TYPE,
       comment: "Attributes that can be used for access control",
     },
@@ -192,10 +192,10 @@ export const User = dbsequelize.define(
         user.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (instance) => {
-           instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
+        instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
       },
       beforeUpsert: (instance) => {
-        instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
+        instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
       },
     },
   }
@@ -321,7 +321,7 @@ export const Application = dbsequelize.define(
           action: "afterBulkCreate",
           row: instance.app,
         });
-		*/
+    */
       },
       afterUpsert: async (/** @type {any} */ instance) => {
         // @ts-ignore
@@ -342,11 +342,11 @@ export const Application = dbsequelize.define(
         // @ts-ignore
         //				instance.rowkey = Math.floor(Math.random() * 1000);
         /*
-								if (!instance.idapp || instance.idapp == null) {
-									//console.log('beforeUpsert IDAPP es nulo o no está definido');
-									instance.idapp = uuidv4();
-								}
-								*/
+                if (!instance.idapp || instance.idapp == null) {
+                  //console.log('beforeUpsert IDAPP es nulo o no está definido');
+                  instance.idapp = uuidv4();
+                }
+                */
 
         if (!instance.idapp || instance.idapp == null) {
           //console.log('IDAPP es nulo o no está definido');
@@ -467,6 +467,10 @@ export const Endpoint = dbsequelize.define(
       comment:
         "Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token",
     },
+    ctrl: {
+      type: JSON_TYPE,
+      comment: "Control access"
+    },
     code: {
       type: DataTypes.TEXT,
       allowNull: false,
@@ -552,7 +556,7 @@ export const Endpoint = dbsequelize.define(
           // @ts-ignore
           instance.idendpoint = uuidv4();
         }
-
+        instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
         instance.data_test = JSON_TYPE_Adapter(instance, "data_test");
         /*
           dbsequelize.getDialect() === "mssql" &&
@@ -571,12 +575,12 @@ export const Endpoint = dbsequelize.define(
       },
       beforeBulkCreate: (instance) => {
         /*
-				// @ts-ignore
-				if (!instance.idendpoint) {
-					// @ts-ignore
-					instance.idendpoint = uuidv4();
-				}
-				*/
+        // @ts-ignore
+        if (!instance.idendpoint) {
+          // @ts-ignore
+          instance.idendpoint = uuidv4();
+        }
+        */
 
         // @ts-ignore
         instance.rowkey = Math.floor(Math.random() * 1000);

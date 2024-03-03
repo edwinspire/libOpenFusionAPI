@@ -12,6 +12,9 @@ import { customFunction } from "./customFunction.js";
  * @param {{ [x: string]: (arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void; }} appFunctions
  */
 export async function runHandler(request, response, method, appFunctions) {
+
+console.log('>>> runHandler <<<<');
+
   switch (method.handler) {
     case "JS":
       await jsFunction(request, response, method);

@@ -14,7 +14,7 @@ import { defaultApps, getAppByName, getAppWithEndpoints } from "./db/app.js";
 import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
 //import { defaultAPIUserMapping } from "./db/api_user mapping.js";
-import { defaultRoles } from "./db/role.js";
+//import { defaultRoles } from "./db/role.js";
 import { createPathRequest } from "./db/path_request.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
@@ -38,7 +38,7 @@ import {
   websocketUnauthorized,
   getIPFromRequest,
   getFunctionsFiles,
-  md5, 
+  md5,
 } from "./server/utils.js";
 
 import { schema_input_hooks } from "./server/schemas/index.js";
@@ -51,7 +51,7 @@ import {
   //	defaultSystemPath
 } from "./server/utils_path.js";
 
-const { PORT, PATH_APP_FUNCTIONS, JWT_KEY} = process.env;
+const { PORT, PATH_APP_FUNCTIONS, JWT_KEY } = process.env;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -134,6 +134,11 @@ export default class ServerAPI extends EventEmitter {
     this.loadFunctionFiles();
     this._addFunctions();
 
+
+
+
+
+    /*
     this.fastify.addHook("preValidation", async (request, reply) => {
       let request_path_params = get_url_params(request.url);
 
@@ -182,6 +187,8 @@ export default class ServerAPI extends EventEmitter {
         }
       }
     });
+
+    */
 
     this.fastify.addHook("onResponse", async (request, reply) => {
       // Guardamos la respuesta en cache
@@ -253,6 +260,9 @@ export default class ServerAPI extends EventEmitter {
 
     // Declare a route
     this.fastify.all(struct_api_path, async (request, reply) => {
+
+      await this._preValidation(request, reply);
+
       let handlerEndpoint = request.openfusionapi.handler;
 
       reply.openfusionapi = reply.openfusionapi ?? {};
@@ -314,37 +324,122 @@ export default class ServerAPI extends EventEmitter {
     await this.fastify.listen({ port: port });
   }
 
+  async _preValidation(request, reply) {
+    let request_path_params = get_url_params(request.url);
+
+    if (request_path_params && request_path_params.path) {
+      let path_endpoint_method = key_endpoint_method(
+        request_path_params.app,
+        request_path_params.resource,
+        request_path_params.environment,
+        request.method,
+        request.ws
+      );
+
+      //
+      if (
+        !this._cacheEndpoint.has(path_endpoint_method) &&
+        !this._appExistsOnCache(request_path_params.app)
+      ) {
+        // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
+        await this._loadEndpointsByAPPToCache(request_path_params.app);
+      }
+
+      if (request_path_params.path == "/api/system/functions/prd") {
+        try {
+          //	console.log('Functions >>>>>>>');
+          // @ts-ignore
+          this._functions(request, reply);
+        } catch (error) {
+          // @ts-ignore
+          reply.code(500).send({ error: error.message });
+        }
+      } else {
+        ///
+        if (this._cacheEndpoint.has(path_endpoint_method)) {
+          let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
+          handlerEndpoint.url = request_path_params.path;
+
+          if (handlerEndpoint.params.enabled) {
+            request.openfusionapi = { handler: handlerEndpoint };
+           await this._check_auth(handlerEndpoint, request, reply);
+          } else {
+            reply.code().send({ message: "Endpoint unabled." });
+          }
+        } else {
+          reply.code(404).send({ error: "Not Found" });
+        }
+      }
+    }
+  };
+
+  _checkCTRLAccessEndpoint(user, app) {
+
+    // Recorrer las propiedades del objeto user
+    for (let key in user) {
+      // Verificar si la propiedad actual existe en app
+      if (!(key in app)) {
+        return false;
+      }
+      // Verificar si el valor de la propiedad coincide
+      if (user[key] !== app[key]) {
+        return false;
+      }
+      // Si la propiedad es un objeto, llamar recursivamente a la función
+      if (typeof user[key] === 'object' && user[key] !== null) {
+        if (!this._checkCTRLAccessEndpoint(user[key], app[key])) {
+          return false;
+        }
+      }
+    }
+    return true;
+
+  }
+
   _check_auth_Bearer(handler, data_aut) {
-    return (
-      data_aut.Bearer.data &&
-      data_aut.Bearer.data.role &&
-      (data_aut.Bearer.data.role.admin ||
-        (data_aut.Bearer.data.role.attrs[handler.params.app] &&
-          data_aut.Bearer.data.role.attrs[handler.params.app][
-            handler.params.environment
-          ]))
-    );
+
+    let check = data_aut.Bearer && data_aut.Bearer.data && data_aut.Bearer.data.enabled && data_aut.Bearer.data.ctrl && handler.params && handler.params.environment && data_aut.Bearer.data.ctrl[handler.params.environment];
+
+    if (check) {
+      let ctrl_user = data_aut.Bearer.data.ctrl[handler.params.environment];
+      let ctrl_endpoint = handler.params.ctrl;
+
+      return this._checkCTRLAccessEndpoint(ctrl_user, ctrl_endpoint);
+
+    } else {
+      return false;
+    }
+
   }
 
   async _check_auth_Basic(handler, data_aut, request, reply) {
-    let user = await login(data_aut.Basic.username, data_aut.Basic.password);
 
-    if (user.login) {
-      let data_user = checkToken(user.token);
+    try {
+     
+      let user = await login(data_aut.Basic.username, data_aut.Basic.password);
 
-      // Simulamos un Bearer para usar el mismo método 
-      data_aut.Bearer.data = data_user;
+      if (user.login) {
+        let data_user = checkToken(user.token);
 
-      if (this._check_auth_Bearer(handler, data_aut)) {
-        request.openfusionapi.user = data_user;
+        // Simulamos un Bearer para usar el mismo método 
+        data_aut.Bearer.data = data_user;
+
+        if (this._check_auth_Bearer(handler, data_aut)) {
+          request.openfusionapi.user = data_user;
+        } else {
+          reply
+            .code(401)
+            .send({ error: "The API requires a valid Token." });
+        }
       } else {
-        reply
-          .code(401)
-          .send({ error: "The API requires a valid Token." });
+        reply.code(401).send({ error: "The API requires a valid Token." });
       }
-    } else {
-      reply.code(401).send({ error: "The API requires a valid Token." });
+    } catch (error) {
+      reply
+        .code(500)
+        .send({ error: error.message });
     }
+
   }
 
   async _check_auth(handler, request, reply) {
@@ -392,6 +487,7 @@ export default class ServerAPI extends EventEmitter {
               request.openfusionapi.user = data_aut.Bearer.data;
             } else if (data_aut.Basic.username && data_aut.Basic.password) {
               await this._check_auth_Basic(handler, data_aut, request, reply);
+              console.log('>>>>>> this._check_auth_Basic(handler, data_aut, request, reply);');
             } else {
               reply.code(401).send({ error: "The API requires a valid Token." });
             }
@@ -803,7 +899,7 @@ export default class ServerAPI extends EventEmitter {
       (async () => {
         try {
           await dbAPIs.sync({ alter: true });
-          await defaultRoles();
+          //  await defaultRoles();
           await defaultUser();
           await defaultMethods();
           await defaultHandlers();

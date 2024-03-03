@@ -68,7 +68,7 @@ export const getUserByCredentials = async (username, password) => {
       "first_name",
       "last_name",
       "email",
-      "attrs",
+      "ctrl",
       "exp_time",
     ],
   });
@@ -92,7 +92,7 @@ export const defaultUser = async () => {
         first_name: "super",
         last_name: "user",
         email: "superuser@example.com",
-        attrs: { dev: { admin: true }, qa: { admin: true }, prd: { admin: true } },
+        ctrl: { dev: { admin: true }, qa: { admin: true }, prd: { admin: true } },
       });
     }
 
@@ -109,7 +109,7 @@ export const defaultUser = async () => {
         first_name: "demo",
         last_name: "user",
         email: "demo@example.com",
-        attrs: { dev: { demo: true }, qa: { demo: true }, prd: { demo: true } },
+        ctrl: { dev: { demo: true }, qa: { demo: true }, prd: { demo: true } },
       });
     }
 

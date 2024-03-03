@@ -17,6 +17,7 @@ export const getAppWithEndpoints = async (/** @type {any} */ where, /** @type {b
 				'idendpoint',
 				'enabled',
 				'access',
+				'ctrl',
 				'environment',
 				'resource',
 				'method',

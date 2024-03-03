@@ -396,6 +396,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "JS",
     access: 3,
+    ctrl: { demo: true },
     code: "$_RETURN_DATA_ = $_VARS_APP;",
   },
 
