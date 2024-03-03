@@ -1,4 +1,4 @@
-import { User, Role } from "./models.js";
+import { User } from "./models.js";
 //import { getRoleById } from "./role.js";
 import { EncryptPwd, GenToken, customError, md5 } from "../server/utils.js";
 
