@@ -151,9 +151,9 @@ export const User = dbsequelize.define(
       defaultValue: "9999-12-31",
       comment: "End of validity date of the user.",
     },
-    idrole: {
-      type: DataTypes.STRING(100),
-      defaultValue: "",
+    attrs: {
+      type: JSON_TYPE,
+      comment: "Attributes that can be used for access control",
     },
     exp_time: {
       type: DataTypes.BIGINT,
@@ -192,79 +192,16 @@ export const User = dbsequelize.define(
         user.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (instance) => {
-        //   instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
+           instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
       },
       beforeUpsert: (instance) => {
-        //instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
-      },
-    },
-  }
-);
-
-// Definir el modelo de la tabla 'User'
-export const Role = dbsequelize.define(
-  prefixTableName("role"),
-  {
-    idrole: {
-      type: DataTypes.STRING(100),
-      primaryKey: true,
-      allowNull: false,
-      unique: true,
-    },
-    rowkey: {
-      type: DataTypes.SMALLINT,
-      defaultValue: 0,
-    },
-    enabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: "",
-      unique: true,
-    },
-    admin: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    attrs: {
-      type: JSON_TYPE,
-      defaultValue: {},
-    },
-  },
-  {
-    freezeTableName: true,
-    timestamps: true,
-    //indexes: ["name"],
-    hooks: {
-      afterUpsert: async () => {
-        // @ts-ignore
-
-        await HooksDB({
-          model: prefixTableName("role"),
-          action: "afterUpsert",
-        });
-      },
-      beforeUpdate: (/** @type {any} */ user) => {
-        // @ts-ignore
-        //			user.ts = new Date();
-        // @ts-ignore
-        //user.password = EncryptPwd(user.password);
-        // @ts-ignore
-        user.rowkey = Math.floor(Math.random() * 1000);
-      },
-      beforeValidate: (instance) => {
-        instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
-      },
-      beforeUpsert: (instance) => {
-        instance.rowkey = Math.floor(Math.random() * 1000);
         instance.attrs = JSON_TYPE_Adapter(instance, "attrs");
       },
     },
   }
 );
+
+
 
 // Definir el modelo de la tabla 'Method'
 export const Method = dbsequelize.define(
@@ -481,13 +418,6 @@ export const Application = dbsequelize.define(
   }
 );
 
-/*
-User.belongsTo(Role, {
-  foreignKey: "idrole",
-  targetKey: "idrole",
-  as: "role",
-});
-*/
 
 export const Endpoint = dbsequelize.define(
   prefixTableName("endpoint"),
