@@ -103,3 +103,6 @@ export const bulkCreateEndpoints = (
 		//updateOnDuplicate: uniqueFields
 	});
 };
+
+// TODO: Crear un endpoint que permita borrar la cache desde la GUI
+// En la GUI tambien debeía mostrar si el endpoint tiene cache en memoria y que tamaño tiene el objeto
