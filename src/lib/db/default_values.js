@@ -134,7 +134,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetApps",
   },
@@ -146,7 +146,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetApps",
   },
@@ -158,7 +158,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetApps",
   },
@@ -171,7 +171,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetAppById",
   },
@@ -183,7 +183,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetAppById",
   },
@@ -195,7 +195,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetAppById",
   },
@@ -208,7 +208,7 @@ export const endpoins_default = [
     method: "POST",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnSaveApp",
   },
@@ -220,7 +220,7 @@ export const endpoins_default = [
     method: "POST",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnSaveApp",
   },
@@ -232,7 +232,7 @@ export const endpoins_default = [
     method: "POST",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnSaveApp",
   },
@@ -245,7 +245,7 @@ export const endpoins_default = [
     method: "POST",
     handler: "FUNCTION",
     access: 0,
-
+    ctrl: { system: true },
     code: "fnLogin",
   },
 
@@ -258,7 +258,7 @@ export const endpoins_default = [
     method: "POST",
     handler: "FUNCTION",
     access: 0,
-
+    ctrl: { system: true },
     code: "fnAPIToken",
   },
 
@@ -280,7 +280,7 @@ export const endpoins_default = [
     method: "POST",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnLogout",
   },
@@ -292,7 +292,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetHandler",
   },
@@ -305,7 +305,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetMethod",
   },
@@ -318,7 +318,7 @@ export const endpoins_default = [
     method: "GET",
     handler: "FUNCTION",
     access: 2,
-
+    ctrl: { system: true },
     for_api: false,
     code: "fnGetEnvironment",
   },

@@ -137,7 +137,7 @@ export default class ServerAPI extends EventEmitter {
 
 
 
-    /*
+
     this.fastify.addHook("preValidation", async (request, reply) => {
       let request_path_params = get_url_params(request.url);
 
@@ -163,7 +163,7 @@ export default class ServerAPI extends EventEmitter {
           try {
             //	console.log('Functions >>>>>>>');
             // @ts-ignore
-            this._functions(request, reply);
+            await this._functions(request, reply);
           } catch (error) {
             // @ts-ignore
             reply.code(500).send({ error: error.message });
@@ -176,7 +176,7 @@ export default class ServerAPI extends EventEmitter {
 
             if (handlerEndpoint.params.enabled) {
               request.openfusionapi = { handler: handlerEndpoint };
-              this._check_auth(handlerEndpoint, request, reply);
+              await this._check_auth(handlerEndpoint, request, reply);
             } else {
               reply.code().send({ message: "Endpoint unabled." });
             }
@@ -186,8 +186,6 @@ export default class ServerAPI extends EventEmitter {
         }
       }
     });
-
-    */
 
     this.fastify.addHook("onResponse", async (request, reply) => {
       // Guardamos la respuesta en cache
@@ -260,7 +258,7 @@ export default class ServerAPI extends EventEmitter {
     // Declare a route
     this.fastify.all(struct_api_path, async (request, reply) => {
 
-      await this._preValidation(request, reply);
+      // await this._preValidation(request, reply);
 
       let handlerEndpoint = request.openfusionapi.handler;
 
@@ -361,7 +359,7 @@ export default class ServerAPI extends EventEmitter {
 
           if (handlerEndpoint.params.enabled) {
             request.openfusionapi = { handler: handlerEndpoint };
-           await this._check_auth(handlerEndpoint, request, reply);
+            await this._check_auth(handlerEndpoint, request, reply);
           } else {
             reply.code().send({ message: "Endpoint unabled." });
           }
@@ -375,22 +373,27 @@ export default class ServerAPI extends EventEmitter {
   _checkCTRLAccessEndpoint(user, app) {
 
     // Recorrer las propiedades del objeto user
-    for (let key in user) {
-      // Verificar si la propiedad actual existe en app
-      if (!(key in app)) {
-        return false;
-      }
-      // Verificar si el valor de la propiedad coincide
-      if (user[key] !== app[key]) {
-        return false;
-      }
-      // Si la propiedad es un objeto, llamar recursivamente a la función
-      if (typeof user[key] === 'object' && user[key] !== null) {
-        if (!this._checkCTRLAccessEndpoint(user[key], app[key])) {
+    if (user && app) {
+      for (let key in user) {
+        // Verificar si la propiedad actual existe en app
+        if (!(key in app)) {
           return false;
         }
+        // Verificar si el valor de la propiedad coincide
+        if (user[key] !== app[key]) {
+          return false;
+        }
+        // Si la propiedad es un objeto, llamar recursivamente a la función
+        if (typeof user[key] === 'object' && user[key] !== null) {
+          if (!this._checkCTRLAccessEndpoint(user[key], app[key])) {
+            return false;
+          }
+        }
       }
+    } else {
+      return false;
     }
+
     return true;
 
   }
@@ -414,7 +417,7 @@ export default class ServerAPI extends EventEmitter {
   async _check_auth_Basic(handler, data_aut, request, reply) {
 
     try {
-     
+
       let user = await login(data_aut.Basic.username, data_aut.Basic.password);
 
       if (user.login) {
@@ -453,6 +456,10 @@ export default class ServerAPI extends EventEmitter {
         // TODO: Validar los casos cuando no son admin pero si tiene las atribuciones para system
         if (this._check_auth_Bearer(handler, data_aut)) {
           request.openfusionapi.user = data_aut.Bearer.data;
+          // Agregar las funciones
+          // TODO: Ver la forma de devolver las funciones de forma dinamica sin necesidad de usar un endpoint quemado en el código
+          //request.openfusionapi.functions = this._getNameFunctions();
+
         } else {
           reply
             .code(401)

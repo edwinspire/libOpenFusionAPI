@@ -92,7 +92,7 @@ export const defaultUser = async () => {
         first_name: "super",
         last_name: "user",
         email: "superuser@example.com",
-        ctrl: { dev: { admin: true }, qa: { admin: true }, prd: { admin: true } },
+        ctrl: { dev: { system: true }, qa: { system: true }, prd: { system: true } },
       });
     }
 
