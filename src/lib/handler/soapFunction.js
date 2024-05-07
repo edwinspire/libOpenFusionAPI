@@ -34,6 +34,8 @@ export const soapFunction = async (
       dataRequest = joinObj(SOAPParameters, dataRequest);
     }
 
+    //console.log('dataRequest>>>>>', dataRequest);
+
     let soap_response = await SOAPGenericClient(dataRequest);
 
     if (
@@ -116,6 +118,15 @@ export const SOAPGenericClient = async (
 };
 
 function joinObj(objA, objB) {
+  // Impide que el usuario sobreescriba el wsdl que se ha definido en Fusion API
+  if (objA.wsdl) {
+    objB.wsdl = objA.wsdl;
+  }
+// Impide que el usuario sobreescriba el functionName que se ha definido en Fusion API
+  if (objA.functionName) {
+    objB.functionName = objA.functionName;
+  }
+
   // Crear un nuevo objeto para evitar modificar los objetos originales
   const r = { ...objA };
 
