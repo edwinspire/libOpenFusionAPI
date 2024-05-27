@@ -2,7 +2,7 @@ import "dotenv/config";
 import { EventEmitter } from "node:events";
 import dns from "dns";
 import Fastify from "fastify";
-import cookie from '@fastify/cookie';
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
@@ -103,12 +103,11 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _build() {
-
     this.fastify.register(cookie, {
       secret: JWT_KEY, // for cookies signature
-      hook: 'preValidation', // set to false to disable cookie autoparsing or set autoparsing on any of the following hooks: 'onRequest', 'preParsing', 'preHandler', 'preValidation'. default: 'onRequest'
-      parseOptions: {}  // options for parsing cookies
-    })
+      hook: "preValidation", // set to false to disable cookie autoparsing or set autoparsing on any of the following hooks: 'onRequest', 'preParsing', 'preHandler', 'preValidation'. default: 'onRequest'
+      parseOptions: {}, // options for parsing cookies
+    });
 
     await this.fastify.register(cors, {
       origin: "*",
@@ -132,11 +131,6 @@ export default class ServerAPI extends EventEmitter {
     this.buildDB();
     this.loadFunctionFiles();
     this._addFunctions();
-
-
-
-
-
 
     this.fastify.addHook("preValidation", async (request, reply) => {
       let request_path_params = get_url_params(request.url);
@@ -257,7 +251,6 @@ export default class ServerAPI extends EventEmitter {
 
     // Declare a route
     this.fastify.all(struct_api_path, async (request, reply) => {
-
       // await this._preValidation(request, reply);
 
       let handlerEndpoint = request.openfusionapi.handler;
@@ -317,9 +310,9 @@ export default class ServerAPI extends EventEmitter {
     });
 
     const port = PORT || 3000;
-    const host = HOST || 'localhost'
-    console.log("Listen on PORT " + port);
-    await this.fastify.listen({ port: port, host: host});
+    const host = HOST || "localhost";
+    console.log(`Listen on PORT ${port} and HOST ${host}`);
+    await this.fastify.listen({ port: port, host: host });
   }
 
   async _preValidation(request, reply) {
@@ -369,10 +362,9 @@ export default class ServerAPI extends EventEmitter {
         }
       }
     }
-  };
+  }
 
   _checkCTRLAccessEndpoint(user, app) {
-
     // Recorrer las propiedades del objeto user
     if (user && app) {
       for (let key in user) {
@@ -385,7 +377,7 @@ export default class ServerAPI extends EventEmitter {
           return false;
         }
         // Si la propiedad es un objeto, llamar recursivamente a la función
-        if (typeof user[key] === 'object' && user[key] !== null) {
+        if (typeof user[key] === "object" && user[key] !== null) {
           if (!this._checkCTRLAccessEndpoint(user[key], app[key])) {
             return false;
           }
@@ -396,53 +388,49 @@ export default class ServerAPI extends EventEmitter {
     }
 
     return true;
-
   }
 
   _check_auth_Bearer(handler, data_aut) {
-
-    let check = data_aut.Bearer && data_aut.Bearer.data && data_aut.Bearer.data.enabled && data_aut.Bearer.data.ctrl && handler.params && handler.params.environment && data_aut.Bearer.data.ctrl[handler.params.environment];
+    let check =
+      data_aut.Bearer &&
+      data_aut.Bearer.data &&
+      data_aut.Bearer.data.enabled &&
+      data_aut.Bearer.data.ctrl &&
+      handler.params &&
+      handler.params.environment &&
+      data_aut.Bearer.data.ctrl[handler.params.environment];
 
     if (check) {
       let ctrl_user = data_aut.Bearer.data.ctrl[handler.params.environment];
       let ctrl_endpoint = handler.params.ctrl;
 
       return this._checkCTRLAccessEndpoint(ctrl_user, ctrl_endpoint);
-
     } else {
       return false;
     }
-
   }
 
   async _check_auth_Basic(handler, data_aut, request, reply) {
-
     try {
-
       let user = await login(data_aut.Basic.username, data_aut.Basic.password);
 
       if (user.login) {
         let data_user = checkToken(user.token);
 
-        // Simulamos un Bearer para usar el mismo método 
+        // Simulamos un Bearer para usar el mismo método
         data_aut.Bearer.data = data_user;
 
         if (this._check_auth_Bearer(handler, data_aut)) {
           request.openfusionapi.user = data_user;
         } else {
-          reply
-            .code(401)
-            .send({ error: "The API requires a valid Token." });
+          reply.code(401).send({ error: "The API requires a valid Token." });
         }
       } else {
         reply.code(401).send({ error: "The API requires a valid Token." });
       }
     } catch (error) {
-      reply
-        .code(500)
-        .send({ error: error.message });
+      reply.code(500).send({ error: error.message });
     }
-
   }
 
   async _check_auth(handler, request, reply) {
@@ -460,7 +448,6 @@ export default class ServerAPI extends EventEmitter {
           // Agregar las funciones
           // TODO: Ver la forma de devolver las funciones de forma dinamica sin necesidad de usar un endpoint quemado en el código
           //request.openfusionapi.functions = this._getNameFunctions();
-
         } else {
           reply
             .code(401)
@@ -476,7 +463,9 @@ export default class ServerAPI extends EventEmitter {
             if (data_aut.Basic.username && data_aut.Basic.password) {
               await this._check_auth_Basic(handler, data_aut, request, reply);
             } else {
-              reply.code(401).send({ error: "The API requires a valid Token." });
+              reply
+                .code(401)
+                .send({ error: "The API requires a valid Token." });
             }
 
             break;
@@ -485,7 +474,9 @@ export default class ServerAPI extends EventEmitter {
             if (this._check_auth_Bearer(handler, data_aut)) {
               request.openfusionapi.user = data_aut.Bearer.data;
             } else {
-              reply.code(401).send({ error: "The API requires a valid Token." });
+              reply
+                .code(401)
+                .send({ error: "The API requires a valid Token." });
             }
 
             break;
@@ -494,9 +485,13 @@ export default class ServerAPI extends EventEmitter {
               request.openfusionapi.user = data_aut.Bearer.data;
             } else if (data_aut.Basic.username && data_aut.Basic.password) {
               await this._check_auth_Basic(handler, data_aut, request, reply);
-              console.log('>>>>>> this._check_auth_Basic(handler, data_aut, request, reply);');
+              console.log(
+                ">>>>>> this._check_auth_Basic(handler, data_aut, request, reply);"
+              );
             } else {
-              reply.code(401).send({ error: "The API requires a valid Token." });
+              reply
+                .code(401)
+                .send({ error: "The API requires a valid Token." });
             }
 
             break;
