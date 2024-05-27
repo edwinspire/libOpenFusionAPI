@@ -50,7 +50,7 @@ import {
   //	defaultSystemPath
 } from "./server/utils_path.js";
 
-const { PORT, PATH_APP_FUNCTIONS, JWT_KEY } = process.env;
+const { PORT, PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -317,8 +317,9 @@ export default class ServerAPI extends EventEmitter {
     });
 
     const port = PORT || 3000;
+    const host = HOST || 'localhost'
     console.log("Listen on PORT " + port);
-    await this.fastify.listen({ port: port });
+    await this.fastify.listen({ port: port, host: host});
   }
 
   async _preValidation(request, reply) {
