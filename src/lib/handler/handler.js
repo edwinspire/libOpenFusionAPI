@@ -2,7 +2,7 @@ import { jsFunction } from "./jsFunction.js";
 import { fetchFunction } from "./fetchFunction.js";
 import { soapFunction } from "./soapFunction.js";
 import { sqlFunction } from "./sqlFunction.js";
-//import { soapFnFunction } from "./soapFnFunction.js";
+import { textFunction } from "./textFunction.js";
 import { customFunction } from "./customFunction.js";
 
 /**
@@ -12,8 +12,7 @@ import { customFunction } from "./customFunction.js";
  * @param {{ [x: string]: (arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void; }} appFunctions
  */
 export async function runHandler(request, response, method, appFunctions) {
-
-console.log('>>> runHandler <<<<');
+  console.log(">>> runHandler <<<<");
 
   switch (method.handler) {
     case "JS":
@@ -26,11 +25,9 @@ console.log('>>> runHandler <<<<');
     case "SOAP":
       await soapFunction(request, response, method);
       break;
-      /*
-    case "SOAPFn":
-      await soapFnFunction(request, response, method);
+    case "TEXT":
+      await textFunction(request, response, method);
       break;
-      */
     case "SQL":
       await sqlFunction(request, response, method);
       break;

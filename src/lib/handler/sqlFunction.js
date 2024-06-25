@@ -18,8 +18,10 @@ export const sqlFunction = async (
     }
 
     if (data_request) {
+
       // Obtiene los parametros de conexión
       if (data_request.connection) {
+
         let connection_json =
           typeof data_request.connection == "object"
             ? data_request.connection
@@ -33,9 +35,12 @@ export const sqlFunction = async (
           connection_json.password ?? paramsSQL.config.password;
         paramsSQL.config.options =
           connection_json.options ?? paramsSQL.config.options;
+
+          console.log('>>>>>>>>>>> ', data_request, paramsSQL);
+
       }
 
-      // Obtiene los valoes para hacer el bind de datos
+      // Obtiene los valores para hacer el bind de datos
       let bind_json = {};
 
       if (data_request.bind) {

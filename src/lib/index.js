@@ -175,7 +175,7 @@ export default class ServerAPI extends EventEmitter {
               reply.code().send({ message: "Endpoint unabled." });
             }
           } else {
-            reply.code(404).send({ error: "Not Found" });
+            reply.code(404).send({ error: "Endpoint Not Found" });
           }
         }
       }
