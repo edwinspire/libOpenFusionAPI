@@ -277,6 +277,7 @@ export const md5 = (/** @type {any} */ data) => {
   return hash.digest("hex");
 };
 
+// Une dos objetos json, los valores de obj2 sobreescriben los valores de obj1
 export const mergeObjects = (obj1, obj2) => {
   const merged = { ...obj1 };
 

@@ -1,4 +1,5 @@
 import { Sequelize, QueryTypes } from "sequelize";
+import {mergeObjects} from "../server/utils.js";
 
 export const sqlFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
@@ -27,6 +28,9 @@ export const sqlFunction = async (
             ? data_request.connection
             : JSON.parse(data_request.connection);
 
+            paramsSQL.config = mergeObjects(paramsSQL.config, connection_json);
+
+            /*
         paramsSQL.config.database =
           connection_json.database ?? paramsSQL.config.database;
         paramsSQL.config.username =
@@ -35,8 +39,9 @@ export const sqlFunction = async (
           connection_json.password ?? paramsSQL.config.password;
         paramsSQL.config.options =
           connection_json.options ?? paramsSQL.config.options;
+          */
 
-          console.log('>>>>>>>>>>> ', data_request, paramsSQL);
+//          console.log('>>>>>>>>>>> ', data_request, paramsSQL);
 
       }
 

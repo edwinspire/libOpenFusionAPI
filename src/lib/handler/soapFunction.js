@@ -2,6 +2,8 @@
 import soap from "soap";
 import Ajv from "ajv";
 import { schema_input_genericSOAP } from "./json_schemas.js";
+import {mergeObjects} from "../server/utils.js";
+
 
 const ajv = new Ajv();
 const validate_schema_input_genericSOAP = ajv.compile(schema_input_genericSOAP);
@@ -31,7 +33,8 @@ export const soapFunction = async (
     } else if ($_REQUEST_.method == "POST") {
       // Obtiene los datos del body
       dataRequest = $_REQUEST_.body;
-      dataRequest = joinObj(SOAPParameters, dataRequest);
+      //dataRequest = joinObj(SOAPParameters, dataRequest);
+      dataRequest = mergeObjects(dataRequest, SOAPParameters);
     }
 
     //console.log('dataRequest>>>>>', dataRequest);
@@ -59,7 +62,7 @@ export const soapFunction = async (
 export const SOAPGenericClient = async (
   /** @type {{ wsdl: string; functionName: string | any[]; BasicAuthSecurity: { User: any; Password: any; }; RequestArgs: any; }} */ SOAPParameters
 ) => {
-  // console.log("SOAPGenericClient", SOAPParameters);
+  console.log("SOAPGenericClient", SOAPParameters);
 
   try {
     let describe = false;

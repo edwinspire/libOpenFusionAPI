@@ -2,7 +2,7 @@ import server from "../index.js";
 //import { mergeObjects } from "../src/lib/server/utils.js";
 
 const testServer = new server();
-testServer.listen();
+//testServer.listen();
 
 /*
 let a = { a: 1, b: 3, g: { t: 7 }, kk: { rt: { l: 34, ti: "ok" } } };
