@@ -2,7 +2,9 @@ import { schema_return_customFunction } from "./json_schemas.js";
 
 import Ajv from "ajv";
 const ajv = new Ajv();
-const validate_schema_out_customFunction = ajv.compile(schema_return_customFunction);
+const validate_schema_out_customFunction = ajv.compile(
+  schema_return_customFunction
+);
 
 export const customFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
@@ -18,10 +20,13 @@ export const customFunction = async (
         $_DATA = $_REQUEST_.query;
       }
 
-      let fnresult = await appFunctions[method.code]($_REQUEST_, $_DATA, response);
+      let fnresult = await appFunctions[method.code](
+        $_REQUEST_,
+        $_DATA,
+        response
+      );
 
       if (validate_schema_out_customFunction(fnresult)) {
-        
         if (
           response.openfusionapi.lastResponse &&
           response.openfusionapi.lastResponse.hash_request
@@ -43,3 +48,4 @@ export const customFunction = async (
     response.code(500).send(error);
   }
 };
+

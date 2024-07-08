@@ -64,7 +64,6 @@ export function checkToken(token) {
   }
 }
 
-
 // Middleware para validar el token de usuario del systema (Administradores de endpoints)
 /**
  * @param {any} req
@@ -93,8 +92,6 @@ export function ___validateSystemToken(req, res, next) {
     return res.status(401).json({ error: "Token invalid" });
   }
 }
-
-
 
 /**
  * @param {number} code
@@ -127,9 +124,18 @@ export function GenToken(
   exp_seconds = Math.floor(Date.now() / 1000) + 60 * 60
 ) {
   console.log("GenToken > ", data);
-  let exp =  Math.floor(Date.now() / 1000) + (exp_seconds);
+  let exp = Math.floor(Date.now() / 1000) + exp_seconds;
   // Genera un Token
-  return jwt.sign({ data: {...data, _rnd_:(Math.random() * (100 - 0.01) + 0.01).toFixed(2)}, exp: Number(exp) }, jwtKey);
+  return jwt.sign(
+    {
+      data: {
+        ...data,
+        _rnd_: (Math.random() * (100 - 0.01) + 0.01).toFixed(2),
+      },
+      exp: Number(exp),
+    },
+    jwtKey
+  );
 }
 
 /**
@@ -154,7 +160,7 @@ export function getUserPasswordTokenFromRequest(req) {
       "base64"
     ).toString("utf-8");
     [username, password] = decodedCredentials.split(":");
-  }else  if (authHeader && authHeader.startsWith("Bearer")) {
+  } else if (authHeader && authHeader.startsWith("Bearer")) {
     token = authHeader.split(" ")[1];
     data_token = checkToken(token);
   }
@@ -269,4 +275,32 @@ export const md5 = (/** @type {any} */ data) => {
   const hash = createHash("md5");
   hash.update(typeof data !== "string" ? JSON.stringify(data) : data);
   return hash.digest("hex");
+};
+
+export const mergeObjects = (obj1, obj2) => {
+  const merged = { ...obj1 };
+
+  for (let key in obj2) {
+    if (obj2.hasOwnProperty(key)) {
+      if (
+        typeof obj2[key] === "object" &&
+        obj2[key] !== null &&
+        !Array.isArray(obj2[key])
+      ) {
+        if (
+          typeof obj1[key] === "object" &&
+          obj1[key] !== null &&
+          !Array.isArray(obj1[key])
+        ) {
+          merged[key] = mergeObjects(obj1[key], obj2[key]);
+        } else {
+          merged[key] = obj2[key];
+        }
+      } else {
+        merged[key] = obj2[key];
+      }
+    }
+  }
+
+  return merged;
 };
