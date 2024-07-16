@@ -7,7 +7,11 @@ export const textFunction = async (
     let textConfig = JSON.parse(method.code);
 
     if (textConfig.mimeType) {
-      let mimeType = textConfig.mimeType.length > 0 ? textConfig.mimeType : "text/plain"; 
+      let mimeType =
+        textConfig.mimeType.length > 0 ? textConfig.mimeType : "text/plain";
+
+      console.log("mimeType", textConfig.mimeType, mimeType);
+
       response.code(200).type(mimeType).send(textConfig.payload);
     } else {
       response.code(200).type("text/plain").send(textConfig.payload);
