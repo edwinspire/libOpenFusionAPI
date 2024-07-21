@@ -2,8 +2,9 @@
 import soap from "soap";
 import Ajv from "ajv";
 import { schema_input_genericSOAP } from "./json_schemas.js";
-import {mergeObjects} from "../server/utils.js";
+import { mergeObjects } from "../server/utils.js";
 
+ //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const ajv = new Ajv();
 const validate_schema_input_genericSOAP = ajv.compile(schema_input_genericSOAP);
@@ -62,81 +63,56 @@ export const soapFunction = async (
 export const SOAPGenericClient = async (
   /** @type {{ wsdl: string; functionName: string | any[]; BasicAuthSecurity: { User: any; Password: any; }; RequestArgs: any; }} */ SOAPParameters
 ) => {
-  console.log("SOAPGenericClient", SOAPParameters);
+  //  console.log("SOAPGenericClient", SOAPParameters);
 
-  try {
-    let describe = false;
+  let describe = false;
+
+  if (
+    SOAPParameters["describe()"] ||
+    (SOAPParameters.RequestArgs && SOAPParameters.RequestArgs["describe()"])
+  ) {
+    describe = true;
+    SOAPParameters.functionName = SOAPParameters.functionName || "undefined";
+  }
+
+  if (describe || validate_schema_input_genericSOAP(SOAPParameters)) {
+    let client = await soap.createClientAsync(SOAPParameters.wsdl, {});
+
+    // console.log('Client >>>>>> SOAP: ', client);
 
     if (
-      SOAPParameters["describe()"] ||
-      (SOAPParameters.RequestArgs && SOAPParameters.RequestArgs["describe()"])
+      SOAPParameters.BasicAuthSecurity &&
+      SOAPParameters.BasicAuthSecurity.User
     ) {
-      describe = true;
-      SOAPParameters.functionName = SOAPParameters.functionName || "undefined";
+      client.setSecurity(
+        new soap.BasicAuthSecurity(
+          SOAPParameters.BasicAuthSecurity.User,
+          SOAPParameters.BasicAuthSecurity.Password
+        )
+      );
+    } else if (SOAPParameters.BearerSecurity) {
+      client.setSecurity(
+        new soap.BearerSecurity(SOAPParameters.BearerSecurity)
+      );
     }
 
-    if (describe || validate_schema_input_genericSOAP(SOAPParameters)) {
-      let client = await soap.createClientAsync(SOAPParameters.wsdl);
+    let r;
 
-      // console.log('Client >>>>>> SOAP: ', client);
-
-      if (
-        SOAPParameters.BasicAuthSecurity &&
-        SOAPParameters.BasicAuthSecurity.User
-      ) {
-        client.setSecurity(
-          new soap.BasicAuthSecurity(
-            SOAPParameters.BasicAuthSecurity.User,
-            SOAPParameters.BasicAuthSecurity.Password
-          )
-        );
-      } else if (SOAPParameters.BearerSecurity) {
-        client.setSecurity(
-          new soap.BearerSecurity(SOAPParameters.BearerSecurity)
-        );
-      }
-
-      let r;
-
-      if (describe) {
-        r = client.describe();
-      } else {
-        let result = await client[SOAPParameters.functionName + "Async"](
-          SOAPParameters.RequestArgs
-        );
-        let r1 = await result;
-        r = r1[0];
-      }
-
-      //     console.log("SOAPGenericClient result", r);
-      return r;
+    if (describe) {
+      r = client.describe();
     } else {
-      return { error: validate_schema_input_genericSOAP.errors };
+      //console.log(client, ">>>>>>>  SOAPParameters.functionName",  SOAPParameters.functionName);
+
+      let fnName = SOAPParameters.functionName + "Async";
+
+      let result = await client[fnName](SOAPParameters.RequestArgs);
+      let r1 = await result;
+      r = r1[0];
     }
-  } catch (error) {
-    console.trace(error);
-    // @ts-ignore
-    return error;
+
+    //     console.log("SOAPGenericClient result", r);
+    return r;
+  } else {
+    return { error: validate_schema_input_genericSOAP.errors };
   }
 };
-
-function joinObj(objA, objB) {
-  // Impide que el usuario sobreescriba el wsdl que se ha definido en Fusion API
-  if (objA.wsdl) {
-    objB.wsdl = objA.wsdl;
-  }
-// Impide que el usuario sobreescriba el functionName que se ha definido en Fusion API
-  if (objA.functionName) {
-    objB.functionName = objA.functionName;
-  }
-
-  // Crear un nuevo objeto para evitar modificar los objetos originales
-  const r = { ...objA };
-
-  // Iterar sobre las propiedades del objB
-  for (const propiedad in objB) {
-    r[propiedad] = objB[propiedad];
-  }
-
-  return r;
-}

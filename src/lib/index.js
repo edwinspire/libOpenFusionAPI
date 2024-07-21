@@ -293,7 +293,7 @@ export default class ServerAPI extends EventEmitter {
 
           setTimeout(() => {
             this._cacheResponse.delete(hash_request);
-            console.log("Se elimina la cache de " + hash_request);
+            console.log("Se elimina la cache de " + hash_request+" luego de "+handlerEndpoint.params.cache_time * 1000+" segundos.");
           }, handlerEndpoint.params.cache_time * 1000);
         }
       } else {
