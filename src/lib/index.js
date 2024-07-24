@@ -175,7 +175,7 @@ export default class ServerAPI extends EventEmitter {
               reply.code().send({ message: "Endpoint unabled." });
             }
           } else {
-            reply.code(404).send({ error: "Endpoint Not Found" });
+            reply.code(404).send({ error: "Endpoint Not Found", url:  handlerEndpoint.url});
           }
         }
       }
@@ -893,9 +893,9 @@ export default class ServerAPI extends EventEmitter {
    * @param {boolean} buildDB
    */
   buildDB() {
-    let buildDB = process.env.BUILD_DB ?? false;
+    let buildDB = process.env.BUILD_DB;
 
-    if (buildDB) {
+    if (buildDB && buildDB.toString().toUpperCase() == "TRUE") {
       console.log("Crea la base de datos");
 
       (async () => {
