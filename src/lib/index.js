@@ -93,7 +93,8 @@ export default class ServerAPI extends EventEmitter {
     this._fnQA = new Map();
     this._fnPRD = new Map();
     this._cacheEndpoint = new Map();
-    this._cacheResponse = new Map();
+    //this._cacheResponse = new Map();
+    this._cacheURLResponse = new Map();
 
     this.fastify = Fastify({
       logger: true,
@@ -175,7 +176,9 @@ export default class ServerAPI extends EventEmitter {
               reply.code().send({ message: "Endpoint unabled." });
             }
           } else {
-            reply.code(404).send({ error: "Endpoint Not Found", url:  handlerEndpoint.url});
+            reply
+              .code(404)
+              .send({ error: "Endpoint Not Found", url: handlerEndpoint.url });
           }
         }
       }
@@ -188,9 +191,26 @@ export default class ServerAPI extends EventEmitter {
         reply.openfusionapi.lastResponse &&
         reply.openfusionapi.lastResponse.data
       ) {
+        /*
         this._cacheResponse.set(
           reply.openfusionapi.lastResponse.hash_request,
           reply.openfusionapi.lastResponse.data
+        );
+        */
+
+        let cacheResp = {};
+        cacheResp[reply.openfusionapi.lastResponse.hash_request] =
+          reply.openfusionapi.lastResponse.data;
+
+        this._cacheURLResponse.set(
+          request.openfusionapi.handler.url,
+          cacheResp
+        );
+
+        console.log(
+          "SET CACHE >>>>>> ",
+          request.openfusionapi.handler.url,
+          this._cacheURLResponse.get(request.openfusionapi.handler.url)
         );
       }
     });
@@ -270,11 +290,12 @@ export default class ServerAPI extends EventEmitter {
           url: handlerEndpoint.url,
         });
 
-        let data_cache = this._cacheResponse.get(hash_request);
+        //let data_cache = this._cacheResponse.get(hash_request);
+        let data_cache = this._cacheURLResponse.get(handlerEndpoint.url);
 
-        if (data_cache) {
+        if (data_cache && data_cache[hash_request]) {
           // Envia los datos que están en cache
-          reply.code(200).send(data_cache);
+          reply.code(200).send(data_cache[hash_request]);
         } else {
           reply.openfusionapi.lastResponse = {
             hash_request: hash_request,
@@ -292,8 +313,17 @@ export default class ServerAPI extends EventEmitter {
           );
 
           setTimeout(() => {
-            this._cacheResponse.delete(hash_request);
-            console.log("Se elimina la cache de " + hash_request+" luego de "+handlerEndpoint.params.cache_time * 1000+" segundos.");
+            //this._cacheResponse.delete(hash_request);
+            let objCache = this._cacheURLResponse.get(handlerEndpoint.url);
+            delete objCache[hash_request];
+
+            console.log(
+              "Se elimina la cache de " +
+              handlerEndpoint.url +
+                " luego de " +
+                handlerEndpoint.params.cache_time * 1000 +
+                " segundos."
+            );
           }, handlerEndpoint.params.cache_time * 1000);
         }
       } else {
@@ -345,6 +375,7 @@ export default class ServerAPI extends EventEmitter {
           // @ts-ignore
           reply.code(500).send({ error: error.message });
         }
+      } else if (request_path_params.path == "/api/system/functions/prd") {
       } else {
         ///
         if (this._cacheEndpoint.has(path_endpoint_method)) {
