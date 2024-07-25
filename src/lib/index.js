@@ -38,6 +38,7 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   md5,
+  sizeOfMapInKB,
 } from "./server/utils.js";
 
 import { schema_input_hooks } from "./server/schemas/index.js";
@@ -163,6 +164,26 @@ export default class ServerAPI extends EventEmitter {
             // @ts-ignore
             reply.code(500).send({ error: error.message });
           }
+        } else if (
+          request_path_params.path == "/api/system/cache/response/size"
+        ) {
+          let filteredEntries = Array.from(this._cacheURLResponse).filter(
+            ([key, value]) => {
+              let u = get_url_params(key);
+
+              return u.app == request.query.appName;
+            }
+          );
+
+          let sizeList = filteredEntries.map(([key, value]) => {
+            // Calcula el tamaño de la respuesta
+            return {
+              url: key,
+              bytes: Number(((Buffer.byteLength(JSON.stringify(value), "utf-8") / 1024) /1000 ).toFixed(2)),
+            };
+          });
+
+          reply.code(200).send(sizeList);
         } else {
           ///
           if (this._cacheEndpoint.has(path_endpoint_method)) {
@@ -173,7 +194,7 @@ export default class ServerAPI extends EventEmitter {
               request.openfusionapi = { handler: handlerEndpoint };
               await this._check_auth(handlerEndpoint, request, reply);
             } else {
-              reply.code().send({ message: "Endpoint unabled." });
+              reply.code(200).send({ message: "Endpoint unabled." });
             }
           } else {
             reply
@@ -198,17 +219,20 @@ export default class ServerAPI extends EventEmitter {
         );
         */
 
-        let cacheResp = {};
+        let cacheResp = this._cacheURLResponse.get(request.openfusionapi.handler.url)||{};
         cacheResp[reply.openfusionapi.lastResponse.hash_request] =
           reply.openfusionapi.lastResponse.data;
 
+          
         this._cacheURLResponse.set(
           request.openfusionapi.handler.url,
           cacheResp
         );
+        
 
         console.log(
           "SET CACHE >>>>>> ",
+
           request.openfusionapi.handler.url,
           this._cacheURLResponse.get(request.openfusionapi.handler.url)
         );
@@ -315,15 +339,17 @@ export default class ServerAPI extends EventEmitter {
           setTimeout(() => {
             //this._cacheResponse.delete(hash_request);
             let objCache = this._cacheURLResponse.get(handlerEndpoint.url);
-            delete objCache[hash_request];
+            if (objCache) {
+              delete objCache[hash_request];
 
-            console.log(
-              "Se elimina la cache de " +
-              handlerEndpoint.url +
-                " luego de " +
-                handlerEndpoint.params.cache_time * 1000 +
-                " segundos."
-            );
+              console.log(
+                "Se elimina la cache de " +
+                  handlerEndpoint.url +
+                  " luego de " +
+                  handlerEndpoint.params.cache_time * 1000 +
+                  " segundos."
+              );
+            }
           }, handlerEndpoint.params.cache_time * 1000);
         }
       } else {
@@ -375,7 +401,6 @@ export default class ServerAPI extends EventEmitter {
           // @ts-ignore
           reply.code(500).send({ error: error.message });
         }
-      } else if (request_path_params.path == "/api/system/functions/prd") {
       } else {
         ///
         if (this._cacheEndpoint.has(path_endpoint_method)) {

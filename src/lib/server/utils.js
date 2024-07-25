@@ -305,3 +305,58 @@ export const mergeObjects = (obj1, obj2) => {
 
   return merged;
 };
+
+
+export const roughSizeOfMap = (map, visited = new Set())=> {
+  let bytes = 0;
+
+  function sizeOf(value) {
+      if (value === null || value === undefined) {
+          return 0;
+      }
+
+      switch (typeof value) {
+          case 'number':
+              return 8;
+          case 'string':
+              return value.length * 2;
+          case 'boolean':
+              return 4;
+          case 'object':
+              if (visited.has(value)) {
+                  return 0;
+              }
+              visited.add(value);
+
+              let objectBytes = 0;
+              if (Array.isArray(value)) {
+                  value.forEach((element) => {
+                      objectBytes += sizeOf(element);
+                  });
+              } else {
+                  for (const key in value) {
+                      if (Object.hasOwnProperty.call(value, key)) {
+                          objectBytes += sizeOf(key);
+                          objectBytes += sizeOf(value[key]);
+                      }
+                  }
+              }
+              return objectBytes;
+          default:
+              return 0;
+      }
+  }
+
+  for (let [key, value] of map) {
+      bytes += sizeOf(key);
+      bytes += sizeOf(value);
+  }
+
+  return bytes;
+}
+
+export const sizeOfMapInKB = (map)=> {
+  const bytes = roughSizeOfMap(map);
+  const kilobytes = bytes / 1024;
+  return kilobytes;
+}
