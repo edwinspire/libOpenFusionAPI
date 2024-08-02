@@ -165,7 +165,8 @@ export default class ServerAPI extends EventEmitter {
             reply.code(500).send({ error: error.message });
           }
         } else if (
-          request_path_params.path == "/api/system/cache/response/size"
+          request_path_params.path == "/api/system/cache/response/size" &&
+          request.method == "GET"
         ) {
           let filteredEntries = Array.from(this._cacheURLResponse).filter(
             ([key, value]) => {
@@ -179,11 +180,33 @@ export default class ServerAPI extends EventEmitter {
             // Calcula el tamaño de la respuesta
             return {
               url: key,
-              bytes: Number(((Buffer.byteLength(JSON.stringify(value), "utf-8") / 1024) /1000 ).toFixed(2)),
+              bytes: Number(
+                (
+                  Buffer.byteLength(JSON.stringify(value), "utf-8") /
+                  1024 /
+                  1000
+                ).toFixed(2)
+              ),
             };
           });
 
           reply.code(200).send(sizeList);
+        } else if (
+          request_path_params.path == "/api/system/cache/clear" &&
+          request.method == "POST"
+        ) {
+          let data = request.body;
+          let clear_cache = [];
+
+          if (data && Array.isArray(data) && data.length > 0) {
+            clear_cache = data.map((u) => {
+              return { url: u, clear: this._cacheURLResponse.delete(u) };
+            });
+          }
+
+          // et objCache = this._cacheURLResponse.get(
+
+          reply.code(200).send(clear_cache);
         } else {
           ///
           if (this._cacheEndpoint.has(path_endpoint_method)) {
@@ -210,7 +233,13 @@ export default class ServerAPI extends EventEmitter {
       if (
         reply.openfusionapi &&
         reply.openfusionapi.lastResponse &&
-        reply.openfusionapi.lastResponse.data
+        reply.openfusionapi.lastResponse.data &&
+        request &&
+        request.openfusionapi &&
+        request.openfusionapi.handler &&
+        request.openfusionapi.handler.params &&
+        request.openfusionapi.handler.params.cache_time &&
+        request.openfusionapi.handler.params.cache_time > 0
       ) {
         /*
         this._cacheResponse.set(
@@ -219,22 +248,44 @@ export default class ServerAPI extends EventEmitter {
         );
         */
 
-        let cacheResp = this._cacheURLResponse.get(request.openfusionapi.handler.url)||{};
+        let cacheResp =
+          this._cacheURLResponse.get(request.openfusionapi.handler.url) || {};
         cacheResp[reply.openfusionapi.lastResponse.hash_request] =
           reply.openfusionapi.lastResponse.data;
 
-          
         this._cacheURLResponse.set(
           request.openfusionapi.handler.url,
           cacheResp
         );
-        
+
+        setTimeout(() => {
+          //this._cacheResponse.delete(hash_request);
+          let objCache = this._cacheURLResponse.get(
+            request.openfusionapi.handler.url
+          );
+          if (objCache) {
+            delete objCache[reply.openfusionapi.lastResponse.hash_request];
+
+            console.log(
+              "Se elimina la cache de " +
+                request.openfusionapi.handler.url +
+                " luego de " +
+                request.openfusionapi.handler.params.cache_time * 1000 +
+                " segundos."
+            );
+          }
+        }, request.openfusionapi.handler.params.cache_time * 1000);
 
         console.log(
           "SET CACHE >>>>>> ",
 
           request.openfusionapi.handler.url,
           this._cacheURLResponse.get(request.openfusionapi.handler.url)
+        );
+      } else {
+        console.log(
+          request.originalUrl  +
+            " no tiene parametros para guardar en cache."
         );
       }
     });
@@ -335,22 +386,6 @@ export default class ServerAPI extends EventEmitter {
               handlerEndpoint.params.environment
             )
           );
-
-          setTimeout(() => {
-            //this._cacheResponse.delete(hash_request);
-            let objCache = this._cacheURLResponse.get(handlerEndpoint.url);
-            if (objCache) {
-              delete objCache[hash_request];
-
-              console.log(
-                "Se elimina la cache de " +
-                  handlerEndpoint.url +
-                  " luego de " +
-                  handlerEndpoint.params.cache_time * 1000 +
-                  " segundos."
-              );
-            }
-          }, handlerEndpoint.params.cache_time * 1000);
         }
       } else {
         await runHandler(
