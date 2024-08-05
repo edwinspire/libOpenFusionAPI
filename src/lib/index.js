@@ -4,8 +4,12 @@ import dns from "dns";
 import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
+import formbody from "@fastify/formbody";
+import multipart from "@fastify/multipart";
+
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
+
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -105,6 +109,10 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _build() {
+
+await this.fastify.register(formbody);
+await this.fastify.register(multipart);
+
     this.fastify.register(cookie, {
       secret: JWT_KEY, // for cookies signature
       hook: "preValidation", // set to false to disable cookie autoparsing or set autoparsing on any of the following hooks: 'onRequest', 'preParsing', 'preHandler', 'preValidation'. default: 'onRequest'

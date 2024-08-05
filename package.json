@@ -32,6 +32,8 @@
     "@edwinspire/universal-fetch": "github:edwinspire/universal-fetch",
     "@fastify/cookie": "^9.3.1",
     "@fastify/cors": "^8.5.0",
+    "@fastify/formbody": "^7.4.0",
+    "@fastify/multipart": "^8.3.0",
     "@fastify/static": "^6.12.0",
     "@fastify/websocket": "^8.3.1",
     "ajv": "^8.12.0",
