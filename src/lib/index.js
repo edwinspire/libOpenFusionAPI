@@ -154,10 +154,13 @@ export default class ServerAPI extends EventEmitter {
         );
 
         //
-        if (
-          !this._cacheEndpoint.has(path_endpoint_method) &&
-          !this._appExistsOnCache(request_path_params.app)
-        ) {
+
+        let _cacheEndpoint_has = this._cacheEndpoint.has(path_endpoint_method);
+        let _appExistsOnCache_var = this._appExistsOnCache(
+          request_path_params.app
+        );
+
+        if (!_cacheEndpoint_has && !_appExistsOnCache_var) {
           // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
           await this._loadEndpointsByAPPToCache(request_path_params.app);
         }
@@ -227,7 +230,7 @@ export default class ServerAPI extends EventEmitter {
           } else {
             reply
               .code(404)
-              .send({ error: "Endpoint Not Found", url: handlerEndpoint.url });
+              .send({ error: "Endpoint Not Found", url: path_endpoint_method });
           }
         }
       }
@@ -295,8 +298,7 @@ export default class ServerAPI extends EventEmitter {
     });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
-      console.log("sssssss");
-
+     
       connection.socket.on("message", (message) => {
         // message.toString() === 'hi from client'
         connection.socket.send("hi from server");
@@ -427,7 +429,8 @@ export default class ServerAPI extends EventEmitter {
         !this._cacheEndpoint.has(path_endpoint_method) &&
         !this._appExistsOnCache(request_path_params.app)
       ) {
-        // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
+        
+                // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
         await this._loadEndpointsByAPPToCache(request_path_params.app);
       }
 
@@ -684,7 +687,7 @@ export default class ServerAPI extends EventEmitter {
   _deleteEndpointsByAppName(app_name) {
     let list_endpoints = Array.from(this._cacheEndpoint.keys());
     list_endpoints.forEach((lep) => {
-      if (lep.includes("/api/" + app_name)) {
+      if (lep.includes("/api/" + app_name) || lep.includes("/ws/" + app_name)) {
         this._cacheEndpoint.delete(lep);
       }
     });
