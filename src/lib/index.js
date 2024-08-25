@@ -109,9 +109,8 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _build() {
-
-await this.fastify.register(formbody);
-await this.fastify.register(multipart);
+    await this.fastify.register(formbody);
+    await this.fastify.register(multipart);
 
     this.fastify.register(cookie, {
       secret: JWT_KEY, // for cookies signature
@@ -191,9 +190,9 @@ await this.fastify.register(multipart);
               bytes: Number(
                 (
                   Buffer.byteLength(JSON.stringify(value), "utf-8") /
-                  1024 /
+                  1014 /
                   1000
-                ).toFixed(2)
+                ).toFixed(4)
               ),
             };
           });
@@ -211,8 +210,6 @@ await this.fastify.register(multipart);
               return { url: u, clear: this._cacheURLResponse.delete(u) };
             });
           }
-
-          // et objCache = this._cacheURLResponse.get(
 
           reply.code(200).send(clear_cache);
         } else {
@@ -292,8 +289,7 @@ await this.fastify.register(multipart);
         );
       } else {
         console.log(
-          request.originalUrl  +
-            " no tiene parametros para guardar en cache."
+          request.originalUrl + " no tiene parametros para guardar en cache."
         );
       }
     });
@@ -944,7 +940,7 @@ await this.fastify.register(multipart);
     } catch (error) {
       // @ts-ignore
       returnHandler.message = error.message;
-      returnHandler.status = 505;
+      returnHandler.status = 500;
       console.trace(error);
     }
 

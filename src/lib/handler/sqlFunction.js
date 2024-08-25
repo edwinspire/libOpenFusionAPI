@@ -1,5 +1,5 @@
 import { Sequelize, QueryTypes } from "sequelize";
-import {mergeObjects} from "../server/utils.js";
+import { mergeObjects } from "../server/utils.js";
 
 export const sqlFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
@@ -19,30 +19,14 @@ export const sqlFunction = async (
     }
 
     if (data_request) {
-
       // Obtiene los parametros de conexión
       if (data_request.connection) {
-
         let connection_json =
           typeof data_request.connection == "object"
             ? data_request.connection
             : JSON.parse(data_request.connection);
 
-            paramsSQL.config = mergeObjects(paramsSQL.config, connection_json);
-
-            /*
-        paramsSQL.config.database =
-          connection_json.database ?? paramsSQL.config.database;
-        paramsSQL.config.username =
-          connection_json.username ?? paramsSQL.config.username;
-        paramsSQL.config.password =
-          connection_json.password ?? paramsSQL.config.password;
-        paramsSQL.config.options =
-          connection_json.options ?? paramsSQL.config.options;
-          */
-
-//          console.log('>>>>>>>>>>> ', data_request, paramsSQL);
-
+        paramsSQL.config = mergeObjects(paramsSQL.config, connection_json);
       }
 
       // Obtiene los valores para hacer el bind de datos
@@ -56,19 +40,17 @@ export const sqlFunction = async (
       }
 
       for (let param in bind_json) {
-
         //if (bind_json && bind_json.hasOwnProperty(param)) {
 
         const valor = bind_json[param];
         //          console.log(`Clave: ${param}, Valor: ${valor}`);
-        data_bind[param] = valor;
+        data_bind[param] = valor.toString();
 
         //}
-
       }
 
       if (paramsSQL.config.database) {
-        console.log("Config sqlFunction", paramsSQL, request.method);
+        console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
 
         // Verificar las configuraciones minimas
         if (paramsSQL && paramsSQL.config.options && paramsSQL.query) {

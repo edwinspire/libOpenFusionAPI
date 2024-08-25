@@ -1,4 +1,3 @@
-//import { uFetch } from "@edwinspire/universal-fetch";
 import soap from "soap";
 import Ajv from "ajv";
 import { schema_input_genericSOAP } from "./json_schemas.js";
