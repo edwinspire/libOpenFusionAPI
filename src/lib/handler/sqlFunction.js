@@ -61,7 +61,7 @@ export const sqlFunction = async (
             paramsSQL.config.options
           );
 
-          //      console.log(config);
+            //    console.log('\ndata_bind\n', data_bind);
 
           let result_query = await sequelize.query(paramsSQL.query, {
             // @ts-ignore
