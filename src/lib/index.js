@@ -60,8 +60,6 @@ const { PORT, PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-console.log(__dirname);
-
 //import { url } from 'node:inspector';
 dns.setDefaultResultOrder("ipv4first");
 
@@ -93,6 +91,7 @@ export default class ServerAPI extends EventEmitter {
     if (!PORT) {
       throw { error: "PORT is required" };
     }
+
 
     this._fnDEV = new Map();
     this._fnQA = new Map();
@@ -408,7 +407,7 @@ export default class ServerAPI extends EventEmitter {
 
     const port = PORT || 3000;
     const host = HOST || "localhost";
-    console.log(`Listen on PORT ${port} and HOST ${host}`);
+    console.log(`Listen on PORT ${port} and HOST ${host}`, __dirname, PORT, PATH_APP_FUNCTIONS, JWT_KEY, HOST);
     await this.fastify.listen({ port: port, host: host });
   }
 
