@@ -283,12 +283,15 @@ export default class ServerAPI extends EventEmitter {
           }
         }, request.openfusionapi.handler.params.cache_time * 1000);
 
+        /*
         console.log(
           "SET CACHE >>>>>> ",
 
           request.openfusionapi.handler.url,
           this._cacheURLResponse.get(request.openfusionapi.handler.url)
         );
+*/
+
       } else {
         console.log(
           request.originalUrl + " no tiene parametros para guardar en cache."
