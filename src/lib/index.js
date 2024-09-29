@@ -338,7 +338,7 @@ export default class ServerAPI extends EventEmitter {
                 setTimeout(() => {
                   // Espera 30 segundos para borrar la cache de las funciones del endpoint 
                   this._deleteEndpointsByAppName(request.body.app);
-                }, 10000);
+                }, 30000);
 
                 /*
                 request.body.data.db.row.forEach((row) => {
