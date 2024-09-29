@@ -63,16 +63,18 @@ export const soapFunction = async (
 export const SOAPGenericClient = async (
   /** @type {{ wsdl: string; functionName: string | any[]; BasicAuthSecurity: { User: any; Password: any; }; RequestArgs: any; }} */ SOAPParameters
 ) => {
-    //console.log("\n\n\nSOAPGenericClient", SOAPParameters);
+  //console.log("\n\n\nSOAPGenericClient", SOAPParameters);
 
   let describe = false;
+  /*
   let options = {
     wsdl_options: {
       strictSSL: true,
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
       //secureOptions: constants.SSL_OP_NO_TLSv1_2,
     },
   };
+  */
 
   if (
     SOAPParameters["describe()"] ||
@@ -83,9 +85,12 @@ export const SOAPGenericClient = async (
   }
 
   if (describe || validate_schema_input_genericSOAP(SOAPParameters)) {
-    let client = await soap.createClientAsync(SOAPParameters.wsdl, options);
+    let client = await soap.createClientAsync(
+      SOAPParameters.wsdl,
+      SOAPParameters.options ? SOAPParameters.options : {}
+    );
 
-//     console.log('\n\nClient >>>>>> SOAP: ', describe, SOAPParameters);
+    //     console.log('\n\nClient >>>>>> SOAP: ', describe, SOAPParameters);
 
     if (
       SOAPParameters.BasicAuthSecurity &&
