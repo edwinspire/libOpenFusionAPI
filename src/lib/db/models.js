@@ -327,7 +327,7 @@ export const Application = dbsequelize.define(
         // @ts-ignore
         instance.rowkey = 999;
         // @ts-ignore
-        // console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
+     //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
         await HooksDB({
           model: prefixTableName("application"),
           action: "afterUpsert",

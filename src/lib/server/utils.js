@@ -23,7 +23,8 @@ export async function emitHook(data) {
   const urlHooks = "http://localhost:" + PORT + internal_url_post_hooks;
   const uF = new uFetch(urlHooks);
   let r = await uF.POST({ data: data });
-  console.log(await r.json());
+  await r.json();
+  //console.log("::::::::::>> emitHook :::>", urlHooks, data, await r.json());
 }
 
 /**

@@ -92,7 +92,6 @@ export default class ServerAPI extends EventEmitter {
       throw { error: "PORT is required" };
     }
 
-
     this._fnDEV = new Map();
     this._fnQA = new Map();
     this._fnPRD = new Map();
@@ -291,16 +290,10 @@ export default class ServerAPI extends EventEmitter {
           this._cacheURLResponse.get(request.openfusionapi.handler.url)
         );
 */
-
-      } else {
-        console.log(
-          request.originalUrl + " no tiene parametros para guardar en cache."
-        );
       }
     });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
-     
       connection.socket.on("message", (message) => {
         // message.toString() === 'hi from client'
         connection.socket.send("hi from server");
@@ -310,6 +303,8 @@ export default class ServerAPI extends EventEmitter {
     // Route to internal Hook
     this.fastify.post(internal_url_post_hooks, async (request, reply) => {
       // TODO: Evaluar si esta seccion requiere Token valido, ya que el acceso es solo interno
+
+      //console.log("\n\n>>>>>++++>>>\n", request.body);
 
       // Valida que el origen sea solo local
       let ip_request = getIPFromRequest(request);
@@ -323,24 +318,35 @@ export default class ServerAPI extends EventEmitter {
 
         // TODO: Hacer mas pruebas y verificar que pasa con  validate_schema_input_hooks cuando hay varios hilos. Se pueden llegar a mesclar las respuesta?
 
+        //console.log("\n\n>>>>>>>>\n", request.body);
+
         if (validate_schema_input_hooks(request.body)) {
           reply.send({ result: true });
 
           if (request.body.data && request.body.data.db.model) {
+            //   console.log('YYYYYYYYY>>>>>>', request.body);
+
             if (
               request.body.data.db.model == prefixTableName("application") &&
               request.body.data.db.action &&
               request.body.data.db.action === "afterUpsert"
             ) {
-              if (
-                request.body.data.db &&
-                Array.isArray(request.body.data.db.row)
-              ) {
+              //  console.log('XXXXXXXXXXXXXXXX>', request.body);
+              if (request.body.app) {
+                // TODO: Revisar el entorno no solo la app
+
+                setTimeout(() => {
+                  // Espera 30 segundos para borrar la cache de las funciones del endpoint 
+                  this._deleteEndpointsByAppName(request.body.app);
+                }, 10000);
+
+                /*
                 request.body.data.db.row.forEach((row) => {
                   if (row) {
                     this._deleteEndpointsByAppName(row.app);
                   }
                 });
+                */
               }
             }
           }
@@ -410,7 +416,14 @@ export default class ServerAPI extends EventEmitter {
 
     const port = PORT || 3000;
     const host = HOST || "localhost";
-    console.log(`Listen on PORT ${port} and HOST ${host}`, __dirname, PORT, PATH_APP_FUNCTIONS, JWT_KEY, HOST);
+    console.log(
+      `Listen on PORT ${port} and HOST ${host}`,
+      __dirname,
+      PORT,
+      PATH_APP_FUNCTIONS,
+      JWT_KEY,
+      HOST
+    );
     await this.fastify.listen({ port: port, host: host });
   }
 
@@ -431,8 +444,7 @@ export default class ServerAPI extends EventEmitter {
         !this._cacheEndpoint.has(path_endpoint_method) &&
         !this._appExistsOnCache(request_path_params.app)
       ) {
-        
-                // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
+        // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
         await this._loadEndpointsByAPPToCache(request_path_params.app);
       }
 

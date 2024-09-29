@@ -19,7 +19,7 @@ export const soapFunction = async (
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
-    //console.log('>>>>>>>>>>>>> method.code -----> ', method.code);
+    console.log('>>>>>>>>>>>>> method.code -----> ', method.code);
 
     let SOAPParameters = JSON.parse(method.code);
 
@@ -116,6 +116,8 @@ export const SOAPGenericClient = async (
       //console.log(client, ">>>>>>>  SOAPParameters.functionName",  SOAPParameters.functionName);
 
       let fnName = SOAPParameters.functionName + "Async";
+
+console.log(client, fnName);
 
       let result = await client[fnName](SOAPParameters.RequestArgs);
       let r1 = await result;

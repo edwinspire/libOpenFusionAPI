@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
-    "test": "node ./test/index.js"
+    "test": "node ./test/index.js",
+    "start": "node ./src/server.js"
   },
   "type": "module",
   "repository": {
