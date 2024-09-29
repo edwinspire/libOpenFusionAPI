@@ -3,7 +3,7 @@ import Ajv from "ajv";
 import { schema_input_genericSOAP } from "./json_schemas.js";
 import { mergeObjects } from "../server/utils.js";
 
- //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const ajv = new Ajv();
 const validate_schema_input_genericSOAP = ajv.compile(schema_input_genericSOAP);
@@ -32,6 +32,7 @@ export const soapFunction = async (
       dataRequest = SOAPParameters;
     } else if ($_REQUEST_.method == "POST") {
       // Obtiene los datos del body
+      //console.log('>>>>>>>>>>>>>>>>' , $_REQUEST_.body);
       dataRequest = $_REQUEST_.body;
       //dataRequest = joinObj(SOAPParameters, dataRequest);
       dataRequest = mergeObjects(dataRequest, SOAPParameters);
@@ -62,9 +63,16 @@ export const soapFunction = async (
 export const SOAPGenericClient = async (
   /** @type {{ wsdl: string; functionName: string | any[]; BasicAuthSecurity: { User: any; Password: any; }; RequestArgs: any; }} */ SOAPParameters
 ) => {
-  //  console.log("SOAPGenericClient", SOAPParameters);
+    //console.log("\n\n\nSOAPGenericClient", SOAPParameters);
 
   let describe = false;
+  let options = {
+    wsdl_options: {
+      strictSSL: true,
+      rejectUnauthorized: false
+      //secureOptions: constants.SSL_OP_NO_TLSv1_2,
+    },
+  };
 
   if (
     SOAPParameters["describe()"] ||
@@ -75,9 +83,9 @@ export const SOAPGenericClient = async (
   }
 
   if (describe || validate_schema_input_genericSOAP(SOAPParameters)) {
-    let client = await soap.createClientAsync(SOAPParameters.wsdl, {});
+    let client = await soap.createClientAsync(SOAPParameters.wsdl, options);
 
-    // console.log('Client >>>>>> SOAP: ', client);
+//     console.log('\n\nClient >>>>>> SOAP: ', describe, SOAPParameters);
 
     if (
       SOAPParameters.BasicAuthSecurity &&

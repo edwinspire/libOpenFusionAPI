@@ -279,6 +279,8 @@ export const md5 = (/** @type {any} */ data) => {
 
 // Une dos objetos json, los valores de obj2 sobreescriben los valores de obj1
 export const mergeObjects = (obj1, obj2) => {
+
+
   const merged = { ...obj1 };
 
   for (let key in obj2) {
@@ -302,7 +304,7 @@ export const mergeObjects = (obj1, obj2) => {
       }
     }
   }
-
+//console.log('\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>', obj1, obj2, merged);
   return merged;
 };
 
