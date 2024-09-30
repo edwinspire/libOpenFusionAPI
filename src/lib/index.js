@@ -153,19 +153,22 @@ export default class ServerAPI extends EventEmitter {
 
         //
 
-        let _cacheEndpoint_has = this._cacheEndpoint.has(path_endpoint_method);
-        
-        /*
         let _appExistsOnCache_var = this._appExistsOnCache(
           request_path_params.app
         );
-        */
 
-        if (!_cacheEndpoint_has) {
-          // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
+        if (!_appExistsOnCache_var) {
+          // Carga todos los endpoints en la cache
           await this._loadEndpointsByAPPToCache(request_path_params.app);
+        } else if (!this._cacheEndpoint.has(path_endpoint_method)) {
+          // Carga solo el endpoint que no está en cache
+          await this._loadEndpointsByAPPToCache(
+            request_path_params.app,
+            path_endpoint_method
+          );
         }
 
+        
         if (request_path_params.path == "/api/system/functions/prd") {
           try {
             //	console.log('Functions >>>>>>>');
@@ -339,7 +342,7 @@ export default class ServerAPI extends EventEmitter {
                 // TODO: Revisar el entorno no solo la app
 
                 setTimeout(() => {
-                  // Espera 30 segundos para borrar la cache de las funciones del endpoint 
+                  // Espera 30 segundos para borrar la cache de las funciones del endpoint
                   this._deleteEndpointsByAppName(request.body.app);
                 }, 30000);
 
@@ -429,8 +432,6 @@ export default class ServerAPI extends EventEmitter {
     );
     await this.fastify.listen({ port: port, host: host });
   }
-
- 
 
   _checkCTRLAccessEndpoint(user, app) {
     // Recorrer las propiedades del objeto user
@@ -923,7 +924,7 @@ export default class ServerAPI extends EventEmitter {
   /**
    * @param {any} app
    */
-  async _loadEndpointsByAPPToCache(app, ws) {
+  async _loadEndpointsByAPPToCache(app, only_url_app_endpoint) {
     try {
       // Carga los endpoints de una App a cache
       let appDataResult = await getAppWithEndpoints({ app: app }, false);
@@ -945,10 +946,21 @@ export default class ServerAPI extends EventEmitter {
               endpoint.method == "WS"
             );
 
-            this._cacheEndpoint.set(
-              url_app_endpoint,
-              this._getApiHandler(appData.app, endpoint, appData.vars)
-            );
+            if (
+              only_url_app_endpoint &&
+              only_url_app_endpoint == url_app_endpoint
+            ) {
+              this._cacheEndpoint.set(
+                url_app_endpoint,
+                this._getApiHandler(appData.app, endpoint, appData.vars)
+              );
+              break;
+            } else {
+              this._cacheEndpoint.set(
+                url_app_endpoint,
+                this._getApiHandler(appData.app, endpoint, appData.vars)
+              );
+            }
           }
         }
       }
