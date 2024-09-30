@@ -430,54 +430,7 @@ export default class ServerAPI extends EventEmitter {
     await this.fastify.listen({ port: port, host: host });
   }
 
-  async _preValidation(request, reply) {
-    let request_path_params = get_url_params(request.url);
-
-    if (request_path_params && request_path_params.path) {
-      let path_endpoint_method = key_endpoint_method(
-        request_path_params.app,
-        request_path_params.resource,
-        request_path_params.environment,
-        request.method,
-        request.ws
-      );
-
-      //
-      if (
-        !this._cacheEndpoint.has(path_endpoint_method) &&
-        !this._appExistsOnCache(request_path_params.app)
-      ) {
-        // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
-        await this._loadEndpointsByAPPToCache(request_path_params.app);
-      }
-
-      if (request_path_params.path == "/api/system/functions/prd") {
-        try {
-          //	console.log('Functions >>>>>>>');
-          // @ts-ignore
-          this._functions(request, reply);
-        } catch (error) {
-          // @ts-ignore
-          reply.code(500).send({ error: error.message });
-        }
-      } else {
-        ///
-        if (this._cacheEndpoint.has(path_endpoint_method)) {
-          let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
-          handlerEndpoint.url = request_path_params.path;
-
-          if (handlerEndpoint.params.enabled) {
-            request.openfusionapi = { handler: handlerEndpoint };
-            await this._check_auth(handlerEndpoint, request, reply);
-          } else {
-            reply.code().send({ message: "Endpoint unabled." });
-          }
-        } else {
-          reply.code(404).send({ error: "Not Found" });
-        }
-      }
-    }
-  }
+ 
 
   _checkCTRLAccessEndpoint(user, app) {
     // Recorrer las propiedades del objeto user
