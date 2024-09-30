@@ -50,7 +50,7 @@ export const sqlFunction = async (
       }
 
       if (paramsSQL.config.database) {
-        console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
+        //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
 
         // Verificar las configuraciones minimas
         if (paramsSQL && paramsSQL.config.options && paramsSQL.query) {

@@ -154,11 +154,14 @@ export default class ServerAPI extends EventEmitter {
         //
 
         let _cacheEndpoint_has = this._cacheEndpoint.has(path_endpoint_method);
+        
+        /*
         let _appExistsOnCache_var = this._appExistsOnCache(
           request_path_params.app
         );
+        */
 
-        if (!_cacheEndpoint_has && !_appExistsOnCache_var) {
+        if (!_cacheEndpoint_has) {
           // No está en cache, se obtiene todos los endpoints de la aplicación y la carga en CACHE
           await this._loadEndpointsByAPPToCache(request_path_params.app);
         }
