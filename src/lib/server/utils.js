@@ -280,8 +280,6 @@ export const md5 = (/** @type {any} */ data) => {
 
 // Une dos objetos json, los valores de obj2 sobreescriben los valores de obj1
 export const mergeObjects = (obj1, obj2) => {
-
-
   const merged = { ...obj1 };
 
   for (let key in obj2) {
@@ -305,61 +303,64 @@ export const mergeObjects = (obj1, obj2) => {
       }
     }
   }
-//console.log('\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>', obj1, obj2, merged);
+  //console.log('\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>', obj1, obj2, merged);
   return merged;
 };
 
-
-export const roughSizeOfMap = (map, visited = new Set())=> {
+export const roughSizeOfMap = (map, visited = new Set()) => {
   let bytes = 0;
 
   function sizeOf(value) {
-      if (value === null || value === undefined) {
+    if (value === null || value === undefined) {
+      return 0;
+    }
+
+    switch (typeof value) {
+      case "number":
+        return 8;
+      case "string":
+        return value.length * 2;
+      case "boolean":
+        return 4;
+      case "object":
+        if (visited.has(value)) {
           return 0;
-      }
+        }
+        visited.add(value);
 
-      switch (typeof value) {
-          case 'number':
-              return 8;
-          case 'string':
-              return value.length * 2;
-          case 'boolean':
-              return 4;
-          case 'object':
-              if (visited.has(value)) {
-                  return 0;
-              }
-              visited.add(value);
-
-              let objectBytes = 0;
-              if (Array.isArray(value)) {
-                  value.forEach((element) => {
-                      objectBytes += sizeOf(element);
-                  });
-              } else {
-                  for (const key in value) {
-                      if (Object.hasOwnProperty.call(value, key)) {
-                          objectBytes += sizeOf(key);
-                          objectBytes += sizeOf(value[key]);
-                      }
-                  }
-              }
-              return objectBytes;
-          default:
-              return 0;
-      }
+        let objectBytes = 0;
+        if (Array.isArray(value)) {
+          value.forEach((element) => {
+            objectBytes += sizeOf(element);
+          });
+        } else {
+          for (const key in value) {
+            if (Object.hasOwnProperty.call(value, key)) {
+              objectBytes += sizeOf(key);
+              objectBytes += sizeOf(value[key]);
+            }
+          }
+        }
+        return objectBytes;
+      default:
+        return 0;
+    }
   }
 
   for (let [key, value] of map) {
-      bytes += sizeOf(key);
-      bytes += sizeOf(value);
+    bytes += sizeOf(key);
+    bytes += sizeOf(value);
   }
 
   return bytes;
-}
+};
 
-export const sizeOfMapInKB = (map)=> {
+export const sizeOfMapInKB = (map) => {
   const bytes = roughSizeOfMap(map);
   const kilobytes = bytes / 1024;
   return kilobytes;
-}
+};
+
+export const getInternalURL = (relative_path) => {
+  return `http://localhost:${PORT}${relative_path}`;
+};

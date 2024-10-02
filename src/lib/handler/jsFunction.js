@@ -1,8 +1,7 @@
 // @ts-ignore
 import $_UFETCH_ from "@edwinspire/universal-fetch";
 import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
-import {GenToken} from "../server/utils.js";
-
+import { GenToken, getInternalURL } from "../server/utils.js";
 
 export const createFunction = (
   /** @type {string} */ code,
@@ -14,29 +13,17 @@ export const createFunction = (
     app_vars_string = `const $_VARS_APP = ${JSON.stringify(app_vars, null, 2)}`;
   }
 
-  /*
   let codefunction = `
-${app_vars_string}  
-const {$_REQUEST_, $_UFETCH_} = $_VARS_;
-let $_RETURN_DATA_ = {};
-${code}
-return $_RETURN_DATA_;
-`;
-*/
-
-
-
-let codefunction = `
 return async()=>{
   ${app_vars_string}  
-  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_, $_GEN_TOKEN_} = $_VARS_;
+  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_, $_GEN_TOKEN_, $_GET_INTERNAL_URL_} = $_VARS_;
   let $_RETURN_DATA_ = {};
   ${code}
   return $_RETURN_DATA_;  
 }
 `;
 
-// console.log(codefunction);
+  // console.log(codefunction);
 
   return new Function("$_VARS_", codefunction);
 };
@@ -47,8 +34,7 @@ export const jsFunction = async (
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
 ) => {
   try {
-
-//    let $_UFETCH_ = new uFetch();
+    //    let $_UFETCH_ = new uFetch();
 
     let f;
 
@@ -60,16 +46,24 @@ export const jsFunction = async (
       f = createFunction(method.code);
     }
 
+    let result_fn = await f({
+      $_REPLY_: response,
+      $_REQUEST_: $_REQUEST_,
+      $_UFETCH_: $_UFETCH_,
+      $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_,
+      $_GEN_TOKEN_: GenToken,
+      $_GET_INTERNAL_URL_: getInternalURL
 
-let result_fn = await f({$_REPLY_: response, $_REQUEST_: $_REQUEST_, $_UFETCH_: $_UFETCH_, $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_, $_GEN_TOKEN_: GenToken })();
+    })();
 
-if (response.openfusionapi.lastResponse && response.openfusionapi.lastResponse.hash_request) {
-  // @ts-ignore
-  response.openfusionapi.lastResponse.data = result_fn;
-}
-    response
-      .code(200)
-      .send(result_fn);
+    if (
+      response.openfusionapi.lastResponse &&
+      response.openfusionapi.lastResponse.hash_request
+    ) {
+      // @ts-ignore
+      response.openfusionapi.lastResponse.data = result_fn;
+    }
+    response.code(200).send(result_fn);
   } catch (error) {
     // @ts-ignore
     response.code(500).send(error);
