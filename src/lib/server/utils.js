@@ -366,7 +366,10 @@ export const getInternalURL = (relative_path) => {
 };
 
 export const fetchOFAPI = (url) => {
-  url = isAbsoluteUrl(url) ? getInternalURL(url) : url;
+  url = isAbsoluteUrl(url) ? url : getInternalURL(url);
+
+ // console.log('\n\n>>>>>>>>>>>>>>>> '+url);
+
   return new uFetch(url);
 };
 
