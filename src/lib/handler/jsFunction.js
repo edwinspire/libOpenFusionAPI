@@ -46,6 +46,8 @@ export const jsFunction = async (
       f = createFunction(method.code);
     }
 
+console.log(fetchOFAPI);
+
     let result_fn = await f({
       $_REPLY_: response,
       $_REQUEST_: $_REQUEST_,

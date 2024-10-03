@@ -365,7 +365,7 @@ export const getInternalURL = (relative_path) => {
   return `http://localhost:${PORT}${relative_path}`;
 };
 
-export const fetchOFAPI = async (url) => {
+export const fetchOFAPI = (url) => {
   url = isAbsoluteUrl(url) ? getInternalURL(url) : url;
   return new uFetch(url);
 };
