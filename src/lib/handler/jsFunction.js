@@ -1,7 +1,12 @@
 // @ts-ignore
 import $_UFETCH_ from "@edwinspire/universal-fetch";
 import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
-import { GenToken, getInternalURL } from "../server/utils.js";
+import {
+  GenToken,
+  getInternalURL,
+  fetchRequest,
+  fetchOFAPI,
+} from "../server/utils.js";
 
 export const createFunction = (
   /** @type {string} */ code,
@@ -16,7 +21,7 @@ export const createFunction = (
   let codefunction = `
 return async()=>{
   ${app_vars_string}  
-  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_, $_GEN_TOKEN_, $_GET_INTERNAL_URL_} = $_VARS_;
+  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_, $_GEN_TOKEN_, $_GET_INTERNAL_URL_, $_FETCH_REQUEST_, $_FETCH_OFAPI_} = $_VARS_;
   let $_RETURN_DATA_ = {};
   ${code}
   return $_RETURN_DATA_;  
@@ -52,8 +57,9 @@ export const jsFunction = async (
       $_UFETCH_: $_UFETCH_,
       $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_,
       $_GEN_TOKEN_: GenToken,
-      $_GET_INTERNAL_URL_: getInternalURL
-
+      $_GET_INTERNAL_URL_: getInternalURL,
+      $_FETCH_REQUEST_: fetchRequest,
+      $_FETCH_OFAPI_: fetchOFAPI,
     })();
 
     if (

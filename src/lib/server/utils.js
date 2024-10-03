@@ -364,3 +364,13 @@ export const sizeOfMapInKB = (map) => {
 export const getInternalURL = (relative_path) => {
   return `http://localhost:${PORT}${relative_path}`;
 };
+
+export const fetchRequest = async (opts) => {
+  let f = new uFetch();
+  return await f.request(opts.url, opts.method, opts.data, opts.headers);
+};
+
+export const fetchOFAPI = async (opts) => {
+  opts.url = getInternalURL(opts.url);
+  return await fetchRequest(opts);
+};
