@@ -14,26 +14,23 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 import dbAPIs from "./db/sequelize.js";
-import { defaultApps, getAppByName, getAppWithEndpoints } from "./db/app.js";
+import {
+  defaultApps,
+  getAppByName,
+  getAppWithEndpoints,
+  getApiHandler,
+  //  createPathRequest,
+} from "./db/app.js";
 import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
 //import { defaultAPIUserMapping } from "./db/api_user mapping.js";
 //import { defaultRoles } from "./db/role.js";
-import { createPathRequest } from "./db/path_request.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
 import { prefixTableName } from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
 import { createFunction } from "./handler/jsFunction.js";
-import { getApiHandler } from "./db/app.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
-//import { defaultAPIUser, getAPIUser } from "./db/api_user.js";
-
-import fs from "fs";
-import path from "path";
-
-import Ajv from "ajv";
-const ajv = new Ajv();
 
 import {
   checkToken,
@@ -42,6 +39,7 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   md5,
+  getUUID,
   sizeOfMapInKB,
 } from "./server/utils.js";
 
@@ -52,8 +50,13 @@ import {
   struct_api_path,
   get_url_params,
   internal_url_post_hooks,
-  //	defaultSystemPath
 } from "./server/utils_path.js";
+
+import fs from "fs";
+import path from "path";
+
+import Ajv from "ajv";
+const ajv = new Ajv();
 
 const { PORT, PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
 
@@ -96,8 +99,8 @@ export default class ServerAPI extends EventEmitter {
     this._fnQA = new Map();
     this._fnPRD = new Map();
     this._cacheEndpoint = new Map();
-    //this._cacheResponse = new Map();
     this._cacheURLResponse = new Map();
+    //    this._wsClients = {};
 
     this.fastify = Fastify({
       logger: true,
@@ -120,6 +123,21 @@ export default class ServerAPI extends EventEmitter {
       origin: "*",
     });
     await this.fastify.register(websocket);
+
+    /*
+    this.fastify.websocket({
+      async upgrade(req, stream) {
+        if (stream && stream.end) {
+          console.log('Cliente se ha desconectado');
+        } else {
+          // El cliente se ha conectado
+          stream.on('message', (message) => {
+            // Maneja el mensaje del cliente
+          });
+        }
+      },
+    });
+    */
 
     const www_dir = "www";
     const rutaDirectorio = path.join(process.cwd(), www_dir);
@@ -168,7 +186,6 @@ export default class ServerAPI extends EventEmitter {
           );
         }
 
-        
         if (request_path_params.path == "/api/system/functions/prd") {
           try {
             //	console.log('Functions >>>>>>>');
@@ -260,6 +277,7 @@ export default class ServerAPI extends EventEmitter {
         );
         */
 
+        // Setea la cache para futuros usos
         let cacheResp =
           this._cacheURLResponse.get(request.openfusionapi.handler.url) || {};
         cacheResp[reply.openfusionapi.lastResponse.hash_request] =
@@ -287,22 +305,81 @@ export default class ServerAPI extends EventEmitter {
             );
           }
         }, request.openfusionapi.handler.params.cache_time * 1000);
-
-        /*
-        console.log(
-          "SET CACHE >>>>>> ",
-
-          request.openfusionapi.handler.url,
-          this._cacheURLResponse.get(request.openfusionapi.handler.url)
-        );
-*/
       }
     });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
+      // Todos los clientes deben estar registrados para poder hacer broadcast o desconectarlos masivamente
+      // Crea un idclient para poder enviar un mensaje solo para un socket especifico
+      try {
+        connection.socket.openfusionapi = req.openfusionapi
+          ? req.openfusionapi
+          : {};
+
+        connection.socket.openfusionapi.idclient = getUUID();
+      } catch (error) {
+        console.log(error);
+      }
+
+      /*
+      if (!this._wsClients[req.url]) {
+        this._wsClients[req.url] = [];
+      }
+
+      this._wsClients[req.url].push(connection.socket);
+*/
+
+      connection.socket.on("open", (message) => {
+        console.log("Abre");
+      });
+      connection.socket.on("close", (message) => {
+        console.log("Cierra");
+      });
+
       connection.socket.on("message", (message) => {
+        // TODO: Validar acceso en cada mensaje
+        // TODO: Validar si el usuario solo puede recibir mensajes
+        // TODO: Validar si los usuarios pueden enviar un mensaje broadcast
+        // TODO: Habilitar que se puededa realizar comunicación uno a uno entre clientes
+        // TODO: Tomar en cuenta que si el endpoint se lo deshabilita inmediatamente se debe desconectar a todos los clientes y no permitir la reconexion
+
         // message.toString() === 'hi from client'
-        connection.socket.send("hi from server");
+        // console.log(this.fastify.websocketServer.clients);
+        //connection.socket.send("hi from server: " + message.toString());
+
+        // Broadcast
+        // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
+        this.fastify.websocketServer.clients.forEach((client_ws) => {
+          try {
+            if (
+              client_ws.openfusionapi.handler.url ==
+                connection.socket.openfusionapi.handler.url &&
+              client_ws.openfusionapi.idclient !=
+                connection.socket.openfusionapi.idclient
+            ) {
+              //client_ws.send("Broadcast: " + message.toString());
+              // TODO: Verificar si el mensaje va dirigido a un idcliente en particular o es para todos
+              let msgObj = JSON.parse(message.toString());
+
+              if (
+                msgObj.recipients &&
+                Array.isArray(msgObj.recipients) &&
+                msgObj.recipients.find(
+                  (recip) => recip == connection.socket.openfusionapi.idclient
+                )
+              ) {
+                // Envia el mensaje solo a los remitentes que están en la lista
+                client_ws.send(JSON.stringify(msgObj.payload));
+              } else if (msgObj) {
+                // Envia a todos los remitentes siempre y cuando el msgObj sea un objeto json
+                client_ws.send(JSON.stringify(msgObj.payload));
+              }
+            }
+          } catch (error) {
+            // Devuelve un mensaje al cliente que originó el mensaje
+            connection.socket.send(error);
+          }
+        });
       });
     });
 
@@ -342,9 +419,9 @@ export default class ServerAPI extends EventEmitter {
                 // TODO: Revisar el entorno no solo la app
 
                 setTimeout(() => {
-                  // Espera 30 segundos para borrar la cache de las funciones del endpoint
+                  // Espera 15 segundos para borrar la cache de las funciones del endpoint
                   this._deleteEndpointsByAppName(request.body.app);
-                }, 30000);
+                }, 15000);
 
                 /*
                 request.body.data.db.row.forEach((row) => {
@@ -377,7 +454,7 @@ export default class ServerAPI extends EventEmitter {
         handlerEndpoint.params.cache_time &&
         handlerEndpoint.params.cache_time > 0
       ) {
-        console.log("----- CACHE ------");
+        //        console.log("----- CACHE ------");
 
         let hash_request = md5({
           body: request.body,
@@ -389,9 +466,15 @@ export default class ServerAPI extends EventEmitter {
         let data_cache = this._cacheURLResponse.get(handlerEndpoint.url);
 
         if (data_cache && data_cache[hash_request]) {
+          // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'
+          reply.header("X-Cache", "HIT");
+
           // Envia los datos que están en cache
           reply.code(200).send(data_cache[hash_request]);
         } else {
+          // Agregar el header 'X-Cache: MISS' si se obtiene un nuevo resultado
+          reply.header("X-Cache", "MISS");
+
           reply.openfusionapi.lastResponse = {
             hash_request: hash_request,
             data: undefined,

@@ -6,6 +6,8 @@ import { Buffer } from "node:buffer";
 import jwt from "jsonwebtoken";
 import uFetch from "@edwinspire/universal-fetch";
 import { internal_url_post_hooks } from "./utils_path.js"; //
+import { v4 as uuidv4 } from "uuid";
+
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
 
 const errors = {
@@ -26,6 +28,10 @@ export async function emitHook(data) {
   await r.json();
   //console.log("::::::::::>> emitHook :::>", urlHooks, data, await r.json());
 }
+
+export const getUUID = () => {
+  return uuidv4();
+};
 
 /**
  * @param {import("express-serve-static-core").Request<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>} req
@@ -368,7 +374,7 @@ export const getInternalURL = (relative_path) => {
 export const fetchOFAPI = (url) => {
   url = isAbsoluteUrl(url) ? url : getInternalURL(url);
 
- // console.log('\n\n>>>>>>>>>>>>>>>> '+url);
+  // console.log('\n\n>>>>>>>>>>>>>>>> '+url);
 
   return new uFetch(url);
 };
