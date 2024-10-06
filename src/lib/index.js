@@ -258,6 +258,10 @@ export default class ServerAPI extends EventEmitter {
     });
 
     this.fastify.addHook("onResponse", async (request, reply) => {
+
+
+    //  console.log('\n\n\n', request.openfusionapi);
+
       // Guardamos la respuesta en cache
       if (
         reply.openfusionapi &&
@@ -297,7 +301,7 @@ export default class ServerAPI extends EventEmitter {
             delete objCache[reply.openfusionapi.lastResponse.hash_request];
 
             console.log(
-              "Se elimina la cache de " +
+              "\n\nSe elimina la cache de " +
                 request.openfusionapi.handler.url +
                 " luego de " +
                 request.openfusionapi.handler.params.cache_time * 1000 +
