@@ -95,7 +95,7 @@ export const PathRequest = dbsequelize.define(
         instance.rowkey = Math.floor(Math.random() * 1000);
         instance.headers_create =
           typeof instance.headers_create == "object" ||
-            Array.isArray(instance.headers_create)
+          Array.isArray(instance.headers_create)
             ? JSON.stringify(instance.headers_create)
             : instance.headers_create;
       },
@@ -200,8 +200,6 @@ export const User = dbsequelize.define(
     },
   }
 );
-
-
 
 // Definir el modelo de la tabla 'Method'
 export const Method = dbsequelize.define(
@@ -327,7 +325,7 @@ export const Application = dbsequelize.define(
         // @ts-ignore
         instance.rowkey = 999;
         // @ts-ignore
-     //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
+        //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
         await HooksDB({
           model: prefixTableName("application"),
           action: "afterUpsert",
@@ -347,6 +345,8 @@ export const Application = dbsequelize.define(
                   instance.idapp = uuidv4();
                 }
                 */
+
+        instance.app = instance.app.toLowerCase();
 
         if (!instance.idapp || instance.idapp == null) {
           //console.log('IDAPP es nulo o no está definido');
@@ -372,6 +372,8 @@ export const Application = dbsequelize.define(
 
         instance.vars = JSON_TYPE_Adapter(instance, "vars");
 
+        // Esta función si se ejecuta al momento de crear una nueva APP, poniendo en minuscula el nombre de la app
+        instance.app = instance.app.toLowerCase();
         /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.vars === "object"
@@ -417,7 +419,6 @@ export const Application = dbsequelize.define(
     },
   }
 );
-
 
 export const Endpoint = dbsequelize.define(
   prefixTableName("endpoint"),
@@ -469,7 +470,7 @@ export const Endpoint = dbsequelize.define(
     },
     ctrl: {
       type: JSON_TYPE,
-      comment: "Control access"
+      comment: "Control access",
     },
     code: {
       type: DataTypes.TEXT,

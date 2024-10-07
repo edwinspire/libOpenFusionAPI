@@ -258,9 +258,7 @@ export default class ServerAPI extends EventEmitter {
     });
 
     this.fastify.addHook("onResponse", async (request, reply) => {
-
-
-    //  console.log('\n\n\n', request.openfusionapi);
+      //  console.log('\n\n\n', request.openfusionapi);
 
       // Guardamos la respuesta en cache
       if (
@@ -419,22 +417,26 @@ export default class ServerAPI extends EventEmitter {
               request.body.data.db.action === "afterUpsert"
             ) {
               //  console.log('XXXXXXXXXXXXXXXX>', request.body);
-              if (request.body.app) {
-                // TODO: Revisar el entorno no solo la app
 
-                setTimeout(() => {
-                  // Espera 15 segundos para borrar la cache de las funciones del endpoint
-                  this._deleteEndpointsByAppName(request.body.app);
-                }, 15000);
+              // TODO: Revisar el entorno no solo la app
 
-                /*
+              setTimeout(() => {
+                // Espera 15 segundos para borrar la cache de las funciones del endpoint
+
+                request.body.data.db.row.forEach((item) => {
+                  if (item) {
+                    this._deleteEndpointsByAppName(item.app);
+                  }
+                });
+              }, 15000);
+
+              /*
                 request.body.data.db.row.forEach((row) => {
                   if (row) {
                     this._deleteEndpointsByAppName(row.app);
                   }
                 });
                 */
-              }
             }
           }
         } else {
@@ -746,6 +748,7 @@ export default class ServerAPI extends EventEmitter {
     let list_endpoints = Array.from(this._cacheEndpoint.keys());
     list_endpoints.forEach((lep) => {
       if (lep.includes("/api/" + app_name) || lep.includes("/ws/" + app_name)) {
+      //  console.log("\n\n _deleteEndpointsByAppName = ", app_name, lep);
         this._cacheEndpoint.delete(lep);
       }
     });
