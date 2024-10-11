@@ -11,7 +11,7 @@ import { customFunction } from "./customFunction.js";
  * @param {{handler: string;code: string;}} method
  * @param {{ [x: string]: (arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void; }} appFunctions
  */
-export async function runHandler(request, response, method, appFunctions) {
+export async function runHandler(request, response, method, server_data) {
   //console.log(">>> runHandler <<<<");
 
   switch (method.handler) {
@@ -32,7 +32,7 @@ export async function runHandler(request, response, method, appFunctions) {
       await sqlFunction(request, response, method);
       break;
     case "FUNCTION":
-      await customFunction(request, response, method, appFunctions);
+      await customFunction(request, response, method, server_data);
       break;
     default:
       response.code(404).send(`handler ${method.handler} not valid`);

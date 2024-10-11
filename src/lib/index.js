@@ -98,6 +98,10 @@ export default class ServerAPI extends EventEmitter {
     this._fnDEV = new Map();
     this._fnQA = new Map();
     this._fnPRD = new Map();
+
+    this._fnEnvironment = {};
+
+
     this._cacheEndpoint = new Map();
     this._cacheURLResponse = new Map();
     //    this._wsClients = {};
@@ -454,6 +458,15 @@ export default class ServerAPI extends EventEmitter {
       let handlerEndpoint = request.openfusionapi.handler;
 
       reply.openfusionapi = reply.openfusionapi ?? {};
+      let server_data = {};
+
+      if (
+        handlerEndpoint.params &&
+        handlerEndpoint.params.app &&
+        handlerEndpoint.params.app == "system"
+      ) {
+        server_data.apps_function_names = [];
+      }
 
       if (
         handlerEndpoint.params &&
@@ -486,26 +499,20 @@ export default class ServerAPI extends EventEmitter {
             data: undefined,
           };
 
-          await runHandler(
-            request,
-            reply,
-            handlerEndpoint.params,
-            this._getFunctions(
-              handlerEndpoint.params.app,
-              handlerEndpoint.params.environment
-            )
-          );
-        }
-      } else {
-        await runHandler(
-          request,
-          reply,
-          handlerEndpoint.params,
-          this._getFunctions(
+          server_data.app_functions = this._getFunctions(
             handlerEndpoint.params.app,
             handlerEndpoint.params.environment
-          )
+          );
+
+          await runHandler(request, reply, handlerEndpoint.params, server_data);
+        }
+      } else {
+        server_data.app_functions = this._getFunctions(
+          handlerEndpoint.params.app,
+          handlerEndpoint.params.environment
         );
+
+        await runHandler(request, reply, handlerEndpoint.params, server_data);
       }
     });
 
@@ -748,7 +755,7 @@ export default class ServerAPI extends EventEmitter {
     let list_endpoints = Array.from(this._cacheEndpoint.keys());
     list_endpoints.forEach((lep) => {
       if (lep.includes("/api/" + app_name) || lep.includes("/ws/" + app_name)) {
-      //  console.log("\n\n _deleteEndpointsByAppName = ", app_name, lep);
+        //  console.log("\n\n _deleteEndpointsByAppName = ", app_name, lep);
         this._cacheEndpoint.delete(lep);
       }
     });

@@ -8,8 +8,7 @@ import { upsertEndpoint } from "../../../../db/endpoint.js";
 
 export async function fnDemo(
   // @ts-ignore
-  /** @type {any} */ req,
-  /** @type {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: import("sequelize").Model<any, any>[]): void; new (): any; }; }; }} */ res
+  /** @type {any} */ params
 ) {
   let r = { code: 204, data: undefined };
   try {
@@ -26,26 +25,23 @@ export async function fnDemo(
   return r;
 }
 
-
-/**
- * @param {{ body: { username: string; password: string; }; }} req
- * @param {{ set: (arg0: string, arg1: any) => void; code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} res
- */
-export async function fnLogin(req, data, res) {
+export async function fnLogin(params) {
   let r = { code: 204, data: undefined };
   try {
-    let user = await login(req.body.username, req.body.password);
+    let user = await login(
+      params.request.body.username,
+      params.request.body.password
+    );
 
     //res.header("OFAPI-TOKEN", '');
-    res.cookie('OFAPI-TOKEN', '');
+    params.reply.cookie("OFAPI-TOKEN", "");
 
     if (user.login) {
       //res.header("OFAPI-TOKEN", user.token);
 
       let aut = `Bearer ${user.token}`;
-      res.header("Authorization", aut);
-
-      res.cookie('OFAPI-TOKEN', user.token);
+      params.reply.header("Authorization", aut);
+      params.reply.cookie("OFAPI-TOKEN", user.token);
 
       //res.code(200).json(user);
       r.data = user;
@@ -65,23 +61,15 @@ export async function fnLogin(req, data, res) {
   return r;
 }
 
-/**
- * @param {{ body: { appname: string; username: string; password: string; }; }} req
- * @param {{ set: (arg0: string, arg1: string) => void; code: (arg0: number) => { (): any; new (): any; json: { (arg0: { token?: string; error?: any; }): void; new (): any; }; }; }} res
- */
-export async function fnToken(req, data, res) {
-return fnLogin(req, data, res);
+export async function fnToken(params) {
+  return fnLogin(params.request, params.data_user, params.reply);
 }
 
-/**
- * @param {any} req
- * @param {{ set: (arg0: string, arg1: undefined) => void; code: (arg0: number) => { (): any; new (): any; json: { (arg0: { logout?: boolean; error?: any; }): void; new (): any; }; }; }} res
- */
-export async function fnLogout(req, res) {
+export async function fnLogout(params) {
   let r = { data: undefined, code: 204 };
   try {
     // TODO: ver la forma de hacer un logout correctamente e invalide el token
-    res.set("OFAPI-TOKEN", undefined);
+    params.reply.set("OFAPI-TOKEN", undefined);
 
     /*
 		res.code(200).json({
@@ -102,11 +90,7 @@ export async function fnLogout(req, res) {
   return r;
 }
 
-/**
- * @param {any} req
- * @param {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: import("sequelize").Model<any, any>[]): void; new (): any; }; }; }} res
- */
-export async function fnGetHandler(req, res) {
+export async function fnGetHandler(params) {
   let r = { code: 204, data: undefined };
   try {
     const hs = await getAllHandlers();
@@ -124,11 +108,7 @@ export async function fnGetHandler(req, res) {
   return r;
 }
 
-/**
- * @param {any} req
- * @param {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: import("sequelize").Model<any, any>[]): void; new (): any; }; }; }} res
- */
-export async function fnGetMethod(req, res) {
+export async function fnGetMethod(params) {
   let r = { code: 204, data: undefined };
   try {
     const methods = await getAllMethods();
@@ -144,11 +124,7 @@ export async function fnGetMethod(req, res) {
   return r;
 }
 
-/**
- * @param {any} req
- * @param {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { id: string; text: string; }[]): void; new (): any; }; }; }} res
- */
-export async function fnGetEnvironment(req, res) {
+export async function fnGetEnvironment(params) {
   let r = { code: 204, data: undefined };
   try {
     let env = [
@@ -170,11 +146,7 @@ export async function fnGetEnvironment(req, res) {
   return r;
 }
 
-/**
- * @param {any} req
- * @param {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { id: string; text: string; }[]): void; new (): any; }; }; }} res
- */
-export async function fnGetApps(req, res) {
+export async function fnGetApps(params) {
   let r = { code: 204, data: undefined };
   try {
     const apps = await getAllApps();
@@ -192,19 +164,18 @@ export async function fnGetApps(req, res) {
   return r;
 }
 
-/**
- * @param {any} req
- * @param {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { id: string; text: string; }[]): void; new (): any; }; }; }} res
- */
-export async function fnGetAppById(req, res) {
+export async function fnGetAppById(params) {
   let r = { code: 200, data: undefined };
   try {
-    let raw = !req.query.raw || req.query.raw == "false" ? false : true;
+    let raw =
+      !params.request.query.raw || params.request.query.raw == "false"
+        ? false
+        : true;
 
     //console.log(req.params, req.query, raw);
 
     // @ts-ignore
-    r.data = await getAppById(req.query.idapp, raw);
+    r.data = await getAppById(params.request.query.idapp, raw);
     r.code = 200;
 
     //res.code(200).json(data);
@@ -218,24 +189,20 @@ export async function fnGetAppById(req, res) {
   return r;
 }
 
-/**
- * @param {any} req
- * @param {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { id: string; text: string; }[]): void; new (): any; }; }; }} res
- */
-export async function fnSaveApp(req, res) {
+export async function fnSaveApp(params) {
   let r = { data: undefined, code: 204 };
   try {
     //		console.log(req.params, req.body);
 
     // Agrega primero los datos de la app
     // @ts-ignore
-    let data = await upsertApp(req.body);
+    let data = await upsertApp(params.request.body);
 
     //		console.log('upsertApp:::::: ', data);
 
     if (data.idapp) {
       // Inserta / Actualiza los endpoints
-      let promises_upsert = req.body.endpoints.map(
+      let promises_upsert = params.request.body.endpoints.map(
         (/** @type {import("sequelize").Optional<any, string>} */ ep) => {
           ep.idapp = data.idapp;
           if (!ep.idendpoint) {
@@ -256,6 +223,29 @@ export async function fnSaveApp(req, res) {
 
     //		res.code(200).json(data);
     r.data = data;
+    r.code = 200;
+  } catch (error) {
+    //console.log(error);
+    // @ts-ignore
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnFunctionNames(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    console.log("\n\n\n", params.server_data);
+
+    //		res.code(200).json(data);
+    r.data = [];
+    
+    if (params && params.server_data && params.server_data.app_functions) {
+      r.data = Object.keys(params.server_data.app_functions);
+    }
+
     r.code = 200;
   } catch (error) {
     //console.log(error);

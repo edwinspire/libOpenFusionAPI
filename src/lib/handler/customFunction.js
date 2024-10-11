@@ -8,44 +8,50 @@ const validate_schema_out_customFunction = ajv.compile(
 
 export const customFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
-  /** @type {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
+  /** @type {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ $_RESPONSE_,
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method,
-  /** @type {{ [x: string]: ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void) | ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }, arg2: any) => any); }} */ appFunctions
+  /** @type {{ [x: string]: ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void) | ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }, arg2: any) => any); }} */ $_SERVER_DATA_
 ) => {
   try {
-    if (appFunctions && appFunctions[method.code]) {
+    if (
+      $_SERVER_DATA_ &&
+      $_SERVER_DATA_.app_functions &&
+      $_SERVER_DATA_.app_functions[method.code]
+    ) {
       let $_DATA = $_REQUEST_.body;
 
       if (!$_DATA) {
         $_DATA = $_REQUEST_.query;
       }
 
-      let fnresult = await appFunctions[method.code](
-        $_REQUEST_,
-        $_DATA,
-        response
-      );
+      let fnresult = await $_SERVER_DATA_.app_functions[method.code]({
+        request: $_REQUEST_,
+        user_data: $_DATA,
+        reply: $_RESPONSE_,
+        server_data: $_SERVER_DATA_,
+      });
 
       if (validate_schema_out_customFunction(fnresult)) {
         if (
-          response.openfusionapi.lastResponse &&
-          response.openfusionapi.lastResponse.hash_request
+          $_RESPONSE_.openfusionapi.lastResponse &&
+          $_RESPONSE_.openfusionapi.lastResponse.hash_request
         ) {
           // @ts-ignore
-          response.openfusionapi.lastResponse.data = fnresult.data;
+          $_RESPONSE_.openfusionapi.lastResponse.data = fnresult.data;
         }
         // @ts-ignore
-        response.code(fnresult.code).send(fnresult.data);
+        $_RESPONSE_.code(fnresult.code).send(fnresult.data);
       } else {
-        response.code(500).send(validate_schema_out_customFunction.errors);
+        $_RESPONSE_.code(500).send(validate_schema_out_customFunction.errors);
       }
     } else {
-      response.code(404).send({ error: `Function ${method.code} not found.` });
+      $_RESPONSE_
+        .code(404)
+        .send({ error: `Function ${method.code} not found.` });
     }
   } catch (error) {
     //console.trace(error);
     // @ts-ignore
-    response.code(500).send(error);
+    $_RESPONSE_.code(500).send(error);
   }
 };
-
