@@ -95,12 +95,13 @@ export default class ServerAPI extends EventEmitter {
       throw { error: "PORT is required" };
     }
 
+    /*
     this._fnDEV = new Map();
     this._fnQA = new Map();
     this._fnPRD = new Map();
+    */
 
     this._fnEnvironment = {};
-
 
     this._cacheEndpoint = new Map();
     this._cacheURLResponse = new Map();
@@ -845,8 +846,19 @@ export default class ServerAPI extends EventEmitter {
   }
 
   _appendAppFunction(appname, environment, functionName, fn) {
-    console.log(appname, environment, functionName);
+    //console.log(appname, environment, functionName);
     if (functionName.startsWith("fn")) {
+      if (!this._fnEnvironment[environment]) {
+        this._fnEnvironment[environment] = {};
+      }
+
+      if (!this._fnEnvironment[environment][appname]) {
+        this._fnEnvironment[environment][appname] = {};
+      }
+
+      this._fnEnvironment[environment][appname][functionName] = fn;
+
+      /*
       switch (environment) {
         case "dev":
           if (this._fnDEV.has(appname)) {
@@ -888,6 +900,7 @@ export default class ServerAPI extends EventEmitter {
 
           break;
       }
+      */
     } else {
       throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
     }
@@ -909,6 +922,12 @@ export default class ServerAPI extends EventEmitter {
     let d;
     let p;
 
+    if (this._fnEnvironment[environment]) {
+      d = this._fnEnvironment[environment][appName];
+      p = this._fnEnvironment[environment]["public"];
+    }
+
+    /*
     switch (environment) {
       case "dev":
         d = this._fnDEV.get(appName);
@@ -924,6 +943,7 @@ export default class ServerAPI extends EventEmitter {
         p = this._fnPRD.get("public");
         break;
     }
+    */
     // Si hay funciones publicas con el mismo nombre que la función de aplicación, la funcion de aplicación sobreescribe a la publica
     return { ...p, ...d };
   }
