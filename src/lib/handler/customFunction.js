@@ -9,14 +9,15 @@ const validate_schema_out_customFunction = ajv.compile(
 export const customFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
   /** @type {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ $_RESPONSE_,
-  /** @type {{ handler?: string; code: any; jsFn?: any }} */ method,
+  /** @type {{ handler?: string; code: any; Fn?: any }} */ method,
   /** @type {{ [x: string]: ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void) | ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }, arg2: any) => any); }} */ $_SERVER_DATA_
 ) => {
   try {
     if (
-      $_SERVER_DATA_ &&
-      $_SERVER_DATA_.app_functions &&
-      $_SERVER_DATA_.app_functions[method.code]
+    //  $_SERVER_DATA_ &&
+    //  $_SERVER_DATA_.app_functions &&
+    //  $_SERVER_DATA_.app_functions[method.code]
+    method.Fn
     ) {
       let $_DATA = $_REQUEST_.body;
 
@@ -24,7 +25,16 @@ export const customFunction = async (
         $_DATA = $_REQUEST_.query;
       }
 
+      /*
       let fnresult = await $_SERVER_DATA_.app_functions[method.code]({
+        request: $_REQUEST_,
+        user_data: $_DATA,
+        reply: $_RESPONSE_,
+        server_data: $_SERVER_DATA_,
+      });
+      */
+
+      let fnresult = await method.Fn({
         request: $_REQUEST_,
         user_data: $_DATA,
         reply: $_RESPONSE_,

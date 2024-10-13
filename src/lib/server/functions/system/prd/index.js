@@ -239,14 +239,55 @@ export async function fnFunctionNames(params) {
   try {
     console.log("\n\n\n", params.server_data);
 
-    //		res.code(200).json(data);
-    r.data = [];
-    
-    if (params && params.server_data && params.server_data.app_functions) {
-      r.data = Object.keys(params.server_data.app_functions);
+    // req.query && req.query.appName && req.query.environment
+    /*
+    for (const clave in this._fnEnvironment) {
+      if (typeof this._fnEnvironment[clave] === "object") {
+        this._fnEnvironmentNames[clave] = [];
+        Object.keys(this._fnEnvironment[clave]).forEach((llave) => {
+          // if (llave !== "public") {
+          this._fnEnvironmentNames[clave][llave] = Object.keys(
+            this._fnEnvironment[clave][llave]
+          );
+          //          }
+        });
+      } else {
+        this._fnEnvironmentNames[clave] = this._fnEnvironment[clave];
+      }
     }
 
+    console.log("Llega", this._fnEnvironment);
+*/
+
+    //		res.code(200).json(data);
+    r.data = [];
     r.code = 200;
+
+    if (!params.request.query.environment || !params.request.query.appName) {
+      r.code = 400;
+    } else if (
+      params &&
+      params.server_data &&
+      params.request.query.appName &&
+      params.request.query.environment
+    ) {
+      if (
+        params.server_data.env_function_names &&
+        params.server_data.env_function_names[params.request.query.environment]
+      ) {
+        let public_fns =
+          params.server_data.env_function_names[
+            params.request.query.environment
+          ]["public"]  || [];
+        let app_fns =
+          params.server_data.env_function_names[
+            params.request.query.environment
+          ][params.request.query.appName] || [];
+
+          // Une las dos matrices eliminando duplicados
+        r.data = [...new Set([...public_fns, ...app_fns])];
+      }
+    }
   } catch (error) {
     //console.log(error);
     // @ts-ignore

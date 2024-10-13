@@ -102,6 +102,7 @@ export default class ServerAPI extends EventEmitter {
     */
 
     this._fnEnvironment = {};
+    this._EnvFuntionNames;
 
     this._cacheEndpoint = new Map();
     this._cacheURLResponse = new Map();
@@ -191,16 +192,7 @@ export default class ServerAPI extends EventEmitter {
           );
         }
 
-        if (request_path_params.path == "/api/system/functions/prd") {
-          try {
-            //	console.log('Functions >>>>>>>');
-            // @ts-ignore
-            await this._functions(request, reply);
-          } catch (error) {
-            // @ts-ignore
-            reply.code(500).send({ error: error.message });
-          }
-        } else if (
+        if (
           request_path_params.path == "/api/system/cache/response/size" &&
           request.method == "GET"
         ) {
@@ -466,7 +458,7 @@ export default class ServerAPI extends EventEmitter {
         handlerEndpoint.params.app &&
         handlerEndpoint.params.app == "system"
       ) {
-        server_data.apps_function_names = [];
+        server_data.env_function_names = this._EnvFuntionNames;
       }
 
       if (
@@ -500,18 +492,22 @@ export default class ServerAPI extends EventEmitter {
             data: undefined,
           };
 
+          /*
           server_data.app_functions = this._getFunctions(
             handlerEndpoint.params.app,
             handlerEndpoint.params.environment
           );
+          */
 
           await runHandler(request, reply, handlerEndpoint.params, server_data);
         }
       } else {
+        /*
         server_data.app_functions = this._getFunctions(
           handlerEndpoint.params.app,
           handlerEndpoint.params.environment
         );
+        */
 
         await runHandler(request, reply, handlerEndpoint.params, server_data);
       }
@@ -611,9 +607,6 @@ export default class ServerAPI extends EventEmitter {
         // TODO: Validar los casos cuando no son admin pero si tiene las atribuciones para system
         if (this._check_auth_Bearer(handler, data_aut)) {
           request.openfusionapi.user = data_aut.Bearer.data;
-          // Agregar las funciones
-          // TODO: Ver la forma de devolver las funciones de forma dinamica sin necesidad de usar un endpoint quemado en el código
-          //request.openfusionapi.functions = this._getNameFunctions();
         } else {
           reply
             .code(401)
@@ -669,9 +662,10 @@ export default class ServerAPI extends EventEmitter {
     }
   }
 
+  /*
   async _functions(
     req,
-    /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ res
+     res
   ) {
     try {
       if (req && req.query && req.query.appName && req.query.environment) {
@@ -690,7 +684,9 @@ export default class ServerAPI extends EventEmitter {
       res.code(500).send({ error: error.message });
     }
   }
+  */
 
+  /*
   _getNameFunctions(appName, environment) {
     let f = this._getFunctions(appName, environment);
     if (f) {
@@ -699,7 +695,7 @@ export default class ServerAPI extends EventEmitter {
 
     return [];
   }
-
+*/
   _addFunctions() {
     if (fnSystem) {
       if (fnSystem.fn_system_prd) {
@@ -746,7 +742,7 @@ export default class ServerAPI extends EventEmitter {
         const entriesP = Object.entries(fnPublic.fn_public_prd);
         for (let [fName, fn] of entriesP) {
           //console.log(prop + ": " + fn);
-          this._appendAppFunction("public", "dev", fName, fn);
+          this._appendAppFunction("public", "prd", fName, fn);
         }
       }
     }
@@ -848,6 +844,7 @@ export default class ServerAPI extends EventEmitter {
   _appendAppFunction(appname, environment, functionName, fn) {
     //console.log(appname, environment, functionName);
     if (functionName.startsWith("fn")) {
+      // Crea el environment vacío si no existe
       if (!this._fnEnvironment[environment]) {
         this._fnEnvironment[environment] = {};
       }
@@ -857,6 +854,48 @@ export default class ServerAPI extends EventEmitter {
       }
 
       this._fnEnvironment[environment][appname][functionName] = fn;
+
+      // Se asigna los nombres de las funciones a la lista de nombres
+      if (!this._EnvFuntionNames) {
+        this._EnvFuntionNames = {};
+      }
+
+      if(!this._EnvFuntionNames[environment]){
+        this._EnvFuntionNames[environment] = {};
+      }
+
+      if(!this._EnvFuntionNames[environment][appname]){
+        this._EnvFuntionNames[environment][appname] = [];
+      }
+      
+      this._EnvFuntionNames[environment][appname].push(functionName);
+      
+      /*
+      if (appname == "public") {
+        // Debe agregarse a todas las app de este entorno, si la función ya existe será reemplazada por la publica
+        console.log("ddd");
+
+        for (const _env_ in this._fnEnvironment) {
+          for (const _app_ in this._fnEnvironment[_env_]) {
+            // Agrega la función a todas las apps de los entornos
+            if (!this._fnEnvironment[_env_][_app_]) {
+              this._fnEnvironment[_env_][_app_] = {};
+            }
+
+            this._fnEnvironment[_env_][_app_][functionName] = fn;
+          }
+        }
+      } else {
+        // No es público
+        if (!this._fnEnvironment[environment][appname]) {
+          this._fnEnvironment[environment][appname] = {};
+        }
+
+        this._fnEnvironment[environment][appname][functionName] = fn;
+      }
+      */
+
+      //this._EnvFuntionNames
 
       /*
       switch (environment) {
@@ -927,6 +966,7 @@ export default class ServerAPI extends EventEmitter {
       p = this._fnEnvironment[environment]["public"];
     }
 
+    console.log(d, p);
     /*
     switch (environment) {
       case "dev":
@@ -1020,9 +1060,39 @@ export default class ServerAPI extends EventEmitter {
             returnHandler.params.code,
             appVars
           );
+        } else if (returnHandler.params.handler == "FUNCTION") {
+          // Console obtiene la función
+          if (
+            this._fnEnvironment[returnHandler.params.environment] &&
+            this._fnEnvironment[returnHandler.params.environment][
+              returnHandler.params.app
+            ] &&
+            this._fnEnvironment[returnHandler.params.environment][
+              returnHandler.params.app
+            ][returnHandler.params.code]
+          ) {
+            // Busca en la lista de funciones de entorno para asignarla
+            returnHandler.params.Fn =
+              this._fnEnvironment[returnHandler.params.environment][
+                returnHandler.params.app
+              ][returnHandler.params.code];
+          } else if (
+            this._fnEnvironment[returnHandler.params.environment] &&
+            this._fnEnvironment[returnHandler.params.environment]["public"] &&
+            this._fnEnvironment[returnHandler.params.environment]["public"][
+              returnHandler.params.code
+            ]
+          ) {
+            // Si no existe la función dentro de la app, busca en la lista de la aplicaión publica
+            returnHandler.params.Fn =
+              this._fnEnvironment[returnHandler.params.environment]["public"][
+                returnHandler.params.code
+              ];
+          }
+
+          returnHandler.message = "";
+          returnHandler.status = 200;
         }
-        returnHandler.message = "";
-        returnHandler.status = 200;
       } else {
         returnHandler.message = `Method ${endpointData.method} Unabled`;
         returnHandler.status = 404;
