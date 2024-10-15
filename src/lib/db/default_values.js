@@ -140,6 +140,29 @@ export const endpoins_default = [
   {
     enabled: true,
     idapp: "cfcd208495d565ef66e7dff9f98764da",
+    environment: "prd",
+    resource: "/cache/response/size",
+    method: "GET",
+    handler: "FUNCTION",
+    access: 0,
+    code: "fnGetCacheSize",
+  },
+
+  {
+    enabled: true,
+    idapp: "cfcd208495d565ef66e7dff9f98764da",
+    environment: "prd",
+    resource: "/cache/clear",
+    method: "POST",
+    handler: "FUNCTION",
+    access: 0,
+    code: "fnClearCache",
+  },
+
+
+  {
+    enabled: true,
+    idapp: "cfcd208495d565ef66e7dff9f98764da",
     environment: "dev",
     resource: "/api/apps/0.01",
     method: "GET",

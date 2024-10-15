@@ -6,6 +6,8 @@ import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";
 import { v4 as uuidv4 } from "uuid";
 import { upsertEndpoint } from "../../../../db/endpoint.js";
 
+import { get_url_params } from "../../../utils_path.js";
+
 export async function fnDemo(
   // @ts-ignore
   /** @type {any} */ params
@@ -239,27 +241,6 @@ export async function fnFunctionNames(params) {
   try {
     console.log("\n\n\n", params.server_data);
 
-    // req.query && req.query.appName && req.query.environment
-    /*
-    for (const clave in this._fnEnvironment) {
-      if (typeof this._fnEnvironment[clave] === "object") {
-        this._fnEnvironmentNames[clave] = [];
-        Object.keys(this._fnEnvironment[clave]).forEach((llave) => {
-          // if (llave !== "public") {
-          this._fnEnvironmentNames[clave][llave] = Object.keys(
-            this._fnEnvironment[clave][llave]
-          );
-          //          }
-        });
-      } else {
-        this._fnEnvironmentNames[clave] = this._fnEnvironment[clave];
-      }
-    }
-
-    console.log("Llega", this._fnEnvironment);
-*/
-
-    //		res.code(200).json(data);
     r.data = [];
     r.code = 200;
 
@@ -278,16 +259,83 @@ export async function fnFunctionNames(params) {
         let public_fns =
           params.server_data.env_function_names[
             params.request.query.environment
-          ]["public"]  || [];
+          ]["public"] || [];
         let app_fns =
           params.server_data.env_function_names[
             params.request.query.environment
           ][params.request.query.appName] || [];
 
-          // Une las dos matrices eliminando duplicados
+        // Une las dos matrices eliminando duplicados
         r.data = [...new Set([...public_fns, ...app_fns])];
       }
     }
+  } catch (error) {
+    //console.log(error);
+    // @ts-ignore
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnGetCacheSize(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    r.data = [];
+    r.code = 200;
+
+    let filteredEntries = Array.from(
+      params.server_data.cache_url_response
+    ).filter(([key, value]) => {
+      let u = get_url_params(key);
+      return u.app == params.request.query.appName;
+    });
+
+    let sizeList = filteredEntries.map(([key, value]) => {
+      // Calcula el tamaño de la respuesta
+      return {
+        url: key,
+        bytes: Number(
+          (
+            Buffer.byteLength(JSON.stringify(value), "utf-8") /
+            1014 /
+            1000
+          ).toFixed(4)
+        ),
+      };
+    });
+
+    r.data = sizeList;
+  } catch (error) {
+    //console.log(error);
+    // @ts-ignore
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnClearCache(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    r.data = [];
+    r.code = 200;
+
+    let data = params.request.body;
+    let clear_cache = [];
+
+    if (data && Array.isArray(data) && data.length > 0) {
+      clear_cache = data.map((u) => {
+        return {
+          url: u,
+          clear: params.server_data.cache_url_response.delete(u),
+        };
+      });
+    }
+
+    r.data = clear_cache;
   } catch (error) {
     //console.log(error);
     // @ts-ignore

@@ -192,70 +192,38 @@ export default class ServerAPI extends EventEmitter {
           );
         }
 
-        if (
-          request_path_params.path == "/api/system/cache/response/size" &&
-          request.method == "GET"
-        ) {
-          let filteredEntries = Array.from(this._cacheURLResponse).filter(
-            ([key, value]) => {
-              let u = get_url_params(key);
+        //
+        if (this._cacheEndpoint.has(path_endpoint_method)) {
+          let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
+          handlerEndpoint.url = request_path_params.path;
 
-              return u.app == request.query.appName;
-            }
-          );
-
-          let sizeList = filteredEntries.map(([key, value]) => {
-            // Calcula el tamaño de la respuesta
-            return {
-              url: key,
-              bytes: Number(
-                (
-                  Buffer.byteLength(JSON.stringify(value), "utf-8") /
-                  1014 /
-                  1000
-                ).toFixed(4)
-              ),
-            };
-          });
-
-          reply.code(200).send(sizeList);
-        } else if (
-          request_path_params.path == "/api/system/cache/clear" &&
-          request.method == "POST"
-        ) {
-          let data = request.body;
-          let clear_cache = [];
-
-          if (data && Array.isArray(data) && data.length > 0) {
-            clear_cache = data.map((u) => {
-              return { url: u, clear: this._cacheURLResponse.delete(u) };
-            });
-          }
-
-          reply.code(200).send(clear_cache);
-        } else {
-          ///
-          if (this._cacheEndpoint.has(path_endpoint_method)) {
-            let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
-            handlerEndpoint.url = request_path_params.path;
-
-            if (handlerEndpoint.params.enabled) {
-              request.openfusionapi = { handler: handlerEndpoint };
-              await this._check_auth(handlerEndpoint, request, reply);
-            } else {
-              reply.code(200).send({ message: "Endpoint unabled." });
-            }
+          if (handlerEndpoint.params.enabled) {
+            request.openfusionapi = { handler: handlerEndpoint };
+            await this._check_auth(handlerEndpoint, request, reply);
           } else {
-            reply
-              .code(404)
-              .send({ error: "Endpoint Not Found", url: path_endpoint_method });
+            reply.code(200).send({ message: "Endpoint unabled." });
           }
+        } else {
+          reply
+            .code(404)
+            .send({ error: "Endpoint Not Found", url: path_endpoint_method });
         }
       }
     });
 
+    // Hook para capturar cuando llega la petición
+    this.fastify.addHook("onRequest", async (request, reply) => {
+      request.startTime = process.hrtime(); // Capturamos el tiempo de inicio usando `process.hrtime()`
+    });
+
     this.fastify.addHook("onResponse", async (request, reply) => {
       //  console.log('\n\n\n', request.openfusionapi);
+      const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
+      const timeTaken = diff[0] * 1e3 + diff[1] * 1e-6; // Convertimos a milisegundos
+
+      // reply.header('X-Response-Time', `${timeTaken.toFixed(2)}ms`); // Opcional: Agregarlo como un header en la respuesta
+
+      this.fastify.log.info(`Request took ${timeTaken.toFixed(2)} ms`);
 
       // Guardamos la respuesta en cache
       if (
@@ -459,6 +427,7 @@ export default class ServerAPI extends EventEmitter {
         handlerEndpoint.params.app == "system"
       ) {
         server_data.env_function_names = this._EnvFuntionNames;
+        server_data.cache_url_response = this._cacheURLResponse;
       }
 
       if (
@@ -860,16 +829,16 @@ export default class ServerAPI extends EventEmitter {
         this._EnvFuntionNames = {};
       }
 
-      if(!this._EnvFuntionNames[environment]){
+      if (!this._EnvFuntionNames[environment]) {
         this._EnvFuntionNames[environment] = {};
       }
 
-      if(!this._EnvFuntionNames[environment][appname]){
+      if (!this._EnvFuntionNames[environment][appname]) {
         this._EnvFuntionNames[environment][appname] = [];
       }
-      
+
       this._EnvFuntionNames[environment][appname].push(functionName);
-      
+
       /*
       if (appname == "public") {
         // Debe agregarse a todas las app de este entorno, si la función ya existe será reemplazada por la publica
