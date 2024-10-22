@@ -485,11 +485,10 @@ export default class ServerAPI extends EventEmitter {
         await runHandler(request, reply, handlerEndpoint.params, server_data);
       }
     });
-  }
 
-  async listen() {
     const port = PORT || 3000;
     const host = HOST || "localhost";
+
     console.log(
       `Listen on PORT ${port} and HOST ${host}`,
       __dirname,
@@ -498,13 +497,10 @@ export default class ServerAPI extends EventEmitter {
       JWT_KEY,
       HOST
     );
-    await this.fastify.listen({ port: port, host: host });
 
-    try {
-      await this.telegram.launch();
-    } catch (error) {
-      console.log(error);
-    }
+    this.telegram.launch();
+
+    await this.fastify.listen({ port: port, host: host });
   }
 
   _checkCTRLAccessEndpoint(user, app) {

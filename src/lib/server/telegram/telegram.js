@@ -61,10 +61,13 @@ export class TelegramBot extends EventEmitter {
     });
     */
 
+    /*
     this.bot.start((ctx) => ctx.reply("Welcome"));
     this.bot.help((ctx) => ctx.reply("Send me a sticker"));
     this.bot.on(message("sticker"), (ctx) => ctx.reply("👍"));
     this.bot.hears("hi", (ctx) => ctx.reply("Hey there"));
+    */
+
     await this.bot.launch();
   }
 
