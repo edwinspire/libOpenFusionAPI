@@ -80,6 +80,7 @@ export const app_default = [
     app: "demo",
     description: "App DEMO",
     vars: varsDemo,
+    params: {},
   },
 ];
 
@@ -103,6 +104,16 @@ export const endpoins_default = [
     handler: "FUNCTION",
     access: 0,
     code: "fnToken",
+  },
+  {
+    enabled: true,
+    idapp: "cfcd208495d565ef66e7dff9f98764da",
+    resource: "/api/telegram/sendmsg",
+    environment: "prd",
+    method: "POST",
+    handler: "FUNCTION",
+    access: 0,
+    code: "fnTelegramsendMessage",
   },
   {
     enabled: true,
@@ -158,7 +169,6 @@ export const endpoins_default = [
     access: 0,
     code: "fnClearCache",
   },
-
 
   {
     enabled: true,
@@ -282,7 +292,6 @@ export const endpoins_default = [
     ctrl: { system: true },
     code: "fnLogin",
   },
-
 
   {
     enabled: true,

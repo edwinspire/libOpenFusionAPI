@@ -135,19 +135,6 @@ export async function login(username, password) {
     if (user) {
       let u = user.toJSON();
 
-      /*
-      // Get data role
-      let role_result = await getRoleById(user.idrole);
-
-      if (role_result.enabled) {
-        u.role = {
-          admin: role_result.admin,
-          attrs: role_result.attrs,
-          name: role_result.name,
-        };
-      }
-      */
-
       let token = GenToken(u, u.exp_time);
 
       await user.update({ last_login: new Date() });

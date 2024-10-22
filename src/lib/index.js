@@ -13,6 +13,8 @@ import fastifyStatic from "@fastify/static";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+import { TelegramBot } from "./server/telegram/telegram.js";
+
 import dbAPIs from "./db/sequelize.js";
 import {
   defaultApps,
@@ -58,7 +60,7 @@ import path from "path";
 import Ajv from "ajv";
 const ajv = new Ajv();
 
-const { PORT, PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
+const { PORT, PATH_APP_FUNCTIONS, JWT_KEY, HOST, TELEGRAM_TOKEN } = process.env;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -100,6 +102,7 @@ export default class ServerAPI extends EventEmitter {
     this._fnQA = new Map();
     this._fnPRD = new Map();
     */
+    this.telegram = new TelegramBot();
 
     this._fnEnvironment = {};
     this._EnvFuntionNames;
@@ -428,6 +431,7 @@ export default class ServerAPI extends EventEmitter {
       ) {
         server_data.env_function_names = this._EnvFuntionNames;
         server_data.cache_url_response = this._cacheURLResponse;
+        server_data.telegram = this.telegram;
       }
 
       if (
@@ -481,7 +485,9 @@ export default class ServerAPI extends EventEmitter {
         await runHandler(request, reply, handlerEndpoint.params, server_data);
       }
     });
+  }
 
+  async listen() {
     const port = PORT || 3000;
     const host = HOST || "localhost";
     console.log(
@@ -493,6 +499,12 @@ export default class ServerAPI extends EventEmitter {
       HOST
     );
     await this.fastify.listen({ port: port, host: host });
+
+    try {
+      await this.telegram.launch();
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   _checkCTRLAccessEndpoint(user, app) {

@@ -1,30 +1,12 @@
 import { match } from "path-to-regexp";
 
-//export const struct_path = '/api/:app/:namespace/:name/:version/:environment';
 export const struct_api_path = "/api/:app/*";
-
-export const internal_url_post_hooks = process.env.PATH_API_HOOKS??"/_internal_/system/_hooks_/prd";
+export const internal_url_post_hooks =
+  process.env.PATH_API_HOOKS ?? "/_internal_/system/_hooks_/prd";
 export const websocket_hooks_resource = "/websocket/hooks";
-
-//const fn_match_url = match("/api/:app*", { decode: decodeURIComponent });
-
-/*
-const mqtt_struct_path =
-  "/api/:app/:namespace/:name/:version/:environment/:username/:topic*";
-const fn_mqtt_match_url = match(mqtt_struct_path, {
-  decode: decodeURIComponent,
-});
-*/
-/*
-export const path_params = (url) => {
-  let reqUrl = new URL(`http://localhost${url}`);
-  return fn_match_url(reqUrl.pathname);
-};
-*/
-
 export const get_url_params = (/** @type {string} */ url) => {
   let reqUrl = new URL(`http://localhost${url.toLowerCase()}`);
-  let fn = match("/(api|ws)\/:parts*", { decode: decodeURIComponent });
+  let fn = match("/(api|ws)/:parts*", { decode: decodeURIComponent });
   let par = fn(reqUrl.pathname);
 
   if (par.params) {
@@ -36,32 +18,13 @@ export const get_url_params = (/** @type {string} */ url) => {
       par.params.parts && par.params.parts.length > 1
         ? par.params.parts.slice(-1)[0]
         : undefined;
-        par.resource = '/'+par.params.parts.slice(1, -1).join('/');
+    par.resource = "/" + par.params.parts.slice(1, -1).join("/");
   } else {
     par = { params: { parts: [] } };
   }
 
   return par;
 };
-
-/*
-export const mqtt_path_params = ( url) => {
-  let reqUrl = new URL(`http://localhost${url}`);
-  return fn_mqtt_match_url(reqUrl.pathname);
-};
-*/
-
-//export const path_params_to_url = (/** @type {{ app: any; namespace: any; name: any; version: any; environment: any; }} */ params) => {
-//	return `/api/${params.app}/${params.namespace}/${params.name}/${params.version}/${params.environment}`;
-//}
-
-/*
-export const path_params_to_url = (
-  params
-) => {
-  return `/api/${params.app}/${params.environment}${params.resource}`;
-};
-*/
 
 export const key_url_from_params = (
   /** @type {{ app: string; method: string; resource: string; }} */ params
@@ -70,7 +33,11 @@ export const key_url_from_params = (
 };
 
 export const key_endpoint_method = (app, resource, environment, method, ws) => {
-  return `${ws ? '/ws/' : '/api/'}${app.toLowerCase()}${resource.toLowerCase()}/${environment.toLowerCase()}|${ws ? 'WS' : method}`;
+  return `${
+    ws ? "/ws/" : "/api/"
+  }${app.toLowerCase()}${resource.toLowerCase()}/${environment.toLowerCase()}|${
+    ws ? "WS" : method
+  }`;
 };
 
 /**
@@ -91,24 +58,3 @@ export function validateURL(string_url) {
     return false;
   }
 }
-
-/**
- * @param {string} url
- */
-/*
-export function getPartUrl(url) {
-  const partes = url.split("/").filter((part) => part !== ""); // Elimina elementos vacíos
-
-  if (partes.length >= 4 && partes[0] === "api") {
-    return {
-      url: url,
-      //		api: partes[0],
-      app: partes[1],
-      env: partes[2],
-      resource: "/" + partes.slice(3).join("/"),
-    };
-  } else {
-    return { error: "URL no válida" };
-  }
-}
-*/

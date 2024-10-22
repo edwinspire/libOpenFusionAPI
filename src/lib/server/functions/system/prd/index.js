@@ -1,5 +1,4 @@
 import { login } from "../../../../db/user.js";
-//import { getAPIToken } from "../../../../db/api_user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";
@@ -342,6 +341,43 @@ export async function fnClearCache(params) {
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnTelegramsendMessage(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    r.data = {};
+    r.code = 200;
+
+    let data = params.request.body;
+
+    if (!data) {
+      r.code = 400;
+      r.data = { error: "No data" };
+    }
+
+    if (r.code == 200 && !data.chatId) {
+      r.code = 400;
+      r.data = { error: "chatId is required" };
+    }
+
+    if (r.code == 200 && !data.message) {
+      r.code = 400;
+      r.data = { error: "message is required" };
+    }
+
+    if (r.code == 200) {
+      r.data = await params.server_data.telegram.sendMessage(
+        data.chatId,
+        data.message,
+        data.extra
+      );
+    }
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
   }
   return r;
 }

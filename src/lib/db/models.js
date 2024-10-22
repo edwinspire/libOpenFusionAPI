@@ -306,6 +306,9 @@ export const Application = dbsequelize.define(
     vars: {
       type: JSON_TYPE,
     },
+    params: {
+      type: JSON_TYPE,
+    },
   },
   {
     freezeTableName: true,
@@ -313,13 +316,7 @@ export const Application = dbsequelize.define(
     indexes: [],
     hooks: {
       afterBulkCreate: async (intance) => {
-        /*
-        await HooksDB({
-          model: prefixTableName("application"),
-          action: "afterBulkCreate",
-          row: instance.app,
-        });
-    */
+        //
       },
       afterUpsert: async (/** @type {any} */ instance) => {
         // @ts-ignore
@@ -337,14 +334,7 @@ export const Application = dbsequelize.define(
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeUpsert: async (instance) => {
-        // @ts-ignore
-        //				instance.rowkey = Math.floor(Math.random() * 1000);
-        /*
-                if (!instance.idapp || instance.idapp == null) {
-                  //console.log('beforeUpsert IDAPP es nulo o no está definido');
-                  instance.idapp = uuidv4();
-                }
-                */
+       
 
         instance.app = instance.app.toLowerCase();
 
@@ -353,8 +343,6 @@ export const Application = dbsequelize.define(
           instance.idapp = uuidv4();
         }
 
-        //console.log(">>>>>>>>>>>>>> Se lanza el beforeUpsert", instance);
-        //await hookUpsert(prefixTableName('application'), 'beforeUpsert');
       },
       beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
         // Acciones a realizar antes de guardar el modelo
@@ -371,17 +359,11 @@ export const Application = dbsequelize.define(
         }
 
         instance.vars = JSON_TYPE_Adapter(instance, "vars");
+        instance.params = JSON_TYPE_Adapter(instance, "params");
 
         // Esta función si se ejecuta al momento de crear una nueva APP, poniendo en minuscula el nombre de la app
         instance.app = instance.app.toLowerCase();
-        /*
-          dbsequelize.getDialect() === "mssql" &&
-          typeof instance.vars === "object"
-            ? JSON.stringify(instance.vars)
-            : instance.vars;
-*/
-
-        //	console.log(">>>>>>>>>>>>>>>>>>>>>>", instance);
+       
       },
       beforeCreate: (instance) => {
         //console.log('>>> beforeValidate >>>> ', instance);
@@ -392,13 +374,8 @@ export const Application = dbsequelize.define(
         }
 
         instance.vars = JSON_TYPE_Adapter(instance, "vars");
-        /*
-          dbsequelize.getDialect() === "mssql" &&
-          typeof instance.vars === "object"
-            ? JSON.stringify(instance.vars)
-            : instance.vars;
-            */
-        //	console.log(">>>>>>>>>>>>>>>>>>>>>>", instance);
+        instance.params = JSON_TYPE_Adapter(instance, "params");
+       
       },
       beforeBulkCreate: (instance) => {
         if (instance && Array.isArray(instance)) {
@@ -406,13 +383,8 @@ export const Application = dbsequelize.define(
             //	console.log("++++++++>>>>>>>>>>>>>>>>>>>>>>", ins.vars);
 
             instance[i].vars = JSON_TYPE_Adapter(instance[i], "vars");
-            /*  
-            dbsequelize.getDialect() === "mssql" &&
-              typeof instance[i].vars === "object"
-                ? JSON.stringify(instance[i].vars)
-                : instance[i].vars;
-                */
-            //	console.log(">>>>>>>>>>>>>>>>>>>>>>", instance[i].vars);
+            instance[i].params = JSON_TYPE_Adapter(instance[i], "params");
+
           });
         }
       },
