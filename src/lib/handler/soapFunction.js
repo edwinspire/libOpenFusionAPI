@@ -19,7 +19,7 @@ export const soapFunction = async (
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
-    console.log('>>>>>>>>>>>>> method.code -----> ', method.code);
+    console.log(">>>>>>>>>>>>> method.code -----> ", method.code);
 
     let SOAPParameters = JSON.parse(method.code);
 
@@ -113,15 +113,15 @@ export const SOAPGenericClient = async (
     if (describe) {
       r = client.describe();
     } else {
-      //console.log(client, ">>>>>>>  SOAPParameters.functionName",  SOAPParameters.functionName);
-
       let fnName = SOAPParameters.functionName + "Async";
 
-console.log(client, fnName);
-
-      let result = await client[fnName](SOAPParameters.RequestArgs);
-      let r1 = await result;
-      r = r1[0];
+      if (client[fnName]) {
+        let result = await client[fnName](SOAPParameters.RequestArgs);
+        let r1 = await result;
+        r = r1[0];
+      } else {
+        throw new Error(fnName + " not exists.");
+      }
     }
 
     //     console.log("SOAPGenericClient result", r);

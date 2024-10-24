@@ -5,24 +5,30 @@ import { EventEmitter } from "events";
 export class TelegramBot extends EventEmitter {
   constructor() {
     super();
-    this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN || "TOKEN");
+
+    if (process.env.TELEGRAM_BOT_TOKEN) {
+      this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+    } else {
+      console.warn("Not set process.env.TELEGRAM_BOT_TOKEN");
+    }
   }
 
   async launch() {
-    this.bot.use(session());
+    if (this.bot) {
+      this.bot.use(session());
 
-    //
-    this.bot.command("getidgroup", (ctx, next) => {
-      console.log(">>>>> 0 >>> ", ctx.chat, ctx.message);
-      ctx.reply(
-        "The id of this group is: " +
-          ctx.chat.id +
-          ". Topic: " +
-          ctx.message.message_thread_id
-      );
-    });
+      //
+      this.bot.command("getidgroup", (ctx, next) => {
+        console.log(">>>>> 0 >>> ", ctx.chat, ctx.message);
+        ctx.reply(
+          "The id of this group is: " +
+            ctx.chat.id +
+            ". Topic: " +
+            ctx.message.message_thread_id
+        );
+      });
 
-    /*
+      /*
     this.bot.command("add_group", (ctx, next) => {
       console.log(">>>>> 0 >>> ", ctx.update.update_id, ctx);
       ctx.reply("Hello! Welcome to the information collection wizard.");
@@ -37,7 +43,7 @@ export class TelegramBot extends EventEmitter {
     });
 */
 
-    /*
+      /*
     this.bot.use(async (ctx, next) => {
       if (
         ctx.session &&
@@ -61,14 +67,17 @@ export class TelegramBot extends EventEmitter {
     });
     */
 
-    /*
+      /*
     this.bot.start((ctx) => ctx.reply("Welcome"));
     this.bot.help((ctx) => ctx.reply("Send me a sticker"));
     this.bot.on(message("sticker"), (ctx) => ctx.reply("👍"));
     this.bot.hears("hi", (ctx) => ctx.reply("Hey there"));
     */
 
-    await this.bot.launch();
+      await this.bot.launch();
+    } else {
+      console.warn("Not Telegram Bot");
+    }
   }
 
   /*
