@@ -60,7 +60,8 @@ import path from "path";
 import Ajv from "ajv";
 const ajv = new Ajv();
 
-const { PORT, PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
+const { PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
+const PORT = process.env.PORT || 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -98,8 +99,6 @@ export default class ServerAPI extends EventEmitter {
       throw { error: "PORT is required" };
     }
     */
-
-    PORT = process.env.PORT || 3000;
 
     /*
     this._fnDEV = new Map();
