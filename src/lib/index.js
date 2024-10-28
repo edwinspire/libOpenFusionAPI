@@ -52,16 +52,18 @@ import {
   struct_api_path,
   get_url_params,
   internal_url_post_hooks,
+  default_port,
 } from "./server/utils_path.js";
 
 import fs from "fs";
 import path from "path";
 
 import Ajv from "ajv";
+import { message } from "telegraf/filters";
 const ajv = new Ajv();
 
 const { PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || default_port;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -94,17 +96,6 @@ export default class ServerAPI extends EventEmitter {
   constructor({ buildDB = false } = {}) {
     super();
 
-    /*
-    if (!PORT) {
-      throw { error: "PORT is required" };
-    }
-    */
-
-    /*
-    this._fnDEV = new Map();
-    this._fnQA = new Map();
-    this._fnPRD = new Map();
-    */
     this.telegram = new TelegramBot();
 
     this._fnEnvironment = {};
@@ -189,6 +180,7 @@ export default class ServerAPI extends EventEmitter {
 
         if (!_appExistsOnCache_var) {
           // Carga todos los endpoints en la cache
+          // TODO: Analizar si es conveniente cargar todos los endpoints
           await this._loadEndpointsByAPPToCache(request_path_params.app);
         } else if (!this._cacheEndpoint.has(path_endpoint_method)) {
           // Carga solo el endpoint que no está en cache
@@ -489,11 +481,10 @@ export default class ServerAPI extends EventEmitter {
       }
     });
 
-    const port = PORT || 3000;
     const host = HOST || "localhost";
 
     console.log(
-      `Listen on PORT ${port} and HOST ${host}`,
+      `Listen on PORT ${PORT} and HOST ${host}`,
       __dirname,
       PORT,
       PATH_APP_FUNCTIONS,
@@ -503,25 +494,29 @@ export default class ServerAPI extends EventEmitter {
 
     this.telegram.launch();
 
-    await this.fastify.listen({ port: port, host: host });
+    await this.fastify.listen({ port: PORT, host: host });
   }
 
-  _checkCTRLAccessEndpoint(user, app) {
+  xxx_checkCTRLAccessEndpoint(user, app) {
     // Recorrer las propiedades del objeto user
     if (user && app) {
-      for (let key in user) {
-        // Verificar si la propiedad actual existe en app
-        if (!(key in app)) {
-          return false;
-        }
-        // Verificar si el valor de la propiedad coincide
-        if (user[key] !== app[key]) {
-          return false;
-        }
-        // Si la propiedad es un objeto, llamar recursivamente a la función
-        if (typeof user[key] === "object" && user[key] !== null) {
-          if (!this._checkCTRLAccessEndpoint(user[key], app[key])) {
+      if (user.username == "superuser" && user.enabled) {
+        return true;
+      } else {
+        for (let key in user) {
+          // Verificar si la propiedad actual existe en app
+          if (!(key in app)) {
             return false;
+          }
+          // Verificar si el valor de la propiedad coincide
+          if (user[key] !== app[key]) {
+            return false;
+          }
+          // Si la propiedad es un objeto, llamar recursivamente a la función
+          if (typeof user[key] === "object" && user[key] !== null) {
+            if (!this._checkCTRLAccessEndpoint(user[key], app[key])) {
+              return false;
+            }
           }
         }
       }
@@ -539,14 +534,24 @@ export default class ServerAPI extends EventEmitter {
       data_aut.Bearer.data.enabled &&
       data_aut.Bearer.data.ctrl &&
       handler.params &&
-      handler.params.environment &&
-      data_aut.Bearer.data.ctrl[handler.params.environment];
+      handler.params.environment
+        ? true
+        : false;
 
     if (check) {
-      let ctrl_user = data_aut.Bearer.data.ctrl[handler.params.environment];
-      let ctrl_endpoint = handler.params.ctrl;
+      let user = data_aut.Bearer.data;
 
-      return this._checkCTRLAccessEndpoint(ctrl_user, ctrl_endpoint);
+      if (user.username == "superuser" && user.enabled) {
+        return true;
+      } else if (handler.params.app == "system" && !user.ctrl.as_admin) {
+        return false;
+      } else if (
+        handler.params.ctrl &&
+        handler.params.ctrl.users &&
+        Array.isArray(handler.params.ctrl.users)
+      ) {
+        return handler.params.ctrl.users.includes(user.iduser);
+      }
     } else {
       return false;
     }
@@ -578,9 +583,9 @@ export default class ServerAPI extends EventEmitter {
   async _check_auth(handler, request, reply) {
     // Validar si la API es publica o privada
 
-    if (handler.params.access > 0) {
-      let data_aut = getUserPasswordTokenFromRequest(request);
+    let data_aut = getUserPasswordTokenFromRequest(request);
 
+    if (handler.params.access > 0) {
       //
       if (handler.params.app == "system") {
         // Las APIs de system solo se pueden acceder con token de usuario
@@ -982,21 +987,6 @@ export default class ServerAPI extends EventEmitter {
       let appVars = appVarsEnv[endpointData.environment];
 
       if (endpointData.enabled) {
-        // @ts-ignore
-        if (returnHandler.params.is_public) {
-          returnHandler.authentication = async () => {
-            //console.log('authentication, public: ', jw_token);
-            return true;
-          };
-        } else {
-          // @ts-ignore
-          returnHandler.authentication = async (
-            /** @type {string} */ jw_token
-          ) => {
-            return checkAPIToken(app_name, endpointData, jw_token);
-          };
-        }
-
         // @ts-ignore
         returnHandler.params.code = returnHandler.params.code || "";
 

@@ -1,5 +1,9 @@
 import { match } from "path-to-regexp";
 
+export const default_port = 3000;
+export const url_telegram_notifications = `http://localhost:${
+  process.env.PORT || default_port
+}/api/system/api/telegram/sendmsg/prd`;
 export const struct_api_path = "/api/:app/*";
 export const internal_url_post_hooks =
   process.env.PATH_API_HOOKS ?? "/_internal_/system/_hooks_/prd";

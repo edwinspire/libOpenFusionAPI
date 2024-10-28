@@ -37,6 +37,7 @@ export const getAllUsers = async () => {
   }
 };
 
+
 // DELETE
 export const deleteUser = async (
   /** @type {import("sequelize").Identifier | undefined} */ userId
@@ -76,7 +77,6 @@ export const getUserByCredentials = async (username, password) => {
   return dataUser;
 };
 
-// Usage examples
 export const defaultUser = async () => {
   try {
     // Verificar si el usuario "admin" ya existe
@@ -85,31 +85,112 @@ export const defaultUser = async () => {
     });
 
     if (!existingUser) {
-      // El usuario "admin" no existe, se realiza la inserción
+      // El usuario "superuser" no existe, se realiza la inserción
       await User.create({
         username: "superuser",
         password: EncryptPwd("superuser"),
         first_name: "super",
         last_name: "user",
         email: "superuser@example.com",
-        ctrl: { dev: { system: true }, qa: { system: true }, prd: { system: true } },
+        ctrl: {},
       });
     }
 
+
+    const existingClient = await User.findOne({
+      where: { username: "client_api" },
+    });
+
+    if (!existingClient) {
+      // El usuario "superuser" no existe, se realiza la inserción
+      await User.create({
+        username: "client_api",
+        password: EncryptPwd("1234567890"),
+        first_name: "client",
+        last_name: "api",
+        email: "superuser@example.com",
+        ctrl: {},
+      });
+    }
+
+
     // Verificar si el usuario "admin" ya existe
+    const existingUserAdmin = await User.findOne({
+      where: { username: "admin" },
+    });
+
+    if (!existingUserAdmin) {
+      // El usuario "demouser" no existe, se realiza la inserción
+      await User.create({
+        username: "admin",
+        password: EncryptPwd("admin@admin"),
+        first_name: "admin",
+        last_name: "user",
+        email: "admin@example.com",
+        ctrl: {
+          as_admin: true,
+          env: {
+            dev: {
+              app: {
+                create: true,
+                delete: true,
+                edit: true,
+                read: true,
+              },
+            },
+            qa: {
+              app: {
+                create: true,
+                delete: true,
+                edit: true,
+                read: true,
+              },
+            },
+            prd: {
+              app: {
+                create: true,
+                delete: true,
+                edit: true,
+                read: true,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // Verificar si el usuario "demo" ya existe
     const existingUserDemo = await User.findOne({
-      where: { username: "demouser" },
+      where: { username: "demo" },
     });
 
     if (!existingUserDemo) {
-      // El usuario "admin" no existe, se realiza la inserción
+      // El usuario "demo" no existe, se realiza la inserción
       await User.create({
-        username: "demouser",
-        password: EncryptPwd("demouser"),
+        username: "demo",
+        password: EncryptPwd("demo1234"),
         first_name: "demo",
         last_name: "user",
         email: "demo@example.com",
-        ctrl: { dev: { demo: true }, qa: { demo: true }, prd: { demo: true } },
+        ctrl: {
+          as_admin: true,
+          env: {
+            dev: {
+              app: {
+                create: true,
+                delete: true,
+                edit: true,
+                read: true,
+              },
+            },
+            qa: {
+              app: {},
+            },
+            prd: {
+              app: {},
+            },
+          },
+        },
       });
     }
 

@@ -2,6 +2,7 @@ import dbsequelize from "./sequelize.js";
 import { Application, Endpoint } from "./models.js";
 import { createFunction } from "../handler/jsFunction.js";
 import { app_default } from "./default_values.js";
+import {defaults} from "./default/index.js";
 
 export const getAppWithEndpoints = async (
   /** @type {any} */ where,
@@ -198,8 +199,20 @@ export const defaultApps = async () => {
     };
   }
 
+  let apps = defaults.map((app) => {
+    return {
+      idapp: app.idapp,
+      app: app.app,
+      enabled: app.enabled,
+      vars: app.vars,
+      description: app.description,
+      rowkey: 0,
+      params: app.params,
+    };
+  });
+
   try {
-    await Application.bulkCreate(app_default, options);
+    await Application.bulkCreate(apps, options);
 
     console.log("Bulk upsert completado con éxito.");
   } catch (error) {

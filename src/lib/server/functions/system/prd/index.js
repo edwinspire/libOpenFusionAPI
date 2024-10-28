@@ -1,6 +1,7 @@
 import { login } from "../../../../db/user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
+import { getAllUsers } from "../../../../db/user.js";
 import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";
 import { v4 as uuidv4 } from "uuid";
 import { upsertEndpoint } from "../../../../db/endpoint.js";
@@ -99,6 +100,32 @@ export async function fnGetHandler(params) {
     //res.code(200).json(hs);
     // @ts-ignore
     r.data = hs;
+    r.code = 200;
+  } catch (error) {
+    // @ts-ignore
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnGetUsersList(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    let us = await getAllUsers();
+
+    us = us.map((u) => {
+      return {
+        iduser: u.iduser,
+        enabled: u.enabled,
+        username: u.username,
+        name: u.last_name + " " + u.first_name,
+        email: u.email,
+      };
+    });
+
+    r.data = us;
     r.code = 200;
   } catch (error) {
     // @ts-ignore
@@ -293,6 +320,7 @@ export async function fnGetCacheSize(params) {
 
     let sizeList = filteredEntries.map(([key, value]) => {
       // Calcula el tamaño de la respuesta
+      // TODO: El mismo endpoint puede tener varias cache, tomar en cuenta que eso se debe sumar
       return {
         url: key,
         bytes: Number(
