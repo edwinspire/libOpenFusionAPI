@@ -11,7 +11,7 @@ export const upsertEndpoint = async (
     return { result, created };
   } catch (error) {
     console.error("Error retrieving:", error, data);
-    throw error;
+    throw error; // c4ca4238-a0b9-2382-0dcc-509a6f75849b
   }
 };
 
