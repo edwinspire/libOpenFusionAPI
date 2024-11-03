@@ -1,6 +1,6 @@
 {
   "name": "@edwinspire/libopenfusionapi",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./test/index.js",
@@ -29,8 +29,8 @@
   },
   "homepage": "https://github.com/edwinspire/libOpenFusionAPI#readme",
   "dependencies": {
-    "@edwinspire/sequential-promises": "github:edwinspire/sequential-promises#v0.01",
-    "@edwinspire/universal-fetch": "github:edwinspire/universal-fetch",
+    "@edwinspire/sequential-promises": "github:edwinspire/sequential-promises#v1.0.1",
+    "@edwinspire/universal-fetch": "github:edwinspire/universal-fetch#v1.0.1",
     "@fastify/cookie": "^9.3.1",
     "@fastify/cors": "^8.5.0",
     "@fastify/formbody": "^7.4.0",
