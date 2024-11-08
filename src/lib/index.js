@@ -41,8 +41,7 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   md5,
-  getUUID,
-  sizeOfMapInKB,
+  getUUID
 } from "./server/utils.js";
 
 import { schema_input_hooks } from "./server/schemas/index.js";
@@ -384,14 +383,13 @@ export default class ServerAPI extends EventEmitter {
               // TODO: Revisar el entorno no solo la app
 
               setTimeout(() => {
-                // Espera 15 segundos para borrar la cache de las funciones del endpoint
-
+                // Espera 5 segundos para borrar la cache de las funciones del endpoint
                 request.body.data.db.row.forEach((item) => {
                   if (item) {
                     this._deleteEndpointsByAppName(item.app);
                   }
                 });
-              }, 15000);
+              }, 5000);
 
               /*
                 request.body.data.db.row.forEach((row) => {

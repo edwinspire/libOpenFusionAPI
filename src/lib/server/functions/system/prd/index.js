@@ -320,7 +320,6 @@ export async function fnGetCacheSize(params) {
 
     let sizeList = filteredEntries.map(([key, value]) => {
       // Calcula el tamaño de la respuesta
-      // TODO: El mismo endpoint puede tener varias cache, tomar en cuenta que eso se debe sumar
       return {
         url: key,
         bytes: Number(

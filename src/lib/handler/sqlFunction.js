@@ -44,10 +44,21 @@ export const sqlFunction = async (
 
         const valor = bind_json[param];
         //          console.log(`Clave: ${param}, Valor: ${valor}`);
-        data_bind[param] = valor.toString();
+        // data_bind[param] = valor;
+
+        try {
+          data_bind[param] =
+            typeof valor === "object"
+              ? JSON.stringify(valor)
+              : valor.toString();
+        } catch (error) {
+          data_bind[param] = valor.toString();
+        }
 
         //}
       }
+
+      console.warn(bind_json, data_bind);
 
       if (paramsSQL.config.database) {
         //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
@@ -61,7 +72,7 @@ export const sqlFunction = async (
             paramsSQL.config.options
           );
 
-            //    console.log('\ndata_bind\n', data_bind);
+          //    console.log('\ndata_bind\n', data_bind);
 
           let result_query = await sequelize.query(paramsSQL.query, {
             // @ts-ignore
