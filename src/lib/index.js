@@ -18,9 +18,9 @@ import { TelegramBot } from "./server/telegram/telegram.js";
 import dbAPIs from "./db/sequelize.js";
 import {
   defaultApps,
-  getAppByName,
+  //getAppByName,
   getAppWithEndpoints,
-  getApiHandler,
+  //getApiHandler,
   //  createPathRequest,
 } from "./db/app.js";
 import { defaultEndpoints } from "./db/endpoint.js";
@@ -37,11 +37,11 @@ import { fnPublic, fnSystem } from "./server/functions/index.js";
 import {
   checkToken,
   getUserPasswordTokenFromRequest,
-  websocketUnauthorized,
+  //websocketUnauthorized,
   getIPFromRequest,
   getFunctionsFiles,
   md5,
-  getUUID
+  getUUID,
 } from "./server/utils.js";
 
 import { schema_input_hooks } from "./server/schemas/index.js";
@@ -58,7 +58,7 @@ import fs from "fs";
 import path from "path";
 
 import Ajv from "ajv";
-import { message } from "telegraf/filters";
+//import { message } from "telegraf/filters";
 const ajv = new Ajv();
 
 const { PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
@@ -220,7 +220,23 @@ export default class ServerAPI extends EventEmitter {
 
       // reply.header('X-Response-Time', `${timeTaken.toFixed(2)}ms`); // Opcional: Agregarlo como un header en la respuesta
 
-      this.fastify.log.info(`Request took ${timeTaken.toFixed(2)} ms`);
+      // this.fastify.log.info(`Request took ${timeTaken.toFixed(2)} ms`);
+
+      let data_log = {
+        method: request.method,
+        userAgent: request.headers["user-agent"], // Obtener el bro
+        client: getIPFromRequest(request),
+        url: request.url,
+        statusCode: reply.statusCode,
+        responseTime: timeTaken, // Tiempo de respuesta
+        headers: request.headers,
+        params: request.params,
+        query: request.query,
+        body: request.body,
+        timestamp: new Date(),
+      };
+
+      console.log(data_log);
 
       // Guardamos la respuesta en cache
       if (
@@ -234,12 +250,6 @@ export default class ServerAPI extends EventEmitter {
         request.openfusionapi.handler.params.cache_time &&
         request.openfusionapi.handler.params.cache_time > 0
       ) {
-        /*
-        this._cacheResponse.set(
-          reply.openfusionapi.lastResponse.hash_request,
-          reply.openfusionapi.lastResponse.data
-        );
-        */
 
         // Setea la cache para futuros usos
         let cacheResp =
@@ -495,35 +505,6 @@ export default class ServerAPI extends EventEmitter {
     await this.fastify.listen({ port: PORT, host: host });
   }
 
-  xxx_checkCTRLAccessEndpoint(user, app) {
-    // Recorrer las propiedades del objeto user
-    if (user && app) {
-      if (user.username == "superuser" && user.enabled) {
-        return true;
-      } else {
-        for (let key in user) {
-          // Verificar si la propiedad actual existe en app
-          if (!(key in app)) {
-            return false;
-          }
-          // Verificar si el valor de la propiedad coincide
-          if (user[key] !== app[key]) {
-            return false;
-          }
-          // Si la propiedad es un objeto, llamar recursivamente a la función
-          if (typeof user[key] === "object" && user[key] !== null) {
-            if (!this._checkCTRLAccessEndpoint(user[key], app[key])) {
-              return false;
-            }
-          }
-        }
-      }
-    } else {
-      return false;
-    }
-
-    return true;
-  }
 
   _check_auth_Bearer(handler, data_aut) {
     let check =

@@ -6,6 +6,7 @@ import dbsequelize from "./sequelize.js";
 import { v4 as uuidv4 } from "uuid";
 //import { internal_url_hooks } from '../server/utils_path.js';
 import { emitHook } from "../server/utils.js";
+import { endpoins_default } from "./default_values.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
 const JSON_TYPE =
@@ -334,15 +335,12 @@ export const Application = dbsequelize.define(
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeUpsert: async (instance) => {
-       
-
         instance.app = instance.app.toLowerCase();
 
         if (!instance.idapp || instance.idapp == null) {
           //console.log('IDAPP es nulo o no está definido');
           instance.idapp = uuidv4();
         }
-
       },
       beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
         // Acciones a realizar antes de guardar el modelo
@@ -363,7 +361,6 @@ export const Application = dbsequelize.define(
 
         // Esta función si se ejecuta al momento de crear una nueva APP, poniendo en minuscula el nombre de la app
         instance.app = instance.app.toLowerCase();
-       
       },
       beforeCreate: (instance) => {
         //console.log('>>> beforeValidate >>>> ', instance);
@@ -375,7 +372,6 @@ export const Application = dbsequelize.define(
 
         instance.vars = JSON_TYPE_Adapter(instance, "vars");
         instance.params = JSON_TYPE_Adapter(instance, "params");
-       
       },
       beforeBulkCreate: (instance) => {
         if (instance && Array.isArray(instance)) {
@@ -384,7 +380,6 @@ export const Application = dbsequelize.define(
 
             instance[i].vars = JSON_TYPE_Adapter(instance[i], "vars");
             instance[i].params = JSON_TYPE_Adapter(instance[i], "params");
-
           });
         }
       },
@@ -442,7 +437,7 @@ export const Endpoint = dbsequelize.define(
     },
     ctrl: {
       type: JSON_TYPE,
-      comment: "Control access",
+      comment: "Additional controls. Users, Logs, etc.",
     },
     code: {
       type: DataTypes.TEXT,
@@ -571,3 +566,57 @@ export const Endpoint = dbsequelize.define(
 
 Application.hasMany(Endpoint, { foreignKey: "idapp", as: "endpoints" });
 Endpoint.belongsTo(Application, { foreignKey: "idapp" });
+
+export const LogEntry = dbsequelize.define(
+  prefixTableName("log"),
+  {
+    timestamp: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      comment: "Registration date",
+    },
+
+    idendpoint: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      defaultValue: "00000000000000000000000000000000",
+    },
+    level: {
+      type: DataTypes.SMALLINT,
+      allowNull: false,
+      defaultValue: 0,
+      comment: "Level log",
+    },
+    message: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Message log",
+    },
+    metadata: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "Metadata",
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false, // No necesitamos createdAt ni updatedAt para este caso
+    paranoid: false, // Evita el soft delete
+    comment: "Tabla de logs de la aplicación",
+    hooks: {
+      beforeValidate: (instance) => {
+        if (instance.metadata) {
+          instance.metadata = JSON_TYPE_Adapter(instance, "metadata");
+        }
+      },
+    },
+    indexes: [
+      {
+        fields: ["idendpoint"],
+        name: "idx_logentry_idendpoint", // Nombre del índice
+        unique: false, // Índice no único
+      },
+    ],
+  }
+);

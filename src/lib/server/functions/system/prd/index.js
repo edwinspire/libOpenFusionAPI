@@ -5,7 +5,7 @@ import { getAllUsers } from "../../../../db/user.js";
 import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";
 import { v4 as uuidv4 } from "uuid";
 import { upsertEndpoint } from "../../../../db/endpoint.js";
-
+import { createLog } from "../../../../db/log.js";
 import { get_url_params } from "../../../utils_path.js";
 
 export async function fnDemo(
@@ -405,6 +405,22 @@ export async function fnTelegramsendMessage(params) {
   } catch (error) {
     r.data = error;
     r.code = 500;
+  }
+  return r;
+}
+
+export async function fnInsertLog(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    let data = await createLog(params.request.body);
+    r.data = data;
+    r.code = 200;
+  } catch (error) {
+    //console.log(error);
+    // @ts-ignore
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
   }
   return r;
 }
