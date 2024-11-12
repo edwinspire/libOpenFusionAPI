@@ -30,7 +30,12 @@ export const sqlFunction = async (
       }
 
       // Obtiene los valores para hacer el bind de datos
-      let bind_json = {};
+      let bind_json = undefined;
+      let replacements = undefined;
+
+      if (data_request.replacements) {
+        replacements = data_request.replacements;
+      }
 
       if (data_request.bind) {
         bind_json =
@@ -58,7 +63,7 @@ export const sqlFunction = async (
         //}
       }
 
-      console.warn(bind_json, data_bind);
+     // console.warn(bind_json, data_bind);
 
       if (paramsSQL.config.database) {
         //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
@@ -72,14 +77,32 @@ export const sqlFunction = async (
             paramsSQL.config.options
           );
 
-          //    console.log('\ndata_bind\n', data_bind);
+          //         console.log("\ndata_bind\n", data_bind, replacements);
 
-          let result_query = await sequelize.query(paramsSQL.query, {
-            // @ts-ignore
-            bind: data_bind,
-            // @ts-ignore
-            type: QueryTypes.SELECT,
-          });
+          /*
+              paramsSQL.query = 'SELECT * FROM ofapi_method WHERE method IN ($methods);';
+              let data_bind = {methods: ['GET', 'PUT']};
+              */
+
+          let result_query = undefined;
+
+          if (replacements) {
+            result_query = await sequelize.query(paramsSQL.query, {
+              replacements: replacements,
+              // @ts-ignore
+              type: QueryTypes.SELECT,
+              //           logging: console.log, // Imprime el SQL en consola
+            });
+          } else {
+            result_query = await sequelize.query(paramsSQL.query, {
+              // @ts-ignore
+              bind: data_bind,
+              type: QueryTypes.SELECT,
+              //         logging: console.log, // Imprime el SQL en consola
+            });
+          }
+
+          //  console.log('-------------> ', result_query.toSQL())
 
           if (
             response.openfusionapi.lastResponse &&

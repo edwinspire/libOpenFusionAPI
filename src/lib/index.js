@@ -26,7 +26,7 @@ import {
 import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
 //import { defaultAPIUserMapping } from "./db/api_user mapping.js";
-//import { defaultRoles } from "./db/role.js";
+import { createLog } from "./db/log.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
 import { prefixTableName } from "./db/models.js";
@@ -229,6 +229,7 @@ export default class ServerAPI extends EventEmitter {
         url: request.url,
         statusCode: reply.statusCode,
         responseTime: timeTaken, // Tiempo de respuesta
+        responseData: {},
         headers: request.headers,
         params: request.params,
         query: request.query,
@@ -236,7 +237,8 @@ export default class ServerAPI extends EventEmitter {
         timestamp: new Date(),
       };
 
-      console.log(data_log);
+    //  console.log(data_log);
+      createLog(data_log);
 
       // Guardamos la respuesta en cache
       if (
@@ -250,7 +252,6 @@ export default class ServerAPI extends EventEmitter {
         request.openfusionapi.handler.params.cache_time &&
         request.openfusionapi.handler.params.cache_time > 0
       ) {
-
         // Setea la cache para futuros usos
         let cacheResp =
           this._cacheURLResponse.get(request.openfusionapi.handler.url) || {};
@@ -504,7 +505,6 @@ export default class ServerAPI extends EventEmitter {
 
     await this.fastify.listen({ port: PORT, host: host });
   }
-
 
   _check_auth_Bearer(handler, data_aut) {
     let check =
