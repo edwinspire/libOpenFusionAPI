@@ -33,6 +33,7 @@ import { prefixTableName } from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
 import { createFunction } from "./handler/jsFunction.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
+import PromiseSequence from "@edwinspire/sequential-promises";
 
 import {
   checkToken,
@@ -58,12 +59,13 @@ import fs from "fs";
 import path from "path";
 
 import Ajv from "ajv";
+//import { error } from "node:console";
 //import { message } from "telegraf/filters";
 const ajv = new Ajv();
 
 const { PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
 const PORT = process.env.PORT || default_port;
-
+const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -94,6 +96,9 @@ const validate_schema_input_hooks = ajv.compile(schema_input_hooks);
 export default class ServerAPI extends EventEmitter {
   constructor({ buildDB = false } = {}) {
     super();
+
+    this.queueLog = new PromiseSequence();
+    this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
 
     this.telegram = new TelegramBot();
 
@@ -222,36 +227,41 @@ export default class ServerAPI extends EventEmitter {
 
       // this.fastify.log.info(`Request took ${timeTaken.toFixed(2)} ms`);
 
-      let data_log = {
-        method: request.method,
-        userAgent: request.headers["user-agent"], // Obtener el bro
-        client: getIPFromRequest(request),
-        url: request.url,
-        statusCode: reply.statusCode,
-        responseTime: timeTaken, // Tiempo de respuesta
-        responseData: {},
-        headers: request.headers,
-        params: request.params,
-        query: request.query,
-        body: request.body,
-        timestamp: new Date(),
-      };
+      let store_log =
+        request?.openfusionapi?.handler?.params?.ctrl?.log?.store ?? false;
 
-    //  console.log(data_log);
-      createLog(data_log);
+      if (store_log) {
+        let data_log = {
+          idendpoint:
+            request?.openfusionapi?.handler?.params?.idendpoint ??
+            "00000000000000000000000000000000",
+          level: 3,
+          metadata: {
+            method: request.method,
+            userAgent: request.headers["user-agent"], // Obtener el bro
+            client: getIPFromRequest(request),
+            url: request.url,
+            statusCode: reply.statusCode,
+            responseTime: timeTaken, // Tiempo de respuesta
+            responseData: reply?.openfusionapi?.lastResponse?.data ?? undefined,
+            headers: request.headers,
+            params: request?.openfusionapi?.handler?.params ?? undefined,
+            query: request.query,
+            body: request.body,
+          },
+          timestamp: new Date(),
+        };
+
+        //  console.log(data_log);
+        this.queueLog.push(data_log);
+      }
 
       // Guardamos la respuesta en cache
-      if (
-        reply.openfusionapi &&
-        reply.openfusionapi.lastResponse &&
-        reply.openfusionapi.lastResponse.data &&
-        request &&
-        request.openfusionapi &&
-        request.openfusionapi.handler &&
-        request.openfusionapi.handler.params &&
-        request.openfusionapi.handler.params.cache_time &&
-        request.openfusionapi.handler.params.cache_time > 0
-      ) {
+      let reply_data = reply?.openfusionapi?.lastResponse?.data ?? undefined;
+      let params_cache_time =
+        request?.openfusionapi?.handler?.params?.cache_time ?? 0;
+
+      if (reply_data && params_cache_time > 0) {
         // Setea la cache para futuros usos
         let cacheResp =
           this._cacheURLResponse.get(request.openfusionapi.handler.url) || {};
@@ -454,20 +464,23 @@ export default class ServerAPI extends EventEmitter {
         //let data_cache = this._cacheResponse.get(hash_request);
         let data_cache = this._cacheURLResponse.get(handlerEndpoint.url);
 
+        reply.openfusionapi.lastResponse = {
+          hash_request: hash_request,
+          data: undefined,
+        };
+
         if (data_cache && data_cache[hash_request]) {
           // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'
           reply.header("X-Cache", "HIT");
+
+          reply.openfusionapi.lastResponse.hash_request[hash_request] =
+            data_cache[hash_request];
 
           // Envia los datos que están en cache
           reply.code(200).send(data_cache[hash_request]);
         } else {
           // Agregar el header 'X-Cache: MISS' si se obtiene un nuevo resultado
           reply.header("X-Cache", "MISS");
-
-          reply.openfusionapi.lastResponse = {
-            hash_request: hash_request,
-            data: undefined,
-          };
 
           /*
           server_data.app_functions = this._getFunctions(
@@ -504,6 +517,21 @@ export default class ServerAPI extends EventEmitter {
     this.telegram.launch();
 
     await this.fastify.listen({ port: PORT, host: host });
+  }
+
+  pushLog(log) {
+    return new Promise(async (resolve) => {
+      let data;
+      let error;
+
+      try {
+        data = await createLog(log);
+      } catch (error) {
+        error = error;
+      }
+      //    console.log(data, error)
+      resolve({ data: data, error: error });
+    });
   }
 
   _check_auth_Bearer(handler, data_aut) {
