@@ -227,6 +227,7 @@ export default class ServerAPI extends EventEmitter {
 
       // this.fastify.log.info(`Request took ${timeTaken.toFixed(2)} ms`);
 
+      // TODO: No guardar en cache respuestas con error
       let store_log =
         request?.openfusionapi?.handler?.params?.ctrl?.log?.store ?? false;
 
@@ -473,7 +474,7 @@ export default class ServerAPI extends EventEmitter {
           // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'
           reply.header("X-Cache", "HIT");
 
-          reply.openfusionapi.lastResponse.hash_request[hash_request] =
+          reply.openfusionapi.lastResponse[hash_request] =
             data_cache[hash_request];
 
           // Envia los datos que están en cache
