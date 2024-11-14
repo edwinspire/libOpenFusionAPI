@@ -3,7 +3,7 @@ import { mergeObjects } from "../server/utils.js";
 
 export const sqlFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
+  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ reply,
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
@@ -105,27 +105,27 @@ export const sqlFunction = async (
           //  console.log('-------------> ', result_query.toSQL())
 
           if (
-            response.openfusionapi.lastResponse &&
-            response.openfusionapi.lastResponse.hash_request
+            reply.openfusionapi.lastResponse &&
+            reply.openfusionapi.lastResponse.hash_request
           ) {
-            response.openfusionapi.lastResponse.data = result_query;
+            reply.openfusionapi.lastResponse.data = result_query;
           }
 
-          response.code(200).send(result_query);
+          reply.code(200).send(result_query);
         } else {
           response
             .code(400)
             .send({ error: "Params configuration is not complete" });
         }
       } else {
-        response.code(400).send({ error: "Database is required." });
+        reply.code(400).send({ error: "Database is required." });
       }
     } else {
-      response.code(400).send({ error: "Not data" });
+      reply.code(400).send({ error: "Not data" });
     }
   } catch (error) {
     //console.log(error);
     // @ts-ignore
-    response.code(500).send(error);
+    reply.code(500).send(error);
   }
 };

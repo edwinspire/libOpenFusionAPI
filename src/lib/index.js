@@ -228,15 +228,19 @@ export default class ServerAPI extends EventEmitter {
       // this.fastify.log.info(`Request took ${timeTaken.toFixed(2)} ms`);
 
       // TODO: No guardar en cache respuestas con error
-      let store_log =
-        request?.openfusionapi?.handler?.params?.ctrl?.log?.store ?? false;
+      let store_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
+let logInfo = store_log.infor && reply.statusCode >= 100 && reply.statusCode <= 199;
+let logSuccess = store_log.success && reply.statusCode >= 200 && reply.statusCode <= 299;
+let logRedirection = store_log.redirection && reply.statusCode >= 300 && reply.statusCode <= 399;
+let logClientError = store_log.clientError && reply.statusCode >= 400 && reply.statusCode <= 499;
+let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.statusCode <= 599;
 
-      if (store_log) {
+      if (logInfo || logSuccess || logRedirection || logClientError || logServerError || reply.statusCode == 404) {
         let data_log = {
           idendpoint:
             request?.openfusionapi?.handler?.params?.idendpoint ??
             "00000000000000000000000000000000",
-          level: 3,
+          level: reply.statusCode,
           metadata: {
             method: request.method,
             userAgent: request.headers["user-agent"], // Obtener el bro
@@ -244,11 +248,11 @@ export default class ServerAPI extends EventEmitter {
             url: request.url,
             statusCode: reply.statusCode,
             responseTime: timeTaken, // Tiempo de respuesta
-            responseData: reply?.openfusionapi?.lastResponse?.data ?? undefined,
+            responseData: store_log.full ? reply?.openfusionapi?.lastResponse?.data ?? undefined : undefined,
             headers: request.headers,
-            params: request?.openfusionapi?.handler?.params ?? undefined,
-            query: request.query,
-            body: request.body,
+            params: store_log.full ? request?.openfusionapi?.handler?.params ?? undefined : undefined,
+            query: store_log.full ? request.query : undefined,
+            body: store_log.full ? request.body : undefined,
           },
           timestamp: new Date(),
         };
@@ -436,8 +440,16 @@ export default class ServerAPI extends EventEmitter {
 
       let handlerEndpoint = request.openfusionapi.handler;
 
-      reply.openfusionapi = reply.openfusionapi ?? {};
+      if (!reply.openfusionapi) {
+        reply.openfusionapi = {};
+      }
+
       let server_data = {};
+
+      reply.openfusionapi.lastResponse = {
+        hash_request: "0A0",
+        data: undefined,
+      };
 
       if (
         handlerEndpoint.params &&
@@ -464,11 +476,6 @@ export default class ServerAPI extends EventEmitter {
 
         //let data_cache = this._cacheResponse.get(hash_request);
         let data_cache = this._cacheURLResponse.get(handlerEndpoint.url);
-
-        reply.openfusionapi.lastResponse = {
-          hash_request: hash_request,
-          data: undefined,
-        };
 
         if (data_cache && data_cache[hash_request]) {
           // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'
