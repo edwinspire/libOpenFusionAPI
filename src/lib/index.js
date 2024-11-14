@@ -205,32 +205,44 @@ export default class ServerAPI extends EventEmitter {
       const timeTaken = diff[0] * 1e3 + diff[1] * 1e-6; // Convertimos a milisegundos
 
       // TODO: No guardar en cache respuestas con error
-      let store_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
-      let logInfo =
-        store_log.infor && reply.statusCode >= 100 && reply.statusCode <= 199;
-      let logSuccess =
-        store_log.success && reply.statusCode >= 200 && reply.statusCode <= 299;
-      let logRedirection =
-        store_log.redirection &&
-        reply.statusCode >= 300 &&
-        reply.statusCode <= 399;
-      let logClientError =
-        store_log.clientError &&
-        reply.statusCode >= 400 &&
-        reply.statusCode <= 499;
-      let logServerError =
-        store_log.serverError &&
-        reply.statusCode >= 500 &&
-        reply.statusCode <= 599;
+      let param_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
+      let save_log = false;
 
       if (
-        logInfo ||
-        logSuccess ||
-        logRedirection ||
-        logClientError ||
-        logServerError ||
-        reply.statusCode == 404
+        param_log.infor &&
+        reply.statusCode >= 100 &&
+        reply.statusCode <= 199
       ) {
+        save_log = true;
+      } else if (
+        param_log.success &&
+        reply.statusCode >= 200 &&
+        reply.statusCode <= 299
+      ) {
+        save_log = true;
+      } else if (
+        param_log.redirection &&
+        reply.statusCode >= 300 &&
+        reply.statusCode <= 399
+      ) {
+        save_log = true;
+      } else if (
+        param_log.clientError &&
+        reply.statusCode >= 400 &&
+        reply.statusCode <= 499
+      ) {
+        save_log = true;
+      } else if (
+        param_log.serverError &&
+        reply.statusCode >= 500 &&
+        reply.statusCode <= 599
+      ) {
+        save_log = true;
+      } else if (reply.statusCode == 404) {
+        save_log = true;
+      }
+
+      if (save_log) {
         let data_log = {
           idendpoint:
             request?.openfusionapi?.handler?.params?.idendpoint ??
@@ -243,15 +255,15 @@ export default class ServerAPI extends EventEmitter {
             url: request.url,
             statusCode: reply.statusCode,
             responseTime: timeTaken, // Tiempo de respuesta
-            responseData: store_log.full
+            responseData: param_log.full
               ? reply?.openfusionapi?.lastResponse?.data ?? undefined
               : undefined,
             headers: request.headers,
-            params: store_log.full
+            params: param_log.full
               ? request?.openfusionapi?.handler?.params ?? undefined
               : undefined,
-            query: store_log.full ? request.query : undefined,
-            body: store_log.full ? request.body : undefined,
+            query: param_log.full ? request.query : undefined,
+            body: param_log.full ? request.body : undefined,
           },
           timestamp: new Date(),
         };
@@ -830,7 +842,7 @@ export default class ServerAPI extends EventEmitter {
       p = this._fnEnvironment[environment]["public"];
     }
 
-//    console.log(d, p);
+    //    console.log(d, p);
 
     // Si hay funciones publicas con el mismo nombre que la función de aplicación, la funcion de aplicación sobreescribe a la publica
     return { ...p, ...d };
