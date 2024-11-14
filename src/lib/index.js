@@ -20,12 +20,9 @@ import {
   defaultApps,
   //getAppByName,
   getAppWithEndpoints,
-  //getApiHandler,
-  //  createPathRequest,
 } from "./db/app.js";
 import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
-//import { defaultAPIUserMapping } from "./db/api_user mapping.js";
 import { createLog } from "./db/log.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
@@ -59,8 +56,7 @@ import fs from "fs";
 import path from "path";
 
 import Ajv from "ajv";
-//import { error } from "node:console";
-//import { message } from "telegraf/filters";
+
 const ajv = new Ajv();
 
 const { PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
@@ -130,21 +126,6 @@ export default class ServerAPI extends EventEmitter {
       origin: "*",
     });
     await this.fastify.register(websocket);
-
-    /*
-    this.fastify.websocket({
-      async upgrade(req, stream) {
-        if (stream && stream.end) {
-          console.log('Cliente se ha desconectado');
-        } else {
-          // El cliente se ha conectado
-          stream.on('message', (message) => {
-            // Maneja el mensaje del cliente
-          });
-        }
-      },
-    });
-    */
 
     const www_dir = "www";
     const rutaDirectorio = path.join(process.cwd(), www_dir);
@@ -223,19 +204,33 @@ export default class ServerAPI extends EventEmitter {
       const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
       const timeTaken = diff[0] * 1e3 + diff[1] * 1e-6; // Convertimos a milisegundos
 
-      // reply.header('X-Response-Time', `${timeTaken.toFixed(2)}ms`); // Opcional: Agregarlo como un header en la respuesta
-
-      // this.fastify.log.info(`Request took ${timeTaken.toFixed(2)} ms`);
-
       // TODO: No guardar en cache respuestas con error
       let store_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
-let logInfo = store_log.infor && reply.statusCode >= 100 && reply.statusCode <= 199;
-let logSuccess = store_log.success && reply.statusCode >= 200 && reply.statusCode <= 299;
-let logRedirection = store_log.redirection && reply.statusCode >= 300 && reply.statusCode <= 399;
-let logClientError = store_log.clientError && reply.statusCode >= 400 && reply.statusCode <= 499;
-let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.statusCode <= 599;
+      let logInfo =
+        store_log.infor && reply.statusCode >= 100 && reply.statusCode <= 199;
+      let logSuccess =
+        store_log.success && reply.statusCode >= 200 && reply.statusCode <= 299;
+      let logRedirection =
+        store_log.redirection &&
+        reply.statusCode >= 300 &&
+        reply.statusCode <= 399;
+      let logClientError =
+        store_log.clientError &&
+        reply.statusCode >= 400 &&
+        reply.statusCode <= 499;
+      let logServerError =
+        store_log.serverError &&
+        reply.statusCode >= 500 &&
+        reply.statusCode <= 599;
 
-      if (logInfo || logSuccess || logRedirection || logClientError || logServerError || reply.statusCode == 404) {
+      if (
+        logInfo ||
+        logSuccess ||
+        logRedirection ||
+        logClientError ||
+        logServerError ||
+        reply.statusCode == 404
+      ) {
         let data_log = {
           idendpoint:
             request?.openfusionapi?.handler?.params?.idendpoint ??
@@ -248,9 +243,13 @@ let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.s
             url: request.url,
             statusCode: reply.statusCode,
             responseTime: timeTaken, // Tiempo de respuesta
-            responseData: store_log.full ? reply?.openfusionapi?.lastResponse?.data ?? undefined : undefined,
+            responseData: store_log.full
+              ? reply?.openfusionapi?.lastResponse?.data ?? undefined
+              : undefined,
             headers: request.headers,
-            params: store_log.full ? request?.openfusionapi?.handler?.params ?? undefined : undefined,
+            params: store_log.full
+              ? request?.openfusionapi?.handler?.params ?? undefined
+              : undefined,
             query: store_log.full ? request.query : undefined,
             body: store_log.full ? request.body : undefined,
           },
@@ -310,14 +309,6 @@ let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.s
       } catch (error) {
         console.log(error);
       }
-
-      /*
-      if (!this._wsClients[req.url]) {
-        this._wsClients[req.url] = [];
-      }
-
-      this._wsClients[req.url].push(connection.socket);
-*/
 
       connection.socket.on("open", (message) => {
         console.log("Abre");
@@ -416,14 +407,6 @@ let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.s
                   }
                 });
               }, 5000);
-
-              /*
-                request.body.data.db.row.forEach((row) => {
-                  if (row) {
-                    this._deleteEndpointsByAppName(row.app);
-                  }
-                });
-                */
             }
           }
         } else {
@@ -490,23 +473,9 @@ let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.s
           // Agregar el header 'X-Cache: MISS' si se obtiene un nuevo resultado
           reply.header("X-Cache", "MISS");
 
-          /*
-          server_data.app_functions = this._getFunctions(
-            handlerEndpoint.params.app,
-            handlerEndpoint.params.environment
-          );
-          */
-
           await runHandler(request, reply, handlerEndpoint.params, server_data);
         }
       } else {
-        /*
-        server_data.app_functions = this._getFunctions(
-          handlerEndpoint.params.app,
-          handlerEndpoint.params.environment
-        );
-        */
-
         await runHandler(request, reply, handlerEndpoint.params, server_data);
       }
     });
@@ -662,40 +631,6 @@ let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.s
     }
   }
 
-  /*
-  async _functions(
-    req,
-     res
-  ) {
-    try {
-      if (req && req.query && req.query.appName && req.query.environment) {
-        // @ts-ignore
-        res
-          .code(200)
-          .send(
-            this._getNameFunctions(req.query.appName, req.query.environment)
-          );
-      } else {
-        res.code(400).send({ error: "appName and environment are required" });
-      }
-    } catch (error) {
-      console.trace(error);
-      // @ts-ignore
-      res.code(500).send({ error: error.message });
-    }
-  }
-  */
-
-  /*
-  _getNameFunctions(appName, environment) {
-    let f = this._getFunctions(appName, environment);
-    if (f) {
-      return Object.keys(f);
-    }
-
-    return [];
-  }
-*/
   _addFunctions() {
     if (fnSystem) {
       if (fnSystem.fn_system_prd) {
@@ -869,77 +804,6 @@ let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.s
       }
 
       this._EnvFuntionNames[environment][appname].push(functionName);
-
-      /*
-      if (appname == "public") {
-        // Debe agregarse a todas las app de este entorno, si la función ya existe será reemplazada por la publica
-        console.log("ddd");
-
-        for (const _env_ in this._fnEnvironment) {
-          for (const _app_ in this._fnEnvironment[_env_]) {
-            // Agrega la función a todas las apps de los entornos
-            if (!this._fnEnvironment[_env_][_app_]) {
-              this._fnEnvironment[_env_][_app_] = {};
-            }
-
-            this._fnEnvironment[_env_][_app_][functionName] = fn;
-          }
-        }
-      } else {
-        // No es público
-        if (!this._fnEnvironment[environment][appname]) {
-          this._fnEnvironment[environment][appname] = {};
-        }
-
-        this._fnEnvironment[environment][appname][functionName] = fn;
-      }
-      */
-
-      //this._EnvFuntionNames
-
-      /*
-      switch (environment) {
-        case "dev":
-          if (this._fnDEV.has(appname)) {
-            let fnList = this._fnDEV.get(appname);
-            fnList[functionName] = fn;
-            this._fnDEV.set(appname, fnList);
-          } else {
-            let f = {};
-            // @ts-ignore
-            f[functionName] = fn;
-            this._fnDEV.set(appname, f);
-          }
-          break;
-
-        case "qa":
-          if (this._fnQA.has(appname)) {
-            let fnList = this._fnQA.get(appname);
-            fnList[functionName] = fn;
-            this._fnQA.set(appname, fnList);
-          } else {
-            let f = {};
-            // @ts-ignore
-            f[functionName] = fn;
-            this._fnQA.set(appname, f);
-          }
-          break;
-
-        case "prd":
-          if (this._fnPRD.has(appname)) {
-            let fnList = this._fnPRD.get(appname);
-            fnList[functionName] = fn;
-            this._fnPRD.set(appname, fnList);
-          } else {
-            let f = {};
-            // @ts-ignore
-            f[functionName] = fn;
-            this._fnPRD.set(appname, f);
-          }
-
-          break;
-      }
-      */
     } else {
       throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
     }
@@ -966,24 +830,8 @@ let logServerError = store_log.serverError && reply.statusCode >= 500 && reply.s
       p = this._fnEnvironment[environment]["public"];
     }
 
-    console.log(d, p);
-    /*
-    switch (environment) {
-      case "dev":
-        d = this._fnDEV.get(appName);
-        p = this._fnDEV.get("public");
-        break;
+//    console.log(d, p);
 
-      case "qa":
-        d = this._fnQA.get(appName);
-        p = this._fnQA.get("public");
-        break;
-      case "prd":
-        d = this._fnPRD.get(appName);
-        p = this._fnPRD.get("public");
-        break;
-    }
-    */
     // Si hay funciones publicas con el mismo nombre que la función de aplicación, la funcion de aplicación sobreescribe a la publica
     return { ...p, ...d };
   }
