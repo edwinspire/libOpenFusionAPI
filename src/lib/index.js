@@ -242,6 +242,8 @@ export default class ServerAPI extends EventEmitter {
         save_log = true;
       }
 
+console.log('>>>> param_log >>> ', param_log, save_log);
+
       if (save_log) {
         let data_log = {
           idendpoint:
