@@ -2,6 +2,7 @@
 import $_UFETCH_ from "@edwinspire/universal-fetch";
 import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import { GenToken, getInternalURL, fetchOFAPI } from "../server/utils.js";
+import { setCacheReply } from "./utils.js";
 
 export const createFunction = (
   /** @type {string} */ code,
@@ -42,11 +43,13 @@ export const jsFunction = async (
       console.log("Usa jsFn creada");
       f = method.jsFn;
     } else {
-      console.log("Crea nueva jsFn");
+      console.log(
+        "Crea nueva jsFn. Porque no abria de estar creada si al cargar el endpoint se crea la función????"
+      );
       f = createFunction(method.code);
     }
 
-console.log(fetchOFAPI);
+    // console.log(fetchOFAPI);
 
     let result_fn = await f({
       $_REPLY_: response,
@@ -67,6 +70,7 @@ console.log(fetchOFAPI);
     }
     response.code(200).send(result_fn);
   } catch (error) {
+    setCacheReply(response, error);
     // @ts-ignore
     response.code(500).send(error);
   }

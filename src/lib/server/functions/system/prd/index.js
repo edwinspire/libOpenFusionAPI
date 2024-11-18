@@ -3,6 +3,7 @@ import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllUsers } from "../../../../db/user.js";
 import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";
+import { getLogs } from "../../../../db/log.js";
 import { v4 as uuidv4 } from "uuid";
 import { upsertEndpoint } from "../../../../db/endpoint.js";
 import { createLog } from "../../../../db/log.js";
@@ -106,6 +107,26 @@ export async function fnGetHandler(params) {
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnGetLogs(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    const hs = await getLogs(
+      params?.request?.query?.startDate,
+      params?.request?.query?.endDate,
+      params?.request?.query?.idendpoint,
+      params?.request?.query?.level
+    );
+
+    r.data = hs;
+    r.code = 200;
+  } catch (error) {
+    // @ts-ignore
+    r.data = error;
+    r.code = 500;
   }
   return r;
 }

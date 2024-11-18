@@ -1,6 +1,6 @@
 // @ts-ignore
 import uFetch from '@edwinspire/universal-fetch';
-
+import {setCacheReply} from "./utils.js";
 export const fetchFunction = async (
 	/** @type {{
 	  url(url, init): unknown method?: any; headers: any; body: any; query: any; 
@@ -39,6 +39,7 @@ export const fetchFunction = async (
 		
 		response.code(resp.status).send(r);
 	} catch (error) {
+	 setCacheReply(response, error);
 		// @ts-ignore
 		response.code(500).send(error);
 	}

@@ -1,5 +1,6 @@
 import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
+import { setCacheReply } from "./utils.js";
 
 export const sqlFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
@@ -63,7 +64,7 @@ export const sqlFunction = async (
         //}
       }
 
-     // console.warn(bind_json, data_bind);
+      // console.warn(bind_json, data_bind);
 
       if (paramsSQL.config.database) {
         //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
@@ -104,27 +105,28 @@ export const sqlFunction = async (
 
           //  console.log('-------------> ', result_query.toSQL())
 
-          if (
-            reply.openfusionapi.lastResponse &&
-            reply.openfusionapi.lastResponse.hash_request
-          ) {
-            reply.openfusionapi.lastResponse.data = result_query;
-          }
-
+          setCacheReply(reply, result_query);
           reply.code(200).send(result_query);
         } else {
-          response
-            .code(400)
-            .send({ error: "Params configuration is not complete" });
+          let alt_resp = { error: "Params configuration is not complete" };
+          setCacheReply(reply, alt_resp);
+
+          response.code(400).send(alt_resp);
         }
       } else {
-        reply.code(400).send({ error: "Database is required." });
+        let alt_resp = { error: "Params configuration is not complete" };
+        setCacheReply(reply, alt_resp);
+
+        reply.code(400).send(alt_resp);
       }
     } else {
-      reply.code(400).send({ error: "Not data" });
+      let alt_resp = { error: "Not data" };
+      setCacheReply(reply, alt_resp);
+      reply.code(400).send(alt_resp);
     }
   } catch (error) {
     //console.log(error);
+    setCacheReply(reply, error);
     // @ts-ignore
     reply.code(500).send(error);
   }

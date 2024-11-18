@@ -13,7 +13,7 @@ export const textFunction = async (
         textConfig.mimeType.length > 0 ? textConfig.mimeType : "text/plain";
     }
 
-  //  console.log("\n\n", mimeType, getExtensionFromMimeType(mimeType));
+    //  console.log("\n\n", mimeType, getExtensionFromMimeType(mimeType));
 
     let filename = Date.now() + "." + getExtensionFromMimeType(mimeType);
 
@@ -23,7 +23,8 @@ export const textFunction = async (
       .header("Content-Disposition", `attachment; filename="${filename}"`)
       .send(textConfig.payload);
   } catch (error) {
-    console.log(error);
+    //    console.log(error);
+    setCacheReply(response, error);
     // @ts-ignore
     response.code(500).send(error);
   }

@@ -180,7 +180,7 @@ export default class ServerAPI extends EventEmitter {
           let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
           handlerEndpoint.url = request_path_params.path;
 
-          if (handlerEndpoint.params.enabled) {
+          if (handlerEndpoint?.params?.enabled) {
             request.openfusionapi = { handler: handlerEndpoint };
             await this._check_auth(handlerEndpoint, request, reply);
           } else {
@@ -204,11 +204,18 @@ export default class ServerAPI extends EventEmitter {
       const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
       const timeTaken = diff[0] * 1e3 + diff[1] * 1e-6; // Convertimos a milisegundos
 
-      // TODO: No guardar en cache respuestas con error
-      let param_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
-      let save_log = false;
+      // Ultima Respuesta
+      let reply_data = reply?.openfusionapi?.lastResponse?.data ?? undefined;
 
-      if (
+      // TODO: No guardar en los parameros de handler los datos de test, y analizar tambien si no se debe guardar el codigo
+      // TODO: No guardar en cache respuestas con error
+      // TODO: capturar tambien los errores 500 para que en el log se lo pueda visualizar
+      let param_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
+      let save_log = undefined;
+
+      if (param_log.level == 0) {
+        save_log = false;
+      } else if (
         param_log.infor &&
         reply.statusCode >= 100 &&
         reply.statusCode <= 199
@@ -242,9 +249,15 @@ export default class ServerAPI extends EventEmitter {
         save_log = true;
       }
 
-console.log('>>>> param_log >>> ', param_log, save_log);
+      // console.log(">>>> param_log >>> ", param_log, save_log);
+      //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
 
       if (save_log) {
+        // Elimina el codigo para no guardarlo en la base
+        if (request?.openfusionapi?.handler?.params) {
+          request.openfusionapi.handler.params = undefined;
+        }
+
         let data_log = {
           idendpoint:
             request?.openfusionapi?.handler?.params?.idendpoint ??
@@ -257,15 +270,15 @@ console.log('>>>> param_log >>> ', param_log, save_log);
             url: request.url,
             statusCode: reply.statusCode,
             responseTime: timeTaken, // Tiempo de respuesta
-            responseData: param_log.full
-              ? reply?.openfusionapi?.lastResponse?.data ?? undefined
-              : undefined,
-            headers: request.headers,
-            params: param_log.full
-              ? request?.openfusionapi?.handler?.params ?? undefined
-              : undefined,
-            query: param_log.full ? request.query : undefined,
-            body: param_log.full ? request.body : undefined,
+            responseData: param_log.level > 2 ? reply_data : undefined,
+            req_headers: param_log.level >= 2 ? request.headers : undefined,
+            res_headers: param_log.level >= 2 ? reply.headers : undefined,
+            endpoint:
+              param_log.level > 2
+                ? request?.openfusionapi?.handler?.params ?? undefined
+                : undefined,
+            query: param_log.level > 2 ? request.query : undefined,
+            body: param_log.level > 2 ? request.body : undefined,
           },
           timestamp: new Date(),
         };
@@ -274,34 +287,37 @@ console.log('>>>> param_log >>> ', param_log, save_log);
         this.queueLog.push(data_log);
       }
 
-      // Guardamos la respuesta en cache
-      let reply_data = reply?.openfusionapi?.lastResponse?.data ?? undefined;
       let params_cache_time =
         request?.openfusionapi?.handler?.params?.cache_time ?? 0;
 
-      if (reply_data && params_cache_time > 0) {
+      if (
+        reply_data &&
+        params_cache_time > 0 &&
+        request?.openfusionapi?.handler?.params?.url_method
+      ) {
         // Setea la cache para futuros usos
         let cacheResp =
-          this._cacheURLResponse.get(request.openfusionapi.handler.url) || {};
-        cacheResp[reply.openfusionapi.lastResponse.hash_request] =
-          reply.openfusionapi.lastResponse.data;
+          this._cacheURLResponse.get(
+            request.openfusionapi.handler.params.url_method
+          ) || {};
+        cacheResp[reply.openfusionapi.lastResponse.hash_request] = reply_data;
 
         this._cacheURLResponse.set(
-          request.openfusionapi.handler.url,
+          request.openfusionapi.handler.params.url_method,
           cacheResp
         );
 
         setTimeout(() => {
           //this._cacheResponse.delete(hash_request);
           let objCache = this._cacheURLResponse.get(
-            request.openfusionapi.handler.url
+            request.openfusionapi.handler.params.url_method
           );
           if (objCache) {
             delete objCache[reply.openfusionapi.lastResponse.hash_request];
 
             console.log(
               "\n\nSe elimina la cache de " +
-                request.openfusionapi.handler.url +
+                request.openfusionapi.handler.params.url_method +
                 " luego de " +
                 request.openfusionapi.handler.params.cache_time * 1000 +
                 " segundos."
@@ -469,10 +485,15 @@ console.log('>>>> param_log >>> ', param_log, save_log);
           body: request.body,
           query: request.query,
           url: handlerEndpoint.url,
+          method: request.method, // Se agrega esta linea para identificar entre diferentes métodos pero la misma url
         });
 
+        reply.openfusionapi.lastResponse.hash_request = hash_request;
+
         //let data_cache = this._cacheResponse.get(hash_request);
-        let data_cache = this._cacheURLResponse.get(handlerEndpoint.url);
+        let data_cache = this._cacheURLResponse.get(
+          handlerEndpoint.params.url_method
+        );
 
         if (data_cache && data_cache[hash_request]) {
           // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'
@@ -865,7 +886,8 @@ console.log('>>>> param_log >>> ', param_log, save_log);
 
       if (endpointData.enabled) {
         // @ts-ignore
-        returnHandler.params.code = returnHandler.params.code || "";
+        //returnHandler.params.code = returnHandler.params.code || "";
+        //returnHandler.params.url_method = `${returnHandler.params}`;
 
         if (appVars && typeof appVars === "object") {
           const props = Object.keys(appVars);
@@ -907,6 +929,9 @@ console.log('>>>> param_log >>> ', param_log, save_log);
             returnHandler.params.code,
             appVars
           );
+
+          // Se libera espacio de esta variable ya que no se va a utilizar mas
+          returnHandler.params.code = undefined;
         } else if (returnHandler.params.handler == "FUNCTION") {
           // Console obtiene la función
           if (
@@ -980,16 +1005,20 @@ console.log('>>>> param_log >>> ', param_log, save_log);
               endpoint.method == "WS"
             );
 
+            endpoint.url_method = url_app_endpoint;
+
             if (
               only_url_app_endpoint &&
               only_url_app_endpoint == url_app_endpoint
             ) {
+              // Carga solo el endpoind solicitado y sale
               this._cacheEndpoint.set(
                 url_app_endpoint,
                 this._getApiHandler(appData.app, endpoint, appData.vars)
               );
               break;
             } else {
+              // Carga todos los endpoints
               this._cacheEndpoint.set(
                 url_app_endpoint,
                 this._getApiHandler(appData.app, endpoint, appData.vars)

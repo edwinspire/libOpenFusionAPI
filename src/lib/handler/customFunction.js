@@ -1,4 +1,5 @@
 import { schema_return_customFunction } from "./json_schemas.js";
+import { setCacheReply } from "./utils.js";
 
 import Ajv from "ajv";
 const ajv = new Ajv();
@@ -14,10 +15,10 @@ export const customFunction = async (
 ) => {
   try {
     if (
-    //  $_SERVER_DATA_ &&
-    //  $_SERVER_DATA_.app_functions &&
-    //  $_SERVER_DATA_.app_functions[method.code]
-    method.Fn
+      //  $_SERVER_DATA_ &&
+      //  $_SERVER_DATA_.app_functions &&
+      //  $_SERVER_DATA_.app_functions[method.code]
+      method.Fn
     ) {
       let $_DATA = $_REQUEST_.body;
 
@@ -52,14 +53,18 @@ export const customFunction = async (
         // @ts-ignore
         $_RESPONSE_.code(fnresult.code).send(fnresult.data);
       } else {
+        setCacheReply($_RESPONSE_, validate_schema_out_customFunction.errors);
+
         $_RESPONSE_.code(500).send(validate_schema_out_customFunction.errors);
       }
     } else {
-      $_RESPONSE_
-        .code(404)
-        .send({ error: `Function ${method.code} not found.` });
+      let alt_resp = { error: `Function ${method.code} not found.` };
+      setCacheReply($_RESPONSE_, alt_resp);
+
+      $_RESPONSE_.code(404).send(alt_resp);
     }
   } catch (error) {
+    setCacheReply($_RESPONSE_, error);
     //console.trace(error);
     // @ts-ignore
     $_RESPONSE_.code(500).send(error);
