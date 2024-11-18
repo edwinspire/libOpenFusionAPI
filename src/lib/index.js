@@ -174,6 +174,11 @@ export default class ServerAPI extends EventEmitter {
             path_endpoint_method
           );
         }
+/*
+if(path_endpoint_method.includes('masivo')){
+console.log(path_endpoint_method);
+}
+*/
 
         //
         if (this._cacheEndpoint.has(path_endpoint_method)) {
@@ -253,10 +258,20 @@ export default class ServerAPI extends EventEmitter {
       //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
 
       if (save_log) {
+
+
+/*
+        if(request.url.includes('masivo')){
+          console.log(path_endpoint_method);
+          }
+*/
+          
+/*
         // Elimina el codigo para no guardarlo en la base
         if (request?.openfusionapi?.handler?.params) {
           request.openfusionapi.handler.params = undefined;
         }
+*/
 
         let data_log = {
           idendpoint:
