@@ -339,6 +339,8 @@ export async function fnGetCacheSize(params) {
       return u.app == params.request.query.appName;
     });
 
+    console.log("> filteredEntries <", filteredEntries);
+
     let sizeList = filteredEntries.map(([key, value]) => {
       // Calcula el tamaño de la respuesta
       return {

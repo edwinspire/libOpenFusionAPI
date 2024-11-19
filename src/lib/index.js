@@ -259,24 +259,6 @@ console.log(path_endpoint_method);
 
       if (save_log) {
 
-
-/*
-        if(request.url.includes('masivo')){
-          console.log(path_endpoint_method);
-          }
-*/
-          
-/*
-        // Elimina el codigo para no guardarlo en la base
-        if (request?.openfusionapi?.handler?.params) {
-          request.openfusionapi.handler.params = undefined;
-        }
-*/
-
-if(reply.statusCode == 500){
-console.log('jhjh');
-}
-
         let data_log = {
           idendpoint:
             request?.openfusionapi?.handler?.params?.idendpoint ??
