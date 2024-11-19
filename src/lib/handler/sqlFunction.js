@@ -126,7 +126,7 @@ export const sqlFunction = async (
     }
   } catch (error) {
     //console.log(error);
-    setCacheReply(reply, error);
+    setCacheReply(reply, { error: error });
     // @ts-ignore
     reply.code(500).send(error);
   }

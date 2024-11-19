@@ -273,6 +273,10 @@ console.log(path_endpoint_method);
         }
 */
 
+if(reply.statusCode == 500){
+console.log('jhjh');
+}
+
         let data_log = {
           idendpoint:
             request?.openfusionapi?.handler?.params?.idendpoint ??
