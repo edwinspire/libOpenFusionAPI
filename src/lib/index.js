@@ -89,6 +89,7 @@ const validate_schema_input_hooks = ajv.compile(schema_input_hooks);
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
+// TODO: Poner en el header un ID request para crear una traza desde el origen de los request ya que hay endpoints que son llamados desde el localhost y se hace dificil saber quien originó la primera solicitud.
 export default class ServerAPI extends EventEmitter {
   constructor({ buildDB = false } = {}) {
     super();
@@ -174,7 +175,7 @@ export default class ServerAPI extends EventEmitter {
             path_endpoint_method
           );
         }
-/*
+        /*
 if(path_endpoint_method.includes('masivo')){
 console.log(path_endpoint_method);
 }
@@ -210,12 +211,15 @@ console.log(path_endpoint_method);
       const timeTaken = diff[0] * 1e3 + diff[1] * 1e-6; // Convertimos a milisegundos
 
       // Ultima Respuesta
-      let reply_data = reply?.openfusionapi?.lastResponse?.data ?? undefined;
+      let reply_lastResponse =
+        reply?.openfusionapi?.lastResponse?.data ?? undefined;
+
+      let handler_param = request?.openfusionapi?.handler?.params;
 
       // TODO: No guardar en los parameros de handler los datos de test, y analizar tambien si no se debe guardar el codigo
       // TODO: No guardar en cache respuestas con error
       // TODO: capturar tambien los errores 500 para que en el log se lo pueda visualizar
-      let param_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
+      let param_log = handler_param?.ctrl?.log ?? {};
       let save_log = undefined;
 
       if (param_log.level == 0) {
@@ -258,11 +262,9 @@ console.log(path_endpoint_method);
       //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
 
       if (save_log) {
-
         let data_log = {
           idendpoint:
-            request?.openfusionapi?.handler?.params?.idendpoint ??
-            "00000000000000000000000000000000",
+            handler_param?.idendpoint ?? "00000000000000000000000000000000",
           level: reply.statusCode,
           metadata: {
             method: request.method,
@@ -271,13 +273,10 @@ console.log(path_endpoint_method);
             url: request.url,
             statusCode: reply.statusCode,
             responseTime: timeTaken, // Tiempo de respuesta
-            responseData: param_log.level > 2 ? reply_data : undefined,
+            responseData: param_log.level > 2 ? reply_lastResponse : undefined,
             req_headers: param_log.level >= 2 ? request.headers : undefined,
             res_headers: param_log.level >= 2 ? reply.headers : undefined,
-            endpoint:
-              param_log.level > 2
-                ? request?.openfusionapi?.handler?.params ?? undefined
-                : undefined,
+            endpoint: param_log.level > 2 ? handler_param : undefined,
             query: param_log.level > 2 ? request.query : undefined,
             body: param_log.level > 2 ? request.body : undefined,
           },
@@ -288,48 +287,42 @@ console.log(path_endpoint_method);
         this.queueLog.push(data_log);
       }
 
-      let params_cache_time =
-        request?.openfusionapi?.handler?.params?.cache_time ?? 0;
+      //let params_cache_time = handler_param?.cache_time ?? 0;
 
       if (
-        reply_data &&
-        params_cache_time > 0 &&
-        request?.openfusionapi?.handler?.params?.url_method
+        reply_lastResponse &&
+        handler_param?.cache_time > 0 &&
+        handler_param?.url_method
       ) {
         // Setea la cache para futuros usos
         let cacheResp =
-          this._cacheURLResponse.get(
-            request.openfusionapi.handler.params.url_method
-          ) || {};
-        cacheResp[reply.openfusionapi.lastResponse.hash_request] = reply_data;
+          this._cacheURLResponse.get(handler_param?.url_method) || {};
+        cacheResp[reply?.openfusionapi?.lastResponse?.hash_request] =
+          reply_lastResponse;
 
-        this._cacheURLResponse.set(
-          request.openfusionapi.handler.params.url_method,
-          cacheResp
-        );
+        this._cacheURLResponse.set(handler_param?.url_method, cacheResp);
+        let cache_time = (handler_param?.cache_time ?? 1) * 1000;
 
         setTimeout(() => {
           //this._cacheResponse.delete(hash_request);
-          let objCache = this._cacheURLResponse.get(
-            request.openfusionapi.handler.params.url_method
-          );
+          let objCache = this._cacheURLResponse.get(handler_param?.url_method);
           if (objCache) {
             delete objCache[reply.openfusionapi.lastResponse.hash_request];
 
             console.log(
               "\n\nSe elimina la cache de " +
-                request.openfusionapi.handler.params.url_method +
+                handler_param?.url_method +
                 " luego de " +
-                request.openfusionapi.handler.params.cache_time * 1000 +
+                handler_param?.cache_time * 1000 +
                 " segundos."
             );
           }
-        }, request.openfusionapi.handler.params.cache_time * 1000);
+        }, cache_time);
       }
     });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
-      // Todos los clientes deben estar registrados para poder hacer broadcast o desconectarlos masivamente
+      // Todos los clientes deben estar registra<zdos para poder hacer broadcast o desconectarlos masivamente
       // Crea un idclient para poder enviar un mensaje solo para un socket especifico
       try {
         connection.socket.openfusionapi = req.openfusionapi
