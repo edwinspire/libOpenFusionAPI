@@ -4,7 +4,9 @@ export const setCacheReply = (reply, data) => {
       reply.openfusionapi = { lastResponse: { data: data } };
     }
 
-    if (!reply.openfusionapi.lastResponse) {
+    if (reply.openfusionapi.lastResponse) {
+      reply.openfusionapi.lastResponse.data = data;
+    } else {
       reply.openfusionapi.lastResponse = { data: data };
     }
   }
