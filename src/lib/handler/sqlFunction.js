@@ -111,7 +111,7 @@ export const sqlFunction = async (
           let alt_resp = { error: "Params configuration is not complete" };
           setCacheReply(reply, alt_resp);
 
-          response.code(400).send(alt_resp);
+          reply.code(400).send(alt_resp);
         }
       } else {
         let alt_resp = { error: "Params configuration is not complete" };
