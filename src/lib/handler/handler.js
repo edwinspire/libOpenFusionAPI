@@ -4,7 +4,7 @@ import { soapFunction } from "./soapFunction.js";
 import { sqlFunction } from "./sqlFunction.js";
 import { textFunction } from "./textFunction.js";
 import { customFunction } from "./customFunction.js";
-import { sqlHanna } from "./sqlHanna.js";
+import { sqlHana } from "./sqlHana.js";
 
 /**
  * @param {{headers: any;body: any;query: any;}} request
@@ -32,8 +32,8 @@ export async function runHandler(request, response, method, server_data) {
     case "SQL":
       await sqlFunction(request, response, method);
       break;
-    case "HANNA":
-      await sqlHanna(request, response, method);
+    case "HANA":
+      await sqlHana(request, response, method);
       break;
     case "FUNCTION":
       await customFunction(request, response, method, server_data);
