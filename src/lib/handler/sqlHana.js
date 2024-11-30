@@ -44,7 +44,7 @@ export const sqlHana = async (
         reply.code(200).send(result);
         /*
         var conn_params_qa = {
-          "serverNode": "192.168.178.123:10341",
+          "serverNode": "192.169.178.123:10349",
           "uid": "USER",
           "pwd": "PASS123",
         };
@@ -63,8 +63,8 @@ export const sqlHana = async (
       reply.code(400).send(alt_resp);
     }
   } catch (error) {
-    console.trace(error);
-    setCacheReply(reply, { error: error });
+    //    console.trace(error);
+    setCacheReply(reply, error);
     // @ts-ignore
     reply.code(500).send(error);
   }
@@ -77,7 +77,7 @@ function executeQuery(conection, command, params_bind, options) {
     let place_holder = extractPlaceholders(command);
     let checkBind = checkPlaceHoldersBind(params_bind, place_holder);
 
-    console.log(checkBind);
+    //console.log(checkBind);
 
     /*
   var options = {
@@ -92,13 +92,12 @@ function executeQuery(conection, command, params_bind, options) {
       for (let index = 0; index < place_holder.length; index++) {
         const element = place_holder[index];
         const element_bind_name = element.replace(":", "").replace("$", "");
-        if (element.startsWith("?")) {
+        if (element.startsWith("$")) {
           new_command = new_command.replace(element, "?");
           params.push(params_bind[element_bind_name]);
         } else {
           // Hace un bind a una lista
 
-          //params.push(params_bind[element_bind_name]);
           if (Array.isArray(params_bind[element_bind_name])) {
             let varsplaceholders = params_bind[element_bind_name]
               .map(() => "?")
@@ -126,23 +125,26 @@ function executeQuery(conection, command, params_bind, options) {
         }
       });
     } else {
-      reject(checkBind);
+      reject({ error: checkBind });
     }
   });
 }
 
 function checkPlaceHoldersBind(data_bind, place_holders) {
-  let bind_lost_names = { valid: false, names: [], error: undefined };
+  let bind_lost_names = { valid: false, parameters: [], error: undefined };
 
   if (typeof data_bind == "object") {
     if (Array.isArray(place_holders)) {
       for (let index = 0; index < place_holders.length; index++) {
         const element = place_holders[index].replace(":", "").replace("$", "");
         if (!data_bind[element]) {
-          bind_lost_names.names.push(element);
+          bind_lost_names.parameters.push(element);
         }
       }
-      bind_lost_names.valid = bind_lost_names.names.length == 0;
+      bind_lost_names.valid = bind_lost_names.parameters.length == 0;
+      if (!bind_lost_names.valid) {
+        bind_lost_names.error = "There are missing parameters.";
+      }
     } else {
       bind_lost_names.error = "place_holder is not array";
     }
