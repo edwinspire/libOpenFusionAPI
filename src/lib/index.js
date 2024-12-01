@@ -290,6 +290,7 @@ console.log(path_endpoint_method);
       //let params_cache_time = handler_param?.cache_time ?? 0;
 
       if (
+        reply.statusCode != 500 &&
         reply_lastResponse &&
         handler_param?.cache_time > 0 &&
         handler_param?.url_method
