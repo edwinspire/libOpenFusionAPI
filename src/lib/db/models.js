@@ -243,7 +243,7 @@ export const Handler = dbsequelize.define(
   prefixTableName("handler"),
   {
     handler: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(25),
       primaryKey: true,
       allowNull: false,
       unique: true,
@@ -256,6 +256,18 @@ export const Handler = dbsequelize.define(
       type: DataTypes.STRING(25),
       unique: true,
       allowNull: false,
+    },
+
+    icon_class: {
+      type: DataTypes.STRING(25),
+      unique: false,
+      allowNull: true,
+    },
+
+    color_class: {
+      type: DataTypes.STRING(25),
+      unique: false,
+      allowNull: true,
     },
     description: {
       type: DataTypes.TEXT,
@@ -618,5 +630,39 @@ export const LogEntry = dbsequelize.define(
         unique: false, // Índice no único
       },
     ],
+  }
+);
+
+// Definir el modelo de la tabla 'Handler'
+export const tblDemo = dbsequelize.define(
+  prefixTableName("demo"),
+  {
+    name: {
+      type: DataTypes.STRING(25),
+      primaryKey: true,
+      allowNull: false,
+      unique: true,
+    },
+    label: {
+      type: DataTypes.STRING(25),
+      unique: true,
+      allowNull: false,
+    },
+    json_data: {
+      type: JSON_TYPE,
+      allowNull: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    indexes: [],
+    hooks: {
+      beforeValidate: (instance) => {
+        if (instance.json_data) {
+          instance.json_data = JSON_TYPE_Adapter(instance, "json_data");
+        }
+      },
+    },
   }
 );

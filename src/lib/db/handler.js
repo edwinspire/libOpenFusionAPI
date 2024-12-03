@@ -22,9 +22,11 @@ export const defaultHandlers = () => {
       { id: "SOAP", text: `SOAP`, description:  'Useful for consuming SOAP services.' },
       { id: "TEXT", text: `TEXT`, description:  'Useful for consuming only plain text.' },
       { id: "SQL", text: `SQL`, description:  'Make SQL queries to different databases.' },
+      { id: "SQL_BULK_I", text: `SQL INSERT BULK`, description:  'Make BULK INSERT' },
       { id: "HANNA", text: `HANNA`, description:  'Make SQL queries to SAP HANNA databases.' },
       { id: "FUNCTION", text: `FUNCTION`, description:  'Calls custom functions written on the server.' }
     ];
+
 
     handlers.forEach(async (h) => {
       try {

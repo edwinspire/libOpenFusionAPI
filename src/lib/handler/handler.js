@@ -5,6 +5,7 @@ import { sqlFunction } from "./sqlFunction.js";
 import { textFunction } from "./textFunction.js";
 import { customFunction } from "./customFunction.js";
 import { sqlHana } from "./sqlHana.js";
+import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
 
 /**
  * @param {{headers: any;body: any;query: any;}} request
@@ -31,6 +32,9 @@ export async function runHandler(request, response, method, server_data) {
       break;
     case "SQL":
       await sqlFunction(request, response, method);
+      break;
+    case "SQL_BULK_I":
+      await sqlFunctionInsertBulk(request, response, method);
       break;
     case "HANA":
       await sqlHana(request, response, method);
