@@ -83,9 +83,9 @@ export const sqlFunctionInsertBulk = async (
 
 function bulkInsert(sequelize, tableName, data) {
   return new Promise(async (resolve, reject) => {
-    if (!data.length) {
+    if (!data && !Array.isArray(data) && !data.length) {
       console.log("No data to insert.");
-      return resolve(0); // Resolviendo con 0 registros insertados
+      return reject({ error: "No data to insert." }); // Resolviendo con 0 registros insertados
     }
 
     const columns = Object.keys(data[0]);
@@ -117,7 +117,7 @@ function bulkInsert(sequelize, tableName, data) {
       }
 
       await transaction.commit();
-//      console.log("Bulk insert completed successfully.");
+      //      console.log("Bulk insert completed successfully.");
       resolve({ inserted: insertedCount }); // Resolviendo con la cantidad de registros insertados
     } catch (error) {
       if (transaction) {
