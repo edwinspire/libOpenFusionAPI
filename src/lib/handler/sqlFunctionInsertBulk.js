@@ -104,7 +104,7 @@ function bulkInsert(sequelize, tableName, data) {
           INSERT INTO ${tableName} (${columns.join(", ")})
           VALUES (${columns_bind});
         `;
-        const [result] = await sequelize.query(query, {
+        const result = await sequelize.query(query, {
           bind: row,
           transaction,
           type: QueryTypes.INSERT,
