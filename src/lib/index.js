@@ -12,7 +12,7 @@ import fastifyStatic from "@fastify/static";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-
+import  Endpoint  from "./server/endpoint.js";
 import { TelegramBot } from "./server/telegram/telegram.js";
 
 import dbAPIs from "./db/sequelize.js";
@@ -93,7 +93,8 @@ const validate_schema_input_hooks = ajv.compile(schema_input_hooks);
 export default class ServerAPI extends EventEmitter {
   constructor({ buildDB = false } = {}) {
     super();
-
+    this.endpoints = new Endpoint();
+    this.SERVER_DATE_START;
     this.queueLog = new PromiseSequence();
     this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
 
@@ -150,6 +151,7 @@ export default class ServerAPI extends EventEmitter {
       let request_path_params = get_url_params(request.url);
 
       if (request_path_params && request_path_params.path) {
+        /*
         let path_endpoint_method = key_endpoint_method(
           request_path_params.app,
           request_path_params.resource,
@@ -157,9 +159,10 @@ export default class ServerAPI extends EventEmitter {
           request.method,
           request.ws
         );
+        */
 
         //
-
+        /*
         let _appExistsOnCache_var = this._appExistsOnCache(
           request_path_params.app
         );
@@ -175,16 +178,20 @@ export default class ServerAPI extends EventEmitter {
             path_endpoint_method
           );
         }
+        */
+
         /*
 if(path_endpoint_method.includes('masivo')){
 console.log(path_endpoint_method);
 }
 */
+        let cache_endpoint = await this.endpoints.getEndpoint(request);
 
         //
-        if (this._cacheEndpoint.has(path_endpoint_method)) {
-          let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
-          handlerEndpoint.url = request_path_params.path;
+        if (cache_endpoint && cache_endpoint.handler) {
+          //let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
+          //handlerEndpoint.url = request_path_params.path;
+          let handlerEndpoint = cache_endpoint.handler;
 
           if (handlerEndpoint?.params?.enabled) {
             request.openfusionapi = { handler: handlerEndpoint };
@@ -510,6 +517,8 @@ console.log(path_endpoint_method);
       }
     });
 
+    this.SERVER_DATE_START = Date.now();
+
     const host = HOST || "localhost";
 
     console.log(
@@ -807,6 +816,25 @@ console.log(path_endpoint_method);
   }
 
   _appendAppFunction(appname, environment, functionName, fn) {
+    //console.log(appname, environment, functionName);
+    if (functionName.startsWith("fn")) {
+      // Crea el environment vacío si no existe
+      if (!this.endpoints.fnLocal[environment]) {
+        this.endpoints.fnLocal[environment] = {};
+      }
+
+      if (!this.endpoints.fnLocal[environment][appname]) {
+        this.endpoints.fnLocal[environment][appname] = {};
+      }
+
+      this.endpoints.fnLocal[environment][appname][functionName] = fn;
+      this._EnvFuntionNames = this.endpoints.getFnNames();
+    } else {
+      throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
+    }
+  }
+
+  x_appendAppFunction(appname, environment, functionName, fn) {
     //console.log(appname, environment, functionName);
     if (functionName.startsWith("fn")) {
       // Crea el environment vacío si no existe
