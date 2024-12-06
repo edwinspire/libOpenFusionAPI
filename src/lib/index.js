@@ -12,14 +12,14 @@ import fastifyStatic from "@fastify/static";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import  Endpoint  from "./server/endpoint.js";
+import Endpoint from "./server/endpoint.js";
 import { TelegramBot } from "./server/telegram/telegram.js";
 
 import dbAPIs from "./db/sequelize.js";
 import {
   defaultApps,
   //getAppByName,
-  getAppWithEndpoints,
+  //  getAppWithEndpoints,
 } from "./db/app.js";
 import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
@@ -28,7 +28,7 @@ import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
 import { prefixTableName } from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
-import { createFunction } from "./handler/jsFunction.js";
+// import { createFunction } from "./handler/jsFunction.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
 import PromiseSequence from "@edwinspire/sequential-promises";
 
@@ -45,7 +45,7 @@ import {
 import { schema_input_hooks } from "./server/schemas/index.js";
 
 import {
-  key_endpoint_method,
+  //key_endpoint_method,
   struct_api_path,
   get_url_params,
   internal_url_post_hooks,
@@ -100,10 +100,8 @@ export default class ServerAPI extends EventEmitter {
 
     this.telegram = new TelegramBot();
 
-    this._fnEnvironment = {};
-    this._EnvFuntionNames;
+    this._fnLocalNames;
 
-    this._cacheEndpoint = new Map();
     this._cacheURLResponse = new Map();
     //    this._wsClients = {};
 
@@ -151,46 +149,11 @@ export default class ServerAPI extends EventEmitter {
       let request_path_params = get_url_params(request.url);
 
       if (request_path_params && request_path_params.path) {
-        /*
-        let path_endpoint_method = key_endpoint_method(
-          request_path_params.app,
-          request_path_params.resource,
-          request_path_params.environment,
-          request.method,
-          request.ws
-        );
-        */
-
-        //
-        /*
-        let _appExistsOnCache_var = this._appExistsOnCache(
-          request_path_params.app
-        );
-
-        if (!_appExistsOnCache_var) {
-          // Carga todos los endpoints en la cache
-          // TODO: Analizar si es conveniente cargar todos los endpoints
-          await this._loadEndpointsByAPPToCache(request_path_params.app);
-        } else if (!this._cacheEndpoint.has(path_endpoint_method)) {
-          // Carga solo el endpoint que no está en cache
-          await this._loadEndpointsByAPPToCache(
-            request_path_params.app,
-            path_endpoint_method
-          );
-        }
-        */
-
-        /*
-if(path_endpoint_method.includes('masivo')){
-console.log(path_endpoint_method);
-}
-*/
         let cache_endpoint = await this.endpoints.getEndpoint(request);
 
         //
         if (cache_endpoint && cache_endpoint.handler) {
-          //let handlerEndpoint = this._cacheEndpoint.get(path_endpoint_method);
-          //handlerEndpoint.url = request_path_params.path;
+          
           let handlerEndpoint = cache_endpoint.handler;
 
           if (handlerEndpoint?.params?.enabled) {
@@ -471,7 +434,7 @@ console.log(path_endpoint_method);
         handlerEndpoint.params.app &&
         handlerEndpoint.params.app == "system"
       ) {
-        server_data.env_function_names = this._EnvFuntionNames;
+        server_data.env_function_names = this._fnLocalNames;
         server_data.cache_url_response = this._cacheURLResponse;
         server_data.telegram = this.telegram;
       }
@@ -723,13 +686,8 @@ console.log(path_endpoint_method);
   }
 
   _deleteEndpointsByAppName(app_name) {
-    let list_endpoints = Array.from(this._cacheEndpoint.keys());
-    list_endpoints.forEach((lep) => {
-      if (lep.includes("/api/" + app_name) || lep.includes("/ws/" + app_name)) {
-        //  console.log("\n\n _deleteEndpointsByAppName = ", app_name, lep);
-        this._cacheEndpoint.delete(lep);
-      }
-    });
+    this.endpoints.deleteApp(app_name);
+   
   }
 
   loadFunctionFiles() {
@@ -828,51 +786,10 @@ console.log(path_endpoint_method);
       }
 
       this.endpoints.fnLocal[environment][appname][functionName] = fn;
-      this._EnvFuntionNames = this.endpoints.getFnNames();
+      this._fnLocalNames = this.endpoints.getFnNames();
     } else {
       throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
     }
-  }
-
-  x_appendAppFunction(appname, environment, functionName, fn) {
-    //console.log(appname, environment, functionName);
-    if (functionName.startsWith("fn")) {
-      // Crea el environment vacío si no existe
-      if (!this._fnEnvironment[environment]) {
-        this._fnEnvironment[environment] = {};
-      }
-
-      if (!this._fnEnvironment[environment][appname]) {
-        this._fnEnvironment[environment][appname] = {};
-      }
-
-      this._fnEnvironment[environment][appname][functionName] = fn;
-
-      // Se asigna los nombres de las funciones a la lista de nombres
-      if (!this._EnvFuntionNames) {
-        this._EnvFuntionNames = {};
-      }
-
-      if (!this._EnvFuntionNames[environment]) {
-        this._EnvFuntionNames[environment] = {};
-      }
-
-      if (!this._EnvFuntionNames[environment][appname]) {
-        this._EnvFuntionNames[environment][appname] = [];
-      }
-
-      this._EnvFuntionNames[environment][appname].push(functionName);
-    } else {
-      throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
-    }
-  }
-
-  // Función para buscar en las llaves
-  _appExistsOnCache(app) {
-    const keys_cache = Array.from(this._cacheEndpoint.keys());
-    return keys_cache.some(
-      (k) => k.startsWith(`/api/${app}/`) || k.startsWith(`/ws/${app}/`)
-    );
   }
 
   /**
@@ -883,176 +800,15 @@ console.log(path_endpoint_method);
     let d;
     let p;
 
-    if (this._fnEnvironment[environment]) {
-      d = this._fnEnvironment[environment][appName];
-      p = this._fnEnvironment[environment]["public"];
+    if (this.endpoints.fnLocal[environment]) {
+      d = this.endpoints.fnLocal[environment][appName];
+      p = this.endpoints.fnLocal[environment]["public"];
     }
 
     //    console.log(d, p);
 
     // Si hay funciones publicas con el mismo nombre que la función de aplicación, la funcion de aplicación sobreescribe a la publica
     return { ...p, ...d };
-  }
-
-  _getApiHandler(app_name, endpointData, appVarsEnv) {
-    let returnHandler = {};
-    returnHandler.params = endpointData;
-    returnHandler.params.app = app_name;
-
-    try {
-      appVarsEnv =
-        typeof appVarsEnv !== "object"
-          ? JSON.parse(appVarsEnv)
-          : appVarsEnv ?? {};
-
-      let appVars = appVarsEnv[endpointData.environment];
-
-      if (endpointData.enabled) {
-        // @ts-ignore
-        //returnHandler.params.code = returnHandler.params.code || "";
-        //returnHandler.params.url_method = `${returnHandler.params}`;
-
-        if (appVars && typeof appVars === "object") {
-          const props = Object.keys(appVars);
-
-          for (let i = 0; i < props.length; i++) {
-            const prop = props[i];
-
-            //	console.log('typeof appData.vars[prop]: ', appVars[prop], typeof appVars[prop]);
-
-            switch (typeof appVars[prop]) {
-              case "string":
-                // @ts-ignore
-                returnHandler.params.code = returnHandler.params.code.replace(
-                  prop,
-                  appVars[prop]
-                );
-                break;
-              case "object":
-                // @ts-ignore
-                returnHandler.params.code = returnHandler.params.code.replace(
-                  '"' + prop + '"',
-                  JSON.stringify(appVars[prop])
-                );
-
-                // @ts-ignore
-                returnHandler.params.code = returnHandler.params.code.replace(
-                  prop,
-                  JSON.stringify(appVars[prop])
-                );
-                break;
-            }
-          }
-        }
-
-        // @ts-ignore
-        if (returnHandler.params.handler == "JS") {
-          // @ts-ignore
-          returnHandler.params.jsFn = createFunction(
-            returnHandler.params.code,
-            appVars
-          );
-
-          // Se libera espacio de esta variable ya que no se va a utilizar mas
-          returnHandler.params.code = undefined;
-        } else if (returnHandler.params.handler == "FUNCTION") {
-          // Console obtiene la función
-          if (
-            this._fnEnvironment[returnHandler.params.environment] &&
-            this._fnEnvironment[returnHandler.params.environment][
-              returnHandler.params.app
-            ] &&
-            this._fnEnvironment[returnHandler.params.environment][
-              returnHandler.params.app
-            ][returnHandler.params.code]
-          ) {
-            // Busca en la lista de funciones de entorno para asignarla
-            returnHandler.params.Fn =
-              this._fnEnvironment[returnHandler.params.environment][
-                returnHandler.params.app
-              ][returnHandler.params.code];
-          } else if (
-            this._fnEnvironment[returnHandler.params.environment] &&
-            this._fnEnvironment[returnHandler.params.environment]["public"] &&
-            this._fnEnvironment[returnHandler.params.environment]["public"][
-              returnHandler.params.code
-            ]
-          ) {
-            // Si no existe la función dentro de la app, busca en la lista de la aplicaión publica
-            returnHandler.params.Fn =
-              this._fnEnvironment[returnHandler.params.environment]["public"][
-                returnHandler.params.code
-              ];
-          }
-
-          returnHandler.message = "";
-          returnHandler.status = 200;
-        }
-      } else {
-        returnHandler.message = `Method ${endpointData.method} Unabled`;
-        returnHandler.status = 404;
-        //console.log(endpointData);
-      }
-    } catch (error) {
-      // @ts-ignore
-      returnHandler.message = error.message;
-      returnHandler.status = 500;
-      console.trace(error);
-    }
-
-    return returnHandler;
-  }
-
-  /**
-   * @param {any} app
-   */
-  async _loadEndpointsByAPPToCache(app, only_url_app_endpoint) {
-    try {
-      // Carga los endpoints de una App a cache
-      let appDataResult = await getAppWithEndpoints({ app: app }, false);
-
-      if (appDataResult && appDataResult.length > 0) {
-        const appDatas = appDataResult.map((result) => result.toJSON());
-
-        const appData = appDatas[0];
-
-        if (appData.endpoints) {
-          for (let i = 0; i < appData.endpoints.length; i++) {
-            let endpoint = appData.endpoints[i];
-
-            let url_app_endpoint = key_endpoint_method(
-              appData.app,
-              endpoint.resource,
-              endpoint.environment,
-              endpoint.method,
-              endpoint.method == "WS"
-            );
-
-            endpoint.url_method = url_app_endpoint;
-
-            if (
-              only_url_app_endpoint &&
-              only_url_app_endpoint == url_app_endpoint
-            ) {
-              // Carga solo el endpoind solicitado y sale
-              this._cacheEndpoint.set(
-                url_app_endpoint,
-                this._getApiHandler(appData.app, endpoint, appData.vars)
-              );
-              break;
-            } else {
-              // Carga todos los endpoints
-              this._cacheEndpoint.set(
-                url_app_endpoint,
-                this._getApiHandler(appData.app, endpoint, appData.vars)
-              );
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.trace(error);
-    }
   }
 
   /**

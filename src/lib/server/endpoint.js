@@ -77,6 +77,18 @@ export default class Endpoint extends EventEmitter {
     // Guarda la respuesta en la cache
   }
 
+  deleteApp(app_name) {
+    // Elimina todos los endpoints asociados a la app_name
+    let ep_list = Object.keys(this.internal_endpoint);
+
+    for (let index = 0; index < ep_list.length; index++) {
+      const prms = get_url_params(ep_list[index]);
+      if (prms.app == app_name) {
+        delete this.internal_endpoint[ep_list[index]];
+      }
+    }
+  }
+
   async _loadEndpointsByAPPToCache(app, endpoint_key) {
     try {
       // Carga los endpoints de una App a cache
