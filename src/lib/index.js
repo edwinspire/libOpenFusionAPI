@@ -38,7 +38,6 @@ import {
   //websocketUnauthorized,
   getIPFromRequest,
   getFunctionsFiles,
-  md5,
   getUUID,
 } from "./server/utils.js";
 
@@ -99,11 +98,8 @@ export default class ServerAPI extends EventEmitter {
     this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
 
     this.telegram = new TelegramBot();
-
-    this._fnLocalNames;
-
-    this._cacheURLResponse = new Map();
-    //    this._wsClients = {};
+    //this._fnLocalNames;
+    //this._cacheURLResponse = new Map();
 
     this.fastify = Fastify({
       logger: true,
@@ -153,7 +149,6 @@ export default class ServerAPI extends EventEmitter {
 
         //
         if (cache_endpoint && cache_endpoint.handler) {
-          
           let handlerEndpoint = cache_endpoint.handler;
 
           if (handlerEndpoint?.params?.enabled) {
@@ -165,7 +160,7 @@ export default class ServerAPI extends EventEmitter {
         } else {
           reply
             .code(404)
-            .send({ error: "Endpoint Not Found", url: path_endpoint_method });
+            .send({ error: "Endpoint Not Found", url: request.url });
         }
       }
     });
@@ -257,38 +252,8 @@ export default class ServerAPI extends EventEmitter {
         this.queueLog.push(data_log);
       }
 
-      //let params_cache_time = handler_param?.cache_time ?? 0;
-
-      if (
-        reply.statusCode != 500 &&
-        reply_lastResponse &&
-        handler_param?.cache_time > 0 &&
-        handler_param?.url_method
-      ) {
-        // Setea la cache para futuros usos
-        let cacheResp =
-          this._cacheURLResponse.get(handler_param?.url_method) || {};
-        cacheResp[reply?.openfusionapi?.lastResponse?.hash_request] =
-          reply_lastResponse;
-
-        this._cacheURLResponse.set(handler_param?.url_method, cacheResp);
-        let cache_time = (handler_param?.cache_time ?? 1) * 1000;
-
-        setTimeout(() => {
-          //this._cacheResponse.delete(hash_request);
-          let objCache = this._cacheURLResponse.get(handler_param?.url_method);
-          if (objCache) {
-            delete objCache[reply.openfusionapi.lastResponse.hash_request];
-
-            console.log(
-              "\n\nSe elimina la cache de " +
-                handler_param?.url_method +
-                " luego de " +
-                handler_param?.cache_time * 1000 +
-                " segundos."
-            );
-          }
-        }, cache_time);
+      if (handler_param?.key) {
+        this.endpoints.setCache(handler_param.key, request, reply);
       }
     });
 
@@ -434,9 +399,12 @@ export default class ServerAPI extends EventEmitter {
         handlerEndpoint.params.app &&
         handlerEndpoint.params.app == "system"
       ) {
-        server_data.env_function_names = this._fnLocalNames;
-        server_data.cache_url_response = this._cacheURLResponse;
+        // server_data.env_function_names = this._fnLocalNames;
+        // server_data.cache_url_response = this._cacheURLResponse;
         server_data.telegram = this.telegram;
+        if (handlerEndpoint.params.handler == "FUNCTION") {
+          server_data.endpoint_class = this.endpoints;
+        }
       }
 
       if (
@@ -446,29 +414,33 @@ export default class ServerAPI extends EventEmitter {
       ) {
         //        console.log("----- CACHE ------");
 
-        let hash_request = md5({
-          body: request.body,
-          query: request.query,
-          url: handlerEndpoint.url,
-          method: request.method, // Se agrega esta linea para identificar entre diferentes métodos pero la misma url
-        });
+        let hash_request = this.endpoints.hash_request(
+          request,
+          handlerEndpoint.params.key
+        );
 
         reply.openfusionapi.lastResponse.hash_request = hash_request;
 
+        /*
         //let data_cache = this._cacheResponse.get(hash_request);
         let data_cache = this._cacheURLResponse.get(
           handlerEndpoint.params.url_method
         );
+        */
 
-        if (data_cache && data_cache[hash_request]) {
+        let data_cache = this.endpoints.getCache(
+          handlerEndpoint.params.key,
+          hash_request
+        );
+
+        if (data_cache) {
           // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'
           reply.header("X-Cache", "HIT");
 
-          reply.openfusionapi.lastResponse[hash_request] =
-            data_cache[hash_request];
+          reply.openfusionapi.lastResponse[hash_request] = data_cache;
 
           // Envia los datos que están en cache
-          reply.code(200).send(data_cache[hash_request]);
+          reply.code(200).send(data_cache);
         } else {
           // Agregar el header 'X-Cache: MISS' si se obtiene un nuevo resultado
           reply.header("X-Cache", "MISS");
@@ -687,7 +659,6 @@ export default class ServerAPI extends EventEmitter {
 
   _deleteEndpointsByAppName(app_name) {
     this.endpoints.deleteApp(app_name);
-   
   }
 
   loadFunctionFiles() {
@@ -786,7 +757,7 @@ export default class ServerAPI extends EventEmitter {
       }
 
       this.endpoints.fnLocal[environment][appname][functionName] = fn;
-      this._fnLocalNames = this.endpoints.getFnNames();
+      // this._fnLocalNames = this.endpoints.getFnNames();
     } else {
       throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
     }

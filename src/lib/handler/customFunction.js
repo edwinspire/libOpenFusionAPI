@@ -9,7 +9,7 @@ const validate_schema_out_customFunction = ajv.compile(
 
 export const customFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
-  /** @type {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ $_RESPONSE_,
+  /** @type {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ $_REPLY_,
   /** @type {{ handler?: string; code: any; Fn?: any }} */ method,
   /** @type {{ [x: string]: ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void) | ((arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { code: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }, arg2: any) => any); }} */ $_SERVER_DATA_
 ) => {
@@ -30,7 +30,7 @@ export const customFunction = async (
       let fnresult = await $_SERVER_DATA_.app_functions[method.code]({
         request: $_REQUEST_,
         user_data: $_DATA,
-        reply: $_RESPONSE_,
+        reply: $_REPLY_,
         server_data: $_SERVER_DATA_,
       });
       */
@@ -38,35 +38,29 @@ export const customFunction = async (
       let fnresult = await method.Fn({
         request: $_REQUEST_,
         user_data: $_DATA,
-        reply: $_RESPONSE_,
+        reply: $_REPLY_,
         server_data: $_SERVER_DATA_,
       });
 
       if (validate_schema_out_customFunction(fnresult)) {
-        if (
-          $_RESPONSE_.openfusionapi.lastResponse &&
-          $_RESPONSE_.openfusionapi.lastResponse.hash_request
-        ) {
-          // @ts-ignore
-          $_RESPONSE_.openfusionapi.lastResponse.data = fnresult.data;
-        }
+        setCacheReply($_REPLY_, fnresult.data);
         // @ts-ignore
-        $_RESPONSE_.code(fnresult.code).send(fnresult.data);
+        $_REPLY_.code(fnresult.code).send(fnresult.data);
       } else {
-        setCacheReply($_RESPONSE_, validate_schema_out_customFunction.errors);
+        setCacheReply($_REPLY_, validate_schema_out_customFunction.errors);
 
-        $_RESPONSE_.code(500).send(validate_schema_out_customFunction.errors);
+        $_REPLY_.code(500).send(validate_schema_out_customFunction.errors);
       }
     } else {
       let alt_resp = { error: `Function ${method.code} not found.` };
-      setCacheReply($_RESPONSE_, alt_resp);
+      setCacheReply($_REPLY_, alt_resp);
 
-      $_RESPONSE_.code(404).send(alt_resp);
+      $_REPLY_.code(404).send(alt_resp);
     }
   } catch (error) {
-    setCacheReply($_RESPONSE_, error);
+    setCacheReply($_REPLY_, error);
     //console.trace(error);
     // @ts-ignore
-    $_RESPONSE_.code(500).send(error);
+    $_REPLY_.code(500).send(error);
   }
 };

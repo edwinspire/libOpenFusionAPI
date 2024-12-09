@@ -299,18 +299,15 @@ export async function fnFunctionNames(params) {
       params.request.query.appName &&
       params.request.query.environment
     ) {
-      if (
-        params.server_data.env_function_names &&
-        params.server_data.env_function_names[params.request.query.environment]
-      ) {
+      let fnNames = params.server_data.endpoint_class.getFnNames();
+
+      if (fnNames && fnNames[params?.request?.query?.environment]) {
         let public_fns =
-          params.server_data.env_function_names[
-            params.request.query.environment
-          ]["public"] || [];
+          fnNames[params.request.query.environment]["public"] || [];
         let app_fns =
-          params.server_data.env_function_names[
-            params.request.query.environment
-          ][params.request.query.appName] || [];
+          fnNames[params.request.query.environment][
+            params.request.query.appName
+          ] || [];
 
         // Une las dos matrices eliminando duplicados
         r.data = [...new Set([...public_fns, ...app_fns])];
@@ -331,31 +328,10 @@ export async function fnGetCacheSize(params) {
   try {
     r.data = [];
     r.code = 200;
-
-    let filteredEntries = Array.from(
-      params.server_data.cache_url_response
-    ).filter(([key, value]) => {
-      let u = get_url_params(key);
-      return u.app == params.request.query.appName;
-    });
-
-    console.log("> filteredEntries <", filteredEntries);
-
-    let sizeList = filteredEntries.map(([key, value]) => {
-      // Calcula el tamaño de la respuesta
-      return {
-        url: key,
-        bytes: Number(
-          (
-            Buffer.byteLength(JSON.stringify(value), "utf-8") /
-            1014 /
-            1000
-          ).toFixed(4)
-        ),
-      };
-    });
-
-    r.data = sizeList;
+    
+    r = params.server_data.endpoint_class.getCacheSize(
+      params?.request?.query?.appName
+    );
   } catch (error) {
     //console.log(error);
     // @ts-ignore
@@ -365,6 +341,26 @@ export async function fnGetCacheSize(params) {
   }
   return r;
 }
+
+export async function fnGetResponseCountStatus(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    r.data = [];
+    r.code = 200;
+    
+    r = params.server_data.endpoint_class.getResponseCountStatusCode(
+      params?.request?.query?.appName
+    );
+  } catch (error) {
+    //console.log(error);
+    // @ts-ignore
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
 
 export async function fnClearCache(params) {
   let r = { data: undefined, code: 204 };
@@ -379,7 +375,7 @@ export async function fnClearCache(params) {
       clear_cache = data.map((u) => {
         return {
           url: u,
-          clear: params.server_data.cache_url_response.delete(u),
+          clear: params.server_data.endpoint_class.clearCache(u),
         };
       });
     }

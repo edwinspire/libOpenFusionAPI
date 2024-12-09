@@ -2,6 +2,7 @@ import { EventEmitter } from "node:events";
 import { get_url_params, key_endpoint_method } from "./utils_path.js";
 import { getAppWithEndpoints } from "../db/app.js";
 import { createFunction } from "../handler/jsFunction.js";
+import { md5 } from "./utils.js";
 
 /*
 {
@@ -69,12 +70,181 @@ export default class Endpoint extends EventEmitter {
     return this.internal_endpoint[endpoint_key];
   }
 
-  setCache(endpoint, request, reply) {
+  getCache(endpoint_key, hash_request) {
+    // Verifica la existencia de las propiedades
+    if (
+      this.internal_endpoint &&
+      this.internal_endpoint[endpoint_key] &&
+      this.internal_endpoint[endpoint_key].responses &&
+      this.internal_endpoint[endpoint_key].responses[hash_request] !== undefined
+    ) {
+      // Devuelve el valor si todas las propiedades existen
+      return this.internal_endpoint[endpoint_key].responses[hash_request];
+    } else {
+      // Manejo de ausencia de propiedades (puedes personalizar este comportamiento)
+      console.warn(
+        `No se encontró el valor en el cache para endpoint_key: ${endpoint_key}, hash_request: ${hash_request}.`
+      );
+      return null; // O un valor por defecto
+    }
+  }
+
+  clearCache(endpoint_key) {
+    if (
+      this.internal_endpoint &&
+      this.internal_endpoint[endpoint_key] &&
+      this.internal_endpoint[endpoint_key].responses
+    ) {
+      // Devuelve el valor si todas las propiedades existen
+      this.internal_endpoint[endpoint_key].responses = [];
+      return true;
+    } else {
+      return false;
+      fnSaveApp;
+    }
+  }
+
+  getCacheSize(app_name) {
+    let r = { data: undefined, code: 204 };
+    try {
+      r.data = [];
+      r.code = 200;
+      const filteredKeys = Object.keys(this.internal_endpoint).filter((key) => {
+        let u = get_url_params(key);
+        return u.app == app_name && this.internal_endpoint[key].responses;
+      });
+
+      let sizeList = filteredKeys.map((key) => {
+        // Calcula el tamaño de la respuesta
+        //let r = this.internal_endpoint[ep_list[index]].responses;
+        return {
+          url: key,
+          bytes: Number(
+            (
+              Buffer.byteLength(
+                JSON.stringify(this.internal_endpoint[key].responses),
+                "utf-8"
+              ) /
+              1014 /
+              1000
+            ).toFixed(4)
+          ),
+        };
+      });
+
+      r.data = sizeList;
+    } catch (error) {
+      //console.log(error);
+      // @ts-ignore
+      r.data = error;
+      r.code = 500;
+      //res.code(500).json({ error: error.message });
+    }
+    return r;
+  }
+
+  hash_request(request, endpoint_key) {
+    return md5({
+      body: request.body,
+      query: request.query,
+      url_key: endpoint_key,
+    });
+  }
+
+  setCache(endpoint_key, request, reply) {
     // Revisar si el endpoint existe
     // Revisa si el endpoint está habilitado para guardar cache
     // Obtiene el md5 del request
     // Obtiene la ultima respuesta del endpoint
     // Guarda la respuesta en la cache
+
+    let ep = this.internal_endpoint[endpoint_key];
+
+    if (ep) {
+      this.addCountStatus(endpoint_key, reply?.statusCode);
+
+      let hash_request = this.hash_request(request, endpoint_key);
+
+      let reply_lastResponse =
+        reply?.openfusionapi?.lastResponse?.data ?? undefined;
+
+      if (
+        reply.statusCode != 500 &&
+        reply_lastResponse &&
+        ep?.handler?.params?.cache_time > 0 &&
+        ep?.handler?.params?.key
+      ) {
+        // Revisa si la propiedad responses existe
+        if (!this.internal_endpoint[endpoint_key].responses) {
+          this.internal_endpoint[endpoint_key].responses = {};
+        }
+
+        // Verifica si no existe ya datos en cache para este request
+        if (!this.getCache(endpoint_key, hash_request)) {
+          this.internal_endpoint[endpoint_key].responses[hash_request] =
+            reply_lastResponse;
+
+          let cache_time = (ep?.handler?.params?.cache_time ?? 1) * 1000;
+
+          setTimeout(() => {
+            if (this.internal_endpoint[endpoint_key].responses[hash_request]) {
+              delete this.internal_endpoint[endpoint_key].responses[
+                hash_request
+              ];
+
+              console.log(
+                `Se elimina la cache de ${endpoint_key} luego de ${cache_time} segundos.`
+              );
+            }
+          }, cache_time);
+        }
+      }
+    } else {
+      console.log(
+        `Endpoint ${endpoint_key} no existe. No se puede setear la cache.`
+      );
+    }
+  }
+
+  getResponseCountStatusCode(app_name) {
+    let r = { data: undefined, code: 204 };
+    try {
+      r.data = [];
+      r.code = 200;
+      const filteredKeys = Object.keys(this.internal_endpoint).filter((key) => {
+        let u = get_url_params(key);
+        return u.app == app_name && this.internal_endpoint[key].CountStatusCode;
+      });
+
+      let statusCodeList = filteredKeys.map((key) => {
+        let r = {};
+        r[key] = this.internal_endpoint[key].CountStatusCode;
+        return r;
+      });
+
+      r.data = statusCodeList;
+    } catch (error) {
+      //console.log(error);
+      // @ts-ignore
+      r.data = error;
+      r.code = 500;
+      //res.code(500).json({ error: error.message });
+    }
+    return r;
+  }
+
+  addCountStatus(endpoint_key, statusCode) {
+    if (endpoint_key && statusCode) {
+      // Revisa si la propiedad responses existe
+      if (!this.internal_endpoint[endpoint_key].CountStatusCode) {
+        this.internal_endpoint[endpoint_key].CountStatusCode = {};
+        this.internal_endpoint[endpoint_key].CountStatusCode[statusCode] = 0;
+      }
+
+      if (this.internal_endpoint[endpoint_key]?.CountStatusCode[statusCode] >= 0) {
+        this.internal_endpoint[endpoint_key].CountStatusCode[statusCode]++;
+      }
+    }
   }
 
   deleteApp(app_name) {
