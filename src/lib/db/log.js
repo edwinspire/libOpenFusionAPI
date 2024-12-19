@@ -4,6 +4,38 @@ import { Op } from "sequelize";
 //import { getRoleById } from "./role.js";
 //import { EncryptPwd, GenToken, customError, md5 } from "../server/utils.js";
 
+export const LOG_LEVEL = Object.freeze({
+  TRACE: 0,
+  DEBUG: 1,
+  INFO: 2,
+  WARN: 3,
+  ERROR: 4,
+  FATAL: 5,
+  0: "TRACE",
+  1: "DEBUG",
+  2: "INFO",
+  3: "WARN",
+  4: "ERROR",
+  5: "FATAL",
+});
+
+export const getLogLevelByStatusCode = (status_code) => {
+  let r = LOG_LEVEL.DEBUG;
+  if (status_code >= 100 && status_code <= 199) {
+    r = LOG_LEVEL.INFO;
+  } else if (status_code >= 200 && status_code <= 299) {
+    r = LOG_LEVEL.DEBUG;
+  } else if (status_code >= 300 && status_code <= 399) {
+    r = LOG_LEVEL.INFO;
+  } else if (status_code >= 400 && status_code <= 499) {
+    r = LOG_LEVEL.ERROR;
+  } else if (status_code >= 500 && status_code <= 599) {
+    r = LOG_LEVEL.FATAL;
+  }
+
+  return r;
+};
+
 export const createLog = async (dataLog) => {
   try {
     return await LogEntry.create(dataLog);

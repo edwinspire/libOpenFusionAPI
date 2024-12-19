@@ -588,7 +588,6 @@ export const LogEntry = dbsequelize.define(
       defaultValue: DataTypes.NOW,
       comment: "Registration date",
     },
-
     idendpoint: {
       type: DataTypes.UUID,
       allowNull: true,
@@ -600,15 +599,67 @@ export const LogEntry = dbsequelize.define(
       defaultValue: 0,
       comment: "Level log",
     },
+    method: {
+      type: DataTypes.STRING(15),
+      allowNull: true,
+      comment: "Method request",
+    },
+    status_code: {
+      type: DataTypes.SMALLINT,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "Response Status Code",
+    },
+    user_agent: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "",
+    },
+    client: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Host client",
+    },
+    req_headers: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "Request Headers",
+    },
+    res_headers: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "Response Headers",
+    },
+    query: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "",
+    },
+    body: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "",
+    },
+    params: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "",
+    },
+    response_time: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: -1,
+      comment: "",
+    },
+    response_data: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "data",
+    },
     message: {
       type: DataTypes.TEXT,
       allowNull: true,
       comment: "Message log",
-    },
-    metadata: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "Metadata",
     },
   },
   {
@@ -618,8 +669,23 @@ export const LogEntry = dbsequelize.define(
     comment: "Tabla de logs de la aplicación",
     hooks: {
       beforeValidate: (instance) => {
-        if (instance.metadata) {
-          instance.metadata = JSON_TYPE_Adapter(instance, "metadata");
+        if (instance.req_headers) {
+          instance.req_headers = JSON_TYPE_Adapter(instance, "rep_headers");
+        }
+        if (instance.res_headers) {
+          instance.res_headers = JSON_TYPE_Adapter(instance, "res_headers");
+        }
+        if (instance.query) {
+          instance.query = JSON_TYPE_Adapter(instance, "query");
+        }
+        if (instance.body) {
+          instance.body = JSON_TYPE_Adapter(instance, "body");
+        }
+        if (instance.params) {
+          instance.params = JSON_TYPE_Adapter(instance, "params");
+        }
+        if (instance.response_data) {
+          instance.response_data = JSON_TYPE_Adapter(instance, "response_data");
         }
       },
     },

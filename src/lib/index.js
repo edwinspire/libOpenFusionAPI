@@ -23,14 +23,12 @@ import {
 } from "./db/app.js";
 import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
-import { createLog } from "./db/log.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
 import { prefixTableName } from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
 // import { createFunction } from "./handler/jsFunction.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
-import PromiseSequence from "@edwinspire/sequential-promises";
 
 import {
   checkToken,
@@ -60,7 +58,7 @@ const ajv = new Ajv();
 
 const { PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
 const PORT = process.env.PORT || default_port;
-const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -94,8 +92,6 @@ export default class ServerAPI extends EventEmitter {
     super();
     this.endpoints = new Endpoint();
     this.SERVER_DATE_START;
-    this.queueLog = new PromiseSequence();
-    this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
 
     this.telegram = new TelegramBot();
     //this._fnLocalNames;
@@ -173,84 +169,22 @@ export default class ServerAPI extends EventEmitter {
     this.fastify.addHook("onResponse", async (request, reply) => {
       //  console.log('\n\n\n', request.openfusionapi);
       const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
-      const timeTaken = diff[0] * 1e3 + diff[1] * 1e-6; // Convertimos a milisegundos
-
-      // Ultima Respuesta
-      let reply_lastResponse =
-        reply?.openfusionapi?.lastResponse?.data ?? undefined;
-
+      const timeTaken =  Math.round(diff[0] * 1e3 + diff[1] * 1e-6); // Convertimos a milisegundos
       let handler_param = request?.openfusionapi?.handler?.params;
 
-      // TODO: No guardar en los parameros de handler los datos de test, y analizar tambien si no se debe guardar el codigo
-      // TODO: No guardar en cache respuestas con error
-      // TODO: capturar tambien los errores 500 para que en el log se lo pueda visualizar
-      let param_log = handler_param?.ctrl?.log ?? {};
-      let save_log = undefined;
-
-      if (param_log.level == 0) {
-        save_log = false;
-      } else if (
-        param_log.infor &&
-        reply.statusCode >= 100 &&
-        reply.statusCode <= 199
-      ) {
-        save_log = true;
-      } else if (
-        param_log.success &&
-        reply.statusCode >= 200 &&
-        reply.statusCode <= 299
-      ) {
-        save_log = true;
-      } else if (
-        param_log.redirection &&
-        reply.statusCode >= 300 &&
-        reply.statusCode <= 399
-      ) {
-        save_log = true;
-      } else if (
-        param_log.clientError &&
-        reply.statusCode >= 400 &&
-        reply.statusCode <= 499
-      ) {
-        save_log = true;
-      } else if (
-        param_log.serverError &&
-        reply.statusCode >= 500 &&
-        reply.statusCode <= 599
-      ) {
-        save_log = true;
-      } else if (reply.statusCode == 404) {
-        save_log = true;
+      if (!reply.openfusionapi) {
+        reply.openfusionapi = { lastResponse: { responseTime: timeTaken } };
       }
 
-      // console.log(">>>> param_log >>> ", param_log, save_log);
-      //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
-
-      if (save_log) {
-        let data_log = {
-          idendpoint:
-            handler_param?.idendpoint ?? "00000000000000000000000000000000",
-          level: reply.statusCode,
-          metadata: {
-            method: request.method,
-            userAgent: request.headers["user-agent"], // Obtener el bro
-            client: getIPFromRequest(request),
-            url: request.url,
-            statusCode: reply.statusCode,
-            responseTime: timeTaken, // Tiempo de respuesta
-            responseData: param_log.level > 2 ? reply_lastResponse : undefined,
-            req_headers: param_log.level >= 2 ? request.headers : undefined,
-            res_headers: param_log.level >= 2 ? reply.headers : undefined,
-            endpoint: param_log.level > 2 ? handler_param : undefined,
-            query: param_log.level > 2 ? request.query : undefined,
-            body: param_log.level > 2 ? request.body : undefined,
-          },
-          timestamp: new Date(),
-        };
-
-        //  console.log(data_log);
-        this.queueLog.push(data_log);
+      if (!reply.openfusionapi.lastResponse) {
+        reply.openfusionapi.lastResponse = { responseTime: timeTaken };
       }
+
+      if (!reply.openfusionapi.lastResponse.responseTime) {
+        reply.openfusionapi.lastResponse.responseTime = timeTaken;
+      }
+
+      this.endpoints.saveLog(request, reply);
 
       if (handler_param?.key) {
         this.endpoints.setCache(handler_param.key, request, reply);
@@ -470,20 +404,7 @@ export default class ServerAPI extends EventEmitter {
     await this.fastify.listen({ port: PORT, host: host });
   }
 
-  pushLog(log) {
-    return new Promise(async (resolve) => {
-      let data;
-      let error;
-
-      try {
-        data = await createLog(log);
-      } catch (error) {
-        error = error;
-      }
-      //    console.log(data, error)
-      resolve({ data: data, error: error });
-    });
-  }
+ 
 
   _check_auth_Bearer(handler, data_aut) {
     let check =

@@ -2,7 +2,11 @@ import { EventEmitter } from "node:events";
 import { get_url_params, key_endpoint_method } from "./utils_path.js";
 import { getAppWithEndpoints } from "../db/app.js";
 import { createFunction } from "../handler/jsFunction.js";
-import { md5 } from "./utils.js";
+import { md5, getIPFromRequest } from "./utils.js";
+import PromiseSequence from "@edwinspire/sequential-promises";
+import { createLog, getLogLevelByStatusCode } from "../db/log.js";
+
+const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 
 /*
 {
@@ -21,9 +25,27 @@ import { md5 } from "./utils.js";
 export default class Endpoint extends EventEmitter {
   internal_endpoint = {};
   fnLocal = {};
+  queueLog = new PromiseSequence();
 
   constructor() {
     super();
+
+    this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
+  }
+
+  pushLog(log) {
+    return new Promise(async (resolve) => {
+      let data;
+      let error;
+
+      try {
+        data = await createLog(log);
+      } catch (error) {
+        error = error;
+      }
+      //    console.log(data, error)
+      resolve({ data: data, error: error });
+    });
   }
 
   getFnNames() {
@@ -233,6 +255,102 @@ export default class Endpoint extends EventEmitter {
     return r;
   }
 
+  saveLog(request, reply) {
+    // Ultima Respuesta
+    let reply_lastResponse =
+      reply?.openfusionapi?.lastResponse?.data ?? undefined;
+
+    let handler_param = request?.openfusionapi?.handler?.params;
+
+    // TODO: No guardar en los parameros de handler los datos de test, y analizar tambien si no se debe guardar el codigo
+    // TODO: No guardar en cache respuestas con error
+    // TODO: capturar tambien los errores 500 para que en el log se lo pueda visualizar
+    let param_log = handler_param?.ctrl?.log ?? {};
+    let save_log = undefined;
+
+    if (param_log.level == 0) {
+      save_log = false;
+    } else if (
+      param_log.infor &&
+      reply.statusCode >= 100 &&
+      reply.statusCode <= 199
+    ) {
+      save_log = true;
+    } else if (
+      param_log.success &&
+      reply.statusCode >= 200 &&
+      reply.statusCode <= 299
+    ) {
+      save_log = true;
+    } else if (
+      param_log.redirection &&
+      reply.statusCode >= 300 &&
+      reply.statusCode <= 399
+    ) {
+      save_log = true;
+    } else if (
+      param_log.clientError &&
+      reply.statusCode >= 400 &&
+      reply.statusCode <= 499
+    ) {
+      save_log = true;
+    } else if (
+      param_log.serverError &&
+      reply.statusCode >= 500 &&
+      reply.statusCode <= 599
+    ) {
+      save_log = true;
+    } else if (reply.statusCode == 404) {
+      save_log = true;
+    }
+
+    // console.log(">>>> param_log >>> ", param_log, save_log);
+    //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
+    try {
+      if (save_log) {
+        let data_log = {
+          timestamp: new Date(),
+          idendpoint:
+            handler_param?.idendpoint ?? "00000000000000000000000000000000",
+          level: getLogLevelByStatusCode(reply.statusCode),
+          method: request.method,
+          status_code: reply.statusCode,
+          user_agent: request.headers["user-agent"],
+          client: getIPFromRequest(request),
+          req_headers: param_log.level >= 2 ? request.headers : undefined,
+          res_headers: param_log.level >= 2 ? reply.headers : undefined,
+          query: param_log.level > 2 ? request.query : undefined,
+          //body: param_log.level > 2 ? request.body : undefined,
+          params: handler_param,
+          response_time: reply?.openfusionapi?.lastResponse?.responseTime,
+          response_data: param_log.level > 2 ? reply_lastResponse : undefined,
+
+          /*
+      metadata: {
+        method: request.method,
+        userAgent: request.headers["user-agent"], // Obtener el bro
+        client: getIPFromRequest(request),
+        url: request.url,
+        statusCode: reply.statusCode,
+        responseTime: reply?.openfusionapi?.lastResponse?.responseTime, // Tiempo de respuesta
+        responseData: param_log.level > 2 ? reply_lastResponse : undefined,
+        req_headers: param_log.level >= 2 ? request.headers : undefined,
+        res_headers: param_log.level >= 2 ? reply.headers : undefined,
+        endpoint: param_log.level > 2 ? handler_param : undefined,
+        query: param_log.level > 2 ? request.query : undefined,
+        body: param_log.level > 2 ? request.body : undefined,
+      },
+      */
+        };
+
+        //  console.log(data_log);
+        this.queueLog.push(data_log);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   addCountStatus(endpoint_key, statusCode) {
     if (endpoint_key && statusCode) {
       // Revisa si la propiedad responses existe
@@ -241,7 +359,9 @@ export default class Endpoint extends EventEmitter {
         this.internal_endpoint[endpoint_key].CountStatusCode[statusCode] = 0;
       }
 
-      if (this.internal_endpoint[endpoint_key]?.CountStatusCode[statusCode] >= 0) {
+      if (
+        this.internal_endpoint[endpoint_key]?.CountStatusCode[statusCode] >= 0
+      ) {
         this.internal_endpoint[endpoint_key].CountStatusCode[statusCode]++;
       }
     }
