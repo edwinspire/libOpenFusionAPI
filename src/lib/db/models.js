@@ -14,6 +14,9 @@ const JSON_TYPE =
 
 function JSON_TYPE_Adapter(instance, fieldName) {
   if (instance[fieldName]) {
+
+    console.log("JSON_TYPE_Adapter: ", fieldName, typeof instance[fieldName]);
+
     return dbsequelize.getDialect() === "mssql" &&
       typeof instance[fieldName] === "object"
       ? JSON.stringify(instance[fieldName])
@@ -670,7 +673,7 @@ export const LogEntry = dbsequelize.define(
     hooks: {
       beforeValidate: (instance) => {
         if (instance.req_headers) {
-          instance.req_headers = JSON_TYPE_Adapter(instance, "rep_headers");
+          instance.req_headers = JSON_TYPE_Adapter(instance, "req_headers");
         }
         if (instance.res_headers) {
           instance.res_headers = JSON_TYPE_Adapter(instance, "res_headers");

@@ -23,6 +23,7 @@ const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 */
 
 export default class Endpoint extends EventEmitter {
+
   internal_endpoint = {};
   fnLocal = {};
   queueLog = new PromiseSequence();
@@ -324,6 +325,7 @@ export default class Endpoint extends EventEmitter {
           params: handler_param,
           response_time: reply?.openfusionapi?.lastResponse?.responseTime,
           response_data: param_log.level > 2 ? reply_lastResponse : undefined,
+          message: undefined
 
           /*
       metadata: {

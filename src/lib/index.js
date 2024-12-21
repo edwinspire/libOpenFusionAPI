@@ -56,7 +56,13 @@ import Ajv from "ajv";
 
 const ajv = new Ajv();
 
-const { PATH_APP_FUNCTIONS, JWT_KEY, HOST } = process.env;
+const {
+  PATH_APP_FUNCTIONS,
+  JWT_KEY,
+  HOST,
+  TELEGRAM_SERVER_CHATID,
+  TELEGRAM_SERVER_MSG_THREAD_ID,
+} = process.env;
 const PORT = process.env.PORT || default_port;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -169,7 +175,7 @@ export default class ServerAPI extends EventEmitter {
     this.fastify.addHook("onResponse", async (request, reply) => {
       //  console.log('\n\n\n', request.openfusionapi);
       const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
-      const timeTaken =  Math.round(diff[0] * 1e3 + diff[1] * 1e-6); // Convertimos a milisegundos
+      const timeTaken = Math.round(diff[0] * 1e3 + diff[1] * 1e-6); // Convertimos a milisegundos
       let handler_param = request?.openfusionapi?.handler?.params;
 
       if (!reply.openfusionapi) {
@@ -402,9 +408,24 @@ export default class ServerAPI extends EventEmitter {
     this.telegram.launch();
 
     await this.fastify.listen({ port: PORT, host: host });
-  }
 
- 
+    if (TELEGRAM_SERVER_CHATID) {
+      try {
+        let data = {
+          chatId: TELEGRAM_SERVER_CHATID,
+          message: "*OPEN FUSION API*\nThe server has started.",
+          extra: {
+            message_thread_id: TELEGRAM_SERVER_MSG_THREAD_ID,
+            parse_mode: "MarkdownV2",
+          },
+        };
+
+        await this.telegram.sendMessage(data.chatId, data.message, data.extra);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
 
   _check_auth_Bearer(handler, data_aut) {
     let check =

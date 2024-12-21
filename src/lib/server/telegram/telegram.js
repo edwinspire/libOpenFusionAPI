@@ -1,5 +1,5 @@
 import { Telegraf, Markup, session, Scenes } from "telegraf";
-import { message } from "telegraf/filters";
+//import { message } from "telegraf/filters";
 import { EventEmitter } from "events";
 
 export class TelegramBot extends EventEmitter {
