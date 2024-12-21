@@ -413,7 +413,7 @@ export default class ServerAPI extends EventEmitter {
       try {
         let data = {
           chatId: TELEGRAM_SERVER_CHATID,
-          message: "*OPEN FUSION API*\nThe server has started.",
+          message: "*OPEN FUSION API*\nThe server has started",
           extra: {
             message_thread_id: TELEGRAM_SERVER_MSG_THREAD_ID,
             parse_mode: "MarkdownV2",

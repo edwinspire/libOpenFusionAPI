@@ -149,12 +149,11 @@ export class TelegramBot extends EventEmitter {
     message,
     extra = { parse_mode: "MarkdownV2", message_thread_id: undefined }
   ) {
-    try {
-      //console.log("Mensaje enviado con éxito");
+    //console.log("Mensaje enviado con éxito");
+    if (this.bot) {
       return await this.bot.telegram.sendMessage(chatId, message, extra);
-    } catch (error) {
-      //console.error("Error enviando el mensaje:", error);
-      return error;
+    } else {
+      throw new Error("Telegram Bot no started.");
     }
   }
 }
