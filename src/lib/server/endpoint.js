@@ -123,7 +123,6 @@ export default class Endpoint extends EventEmitter {
       return true;
     } else {
       return false;
-      fnSaveApp;
     }
   }
 
@@ -319,9 +318,9 @@ export default class Endpoint extends EventEmitter {
           user_agent: request.headers["user-agent"],
           client: getIPFromRequest(request),
           req_headers: param_log.level >= 2 ? request.headers : undefined,
-          res_headers: param_log.level >= 2 ? reply.headers : undefined,
+          res_headers: param_log.level >= 2 ? reply.getHeaders() : undefined,
           query: param_log.level > 2 ? request.query : undefined,
-          //body: param_log.level > 2 ? request.body : undefined,
+          body: param_log.level > 2 ? request.body : undefined,
           params: handler_param,
           response_time: reply?.openfusionapi?.lastResponse?.responseTime,
           response_data: param_log.level > 2 ? reply_lastResponse : undefined,
