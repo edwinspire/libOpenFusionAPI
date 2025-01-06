@@ -2,12 +2,11 @@ import { login } from "../../../../db/user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllUsers } from "../../../../db/user.js";
-import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";
-import { getLogs } from "../../../../db/log.js";
+import { getAllApps, getAppById, upsertApp, saveAppWithEndpoints } from "../../../../db/app.js";
 import { v4 as uuidv4 } from "uuid";
 import { upsertEndpoint } from "../../../../db/endpoint.js";
-import { createLog } from "../../../../db/log.js";
-import { get_url_params } from "../../../utils_path.js";
+import { createLog, getLogs } from "../../../../db/log.js";
+//import { DATE } from "sequelize";
 
 export async function fnDemo(
   // @ts-ignore
@@ -112,21 +111,29 @@ export async function fnGetHandler(params) {
 }
 
 export async function fnGetLogs(params) {
-  let r = { code: 204, data: undefined };
+  let r = { data: undefined, code: 204 };
   try {
-    const hs = await getLogs(
-      params?.request?.query?.startDate,
-      params?.request?.query?.endDate,
-      params?.request?.query?.idendpoint,
-      params?.request?.query?.level
-    );
+    let currentDate = new Date();
+    let startDate =
+      params?.request?.query?.startDate ||
+      currentDate.setDate(currentDate.getDate() - 2);
+    let endDate = params?.request?.query?.endDate || new Date();
+    let idendpoint = params?.request?.query?.idendpoint || null;
+    let level = params?.request?.query?.level || null;
+    let limit = params?.request?.query?.limit || 100;
 
-    r.data = hs;
+    // console.log("GETLOGS > ", startDate, endDate, idendpoint, level);
+
+    let data = await getLogs(startDate, endDate, idendpoint, level, limit);
+
+    r.data = data;
     r.code = 200;
   } catch (error) {
+    //console.log(error);
     // @ts-ignore
     r.data = error;
     r.code = 500;
+    //res.code(500).json({ error: error.message });
   }
   return r;
 }
@@ -242,7 +249,7 @@ export async function fnSaveApp(params) {
   let r = { data: undefined, code: 204 };
   try {
     //		console.log(req.params, req.body);
-
+/*
     // Agrega primero los datos de la app
     // @ts-ignore
     let data = await upsertApp(params.request.body);
@@ -252,7 +259,7 @@ export async function fnSaveApp(params) {
     if (data.idapp) {
       // Inserta / Actualiza los endpoints
       let promises_upsert = params.request.body.endpoints.map(
-        (/** @type {import("sequelize").Optional<any, string>} */ ep) => {
+        ( ep) => {
           ep.idapp = data.idapp;
           if (!ep.idendpoint) {
             ep.idendpoint = uuidv4();
@@ -269,9 +276,10 @@ export async function fnSaveApp(params) {
       console.log("result_endpoints ==>>>", result_endpoints);
       //TODO: mejorar el retorno del upsert de lo endpoints
     }
+    */
 
     //		res.code(200).json(data);
-    r.data = data;
+    r.data = await saveAppWithEndpoints(app);
     r.code = 200;
   } catch (error) {
     //console.log(error);
@@ -286,7 +294,7 @@ export async function fnSaveApp(params) {
 export async function fnFunctionNames(params) {
   let r = { data: undefined, code: 204 };
   try {
-    console.log("\n\n\n", params.server_data);
+    //  console.log("\n\n\n", params.server_data);
 
     r.data = [];
     r.code = 200;
@@ -328,7 +336,7 @@ export async function fnGetCacheSize(params) {
   try {
     r.data = [];
     r.code = 200;
-    
+
     r = params.server_data.endpoint_class.getCacheSize(
       params?.request?.query?.appName
     );
@@ -347,7 +355,7 @@ export async function fnGetResponseCountStatus(params) {
   try {
     r.data = [];
     r.code = 200;
-    
+
     r = params.server_data.endpoint_class.getResponseCountStatusCode(
       params?.request?.query?.appName
     );
@@ -360,7 +368,6 @@ export async function fnGetResponseCountStatus(params) {
   }
   return r;
 }
-
 
 export async function fnClearCache(params) {
   let r = { data: undefined, code: 204 };

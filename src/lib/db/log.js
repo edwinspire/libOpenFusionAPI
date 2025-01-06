@@ -64,7 +64,8 @@ export const getLogs = async (
   startDate,
   endDate,
   idendpoint = null,
-  level = null
+  level = null,
+  limit = 1000
 ) => {
   try {
     // Construcción dinámica de los filtros
@@ -87,7 +88,8 @@ export const getLogs = async (
     // Realizar la consulta con las condiciones generadas
     const logs = await LogEntry.findAll({
       where: whereConditions,
-      order: [["timestamp", "ASC"]], // Ordenar por fecha ascendente
+      order: [["timestamp", "DESC"]], // Ordenar por fecha ascendente
+      limit: limit
     });
 
     return logs; // Devolver los resultados

@@ -1,7 +1,7 @@
 import { Endpoint } from "./models.js";
 //import { endpoins_default } from "./default_values.js";
-import PromiseSequence from "@edwinspire/sequential-promises";
-import { defaults } from "./default/index.js";
+//import PromiseSequence from "@edwinspire/sequential-promises";
+//import { defaults } from "./default/index.js";
 
 export const upsertEndpoint = async (
   /** @type {import("sequelize").Optional<any, string>} */ data
@@ -88,6 +88,7 @@ export const getEndpointByApp = async (
   }
 };
 
+/*
 export const defaultEndpoints = async () => {
   try {
     let app_endpoints = defaults.map((app) => {
@@ -103,7 +104,7 @@ export const defaultEndpoints = async () => {
 
     await PromiseSequence.ByBlocks(
       async (
-        /** @type {{ idapp: any; resource: any; name: any; version: any; environment: any; method: any; }} */ element
+         element
       ) => {
         let o;
         try {
@@ -140,6 +141,7 @@ export const defaultEndpoints = async () => {
     console.error("Error durante el demoEndpoints:", error);
   }
 };
+*/
 
 export const bulkCreateEndpoints = (
   /** @type {readonly import("sequelize").Optional<any, string>[]} */ list_endpoints

@@ -1,8 +1,8 @@
-import dbsequelize from "./sequelize.js";
+//import dbsequelize from "./sequelize.js";
 import { Application, Endpoint } from "./models.js";
 import { createFunction } from "../handler/jsFunction.js";
-import { app_default } from "./default_values.js";
-import {defaults} from "./default/index.js";
+import { upsertEndpoint } from "./endpoint.js";
+import { default_apps } from "./default/index.js";
 
 export const getAppWithEndpoints = async (
   /** @type {any} */ where,
@@ -187,35 +187,46 @@ export function getApiHandler(app_name, endpointData, appVarsEnv) {
   return returnHandler;
 }
 
-export const defaultApps = async () => {
-  let options = {
-    updateOnDuplicate: ["idapp"],
-  };
+export const saveAppWithEndpoints = async (app) => {
+  try {
+    let data = await upsertApp(app);
 
-  if (dbsequelize.getDialect() == "mssql") {
-    options = {
-      // @ts-ignore
-      onDuplicate: true, // Opción válida para mssql
-    };
+    if (data.idapp) {
+      // Inserta / Actualiza los endpoints
+      let promises_upsert = app.endpoints.map(
+        (/** @type {import("sequelize").Optional<any, string>} */ ep) => {
+          ep.idapp = data.idapp;
+          if (!ep.idendpoint) {
+            ep.idendpoint = uuidv4();
+          }
+          if (!ep.handler) {
+            ep.handler = "";
+          }
+
+          return upsertEndpoint(ep);
+        }
+      );
+
+      let result_endpoints = await Promise.allSettled(promises_upsert);
+      console.log("result_endpoints ==>>>", result_endpoints);
+      //TODO: mejorar el retorno del upsert de lo endpoints
+      return { app: data, endpoints: result_endpoints };
+    } else {
+      throw new Error("App could not be saved");
+    }
+  } catch (error) {
+    throw error;
   }
+};
 
-  let apps = defaults.map((app) => {
-    return {
-      idapp: app.idapp,
-      app: app.app,
-      enabled: app.enabled,
-      vars: app.vars,
-      description: app.description,
-      rowkey: 0,
-      params: app.params,
-    };
+export const defaultApps = async () => {
+  let result = default_apps.map(async (app) => {
+    try {
+      return { app: app, result: await saveAppWithEndpoints(app) };
+    } catch (error) {
+      return { app: app, error: error };
+    }
   });
 
-  try {
-    await Application.bulkCreate(apps, options);
-
-    console.log("Bulk upsert completado con éxito.");
-  } catch (error) {
-    console.error("Error durante el bulk upsert:", error);
-  }
+  return result;
 };

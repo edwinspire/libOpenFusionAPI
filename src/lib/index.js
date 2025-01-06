@@ -21,7 +21,7 @@ import {
   //getAppByName,
   //  getAppWithEndpoints,
 } from "./db/app.js";
-import { defaultEndpoints } from "./db/endpoint.js";
+//import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
@@ -741,7 +741,7 @@ export default class ServerAPI extends EventEmitter {
           await defaultMethods();
           await defaultHandlers();
           await defaultApps();
-          await defaultEndpoints();
+         // await defaultEndpoints();
           //await defaultAPIUser();
           //  await defaultAPIUserMapping();
         } catch (error) {
