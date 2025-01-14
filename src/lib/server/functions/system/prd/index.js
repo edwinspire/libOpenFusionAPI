@@ -248,38 +248,8 @@ export async function fnGetAppById(params) {
 export async function fnSaveApp(params) {
   let r = { data: undefined, code: 204 };
   try {
-    //		console.log(req.params, req.body);
-/*
-    // Agrega primero los datos de la app
-    // @ts-ignore
-    let data = await upsertApp(params.request.body);
-
-    //		console.log('upsertApp:::::: ', data);
-
-    if (data.idapp) {
-      // Inserta / Actualiza los endpoints
-      let promises_upsert = params.request.body.endpoints.map(
-        ( ep) => {
-          ep.idapp = data.idapp;
-          if (!ep.idendpoint) {
-            ep.idendpoint = uuidv4();
-          }
-          if (!ep.handler) {
-            ep.handler = "";
-          }
-
-          return upsertEndpoint(ep);
-        }
-      );
-
-      let result_endpoints = await Promise.allSettled(promises_upsert);
-      console.log("result_endpoints ==>>>", result_endpoints);
-      //TODO: mejorar el retorno del upsert de lo endpoints
-    }
-    */
-
     //		res.code(200).json(data);
-    r.data = await saveAppWithEndpoints(app);
+    r.data = await saveAppWithEndpoints(params.request.body);
     r.code = 200;
   } catch (error) {
     //console.log(error);
