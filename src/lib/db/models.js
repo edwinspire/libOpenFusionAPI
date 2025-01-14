@@ -460,7 +460,7 @@ export const Endpoint = dbsequelize.define(
       defaultValue: "",
     },
     cors: {
-      type: DataTypes.TEXT,
+      type: JSON_TYPE,
       allowNull: true,
     },
     description: {
@@ -541,6 +541,7 @@ export const Endpoint = dbsequelize.define(
         }
         instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
         instance.data_test = JSON_TYPE_Adapter(instance, "data_test");
+        instance.cors = JSON_TYPE_Adapter(instance, "cors");
         /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.data_test === "object"
