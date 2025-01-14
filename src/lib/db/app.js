@@ -3,6 +3,7 @@ import { Application, Endpoint } from "./models.js";
 import { createFunction } from "../handler/jsFunction.js";
 import { upsertEndpoint } from "./endpoint.js";
 import { default_apps } from "./default/index.js";
+import { v4 as uuidv4 } from "uuid";
 
 export const getAppWithEndpoints = async (
   /** @type {any} */ where,
