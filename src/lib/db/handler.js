@@ -23,7 +23,7 @@ export const defaultHandlers = () => {
       { id: "TEXT", text: `TEXT`, description:  'Useful for consuming only plain text.' },
       { id: "SQL", text: `SQL`, description:  'Make SQL queries to different databases.' },
       { id: "SQL_BULK_I", text: `SQL INSERT BULK`, description:  'Make BULK INSERT' },
-      { id: "HANNA", text: `HANNA`, description:  'Make SQL queries to SAP HANNA databases.' },
+      { id: "HANA", text: `HANA`, description:  'Make SQL queries to SAP HANA databases.' },
       { id: "FUNCTION", text: `FUNCTION`, description:  'Calls custom functions written on the server.' }
     ];
 
