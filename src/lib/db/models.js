@@ -1,12 +1,7 @@
 import { DataTypes } from "sequelize";
 import dbsequelize from "./sequelize.js";
-// @ts-ignore
-//import uFetch from '@edwinspire/universal-fetch';
-//import {EncryptPwd} from "../server/utils.js"
 import { v4 as uuidv4 } from "uuid";
-//import { internal_url_hooks } from '../server/utils_path.js';
 import { emitHook } from "../server/utils.js";
-import { endpoins_default } from "./default_values.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
 const JSON_TYPE =

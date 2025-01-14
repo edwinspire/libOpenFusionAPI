@@ -1,7 +1,4 @@
 import { Endpoint } from "./models.js";
-//import { endpoins_default } from "./default_values.js";
-//import PromiseSequence from "@edwinspire/sequential-promises";
-//import { defaults } from "./default/index.js";
 
 export const upsertEndpoint = async (
   /** @type {import("sequelize").Optional<any, string>} */ data

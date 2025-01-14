@@ -1,4 +1,3 @@
-//import dbsequelize from "./sequelize.js";
 import { Application, Endpoint } from "./models.js";
 import { createFunction } from "../handler/jsFunction.js";
 import { upsertEndpoint } from "./endpoint.js";
