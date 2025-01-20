@@ -6,6 +6,7 @@ import { textFunction } from "./textFunction.js";
 import { customFunction } from "./customFunction.js";
 import { sqlHana } from "./sqlHana.js";
 import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
+import { mongodbFunction } from "./mongoDB.js";
 
 /**
  * @param {{headers: any;body: any;query: any;}} request
@@ -41,6 +42,9 @@ export async function runHandler(request, response, method, server_data) {
       break;
     case "FUNCTION":
       await customFunction(request, response, method, server_data);
+      break;
+    case "MONGODB":
+      await mongodbFunction(request, response, method);
       break;
     default:
       response.code(404).send(`handler ${method.handler} not valid`);

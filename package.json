@@ -43,6 +43,8 @@
     "fastify": "^4.25.2",
     "jsonwebtoken": "^9.0.0",
     "mariadb": "^3.2.2",
+    "mongoose": "^8.9.5",
+    "mongose": "^0.0.2-security",
     "mysql2": "^3.6.3",
     "oracledb": "^6.2.0",
     "path-to-regexp": "^6.2.1",

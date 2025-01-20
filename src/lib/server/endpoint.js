@@ -1,10 +1,11 @@
 import { EventEmitter } from "node:events";
 import { get_url_params, key_endpoint_method } from "./utils_path.js";
 import { getAppWithEndpoints } from "../db/app.js";
-import { createFunction } from "../handler/jsFunction.js";
+import { createFunction } from "../handler/utils.js";
 import { md5, getIPFromRequest } from "./utils.js";
 import PromiseSequence from "@edwinspire/sequential-promises";
 import { createLog, getLogLevelByStatusCode } from "../db/log.js";
+import { getMongoDBHandlerParams } from "../handler/mongoDB.js";
 
 const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 
@@ -23,7 +24,6 @@ const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 */
 
 export default class Endpoint extends EventEmitter {
-
   internal_endpoint = {};
   fnLocal = {};
   queueLog = new PromiseSequence();
@@ -104,10 +104,6 @@ export default class Endpoint extends EventEmitter {
       // Devuelve el valor si todas las propiedades existen
       return this.internal_endpoint[endpoint_key].responses[hash_request];
     } else {
-      // Manejo de ausencia de propiedades (puedes personalizar este comportamiento)
-      console.warn(
-        `No se encontró el valor en el cache para endpoint_key: ${endpoint_key}, hash_request: ${hash_request}.`
-      );
       return null; // O un valor por defecto
     }
   }
@@ -157,7 +153,7 @@ export default class Endpoint extends EventEmitter {
       r.data = sizeList;
     } catch (error) {
       //console.log(error);
-      // @ts-ignore
+
       r.data = error;
       r.code = 500;
       //res.code(500).json({ error: error.message });
@@ -247,7 +243,7 @@ export default class Endpoint extends EventEmitter {
       r.data = statusCodeList;
     } catch (error) {
       //console.log(error);
-      // @ts-ignore
+
       r.data = error;
       r.code = 500;
       //res.code(500).json({ error: error.message });
@@ -324,7 +320,7 @@ export default class Endpoint extends EventEmitter {
           params: handler_param,
           response_time: reply?.openfusionapi?.lastResponse?.responseTime,
           response_data: param_log.level > 2 ? reply_lastResponse : undefined,
-          message: undefined
+          message: undefined,
 
           /*
       metadata: {
@@ -442,24 +438,19 @@ export default class Endpoint extends EventEmitter {
           for (let i = 0; i < props.length; i++) {
             const prop = props[i];
 
-            //	console.log('typeof appData.vars[prop]: ', appVars[prop], typeof appVars[prop]);
-
             switch (typeof appVars[prop]) {
               case "string":
-                // @ts-ignore
                 returnHandler.params.code = returnHandler.params.code.replace(
                   prop,
                   appVars[prop]
                 );
                 break;
               case "object":
-                // @ts-ignore
                 returnHandler.params.code = returnHandler.params.code.replace(
                   '"' + prop + '"',
                   JSON.stringify(appVars[prop])
                 );
 
-                // @ts-ignore
                 returnHandler.params.code = returnHandler.params.code.replace(
                   prop,
                   JSON.stringify(appVars[prop])
@@ -469,9 +460,15 @@ export default class Endpoint extends EventEmitter {
           }
         }
 
-        // @ts-ignore
-        if (returnHandler.params.handler == "JS") {
-          // @ts-ignore
+        if (returnHandler.params.handler == "MONGODB") {
+          returnHandler.params.jsFn = createFunction(
+            getMongoDBHandlerParams(returnHandler.params.code),
+            appVars
+          );
+
+          // Se libera espacio de esta variable ya que no se va a utilizar mas
+          returnHandler.params.code = undefined;
+        } else if (returnHandler.params.handler == "JS") {
           returnHandler.params.jsFn = createFunction(
             returnHandler.params.code,
             appVars
@@ -518,7 +515,6 @@ export default class Endpoint extends EventEmitter {
         //console.log(endpointData);
       }
     } catch (error) {
-      // @ts-ignore
       returnHandler.message = error.message;
       returnHandler.status = 500;
       console.trace(error);
