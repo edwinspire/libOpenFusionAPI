@@ -5,33 +5,35 @@ import { setCacheReply, createFunction } from "./utils.js";
 import mongoose from "mongoose";
 
 export const getMongoDBHandlerParams = (code) => {
+  let paramsMongo = {};
   try {
-    let paramsMongo = JSON.parse(code);
-
-    if (!paramsMongo.connectionConfig) {
-      // Configuración de la conexión
-      paramsMongo.connectionConfig = {
-        host: "localhost", // Dirección del servidor MongoDB
-        port: 27017, // Puerto por defecto de MongoDB
-        dbName: "mi_base_de_datos", // Nombre de la base de datos
-        user: "", // Usuario (opcional, si la autenticación está habilitada)
-        pass: "", // Contraseña (opcional)
-      };
-    }
-
-    if (!paramsMongo.options) {
-      // Opciones adicionales de configuración
-      paramsMongo.options = {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
-      };
-    }
-    return paramsMongo;
+    paramsMongo = JSON.parse(code);
   } catch (error) {
-    return { connectionConfig: {}, options: {}, js: '' };
+    console.error("getMongoDBHandlerParams: Error al parsear el código JSON: "+code);
   }
+
+  if (!paramsMongo.connectionConfig) {
+    // Configuración de la conexión
+    paramsMongo.connectionConfig = {
+      host: "localhost", // Dirección del servidor MongoDB
+      port: 27017, // Puerto por defecto de MongoDB
+      dbName: "my_db", // Nombre de la base de datos
+      user: "", // Usuario (opcional, si la autenticación está habilitada)
+      pass: "", // Contraseña (opcional)
+    };
+  }
+
+  if (!paramsMongo.options) {
+    // Opciones adicionales de configuración
+    paramsMongo.options = {
+      useNewUrlParser: true,
+      // useUnifiedTopology: true,
+      // useCreateIndex: true,
+      // useFindAndModify: false,
+    };
+  }
+
+  return paramsMongo;
 };
 
 export const mongodbFunction = async (

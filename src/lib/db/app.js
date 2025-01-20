@@ -106,7 +106,6 @@ export const upsertApp = async (
   }
 };
 
-
 export const saveAppWithEndpoints = async (app) => {
   try {
     let data = await upsertApp(app);
@@ -122,7 +121,7 @@ export const saveAppWithEndpoints = async (app) => {
           ep.handler = "";
         }
 
-        return upsertEndpoint(ep);
+        return Endpoint.upsert(ep, { returning: true });
       });
 
       let result_endpoints = await Promise.allSettled(promises_upsert);
