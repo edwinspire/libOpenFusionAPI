@@ -251,97 +251,115 @@ export default class Endpoint extends EventEmitter {
     return r;
   }
 
-  saveLog(request, reply) {
-    // Ultima Respuesta
-    let reply_lastResponse =
-      reply?.openfusionapi?.lastResponse?.data ?? undefined;
-
+  getDataLog(log_level, request, reply) {
     let handler_param = request?.openfusionapi?.handler?.params;
 
     // TODO: No guardar en los parameros de handler los datos de test, y analizar tambien si no se debe guardar el codigo
-    // TODO: No guardar en cache respuestas con error
-    // TODO: capturar tambien los errores 500 para que en el log se lo pueda visualizar
-    let param_log = handler_param?.ctrl?.log ?? {};
-    let save_log = undefined;
 
-    if (param_log.level == 0) {
-      save_log = false;
-    } else if (
-      param_log.infor &&
-      reply.statusCode >= 100 &&
-      reply.statusCode <= 199
-    ) {
-      save_log = true;
-    } else if (
-      param_log.success &&
-      reply.statusCode >= 200 &&
-      reply.statusCode <= 299
-    ) {
-      save_log = true;
-    } else if (
-      param_log.redirection &&
-      reply.statusCode >= 300 &&
-      reply.statusCode <= 399
-    ) {
-      save_log = true;
-    } else if (
-      param_log.clientError &&
-      reply.statusCode >= 400 &&
-      reply.statusCode <= 499
-    ) {
-      save_log = true;
-    } else if (
-      param_log.serverError &&
-      reply.statusCode >= 500 &&
-      reply.statusCode <= 599
-    ) {
-      save_log = true;
-    } else if (reply.statusCode == 404) {
-      save_log = true;
+    if (handler_param?.data_test) {
+      handler_param.data_test = undefined;
     }
 
-    // console.log(">>>> param_log >>> ", param_log, save_log);
+    if (handler_param?.headers_test) {
+      handler_param.headers_test = undefined;
+    }
+
+    if (handler_param?.description) {
+      handler_param.description = undefined;
+    }
+
+    if (handler_param?.rowkey) {
+      handler_param.rowkey = undefined;
+    }
+
+    if (handler_param?.ctrl) {
+      handler_param.ctrl = undefined;
+    }
+
+    let data_log = {
+      timestamp: new Date(),
+      idendpoint:
+        handler_param?.idendpoint ?? "00000000000000000000000000000000",
+      level: getLogLevelByStatusCode(reply.statusCode),
+      method: request.method,
+      status_code: reply.statusCode,
+      user_agent: undefined,
+      client: undefined,
+      req_headers: undefined,
+      res_headers: undefined,
+      query: undefined,
+      body: undefined,
+      params: undefined,
+      response_time: reply?.openfusionapi?.lastResponse?.responseTime,
+      response_data: undefined,
+      message: undefined,
+      url: request.url,
+    };
+
     //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
+
+    switch (log_level) {
+      case 0:
+        data_log = undefined;
+        break;
+      case 2:
+        data_log.req_headers = request.headers;
+        data_log.res_headers = reply.getHeaders();
+        //data_log.query = request.query;
+        //data_log.body = request.body;
+        data_log.user_agent = request.headers["user-agent"];
+        data_log.client = getIPFromRequest(request);
+        break;
+      case 3:
+        data_log.req_headers = request.headers;
+        data_log.res_headers = reply.getHeaders();
+        data_log.query = request.query;
+        data_log.body = request.body;
+        data_log.user_agent = request.headers["user-agent"];
+        data_log.client = getIPFromRequest(request);
+        data_log.params = handler_param;
+        data_log.response_data =
+          reply?.openfusionapi?.lastResponse?.data ?? undefined;
+        break;
+    }
+    return data_log;
+  }
+
+  saveLog(request, reply) {
     try {
+      // TODO: No guardar en cache respuestas con error
+      // TODO: capturar tambien los errores 500 para que en el log se lo pueda visualizar
+      let param_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
+      let save_log = undefined;
+
+      if (reply.statusCode >= 100 && reply.statusCode <= 199) {
+        save_log = this.getDataLog(param_log.status_info, request, reply);
+      } else if (reply.statusCode >= 200 && reply.statusCode <= 299) {
+        save_log = this.getDataLog(param_log.status_success, request, reply);
+      } else if (reply.statusCode >= 300 && reply.statusCode <= 399) {
+        save_log = this.getDataLog(param_log.status_redirect, request, reply);
+      } else if (reply.statusCode >= 400 && reply.statusCode <= 499) {
+        save_log = this.getDataLog(
+          param_log.status_client_error,
+          request,
+          reply
+        );
+      } else if (reply.statusCode >= 500 && reply.statusCode <= 599) {
+        save_log = this.getDataLog(
+          param_log.status_server_error,
+          request,
+          reply
+        );
+      } else if (reply.statusCode == 404) {
+        // Forzar el guardado de los errores 404
+        save_log = this.getDataLog(1, request, reply);
+      }
+
+      // console.log(">>>> param_log >>> ", param_log, save_log);
+      //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
+
       if (save_log) {
-        let data_log = {
-          timestamp: new Date(),
-          idendpoint:
-            handler_param?.idendpoint ?? "00000000000000000000000000000000",
-          level: getLogLevelByStatusCode(reply.statusCode),
-          method: request.method,
-          status_code: reply.statusCode,
-          user_agent: request.headers["user-agent"],
-          client: getIPFromRequest(request),
-          req_headers: param_log.level >= 2 ? request.headers : undefined,
-          res_headers: param_log.level >= 2 ? reply.getHeaders() : undefined,
-          query: param_log.level > 2 ? request.query : undefined,
-          body: param_log.level > 2 ? request.body : undefined,
-          params: handler_param,
-          response_time: reply?.openfusionapi?.lastResponse?.responseTime,
-          response_data: param_log.level > 2 ? reply_lastResponse : undefined,
-          message: undefined,
-
-          /*
-      metadata: {
-        method: request.method,
-        userAgent: request.headers["user-agent"], // Obtener el bro
-        client: getIPFromRequest(request),
-        url: request.url,
-        statusCode: reply.statusCode,
-        responseTime: reply?.openfusionapi?.lastResponse?.responseTime, // Tiempo de respuesta
-        responseData: param_log.level > 2 ? reply_lastResponse : undefined,
-        req_headers: param_log.level >= 2 ? request.headers : undefined,
-        res_headers: param_log.level >= 2 ? reply.headers : undefined,
-        endpoint: param_log.level > 2 ? handler_param : undefined,
-        query: param_log.level > 2 ? request.query : undefined,
-        body: param_log.level > 2 ? request.body : undefined,
-      },
-      */
-        };
-
-        //  console.log(data_log);
-        this.queueLog.push(data_log);
+        this.queueLog.push(save_log);
       }
     } catch (error) {
       console.error(error);

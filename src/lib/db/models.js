@@ -592,6 +592,11 @@ export const LogEntry = dbsequelize.define(
       allowNull: true,
       defaultValue: "00000000000000000000000000000000",
     },
+    url: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "url request",
+    },
     level: {
       type: DataTypes.SMALLINT,
       allowNull: false,
