@@ -346,7 +346,7 @@ export default class Endpoint extends EventEmitter {
         );
       } else if (reply.statusCode >= 500 && reply.statusCode <= 599) {
         save_log = this.getDataLog(
-          param_log.status_server_error,
+          param_log.status_server_error == null ? 3 : param_log.status_server_error,
           request,
           reply
         );
