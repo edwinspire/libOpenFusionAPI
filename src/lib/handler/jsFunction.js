@@ -1,7 +1,7 @@
 import $_UFETCH_ from "@edwinspire/universal-fetch";
 import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import { GenToken, getInternalURL, fetchOFAPI } from "../server/utils.js";
-import { setCacheReply, createFunction } from "./utils.js";
+import { setCacheReply, createFunction, jsException } from "./utils.js";
 import mongoose from "mongoose";
 
 export const jsFunction = async (
@@ -30,20 +30,21 @@ export const jsFunction = async (
       $_GEN_TOKEN_: GenToken,
       $_GET_INTERNAL_URL_: getInternalURL,
       $_FETCH_OFAPI_: fetchOFAPI,
-      $_MONGODB_: mongoose,
+      $_MONGOOSE_: mongoose,
+      $_EXCEPTION_: jsException,
     })();
 
     if (
       response.openfusionapi.lastResponse &&
       response.openfusionapi.lastResponse.hash_request
     ) {
-      // @ts-ignore
       response.openfusionapi.lastResponse.data = result_fn;
     }
     response.code(200).send(result_fn);
   } catch (error) {
+    console.trace(error);
     setCacheReply(response, error);
-    // @ts-ignore
-    response.code(500).send(error);
+
+    response.code(error.statusCode == null ? 500: error.statusCode).send(error);
   }
 };

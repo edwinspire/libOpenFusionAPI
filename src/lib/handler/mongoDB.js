@@ -1,7 +1,7 @@
 import $_UFETCH_ from "@edwinspire/universal-fetch";
 import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import { GenToken, getInternalURL, fetchOFAPI } from "../server/utils.js";
-import { setCacheReply, createFunction } from "./utils.js";
+import { setCacheReply, createFunction, jsException } from "./utils.js";
 import mongoose from "mongoose";
 
 export const getMongoDBHandlerParams = (code) => {
@@ -9,7 +9,9 @@ export const getMongoDBHandlerParams = (code) => {
   try {
     paramsMongo = JSON.parse(code);
   } catch (error) {
-    console.error("getMongoDBHandlerParams: Error al parsear el código JSON: "+code);
+    console.error(
+      "getMongoDBHandlerParams: Error al parsear el código JSON: " + code
+    );
   }
 
   if (!paramsMongo.connectionConfig) {
@@ -70,7 +72,8 @@ export const mongodbFunction = async (
       $_GEN_TOKEN_: GenToken,
       $_GET_INTERNAL_URL_: getInternalURL,
       $_FETCH_OFAPI_: fetchOFAPI,
-      $_MONGODB_: mongoose,
+      $_MONGOOSE_: mongoose,
+      $_EXCEPTION_: jsException,
     })();
 
     if (
@@ -83,6 +86,8 @@ export const mongodbFunction = async (
   } catch (error) {
     setCacheReply(response, error);
 
-    response.code(500).send(error);
+    response
+      .code(error.statusCode == null ? 500 : error.statusCode)
+      .send(error);
   }
 };

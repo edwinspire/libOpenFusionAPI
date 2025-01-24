@@ -104,7 +104,7 @@ export default class ServerAPI extends EventEmitter {
     //this._cacheURLResponse = new Map();
 
     this.fastify = Fastify({
-      logger: true,
+      logger: false,
     });
 
     this._build();
