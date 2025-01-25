@@ -14,9 +14,9 @@ export const getMongoDBHandlerParams = (code) => {
     );
   }
 
-  if (!paramsMongo.connectionConfig) {
+  if (!paramsMongo.config) {
     // Configuración de la conexión
-    paramsMongo.connectionConfig = {
+    paramsMongo.config = {
       host: "localhost", // Dirección del servidor MongoDB
       port: 27017, // Puerto por defecto de MongoDB
       dbName: "my_db", // Nombre de la base de datos
@@ -25,7 +25,7 @@ export const getMongoDBHandlerParams = (code) => {
     };
   }
 
-  if (!paramsMongo.options) {
+  if (!paramsMongo.config?.options) {
     // Opciones adicionales de configuración
     paramsMongo.options = {
       useNewUrlParser: true,
@@ -49,12 +49,12 @@ export const mongodbFunction = async (
     let paramsMongo = getMongoDBHandlerParams(method.code);
 
     await mongoose.connect(
-      `mongodb://${paramsMongo.connectionConfig.host}:${paramsMongo.connectionConfig.port}`,
+      `mongodb://${paramsMongo.config.host}:${paramsMongo.config.port}`,
       {
-        dbName: paramsMongo.connectionConfig.dbName,
-        user: paramsMongo.connectionConfig.user || undefined,
-        pass: paramsMongo.connectionConfig.pass || undefined,
-        ...paramsMongo.options,
+        dbName: paramsMongo.config.dbName,
+        user: paramsMongo.config.user || undefined,
+        pass: paramsMongo.config.pass || undefined,
+        ...paramsMongo.config.options,
       }
     );
 
