@@ -9,7 +9,6 @@ const JSON_TYPE =
 
 function JSON_TYPE_Adapter(instance, fieldName) {
   if (instance[fieldName]) {
-
     console.log("JSON_TYPE_Adapter: ", fieldName, typeof instance[fieldName]);
 
     return dbsequelize.getDialect() === "mssql" &&
@@ -79,18 +78,15 @@ export const PathRequest = dbsequelize.define(
     ],
     hooks: {
       afterUpsert: async () => {
-        // @ts-ignore
         await HooksDB({
           model: prefixTableName("path_request"),
           action: "afterUpsert",
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
-        // @ts-ignore
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (/** @type {any} */ instance) => {
-        // @ts-ignore
         instance.rowkey = Math.floor(Math.random() * 1000);
         instance.headers_create =
           typeof instance.headers_create == "object" ||
@@ -175,19 +171,16 @@ export const User = dbsequelize.define(
     ],
     hooks: {
       afterUpsert: async () => {
-        // @ts-ignore
-
         await HooksDB({
           model: prefixTableName("user"),
           action: "afterUpsert",
         });
       },
       beforeUpdate: (/** @type {any} */ user) => {
-        // @ts-ignore
         //			user.ts = new Date();
-        // @ts-ignore
+
         //user.password = EncryptPwd(user.password);
-        // @ts-ignore
+
         user.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (instance) => {
@@ -226,7 +219,6 @@ export const Method = dbsequelize.define(
     indexes: [],
     hooks: {
       afterUpsert: async () => {
-        // @ts-ignore
         await HooksDB({
           model: prefixTableName("method"),
           action: "afterUpsert",
@@ -278,7 +270,6 @@ export const Handler = dbsequelize.define(
     indexes: [],
     hooks: {
       afterUpsert: async () => {
-        // @ts-ignore
         await HooksDB({
           model: prefixTableName("handler"),
           action: "afterUpsert",
@@ -289,7 +280,7 @@ export const Handler = dbsequelize.define(
 );
 
 // Definir el modelo de la tabla 'App'
-// @ts-ignore
+
 export const Application = dbsequelize.define(
   prefixTableName("application"),
   {
@@ -330,9 +321,8 @@ export const Application = dbsequelize.define(
         //
       },
       afterUpsert: async (/** @type {any} */ instance) => {
-        // @ts-ignore
         instance.rowkey = 999;
-        // @ts-ignore
+
         //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
         await HooksDB({
           model: prefixTableName("application"),
@@ -341,7 +331,6 @@ export const Application = dbsequelize.define(
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
-        // @ts-ignore
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeUpsert: async (instance) => {
@@ -355,7 +344,7 @@ export const Application = dbsequelize.define(
       beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
         // Acciones a realizar antes de guardar el modelo
         //console.log('Antes de guardar:', instance.fieldName);
-        // @ts-ignore
+
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (instance) => {
@@ -390,6 +379,79 @@ export const Application = dbsequelize.define(
 
             instance[i].vars = JSON_TYPE_Adapter(instance[i], "vars");
             instance[i].params = JSON_TYPE_Adapter(instance[i], "params");
+          });
+        }
+      },
+    },
+  }
+);
+
+export const ApplicationBackup = dbsequelize.define(
+  prefixTableName("application_backup"),
+  {
+    idbackup: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+      //unique: true,
+    },
+    idapp: {
+      type: DataTypes.UUID,
+      //primaryKey: true,
+      //autoIncrement: true,
+      allowNull: false,
+      //unique: true,
+    },
+    iduser: { type: DataTypes.BIGINT, comment: "User editor" },
+    data: {
+      type: JSON_TYPE,
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    indexes: [],
+    hooks: {
+      afterBulkCreate: async (intance) => {
+        //
+      },
+      afterUpsert: async (/** @type {any} */ instance) => {
+      
+        //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
+        await HooksDB({
+          model: prefixTableName("application_backup"),
+          action: "afterUpsert",
+          row: instance,
+        });
+      },
+      beforeUpdate: (/** @type {any} */ instance) => {
+        //instance.rowkey = Math.floor(Math.random() * 1000);
+      },
+      beforeUpsert: async (instance) => {
+        instance.app = instance.app.toLowerCase();
+
+        if (!instance.idapp || instance.idapp == null) {
+          //console.log('IDAPP es nulo o no está definido');
+          instance.idapp = uuidv4();
+        }
+      },
+      beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
+        // Acciones a realizar antes de guardar el modelo
+        //console.log('Antes de guardar:', instance.fieldName);
+
+        //instance.rowkey = Math.floor(Math.random() * 1000);
+      },
+      beforeValidate: (instance) => {
+        instance.data = JSON_TYPE_Adapter(instance, "data");
+      },
+      beforeCreate: (instance) => {
+        instance.data = JSON_TYPE_Adapter(instance, "data");
+      },
+      beforeBulkCreate: (instance) => {
+        if (instance && Array.isArray(instance)) {
+          instance.forEach((ins, i) => {
+            instance[i].data = JSON_TYPE_Adapter(instance[i], "data");
           });
         }
       },
@@ -496,9 +558,8 @@ export const Endpoint = dbsequelize.define(
     ],
     hooks: {
       afterUpsert: async (/** @type {any} */ instance) => {
-        // @ts-ignore
         instance.rowkey = 999;
-        // @ts-ignore
+
         //   console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
         await HooksDB({
           model: prefixTableName("endpoint"),
@@ -506,19 +567,17 @@ export const Endpoint = dbsequelize.define(
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
-        // @ts-ignore
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeUpsert: async (
         /** @type {{ rowkey: number; idendpoint: string}} */ instance
       ) => {
-        // @ts-ignore
         instance.rowkey = Math.floor(Math.random() * 1000);
 
         //	console.log('>>>>>>>>>>>>>> Se lanza el beforeUpsert', instance);
         if (!instance.idendpoint) {
           //console.log('##################----> beforeValidate: ');
-          // @ts-ignore
+
           instance.idendpoint = uuidv4();
         }
 
@@ -531,7 +590,7 @@ export const Endpoint = dbsequelize.define(
         instance.rowkey = Math.floor(Math.random() * 1000);
         if (!instance.idendpoint) {
           //console.log('##################----> beforeValidate: ');
-          // @ts-ignore
+
           instance.idendpoint = uuidv4();
         }
         instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
@@ -554,20 +613,19 @@ export const Endpoint = dbsequelize.define(
       },
       beforeBulkCreate: (instance) => {
         /*
-        // @ts-ignore
+        
         if (!instance.idendpoint) {
-          // @ts-ignore
+          
           instance.idendpoint = uuidv4();
         }
         */
 
-        // @ts-ignore
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeCreate: (instance) => {
         if (!instance.idendpoint) {
           //console.log('##################----> beforeCreate: ');
-          // @ts-ignore
+
           instance.idendpoint = uuidv4();
         }
       },

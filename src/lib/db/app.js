@@ -1,8 +1,9 @@
 import { Application, Endpoint } from "./models.js";
-import { createFunction } from "../handler/utils.js";
-import { upsertEndpoint } from "./endpoint.js";
+import { createAppLog } from "./app_backup.js";
+//import { upsertEndpoint } from "./endpoint.js";
 import { default_apps } from "./default/index.js";
 import { v4 as uuidv4 } from "uuid";
+import { md5 } from "../server/utils.js";
 
 export const getAppWithEndpoints = async (
   /** @type {any} */ where,
@@ -107,7 +108,18 @@ export const upsertApp = async (
 };
 
 export const saveAppWithEndpoints = async (app) => {
+  
   try {
+    if (app.idapp) {
+      let current_app = await getAppById(app.idapp, false);
+      await createAppLog({ idapp: app.idapp, data: current_app });
+    }
+  } catch (error) {
+    console.error("Error creating backup app:", error);
+  }
+
+  try {
+    // Actualizar la app y sus endpoints
     let data = await upsertApp(app);
 
     if (data.idapp) {
