@@ -482,7 +482,7 @@ export default class Endpoint extends EventEmitter {
 
         if (returnHandler.params.handler == "MONGODB") {
           returnHandler.params.jsFn = createFunction(
-            getMongoDBHandlerParams(mongo_params.code).code,
+            getMongoDBHandlerParams(returnHandler.params.code).code,
             appVars
           );
 
