@@ -1,9 +1,8 @@
 import { Application, Endpoint } from "./models.js";
 import { createAppLog } from "./app_backup.js";
-//import { upsertEndpoint } from "./endpoint.js";
+import { deleteEndpoint } from "./endpoint.js";
 import { default_apps } from "./default/index.js";
 import { v4 as uuidv4 } from "uuid";
-import { md5 } from "../server/utils.js";
 
 export const getAppWithEndpoints = async (
   /** @type {any} */ where,
@@ -108,11 +107,28 @@ export const upsertApp = async (
 };
 
 export const saveAppWithEndpoints = async (app) => {
-  
   try {
     if (app.idapp) {
-      let current_app = await getAppById(app.idapp, false);
-      await createAppLog({ idapp: app.idapp, data: current_app });
+      // Obtener la app actual
+      let array_current_app = await getAppById(app.idapp, false);
+
+      if (array_current_app.length > 0) {
+        let current_app = array_current_app[0];
+
+        // Crear el backup de la app
+        await createAppLog({ idapp: app.idapp, data: current_app });
+
+        // Buscar los endpoints que no están en la app actual
+        let endpoints_to_delete = current_app.endpoints.filter(
+          (ep) => !app.endpoints.find((e) => e.idendpoint === ep.idendpoint)
+        );
+
+        // Eliminar los endpoints que no están en la app actual
+        let promises_delete = endpoints_to_delete.map((ep) => {
+          return deleteEndpoint(ep.idendpoint);
+        });
+        await Promise.allSettled(promises_delete);
+      }
     }
   } catch (error) {
     console.error("Error creating backup app:", error);

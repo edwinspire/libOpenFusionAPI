@@ -1,5 +1,4 @@
 import { ApplicationBackup } from "./models.js";
-import { Op } from "sequelize";
 
 export const createAppLog = async (app_data) => {
   try {
