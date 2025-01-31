@@ -155,8 +155,30 @@ function checkPlaceHoldersBind(data_bind, place_holders) {
 }
 
 function extractPlaceholders(query) {
-  // Usa una expresión regular para encontrar coincidencias que empiezan con $ o :
-  const regex = /(\$[a-zA-Z0-9_]+|:[a-zA-Z0-9_]+)/g;
-  // Usa match para obtener todas las coincidencias en un array
-  return query.match(regex) || [];
+  const placeholders = [];
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+
+  for (let i = 0; i < query.length; i++) {
+    const char = query[i];
+
+    // Alternar estado si encontramos comillas
+    if (char === "'" && !inDoubleQuote) {
+      inSingleQuote = !inSingleQuote;
+    } else if (char === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote;
+    }
+
+    // Si encontramos un placeholder fuera de comillas, lo extraemos
+    if (!inSingleQuote && !inDoubleQuote && (char === '$' || char === ':')) {
+      let j = i + 1;
+      while (j < query.length && /[a-zA-Z0-9_]/.test(query[j])) {
+        j++;
+      }
+      placeholders.push(query.slice(i, j));
+      i = j - 1; // Avanzar el índice al final del placeholder
+    }
+  }
+
+  return placeholders;
 }
