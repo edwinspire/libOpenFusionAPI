@@ -3,6 +3,7 @@ import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import { GenToken, getInternalURL, fetchOFAPI } from "../server/utils.js";
 import { setCacheReply, createFunction, jsException } from "./utils.js";
 import mongoose from "mongoose";
+import { Temporal } from '@js-temporal/polyfill';
 
 export const jsFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
@@ -32,6 +33,7 @@ export const jsFunction = async (
       $_FETCH_OFAPI_: fetchOFAPI,
       $_MONGOOSE_: mongoose,
       $_EXCEPTION_: jsException,
+      $JS_TEMPORAL_: Temporal,
     })();
 
     if (

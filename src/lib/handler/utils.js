@@ -38,7 +38,7 @@ export const createFunction = (
     let codefunction = `
 return async()=>{
   ${app_vars_string}  
-  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_, $_GEN_TOKEN_, $_GET_INTERNAL_URL_, $_FETCH_OFAPI_,  $_MONGOOSE_, $_EXCEPTION_} = $_VARS_;
+  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_, $_GEN_TOKEN_, $_GET_INTERNAL_URL_, $_FETCH_OFAPI_,  $_MONGOOSE_, $_EXCEPTION_, $JS_TEMPORAL_} = $_VARS_;
   let $_RETURN_DATA_ = {};
   ${code}
   return $_RETURN_DATA_;  
