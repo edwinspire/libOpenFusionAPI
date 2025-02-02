@@ -89,7 +89,7 @@ export const getLogs = async (
     const logs = await LogEntry.findAll({
       where: whereConditions,
       order: [["timestamp", "DESC"]], // Ordenar por fecha ascendente
-      limit: limit
+      limit: parseInt( limit, 10) || 100
     });
 
     return logs; // Devolver los resultados
