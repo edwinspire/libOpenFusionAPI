@@ -7,6 +7,36 @@ const { TABLE_NAME_PREFIX_API } = process.env;
 const JSON_TYPE =
   dbsequelize.getDialect() === "mssql" ? DataTypes.TEXT : DataTypes.JSON;
 
+class JSON_ADAPTER {
+  constructor() {}
+
+  static getData(instance, fieldName, defaulValue = {}) {
+    const data = instance.getDataValue(fieldName) ?? defaulValue;
+    return JSON_ADAPTER._isMsSql() && JSON_ADAPTER._isString(data)
+      ? JSON.parse(data)
+      : data;
+  }
+
+  static setData(instance, fieldName, value, defaulValue = {}) {
+    const data = value ?? defaulValue;
+    const new_data =
+      JSON_ADAPTER._isMsSql() && !JSON_ADAPTER._isString(data)
+        ? JSON.stringify(data)
+        : data;
+    instance.setDataValue(fieldName, new_data);
+  }
+
+  static _isMsSql() {
+    return dbsequelize.getDialect() === "mssql";
+  }
+
+  static _isString(data) {
+    //console.log(typeof data);
+    return typeof data === "string";
+  }
+}
+
+/*
 function JSON_TYPE_Adapter(instance, fieldName) {
   if (instance[fieldName]) {
     console.log("JSON_TYPE_Adapter: ", fieldName, typeof instance[fieldName]);
@@ -19,6 +49,7 @@ function JSON_TYPE_Adapter(instance, fieldName) {
     return undefined;
   }
 }
+*/
 
 /**
  * @param {string} table_name
@@ -30,73 +61,6 @@ export function prefixTableName(table_name) {
 async function HooksDB(data) {
   await emitHook({ env: "prd", app: "system", data: { db: data } });
 }
-
-// Definir el modelo de la tabla 'User'
-export const PathRequest = dbsequelize.define(
-  prefixTableName("path_request"),
-  {
-    idpath: {
-      type: DataTypes.BIGINT,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-      unique: true,
-    },
-    rowkey: {
-      type: DataTypes.SMALLINT,
-      defaultValue: 0,
-    },
-    enabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    path: { type: DataTypes.STRING, allowNull: false, unique: true },
-    idapp: { type: DataTypes.UUID, allowNull: true },
-    is_public: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    ip_create: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    headers_create: { type: DataTypes.TEXT, allowNull: true },
-    notes: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-      defaultValue: "",
-    },
-  },
-  {
-    freezeTableName: true,
-    timestamps: true,
-    indexes: [
-      {
-        unique: true,
-        fields: ["path"],
-      },
-    ],
-    hooks: {
-      afterUpsert: async () => {
-        await HooksDB({
-          model: prefixTableName("path_request"),
-          action: "afterUpsert",
-        });
-      },
-      beforeUpdate: (/** @type {any} */ instance) => {
-        instance.rowkey = Math.floor(Math.random() * 1000);
-      },
-      beforeValidate: (/** @type {any} */ instance) => {
-        instance.rowkey = Math.floor(Math.random() * 1000);
-        instance.headers_create =
-          typeof instance.headers_create == "object" ||
-          Array.isArray(instance.headers_create)
-            ? JSON.stringify(instance.headers_create)
-            : instance.headers_create;
-      },
-    },
-  }
-);
 
 // Definir el modelo de la tabla 'User'
 export const User = dbsequelize.define(
@@ -149,6 +113,12 @@ export const User = dbsequelize.define(
     ctrl: {
       type: JSON_TYPE,
       comment: "Attributes that can be used for access control",
+      get() {
+        return JSON_ADAPTER.getData(this, "ctrl");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "ctrl", value);
+      },
     },
     exp_time: {
       type: DataTypes.BIGINT,
@@ -184,10 +154,10 @@ export const User = dbsequelize.define(
         user.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (instance) => {
-        instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
+        //  instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
       },
       beforeUpsert: (instance) => {
-        instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
+        //  instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
       },
     },
   }
@@ -307,9 +277,21 @@ export const Application = dbsequelize.define(
     },
     vars: {
       type: JSON_TYPE,
+      get() {
+        return JSON_ADAPTER.getData(this, "vars");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "vars", value);
+      },
     },
     params: {
       type: JSON_TYPE,
+      get() {
+        return JSON_ADAPTER.getData(this, "params");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "params", value);
+      },
     },
   },
   {
@@ -355,8 +337,8 @@ export const Application = dbsequelize.define(
           instance.idapp = uuidv4();
         }
 
-        instance.vars = JSON_TYPE_Adapter(instance, "vars");
-        instance.params = JSON_TYPE_Adapter(instance, "params");
+        //instance.vars = JSON_TYPE_Adapter(instance, "vars");
+        //instance.params = JSON_TYPE_Adapter(instance, "params");
 
         // Esta función si se ejecuta al momento de crear una nueva APP, poniendo en minuscula el nombre de la app
         instance.app = instance.app.toLowerCase();
@@ -369,16 +351,15 @@ export const Application = dbsequelize.define(
           instance.idapp = uuidv4();
         }
 
-        instance.vars = JSON_TYPE_Adapter(instance, "vars");
-        instance.params = JSON_TYPE_Adapter(instance, "params");
+        //instance.vars = JSON_TYPE_Adapter(instance, "vars");
+        //instance.params = JSON_TYPE_Adapter(instance, "params");
       },
       beforeBulkCreate: (instance) => {
         if (instance && Array.isArray(instance)) {
           instance.forEach((ins, i) => {
             //	console.log("++++++++>>>>>>>>>>>>>>>>>>>>>>", ins.vars);
-
-            instance[i].vars = JSON_TYPE_Adapter(instance[i], "vars");
-            instance[i].params = JSON_TYPE_Adapter(instance[i], "params");
+            //instance[i].vars = JSON_TYPE_Adapter(instance[i], "vars");
+            // instance[i].params = JSON_TYPE_Adapter(instance[i], "params");
           });
         }
       },
@@ -406,6 +387,12 @@ export const ApplicationBackup = dbsequelize.define(
     iduser: { type: DataTypes.BIGINT, comment: "User editor" },
     data: {
       type: JSON_TYPE,
+      get() {
+        return JSON_ADAPTER.getData(this, "data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "data", value);
+      },
     },
   },
   {
@@ -417,7 +404,6 @@ export const ApplicationBackup = dbsequelize.define(
         //
       },
       afterUpsert: async (/** @type {any} */ instance) => {
-      
         //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
         await HooksDB({
           model: prefixTableName("application_backup"),
@@ -439,19 +425,18 @@ export const ApplicationBackup = dbsequelize.define(
       beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
         // Acciones a realizar antes de guardar el modelo
         //console.log('Antes de guardar:', instance.fieldName);
-
         //instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (instance) => {
-        instance.data = JSON_TYPE_Adapter(instance, "data");
+        //instance.data = JSON_TYPE_Adapter(instance, "data");
       },
       beforeCreate: (instance) => {
-        instance.data = JSON_TYPE_Adapter(instance, "data");
+        // instance.data = JSON_TYPE_Adapter(instance, "data");
       },
       beforeBulkCreate: (instance) => {
         if (instance && Array.isArray(instance)) {
           instance.forEach((ins, i) => {
-            instance[i].data = JSON_TYPE_Adapter(instance[i], "data");
+            //   instance[i].data = JSON_TYPE_Adapter(instance[i], "data");
           });
         }
       },
@@ -510,6 +495,12 @@ export const Endpoint = dbsequelize.define(
     ctrl: {
       type: JSON_TYPE,
       comment: "Additional controls. Users, Logs, etc.",
+      get() {
+        return JSON_ADAPTER.getData(this, "ctrl");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "ctrl", value);
+      },
     },
     code: {
       type: DataTypes.TEXT,
@@ -519,6 +510,12 @@ export const Endpoint = dbsequelize.define(
     cors: {
       type: JSON_TYPE,
       allowNull: true,
+      get() {
+        return JSON_ADAPTER.getData(this, "cors");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "cors", value);
+      },
     },
     description: {
       type: DataTypes.TEXT,
@@ -528,12 +525,22 @@ export const Endpoint = dbsequelize.define(
     headers_test: {
       type: JSON_TYPE,
       allowNull: true,
-      defaultValue: {},
+      get() {
+        return JSON_ADAPTER.getData(this, "headers_test");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "headers_test", value);
+      },
     },
     data_test: {
       type: JSON_TYPE,
       allowNull: true,
-      defaultValue: {},
+      get() {
+        return JSON_ADAPTER.getData(this, "data_test");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "data_test", value);
+      },
     },
     latest_updater: {
       type: DataTypes.BIGINT,
@@ -593,9 +600,9 @@ export const Endpoint = dbsequelize.define(
 
           instance.idendpoint = uuidv4();
         }
-        instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
-        instance.data_test = JSON_TYPE_Adapter(instance, "data_test");
-        instance.cors = JSON_TYPE_Adapter(instance, "cors");
+        //  instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
+        //  instance.data_test = JSON_TYPE_Adapter(instance, "data_test");
+        //  instance.cors = JSON_TYPE_Adapter(instance, "cors");
         /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.data_test === "object"
@@ -603,7 +610,7 @@ export const Endpoint = dbsequelize.define(
             : instance.data_test;
             */
 
-        instance.headers_test = JSON_TYPE_Adapter(instance, "headers_test");
+        //  instance.headers_test = JSON_TYPE_Adapter(instance, "headers_test");
         /*
           dbsequelize.getDialect() === "mssql" &&
           typeof instance.headers_test === "object"
@@ -686,26 +693,56 @@ export const LogEntry = dbsequelize.define(
       type: JSON_TYPE,
       allowNull: true,
       comment: "Request Headers",
+      get() {
+        return JSON_ADAPTER.getData(this, "req_headers");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "req_headers", value);
+      },
     },
     res_headers: {
       type: JSON_TYPE,
       allowNull: true,
       comment: "Response Headers",
+      get() {
+        return JSON_ADAPTER.getData(this, "res_headers");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "res_headers", value);
+      },
     },
     query: {
       type: JSON_TYPE,
       allowNull: true,
       comment: "",
+      get() {
+        return JSON_ADAPTER.getData(this, "query");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "query", value);
+      },
     },
     body: {
       type: JSON_TYPE,
       allowNull: true,
       comment: "",
+      get() {
+        return JSON_ADAPTER.getData(this, "body");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "body", value);
+      },
     },
     params: {
       type: JSON_TYPE,
       allowNull: true,
       comment: "",
+      get() {
+        return JSON_ADAPTER.getData(this, "params");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "params", value);
+      },
     },
     response_time: {
       type: DataTypes.INTEGER,
@@ -717,6 +754,12 @@ export const LogEntry = dbsequelize.define(
       type: JSON_TYPE,
       allowNull: true,
       comment: "data",
+      get() {
+        return JSON_ADAPTER.getData(this, "response_data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "response_data", value);
+      },
     },
     message: {
       type: DataTypes.TEXT,
@@ -732,22 +775,22 @@ export const LogEntry = dbsequelize.define(
     hooks: {
       beforeValidate: (instance) => {
         if (instance.req_headers) {
-          instance.req_headers = JSON_TYPE_Adapter(instance, "req_headers");
+          //  instance.req_headers = JSON_TYPE_Adapter(instance, "req_headers");
         }
         if (instance.res_headers) {
-          instance.res_headers = JSON_TYPE_Adapter(instance, "res_headers");
+          // instance.res_headers = JSON_TYPE_Adapter(instance, "res_headers");
         }
         if (instance.query) {
-          instance.query = JSON_TYPE_Adapter(instance, "query");
+          //  instance.query = JSON_TYPE_Adapter(instance, "query");
         }
         if (instance.body) {
-          instance.body = JSON_TYPE_Adapter(instance, "body");
+          // instance.body = JSON_TYPE_Adapter(instance, "body");
         }
         if (instance.params) {
-          instance.params = JSON_TYPE_Adapter(instance, "params");
+          // instance.params = JSON_TYPE_Adapter(instance, "params");
         }
         if (instance.response_data) {
-          instance.response_data = JSON_TYPE_Adapter(instance, "response_data");
+          // instance.response_data = JSON_TYPE_Adapter(instance, "response_data");
         }
       },
     },
@@ -779,6 +822,12 @@ export const tblDemo = dbsequelize.define(
     json_data: {
       type: JSON_TYPE,
       allowNull: true,
+      get() {
+        return JSON_ADAPTER.getData(this, "json_data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "json_data", value);
+      },
     },
   },
   {
@@ -788,7 +837,7 @@ export const tblDemo = dbsequelize.define(
     hooks: {
       beforeValidate: (instance) => {
         if (instance.json_data) {
-          instance.json_data = JSON_TYPE_Adapter(instance, "json_data");
+          //   instance.json_data = JSON_TYPE_Adapter(instance, "json_data");
         }
       },
     },

@@ -2,9 +2,13 @@ import { login } from "../../../../db/user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllUsers } from "../../../../db/user.js";
-import { getAllApps, getAppById, upsertApp, saveAppWithEndpoints } from "../../../../db/app.js";
-import { v4 as uuidv4 } from "uuid";
-import { upsertEndpoint } from "../../../../db/endpoint.js";
+import {
+  getAllApps,
+  getAppById,
+  upsertApp,
+  saveAppWithEndpoints,
+} from "../../../../db/app.js";
+import { Temporal } from "@js-temporal/polyfill";
 import { createLog, getLogs } from "../../../../db/log.js";
 //import { DATE } from "sequelize";
 
@@ -111,20 +115,33 @@ export async function fnGetHandler(params) {
 }
 
 export async function fnGetLogs(params) {
+
   let r = { data: undefined, code: 204 };
+
   try {
-    let currentDate = new Date();
-    let startDate =
+    let startDate = Temporal.PlainDateTime.from(
       params?.request?.query?.startDate ||
-      currentDate.setDate(currentDate.getDate() - 2);
-    let endDate = params?.request?.query?.endDate || new Date();
+        Temporal.Now.zonedDateTimeISO("UTC").subtract({ hours: 1 })
+    );
+
+    let endDate = Temporal.PlainDateTime.from(
+      params?.request?.query?.endDate || Temporal.Now.zonedDateTimeISO("UTC")
+    );
+
+    //  params?.request?.query?.endDate || currentDate;
     let idendpoint = params?.request?.query?.idendpoint || null;
     let level = params?.request?.query?.level || null;
     let limit = params?.request?.query?.limit || 100;
 
     // console.log("GETLOGS > ", startDate, endDate, idendpoint, level);
 
-    let data = await getLogs(startDate, endDate, idendpoint, level, limit);
+    let data = await getLogs(
+      startDate.toString(),
+      endDate.toString(),
+      idendpoint,
+      level,
+      limit
+    );
 
     r.data = data;
     r.code = 200;

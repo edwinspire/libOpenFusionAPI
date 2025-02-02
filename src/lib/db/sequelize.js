@@ -2,14 +2,13 @@ import { Sequelize } from "sequelize";
 
 const db_conn = process.env.DATABASE_URI_API || "sqlite::memory:";
 
-// @ts-ignore
 const dbsequelize = new Sequelize(db_conn, {
   pool: {
     max: db_conn.includes("sqlite") ? 1 : 10,
     min: 0,
     acquire: 30000,
     idle: 10000,
-    logging: console.log
+    logging: false, // Imprime el SQL en consola
   },
 });
 

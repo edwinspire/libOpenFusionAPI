@@ -83,31 +83,26 @@ export const sqlFunction = async (
             paramsSQL.config.options
           );
 
-          //         console.log("\ndata_bind\n", data_bind, replacements);
-
-          /*
-              paramsSQL.query = 'SELECT * FROM ofapi_method WHERE method IN ($methods);';
-              let data_bind = {methods: ['GET', 'PUT']};
-              */
 
           let result_query = undefined;
 
           if (replacements) {
-//            let list_ph = extractPlaceholders(paramsSQL.query);
 
             result_query = await sequelize.query(paramsSQL.query, {
               replacements: replacements,
-              // @ts-ignore
+              
               type: query_type,
               //           logging: console.log, // Imprime el SQL en consola
+              logging: false, // Imprime el SQL en consola
             });
 
           } else {
             result_query = await sequelize.query(paramsSQL.query, {
-              // @ts-ignore
+              
               bind: bind_json,
               type: query_type,
               //         logging: console.log, // Imprime el SQL en consola
+              logging: false, // Imprime el SQL en consola
             });
           }
 
@@ -135,7 +130,7 @@ export const sqlFunction = async (
   } catch (error) {
     //console.log(error);
     setCacheReply(reply, { error: error });
-    // @ts-ignore
+    
     reply.code(500).send(error);
   }
 };

@@ -735,7 +735,7 @@ export default class ServerAPI extends EventEmitter {
 
       (async () => {
         try {
-          await dbAPIs.sync({ alter: true });
+          await dbAPIs.sync({ alter: false });
           //  await defaultRoles();
           await defaultUser();
           await defaultMethods();
