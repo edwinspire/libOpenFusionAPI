@@ -205,13 +205,23 @@ export default class Endpoint extends EventEmitter {
           let cache_time = (ep?.handler?.params?.cache_time ?? 1) * 1000;
 
           setTimeout(() => {
-            if (this.internal_endpoint[endpoint_key]?.responses[hash_request]) {
-              delete this.internal_endpoint[endpoint_key].responses[
-                hash_request
-              ];
+            try {
+              if (
+                this.internal_endpoint[endpoint_key]?.responses[hash_request]
+              ) {
+                delete this.internal_endpoint[endpoint_key].responses[
+                  hash_request
+                ];
 
-              console.log(
-                `Se elimina la cache de ${endpoint_key} luego de ${cache_time} segundos.`
+                console.log(
+                  `Se elimina la cache de ${endpoint_key} luego de ${cache_time} segundos.`
+                );
+              }
+            } catch (error) {
+              console.error(
+                "Clean cache endpoint_key " + endpoint_key,
+                error,
+                hash_request
               );
             }
           }, cache_time);
