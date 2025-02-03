@@ -4,6 +4,8 @@ import { GenToken, getInternalURL, fetchOFAPI } from "../server/utils.js";
 import { setCacheReply, createFunction, jsException } from "./utils.js";
 import mongoose from "mongoose";
 import * as LUXON from 'luxon';
+import * as SEQUELIZE from "sequelize";
+
 
 export const jsFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
@@ -34,6 +36,7 @@ export const jsFunction = async (
       $_MONGOOSE_: mongoose,
       $_EXCEPTION_: jsException,
       $_LUXON_: LUXON,
+      $_SEQUELIZE_: SEQUELIZE,
     })();
 
     if (
