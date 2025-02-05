@@ -1,10 +1,6 @@
-import $_UFETCH_ from "@edwinspire/universal-fetch";
-import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
-import { GenToken, getInternalURL, fetchOFAPI } from "../server/utils.js";
-import { setCacheReply, createFunction, jsException } from "./utils.js";
+import { setCacheReply } from "./utils.js";
+import { functionsVars, createFunction } from "../server/utils.js";
 import mongoose from "mongoose";
-import * as LUXON from 'luxon';
-import * as SEQUELIZE from "sequelize";
 
 export const getMongoDBHandlerParams = (code) => {
   let paramsMongo = {};
@@ -66,19 +62,9 @@ export const mongodbFunction = async (
       f = createFunction(paramsMongo.js);
     }
 
-    let result_fn = await f({
-      $_REPLY_: response,
-      $_REQUEST_: $_REQUEST_,
-      $_UFETCH_: $_UFETCH_,
-      $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_,
-      $_GEN_TOKEN_: GenToken,
-      $_GET_INTERNAL_URL_: getInternalURL,
-      $_FETCH_OFAPI_: fetchOFAPI,
-      $_MONGOOSE_: mongoose,
-      $_EXCEPTION_: jsException,
-      $_LUXON_: LUXON,
-      $_SEQUELIZE_: SEQUELIZE,
-    })();
+    let result_fn = await f(
+      functionsVars($_REQUEST_, response, method.environment)
+    )();
 
     if (
       response.openfusionapi.lastResponse &&

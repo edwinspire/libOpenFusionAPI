@@ -7,6 +7,11 @@ import jwt from "jsonwebtoken";
 import uFetch from "@edwinspire/universal-fetch";
 import { internal_url_post_hooks } from "./utils_path.js"; //
 import { v4 as uuidv4 } from "uuid";
+import $_UFETCH_ from "@edwinspire/universal-fetch";
+import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
+import mongoose from "mongoose";
+import * as LUXON from "luxon";
+import * as SEQUELIZE from "sequelize";
 
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
 
@@ -361,13 +366,101 @@ export const roughSizeOfMap = (map, visited = new Set()) => {
   return bytes;
 };
 
+export const jsException = (message, data, http_statusCode = 500) => {
+  let status = isValidHttpStatusCode(http_statusCode) ? http_statusCode : 500;
+  throw { message, data, date: new Date(), statusCode: status };
+};
+
+export const functionsVars = (request, reply, environment) => {
+  const BuildInternalURL = new InternalURL(environment);
+
+  return {
+    $_REPLY_: reply,
+    $_REQUEST_: request,
+    $_UFETCH_: $_UFETCH_,
+    $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_,
+    $_GEN_TOKEN_: GenToken,
+    $_GET_INTERNAL_URL_: getInternalURL,
+    $_FETCH_OFAPI_: fetchOFAPI,
+    $_MONGOOSE_: mongoose,
+    $_EXCEPTION_: jsException,
+    $_LUXON_: LUXON,
+    $_SEQUELIZE_: SEQUELIZE,
+    $_BUILD_INTERNAL_URL: BuildInternalURL,
+  };
+};
+
+export const createFunction = (
+  /** @type {string} */ code,
+  /** @type {string} */ app_vars
+) => {
+  let app_vars_string = "";
+
+  let fn = new Function("$_VARS_", "throw new Error('No code to execute');");
+
+  try {
+    if (app_vars && typeof app_vars === "object") {
+      app_vars_string = `const $_VARS_APP = ${JSON.stringify(
+        app_vars,
+        null,
+        2
+      )}`;
+    }
+
+    let vars = Object.keys(functionsVars(true, true, true)).join(", ");
+
+    let codefunction = `
+return async()=>{
+  ${app_vars_string}  
+  const {${vars}} = $_VARS_;
+  let $_RETURN_DATA_ = {};
+  ${code}
+  return $_RETURN_DATA_;  
+}
+`;
+
+    /*
+    let codefunction = `
+return async()=>{
+  ${app_vars_string}  
+  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_, $_GEN_TOKEN_, $_GET_INTERNAL_URL_, $_FETCH_OFAPI_,  $_MONGOOSE_, $_EXCEPTION_, $_LUXON_, $_SEQUELIZE_, $_BUILD_INTERNAL_URL} = $_VARS_;
+  let $_RETURN_DATA_ = {};
+  ${code}
+  return $_RETURN_DATA_;  
+}
+`;
+*/
+
+    fn = new Function("$_VARS_", codefunction);
+  } catch (error) {
+    fn = new Function("", "throw new Error('Error creating function');");
+  }
+
+  return fn;
+};
+
 export const sizeOfMapInKB = (map) => {
   const bytes = roughSizeOfMap(map);
   const kilobytes = bytes / 1024;
   return kilobytes;
 };
 
+export class InternalURL {
+  constructor(environment) {
+    this.environment = environment;
+  }
+  direct(relative_path) {
+    return `http://localhost:${PORT}${relative_path}`;
+  }
+  autoEnvironment(relative_path) {
+    return this.direct(
+      relative_path.replace(/\/(prd|qa|dev)$/, `/${this.environment}`)
+    );
+  }
+}
+
 export const getInternalURL = (relative_path) => {
+  console.warn("Decrepted getInternalURL!!!!!\n" + relative_path);
   return `http://localhost:${PORT}${relative_path}`;
 };
 

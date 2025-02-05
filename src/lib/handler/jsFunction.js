@@ -1,11 +1,7 @@
-import $_UFETCH_ from "@edwinspire/universal-fetch";
-import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
-import { GenToken, getInternalURL, fetchOFAPI } from "../server/utils.js";
-import { setCacheReply, createFunction, jsException } from "./utils.js";
-import mongoose from "mongoose";
-import * as LUXON from 'luxon';
-import * as SEQUELIZE from "sequelize";
-
+//import $_UFETCH_ from "@edwinspire/universal-fetch";
+//import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
+import { functionsVars, createFunction } from "../server/utils.js";
+import { setCacheReply } from "./utils.js";
 
 export const jsFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
@@ -23,8 +19,7 @@ export const jsFunction = async (
       f = createFunction(method.code);
     }
 
-    // console.log(fetchOFAPI);
-
+    /*  
     let result_fn = await f({
       $_REPLY_: response,
       $_REQUEST_: $_REQUEST_,
@@ -37,7 +32,12 @@ export const jsFunction = async (
       $_EXCEPTION_: jsException,
       $_LUXON_: LUXON,
       $_SEQUELIZE_: SEQUELIZE,
+      $_BUILD_INTERNAL_URL: BuildInternalURL
     })();
+*/
+    let result_fn = await f(
+      functionsVars($_REQUEST_, response, method.environment)
+    )();
 
     if (
       response.openfusionapi.lastResponse &&
@@ -50,6 +50,8 @@ export const jsFunction = async (
     console.trace(error);
     setCacheReply(response, error);
 
-    response.code(error.statusCode == null ? 500: error.statusCode).send(error);
+    response
+      .code(error.statusCode == null ? 500 : error.statusCode)
+      .send(error);
   }
 };

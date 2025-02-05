@@ -1,8 +1,8 @@
 import { EventEmitter } from "node:events";
 import { get_url_params, key_endpoint_method } from "./utils_path.js";
 import { getAppWithEndpoints } from "../db/app.js";
-import { createFunction } from "../handler/utils.js";
-import { md5, getIPFromRequest } from "./utils.js";
+//import { createFunction } from "../handler/utils.js";
+import { md5, getIPFromRequest, createFunction } from "./utils.js";
 import PromiseSequence from "@edwinspire/sequential-promises";
 import { createLog, getLogLevelByStatusCode } from "../db/log.js";
 import { getMongoDBHandlerParams } from "../handler/mongoDB.js";
