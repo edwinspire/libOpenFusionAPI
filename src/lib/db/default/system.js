@@ -58,6 +58,30 @@ export const system_app = {
       internal_hash_row:
         "e1899347a25e952f6cc723b20efa98d0bbd82fd18d8a1923ac62d5d55d7866fb",
     },
+
+    {
+      enabled: true,
+      endpoint: "/api/system/handler/js/funtions/prd",
+      method: "GET",
+      handler: "FUNCTION",
+      access: 2,
+      cache_time: 0,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/system/handler/js/funtions",
+      code: "fnListFnVarsHandlerJS",
+      rowkey: 83,
+      description: "",
+      idendpoint: "17c211d6-8c81-4274-b5c4-604126454ab0",
+      cors: null,
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "prd",
+      internal_hash_row:
+        "43ff3b81d6a91ad217b82ed9f131a13fc266b0cf3ee20b3a4eb2c39caaeb1be1",
+    },
     {
       enabled: true,
       endpoint: "/api/system/system/handler/0.01/prd",

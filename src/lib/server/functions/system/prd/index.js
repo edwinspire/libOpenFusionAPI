@@ -8,22 +8,38 @@ import {
   upsertApp,
   saveAppWithEndpoints,
 } from "../../../../db/app.js";
-import * as LUXON from 'luxon';
 import { createLog, getLogs } from "../../../../db/log.js";
-//import { DATE } from "sequelize";
+import { listFunctionsVars } from "../../../utils.js";
 
-export async function fnDemo(
-  // @ts-ignore
-  /** @type {any} */ params
-) {
+export async function fnListFnVarsHandlerJS(params) {
   let r = { code: 204, data: undefined };
   try {
-    // @ts-ignore
+    let fnVars = listFunctionsVars();
+    let fnResult = {};
+    let keys = Object.keys(fnVars).sort();
+
+    for (let index = 0; index < keys.length; index++) {
+      const k = keys[index];
+      fnResult[k] = fnVars[k];
+    }
+
+    r.data = fnResult;
+    r.code = 200;
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnDemo(/** @type {any} */ params) {
+  let r = { code: 204, data: undefined };
+  try {
     r.data = { demo: "demo" };
     r.code = 200;
     //res.code(200).json({ demo: 'demo' });
   } catch (error) {
-    // @ts-ignore
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -59,7 +75,7 @@ export async function fnLogin(params) {
     }
   } catch (error) {
     //console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -82,13 +98,12 @@ export async function fnLogout(params) {
 			logout: true
 		});
 		*/
-    // @ts-ignore
+
     r.data = {
       logout: true,
     };
     r.code = 200;
   } catch (error) {
-    // @ts-ignore
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -102,11 +117,10 @@ export async function fnGetHandler(params) {
     const hs = await getAllHandlers();
 
     //res.code(200).json(hs);
-    // @ts-ignore
+
     r.data = hs;
     r.code = 200;
   } catch (error) {
-    // @ts-ignore
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -135,7 +149,7 @@ export async function fnGetLogs(params) {
     r.code = 200;
   } catch (error) {
     //console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -161,7 +175,6 @@ export async function fnGetUsersList(params) {
     r.data = us;
     r.code = 200;
   } catch (error) {
-    // @ts-ignore
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -175,11 +188,10 @@ export async function fnGetMethod(params) {
     const methods = await getAllMethods();
 
     //res.code(200).json(methods);
-    // @ts-ignore
+
     r.data = methods;
     r.code = 200;
   } catch (error) {
-    // @ts-ignore
     res.code(500).json({ error: error.message });
   }
   return r;
@@ -196,10 +208,9 @@ export async function fnGetEnvironment(params) {
 
     //res.code(200).json(env);
     r.code = 200;
-    // @ts-ignore
+
     r.data = env;
   } catch (error) {
-    // @ts-ignore
     //res.code(500).json({ error: error.message });
     r.data = error;
     r.code = 500;
@@ -213,11 +224,10 @@ export async function fnGetApps(params) {
     const apps = await getAllApps();
 
     //res.code(200).json(apps);
-    // @ts-ignore
+
     r.data = apps;
     r.code = 200;
   } catch (error) {
-    // @ts-ignore
     //res.code(500).json({ error: error.message });
     r.data = error;
     r.code = 500;
@@ -235,14 +245,13 @@ export async function fnGetAppById(params) {
 
     //console.log(req.params, req.query, raw);
 
-    // @ts-ignore
     r.data = await getAppById(params.request.query.idapp, raw);
     r.code = 200;
 
     //res.code(200).json(data);
   } catch (error) {
     console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //		res.code(500).json({ error: error.message });
@@ -258,7 +267,7 @@ export async function fnSaveApp(params) {
     r.code = 200;
   } catch (error) {
     //console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -298,7 +307,7 @@ export async function fnFunctionNames(params) {
     }
   } catch (error) {
     //console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -317,7 +326,7 @@ export async function fnGetCacheSize(params) {
     );
   } catch (error) {
     //console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -336,7 +345,7 @@ export async function fnGetResponseCountStatus(params) {
     );
   } catch (error) {
     //console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -365,7 +374,7 @@ export async function fnClearCache(params) {
     r.data = clear_cache;
   } catch (error) {
     //console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });
@@ -418,7 +427,7 @@ export async function fnInsertLog(params) {
     r.code = 200;
   } catch (error) {
     //console.log(error);
-    // @ts-ignore
+
     r.data = error;
     r.code = 500;
     //res.code(500).json({ error: error.message });

@@ -12,6 +12,7 @@ import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
 import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
+import { warn } from "node:console";
 
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
 
@@ -371,23 +372,125 @@ export const jsException = (message, data, http_statusCode = 500) => {
   throw { message, data, date: new Date(), statusCode: status };
 };
 
-export const functionsVars = (request, reply, environment) => {
-  const BuildInternalURL = new InternalURL(environment);
-
+export const listFunctionsVars = (request, reply, environment) => {
+  const fnOFAPIFetch = new OFAPIFetch(environment);
+  const own_repo = "https://github.com/edwinspire/libOpenFusionAPI";
   return {
-    $_REPLY_: reply,
-    $_REQUEST_: request,
-    $_UFETCH_: $_UFETCH_,
-    $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_,
-    $_GEN_TOKEN_: GenToken,
-    $_GET_INTERNAL_URL_: getInternalURL,
-    $_FETCH_OFAPI_: fetchOFAPI,
-    $_MONGOOSE_: mongoose,
-    $_EXCEPTION_: jsException,
-    $_LUXON_: LUXON,
-    $_SEQUELIZE_: SEQUELIZE,
-    $_BUILD_INTERNAL_URL: BuildInternalURL,
+    $_RETURN_DATA_: {
+      fn: {},
+      info: "Value or object that will be returned by the endpoint.",
+      web: own_repo,
+      return: "Any",
+    },
+    $_REPLY_: {
+      fn: reply,
+      info: "Fastify Reply. Is the object used to send a response to the client.",
+      web: "https://fastify.dev/docs/latest/Reference/Reply/#introduction",
+    },
+    $_REQUEST_: {
+      fn: request,
+      info: "Fastify Request. Stores all information about the request",
+      web: "https://fastify.dev/docs/latest/Reference/Request/",
+    },
+    $_UFETCH_: {
+      fn: request && reply ? $_UFETCH_ : undefined,
+      info: "Instance of the uFetch class. More information at universal-fetch",
+      web: "https://github.com/edwinspire/universal-fetch",
+    },
+    $_SECUENTIAL_PROMISES_: {
+      fn: request && reply ? $_SECUENTIAL_PROMISES_ : undefined,
+      info: "PromiseSequence class. More information at sequential-promises.",
+      web: "https://github.com/edwinspire/sequential-promises",
+    },
+    $_GEN_TOKEN_: {
+      fn: request && reply ? GenToken : undefined,
+      info: "Generate a Valid Token.",
+      web: own_repo,
+      params: [{ name: "data", value: "Data to JWT" }],
+    },
+    $_GET_INTERNAL_URL_: {
+      fn: request && reply ? getInternalURL : undefined,
+      info: "Create the absolute url that points to the internal path of the server.",
+      web: own_repo,
+      warn: "Discontinued. Replaced by $_FETCH_OFAPI_.",
+      params: [{ name: "relative_path", description: "Relative path" }],
+    },
+    $_FETCH_OFAPI_: {
+      fn: request && reply ? fetchOFAPI : undefined,
+      info: "Build a uFetch intance.",
+      web: own_repo,
+      warn: "Discontinued. Use $_FETCH_AUTO_ENV.",
+    },
+    $_FETCH_AUTO_ENV: {
+      fn: request && reply ? fnOFAPIFetch : undefined,
+      info: "Class to work with routes and fetch requests.",
+      web: own_repo,
+    },
+    $_MONGOOSE_: {
+      fn: request && reply ? mongoose : undefined,
+      info: " Mongoose provides a straight-forward, schema-based solution to model your MongoDB.",
+      web: "https://mongoosejs.com",
+    },
+    $_EXCEPTION_: {
+      fn: request && reply ? jsException : undefined,
+      info: "It interrupts the program flow and throws an exception",
+      web: "",
+      params: [
+        {
+          name: "message",
+          description: "The message that will be shown to the user.",
+          required: true,
+          value_type: "",
+          default_value: "",
+        },
+        {
+          name: "data",
+          description: "An object of additional data to be sent to the user",
+          required: false,
+          value_type: "any",
+          default_value: "",
+        },
+        {
+          name: "statusCode",
+          description:
+            "HTTP Status Code with which the request will be responded to.",
+          required: false,
+          value_type: "",
+          default_value: 500,
+        },
+      ],
+      return: "Stops the execution of the program and returns a message.",
+      methods: [
+        {
+          name: "create",
+          params: [{ name: "url", value: "", required: true }],
+          return: "Instance uFetch.",
+        },
+      ],
+    },
+    $_LUXON_: {
+      fn: request && reply ? LUXON : undefined,
+      info: "Friendly wrapper for JavaScript dates and times",
+      web: "https://moment.github.io/luxon",
+    },
+    $_SEQUELIZE_: {
+      fn: request && reply ? SEQUELIZE : undefined,
+      info: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",
+      web: "https://sequelize.org/",
+    },
   };
+};
+
+export const functionsVars = (request, reply, environment) => {
+  let fnVars = listFunctionsVars(request, reply, environment);
+  let fnResult = {};
+  let keys = Object.keys(fnVars);
+
+  for (let index = 0; index < keys.length; index++) {
+    const k = keys[index];
+    fnResult[k] = fnVars[k].fn;
+  }
+  return fnResult;
 };
 
 export const createFunction = (
@@ -407,13 +510,13 @@ export const createFunction = (
       )}`;
     }
 
-    let vars = Object.keys(functionsVars(true, true, true)).join(", ");
+    let vars = Object.keys(functionsVars()).join(", ");
 
     let codefunction = `
 return async()=>{
   ${app_vars_string}  
-  const {${vars}} = $_VARS_;
-  let $_RETURN_DATA_ = {};
+  let {${vars}} = $_VARS_;
+  
   ${code}
   return $_RETURN_DATA_;  
 }
@@ -445,16 +548,27 @@ export const sizeOfMapInKB = (map) => {
   return kilobytes;
 };
 
-export class InternalURL {
+export class OFAPIFetch {
   constructor(environment) {
     this.environment = environment;
   }
+
+  create(url, auto_environment = true) {
+    let new_url = isAbsoluteUrl(url) ? url : this.auto(url, auto_environment);
+    return new uFetch(new_url);
+  }
+
+  auto(url, auto_environment) {
+    return auto_environment ? this.direct(url) : this.autoEnvironment(url);
+  }
+
   direct(relative_path) {
     return `http://localhost:${PORT}${relative_path}`;
   }
   autoEnvironment(relative_path) {
     return this.direct(
-      relative_path.replace(/\/(prd|qa|dev)$/, `/${this.environment}`)
+      //relative_path.replace(/\/(prd|qa|dev)$/, `/${this.environment}`)
+      relative_path.replace(/\/(auto|env|prd|qa|dev)$/, `/${this.environment}`)
     );
   }
 }
