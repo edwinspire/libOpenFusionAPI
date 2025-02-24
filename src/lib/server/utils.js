@@ -12,7 +12,7 @@ import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
 import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
-import { isValidHttpStatusCode } from "../handler/handler.js";
+import { isValidHttpStatusCode } from "../handler/utils.js";
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
 
 const errors = {
