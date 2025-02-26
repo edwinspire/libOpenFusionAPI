@@ -47,6 +47,7 @@
     "mongoose": "^8.9.5",
     "mongose": "^0.0.2-security",
     "mysql2": "^3.6.3",
+    "ollama": "^0.5.14",
     "oracledb": "^6.2.0",
     "path-to-regexp": "^6.2.1",
     "pg": "^8.11.3",

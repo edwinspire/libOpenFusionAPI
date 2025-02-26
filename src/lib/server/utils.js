@@ -12,6 +12,8 @@ import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
 import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
+import ollama from "ollama";
+
 import { isValidHttpStatusCode } from "../handler/utils.js";
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
 
@@ -476,6 +478,11 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? SEQUELIZE : undefined,
       info: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",
       web: "https://sequelize.org/",
+    },
+    $_OLLAMA_: {
+      fn: request && reply ? ollama : undefined,
+      info: "Ollama. Get up and running with large language models.",
+      web: "https://ollama.com/",
     },
   };
 };
