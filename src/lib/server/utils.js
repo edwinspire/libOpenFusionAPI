@@ -13,8 +13,8 @@ import mongoose from "mongoose";
 import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
 import  Zod  from "zod";
-import LANGCHAIN_CHAT_MODEL_UNIVERSAL  from "langchain/chat_models/universal";
-import LANGCHAIN_TOOLS  from "@langchain/core/tools";
+import * as LANGCHAIN_CHAT_MODEL_UNIVERSAL  from "langchain/chat_models/universal";
+import * as LANGCHAIN_TOOLS  from "@langchain/core/tools";
 
 
 import { isValidHttpStatusCode } from "../handler/utils.js";
