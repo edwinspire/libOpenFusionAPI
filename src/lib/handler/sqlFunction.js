@@ -83,22 +83,18 @@ export const sqlFunction = async (
             paramsSQL.config.options
           );
 
-
           let result_query = undefined;
 
           if (replacements) {
-
             result_query = await sequelize.query(paramsSQL.query, {
               replacements: replacements,
-              
+
               type: query_type,
               //           logging: console.log, // Imprime el SQL en consola
               logging: false, // Imprime el SQL en consola
             });
-
           } else {
             result_query = await sequelize.query(paramsSQL.query, {
-              
               bind: bind_json,
               type: query_type,
               //         logging: console.log, // Imprime el SQL en consola
@@ -130,9 +126,11 @@ export const sqlFunction = async (
   } catch (error) {
     //console.log(error);
     setCacheReply(reply, { error: error });
-    
-    reply.code(500).send(error);
+
+    if (error.name == "SequelizeDatabaseError") {
+      reply.code(500).send({...error?.original?.errors});
+    } else {
+      reply.code(500).send({ error: error.message });
+    }
   }
 };
-
-
