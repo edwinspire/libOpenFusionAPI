@@ -12,7 +12,10 @@ import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
 import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
-import ollama from "ollama";
+import  Zod  from "zod";
+import LANGCHAIN_CHAT_MODEL_UNIVERSAL  from "langchain/chat_models/universal";
+import LANGCHAIN_TOOLS  from "@langchain/core/tools";
+
 
 import { isValidHttpStatusCode } from "../handler/utils.js";
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
@@ -479,10 +482,20 @@ export const listFunctionsVars = (request, reply, environment) => {
       info: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",
       web: "https://sequelize.org/",
     },
-    $_OLLAMA_: {
-      fn: request && reply ? ollama : undefined,
-      info: "Ollama. Get up and running with large language models.",
-      web: "https://ollama.com/",
+    $_ZOD_: {
+      fn: request && reply ? Zod : undefined,
+      info: "Zod is a TypeScript-first schema declaration and validation library. ",
+      web: "https://zod.dev/?id=introduction",
+    },
+    $_LANGCHAIN_CHAT_MODEL_UNIVERSAL_: {
+      fn: request && reply ? LANGCHAIN_CHAT_MODEL_UNIVERSAL : undefined,
+      info: "LangChain is a framework for developing applications powered by large language models (LLMs). The $_LANGCHAIN_CHAT_MODEL_UNIVERSAL_ (contain initChatModel()) helper method makes it easy to initialize a number of different model integrations without having to worry about import paths and class names. Keep in mind this feature is only for chat models.",
+      web: "https://js.langchain.com/docs/how_to/chat_models_universal_init",
+    },
+    $_LANGCHAIN_TOOLS_: {
+      fn: request && reply ? LANGCHAIN_TOOLS : undefined,
+      info: "LangChain is a framework for developing applications powered by large language models (LLMs). Tools are a way to encapsulate a function and its schema in a way that can be passed to a chat model.",
+      web: "https://js.langchain.com/docs/concepts/tools",
     },
   };
 };
