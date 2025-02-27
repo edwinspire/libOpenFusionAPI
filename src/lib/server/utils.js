@@ -12,10 +12,9 @@ import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
 import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
-import  Zod  from "zod";
-import * as LANGCHAIN_CHAT_MODEL_UNIVERSAL  from "langchain/chat_models/universal";
-import * as LANGCHAIN_TOOLS  from "@langchain/core/tools";
-
+import Zod from "zod";
+import * as LANGCHAIN_CHAT_MODEL_UNIVERSAL from "langchain/chat_models/universal";
+import * as LANGCHAIN_TOOLS from "@langchain/core/tools";
 
 import { isValidHttpStatusCode } from "../handler/utils.js";
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
@@ -425,7 +424,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       web: own_repo,
       warn: "Discontinued. Use $_FETCH_AUTO_ENV.",
     },
-    $_FETCH_AUTO_ENV: {
+    $_FETCH_AUTO_ENV_: {
       fn: request && reply ? fnOFAPIFetch : undefined,
       info: "Class to work with routes and fetch requests.",
       web: own_repo,
@@ -587,7 +586,8 @@ export class OFAPIFetch {
   autoEnvironment(relative_path) {
     return this.direct(
       //relative_path.replace(/\/(prd|qa|dev)$/, `/${this.environment}`)
-      relative_path.replace(/\/(auto|env|prd|qa|dev)$/, `/${this.environment}`)
+      //relative_path.replace(/\/(auto|env|prd|qa|dev)$/, `/${this.environment}`)
+      relative_path.replace(/\/(auto|env)$/, `/${this.environment}`)
     );
   }
 }
