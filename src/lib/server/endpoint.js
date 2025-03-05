@@ -416,7 +416,7 @@ export default class Endpoint extends EventEmitter {
 
         const appData = appDatas[0];
 
-        if (appData.endpoints) {
+        if (appData.enabled && appData.endpoints ) {
           for (let i = 0; i < appData.endpoints.length; i++) {
             let endpoint = appData.endpoints[i];
 
