@@ -426,8 +426,24 @@ export const listFunctionsVars = (request, reply, environment) => {
     },
     $_URL_AUTO_ENV_: {
       fn: request && reply ? fnUrlae.create : undefined,
-      info: "Class to work with routes and fetch requests.",
+      info: 'Automatically change the environment of a relative URL. Replace the original environment prefix with the "auto" prefix to have it replaced by the current environment prefix.',
       web: own_repo,
+      params: [
+        {
+          name: "url",
+          description: 'Relative url to use with environment prefix "auto".',
+          required: true,
+          value_type: "string",
+          default_value: "",
+        },
+        {
+          name: "auto_env",
+          description: "Apply auto environment.",
+          required: false,
+          value_type: "boolean",
+          default_value: true,
+        },
+      ],
     },
     $_MONGOOSE_: {
       fn: request && reply ? mongoose : undefined,
@@ -437,7 +453,7 @@ export const listFunctionsVars = (request, reply, environment) => {
     $_EXCEPTION_: {
       fn: request && reply ? jsException : undefined,
       info: "It interrupts the program flow and throws an exception",
-      web: "",
+      web: own_repo,
       params: [
         {
           name: "message",
