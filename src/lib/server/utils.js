@@ -376,7 +376,7 @@ export const jsException = (message, data, http_statusCode = 500) => {
 };
 
 export const listFunctionsVars = (request, reply, environment) => {
-  const fnOFAPIFetch = new OFAPIFetch(environment);
+  const fnUrlae = new URLAutoEnvironment(environment);
   const own_repo = "https://github.com/edwinspire/libOpenFusionAPI";
   return {
     $_RETURN_DATA_: {
@@ -424,8 +424,8 @@ export const listFunctionsVars = (request, reply, environment) => {
       web: own_repo,
       warn: "Discontinued. Use $_FETCH_AUTO_ENV.",
     },
-    $_FETCH_AUTO_ENV_: {
-      fn: request && reply ? fnOFAPIFetch : undefined,
+    $_URL_AUTO_ENV_: {
+      fn: request && reply ? fnUrlae.create : undefined,
       info: "Class to work with routes and fetch requests.",
       web: own_repo,
     },
@@ -566,25 +566,25 @@ export const sizeOfMapInKB = (map) => {
   return kilobytes;
 };
 
-export class OFAPIFetch {
+export class URLAutoEnvironment {
   constructor(environment) {
     this.environment = environment;
   }
 
   create(url, auto_environment = true) {
-    let new_url = isAbsoluteUrl(url) ? url : this.auto(url, auto_environment);
+    let new_url = isAbsoluteUrl(url) ? url : this._auto(url, auto_environment);
     return new uFetch(new_url);
   }
 
-  auto(url, auto_environment) {
-    return auto_environment ? this.direct(url) : this.autoEnvironment(url);
+  _auto(url, auto_environment) {
+    return auto_environment ? this._direct(url) : this._autoEnvironment(url);
   }
 
-  direct(relative_path) {
+  _direct(relative_path) {
     return `http://localhost:${PORT}${relative_path}`;
   }
-  autoEnvironment(relative_path) {
-    return this.direct(
+  _autoEnvironment(relative_path) {
+    return this._direct(
       //relative_path.replace(/\/(prd|qa|dev)$/, `/${this.environment}`)
       //relative_path.replace(/\/(auto|env|prd|qa|dev)$/, `/${this.environment}`)
       relative_path.replace(/\/(auto|env)$/, `/${this.environment}`)

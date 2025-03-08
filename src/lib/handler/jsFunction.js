@@ -1,5 +1,3 @@
-//import $_UFETCH_ from "@edwinspire/universal-fetch";
-//import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
 import { functionsVars, createFunction } from "../server/utils.js";
 import { setCacheReply } from "./utils.js";
 
