@@ -1,4 +1,4 @@
-import os from "os";
+//import os from "os";
 import { createHmac, createHash } from "crypto";
 import fs from "fs";
 import path from "path";
@@ -15,6 +15,7 @@ import * as SEQUELIZE from "sequelize";
 import Zod from "zod";
 import * as LANGCHAIN_CHAT_MODEL_UNIVERSAL from "langchain/chat_models/universal";
 import * as LANGCHAIN_TOOLS from "@langchain/core/tools";
+import * as XLSX from "xlsx";
 
 import { isValidHttpStatusCode } from "../handler/utils.js";
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
@@ -511,6 +512,11 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? LANGCHAIN_TOOLS : undefined,
       info: "LangChain is a framework for developing applications powered by large language models (LLMs). Tools are a way to encapsulate a function and its schema in a way that can be passed to a chat model.",
       web: "https://js.langchain.com/docs/concepts/tools",
+    },
+    $_XLSX_: {
+      fn: request && reply ? XLSX : undefined,
+      info: "SheetJS Community Edition offers battle-tested open-source solutions for extracting useful data from almost any complex spreadsheet and generating new spreadsheets that will work with legacy and modern software alike.",
+      web: "https://docs.sheetjs.com/docs/",
     },
   };
 };
