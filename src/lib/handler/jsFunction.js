@@ -14,7 +14,7 @@ export const jsFunction = async (
     if (method.jsFn) {
       f = method.jsFn;
     } else {
-      f = createFunction(method.code);
+      f = await createFunction(method.code);
     }
 
     /*  
@@ -34,7 +34,7 @@ export const jsFunction = async (
     })();
 */
     let result_fn = await f(
-      functionsVars($_REQUEST_, response, method.environment)
+      await functionsVars($_REQUEST_, response, method.environment)
     )();
 
     if (

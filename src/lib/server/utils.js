@@ -1,4 +1,4 @@
-//const { createHmac } = await import('node:crypto');
+import os from "os";
 import { createHmac, createHash } from "crypto";
 import fs from "fs";
 import path from "path";
@@ -515,19 +515,24 @@ export const listFunctionsVars = (request, reply, environment) => {
   };
 };
 
-export const functionsVars = (request, reply, environment) => {
+export const functionsVars = async (request, reply, environment) => {
   let fnVars = listFunctionsVars(request, reply, environment);
   let fnResult = {};
   let keys = Object.keys(fnVars);
 
-  for (let index = 0; index < keys.length; index++) {
-    const k = keys[index];
-    fnResult[k] = fnVars[k].fn;
+  try {
+    for (let index = 0; index < keys.length; index++) {
+      const k = keys[index];
+      fnResult[k] = fnVars[k].fn;
+    }
+  } catch (error) {
+    console.error(error);
   }
+
   return fnResult;
 };
 
-export const createFunction = (
+export const createFunction = async (
   /** @type {string} */ code,
   /** @type {string} */ app_vars
 ) => {
@@ -544,7 +549,7 @@ export const createFunction = (
       )}`;
     }
 
-    let vars = Object.keys(functionsVars()).join(", ");
+    let vars = Object.keys(await functionsVars()).join(", ");
 
     let codefunction = `
 return async()=>{

@@ -59,11 +59,11 @@ export const mongodbFunction = async (
     if (method.jsFn) {
       f = method.jsFn;
     } else {
-      f = createFunction(paramsMongo.js);
+      f = await createFunction(paramsMongo.js);
     }
 
     let result_fn = await f(
-      functionsVars($_REQUEST_, response, method.environment)
+      await functionsVars($_REQUEST_, response, method.environment)
     )();
 
     if (

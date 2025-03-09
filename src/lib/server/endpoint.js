@@ -438,7 +438,7 @@ export default class Endpoint extends EventEmitter {
               }
 
               this.internal_endpoint[endpoint_key].handler =
-                this._getApiHandler(appData.app, endpoint, appData.vars);
+               await this._getApiHandler(appData.app, endpoint, appData.vars);
 
               break;
             }
@@ -450,7 +450,7 @@ export default class Endpoint extends EventEmitter {
     }
   }
 
-  _getApiHandler(app_name, endpointData, app_vars) {
+async  _getApiHandler(app_name, endpointData, app_vars) {
     let returnHandler = {};
     returnHandler.params = endpointData;
     returnHandler.params.app = app_name;
@@ -491,7 +491,7 @@ export default class Endpoint extends EventEmitter {
         }
 
         if (returnHandler.params.handler == "MONGODB") {
-          returnHandler.params.jsFn = createFunction(
+          returnHandler.params.jsFn = await createFunction(
             getMongoDBHandlerParams(returnHandler.params.code).code,
             appVars
           );
@@ -499,7 +499,7 @@ export default class Endpoint extends EventEmitter {
           // Se libera espacio de esta variable ya que no se va a utilizar mas
           returnHandler.params.code = undefined;
         } else if (returnHandler.params.handler == "JS") {
-          returnHandler.params.jsFn = createFunction(
+          returnHandler.params.jsFn = await createFunction(
             returnHandler.params.code,
             appVars
           );

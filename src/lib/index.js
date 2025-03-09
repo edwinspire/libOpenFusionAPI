@@ -62,6 +62,7 @@ const {
   HOST,
   TELEGRAM_SERVER_CHATID,
   TELEGRAM_SERVER_MSG_THREAD_ID,
+  MAX_FILE_SIZE_UPLOAD,
 } = process.env;
 const PORT = process.env.PORT || default_port;
 
@@ -112,7 +113,18 @@ export default class ServerAPI extends EventEmitter {
 
   async _build() {
     await this.fastify.register(formbody);
-    await this.fastify.register(multipart);
+    await this.fastify.register(multipart, {
+      attachFieldsToBody: "keyValues",
+      limits: {
+        //fieldNameSize: 100, // Max field name size in bytes
+        //fieldSize: 100, // Max field value size in bytes
+        //fields: 10, // Max number of non-file fields
+        fileSize: MAX_FILE_SIZE_UPLOAD || 50000000, // For multipart forms, the max file size in bytes
+        //files: 1, // Max number of file fields
+        //headerPairs: 2000, // Max number of header key=>value pairs
+        //parts: 1000, // For multipart forms, the max number of parts (fields + files)
+      },
+    });
 
     this.fastify.register(cookie, {
       secret: JWT_KEY, // for cookies signature
@@ -741,7 +753,7 @@ export default class ServerAPI extends EventEmitter {
           await defaultMethods();
           await defaultHandlers();
           await defaultApps();
-         // await defaultEndpoints();
+          // await defaultEndpoints();
           //await defaultAPIUser();
           //  await defaultAPIUserMapping();
         } catch (error) {
