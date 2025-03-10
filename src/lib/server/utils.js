@@ -32,10 +32,15 @@ const jwtKey = JWT_KEY || 'oy8632rcv"$/8';
  */
 export async function emitHook(data) {
   //	console.log('---------------------> hookUpsert', modelName);
+// TODO: Revisar utilidad
+  try {
   const urlHooks = "http://localhost:" + PORT + internal_url_post_hooks;
   const uF = new uFetch(urlHooks);
   let r = await uF.POST({ data: data });
   await r.json();
+} catch (error) {
+  console.error(error);
+}
   //console.log("::::::::::>> emitHook :::>", urlHooks, data, await r.json());
 }
 
