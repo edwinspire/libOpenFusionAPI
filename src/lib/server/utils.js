@@ -32,15 +32,15 @@ const jwtKey = JWT_KEY || 'oy8632rcv"$/8';
  */
 export async function emitHook(data) {
   //	console.log('---------------------> hookUpsert', modelName);
-// TODO: Revisar utilidad
+  // TODO: Revisar utilidad
   try {
-  const urlHooks = "http://localhost:" + PORT + internal_url_post_hooks;
-  const uF = new uFetch(urlHooks);
-  let r = await uF.POST({ data: data });
-  await r.json();
-} catch (error) {
-  console.error(error);
-}
+    const urlHooks = "http://localhost:" + PORT + internal_url_post_hooks;
+    const uF = new uFetch(urlHooks);
+    let r = await uF.POST({ data: data });
+    await r.json();
+  } catch (error) {
+    console.error(error);
+  }
   //console.log("::::::::::>> emitHook :::>", urlHooks, data, await r.json());
 }
 
@@ -385,6 +385,13 @@ export const listFunctionsVars = (request, reply, environment) => {
   const fnUrlae = new URLAutoEnvironment(environment);
   const own_repo = "https://github.com/edwinspire/libOpenFusionAPI";
   return {
+    $_XLSX_BODY_TO_JSON_: {
+      fn: xlsx_body_to_json,
+      info: "Converts the body of a request to a JSON object. The body must be a buffer with any Excel files.",
+      web: own_repo,
+      return:
+        "Array of objects with the data of each sheet of each Excel file.",
+    },
     $_RETURN_DATA_: {
       fn: {},
       info: "Value or object that will be returned by the endpoint.",
@@ -524,6 +531,39 @@ export const listFunctionsVars = (request, reply, environment) => {
       web: "https://docs.sheetjs.com/docs/",
     },
   };
+};
+
+export const xlsx_body_to_json = (request_body) => {
+  let result = [];
+  let workbook;
+  // Detectar
+  if (request_body) {
+    for (let name in request_body) {
+      let element = request_body[name];
+
+      // Detectar si el elemento es un buffer
+      if (Buffer.isBuffer(element)) {
+        workbook = XLSX.read(element);
+
+        let sheet_names = workbook.SheetNames;
+        let sheets = [];
+        for (let index = 0; index < sheet_names.length; index++) {
+          let sheet_name = sheet_names[index];
+          const worksheet = workbook.Sheets[sheet_name];
+          let out_json = XLSX.utils.sheet_to_json(worksheet, {
+            header: 0,
+            raw: false,
+          });
+          sheets.push({ sheet: sheet_name, data: out_json });
+        }
+
+        result.push({ file: name, sheets: sheets });
+        break;
+      }
+    }
+  }
+
+  return result;
 };
 
 export const functionsVars = async (request, reply, environment) => {
