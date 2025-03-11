@@ -535,7 +535,7 @@ export const listFunctionsVars = (request, reply, environment) => {
 
 export const xlsx_body_to_json = (request_body) => {
   let result = [];
-  let workbook;
+  //let workbook;
   // Detectar
   if (request_body) {
     for (let name in request_body) {
@@ -543,7 +543,7 @@ export const xlsx_body_to_json = (request_body) => {
 
       // Detectar si el elemento es un buffer
       if (Buffer.isBuffer(element)) {
-        workbook = XLSX.read(element);
+        let workbook = XLSX.read(element);
 
         let sheet_names = workbook.SheetNames;
         let sheets = [];
@@ -558,7 +558,6 @@ export const xlsx_body_to_json = (request_body) => {
         }
 
         result.push({ file: name, sheets: sheets });
-        break;
       }
     }
   }
