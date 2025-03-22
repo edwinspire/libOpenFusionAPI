@@ -745,7 +745,7 @@ export const LogEntry = dbsequelize.define(
       },
     },
     response_time: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: true,
       defaultValue: -1,
       comment: "",
