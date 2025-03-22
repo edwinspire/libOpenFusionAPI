@@ -3,7 +3,7 @@ import { get_url_params, key_endpoint_method } from "./utils_path.js";
 import { getAppWithEndpoints } from "../db/app.js";
 //import { createFunction } from "../handler/utils.js";
 import { md5, getIPFromRequest, createFunction } from "./utils.js";
-import PromiseSequence from "@edwinspire/sequential-promises";
+//import PromiseSequence from "@edwinspire/sequential-promises";
 import { createLog, getLogLevelByStatusCode } from "../db/log.js";
 import { getMongoDBHandlerParams } from "../handler/mongoDB.js";
 
@@ -26,12 +26,12 @@ const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 export default class Endpoint extends EventEmitter {
   internal_endpoint = {};
   fnLocal = {};
-  queueLog = new PromiseSequence();
+  //queueLog = new PromiseSequence();
 
   constructor() {
     super();
 
-    this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
+ //   this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
   }
 
   pushLog(log) {
@@ -371,7 +371,8 @@ export default class Endpoint extends EventEmitter {
       //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
 
       if (save_log) {
-        this.queueLog.push(save_log);
+        //this.queueLog.push(save_log);
+        this.emit("log", save_log);
       }
     } catch (error) {
       console.error(error);

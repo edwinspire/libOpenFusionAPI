@@ -15,6 +15,8 @@ import { dirname } from "path";
 import Endpoint from "./server/endpoint.js";
 import { TelegramBot } from "./server/telegram/telegram.js";
 
+import { TasksInterval } from "./timer/tasks.js";
+
 import dbAPIs from "./db/sequelize.js";
 import {
   defaultApps,
@@ -98,11 +100,17 @@ export default class ServerAPI extends EventEmitter {
   constructor({ buildDB = false } = {}) {
     super();
     this.endpoints = new Endpoint();
+    this.endpoints.on("log", (data) => {
+      this.TasksInterval.pushLog(data);
+    });
+
     this.SERVER_DATE_START;
 
     this.telegram = new TelegramBot();
     //this._fnLocalNames;
     //this._cacheURLResponse = new Map();
+
+    this.TasksInterval = new TasksInterval();
 
     this.fastify = Fastify({
       logger: false,
@@ -416,6 +424,8 @@ export default class ServerAPI extends EventEmitter {
       JWT_KEY,
       HOST
     );
+
+    this.TasksInterval.run();
 
     this.telegram.launch();
 
