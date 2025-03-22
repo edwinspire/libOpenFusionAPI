@@ -2,6 +2,7 @@ import { DataTypes } from "sequelize";
 import dbsequelize from "./sequelize.js";
 import { v4 as uuidv4 } from "uuid";
 import { emitHook } from "../server/utils.js";
+//import { TasksInterval } from "../timer/tasks.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
 const JSON_TYPE =
@@ -803,6 +804,146 @@ export const LogEntry = dbsequelize.define(
     ],
   }
 );
+
+export const IntervalTask = dbsequelize.define(
+  prefixTableName("intervaltask"),
+  {
+    idtask: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+      unique: true,
+    },
+    timestamp: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      comment: "Registration date",
+    },
+    iduser: {
+      type: DataTypes.BIGINT,
+      primaryKey: false,
+      autoIncrement: false,
+      allowNull: true,
+      unique: false,
+    },
+    idapp: {
+      type: DataTypes.UUID,
+      //primaryKey: true,
+      //autoIncrement: true,
+      allowNull: false,
+      unique: false,
+    },
+    enabled: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
+    interval: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      defaultValue: 300,
+      comment: "Seconds interval",
+    },
+    datestart: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: DataTypes.NOW,
+      comment: "Start date",
+    },
+    dateend: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: "End date",
+    },
+    last_run: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: "Last run",
+    },
+    next_run: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: "Next run",
+    },
+    url: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "url request",
+    },
+    method: {
+      type: DataTypes.STRING(15),
+      allowNull: true,
+      comment: "Method request",
+    },
+    params: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "",
+      get() {
+        return JSON_ADAPTER.getData(this, "params");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "params", value);
+      },
+    },
+    exec_time_limit: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      defaultValue: 30,
+      comment: "Execution time limit in seconds",
+    },
+    failed_attempts: {
+      type: DataTypes.SMALLINT,
+      allowNull: false,
+      defaultValue: 0,
+      comment: "Consecutive failed attempts. Max 3.",
+    },
+    status: {
+      type: DataTypes.SMALLINT,
+      allowNull: false,
+      defaultValue: 0,
+      comment: "Status of the task",
+    },
+    last_exec_time: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      comment: "Last time executed in miliseconds",
+    },
+    last_response: {
+      type: JSON_TYPE,
+      allowNull: true,
+      comment: "",
+      get() {
+        return JSON_ADAPTER.getData(this, "last_response");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "last_response", value);
+      },
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false, // No necesitamos createdAt ni updatedAt para este caso
+    paranoid: false, // Evita el soft delete
+    comment: "App Intervals",
+    hooks: {
+      beforeValidate: (instance) => {
+        //
+      },
+    },
+    indexes: [
+      {
+        fields: ["idapp"],
+        name: "idx_interval_idapp", // Nombre del índice
+        unique: false, // Índice no único
+      },
+    ],
+  }
+);
+
+// Relación: Un Application tiene muchos Interval
+Application.hasMany(IntervalTask, { foreignKey: "idapp", as: "tasks" });
+
+// Relación: Un Interval pertenece a un Application
+IntervalTask.belongsTo(Application, { foreignKey: "idapp" });
 
 // Definir el modelo de la tabla 'Handler'
 export const tblDemo = dbsequelize.define(

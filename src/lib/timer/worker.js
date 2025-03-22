@@ -1,6 +1,12 @@
 import { parentPort } from "worker_threads";
 import { createLog } from "../db/log.js";
+import {
+  getIntervalTaskProcess,
+  updateIntervalTaskStatus,
+} from "../db/interval_task.js";
 import PromiseSequence from "@edwinspire/sequential-promises";
+import uFetch from "@edwinspire/universal-fetch";
+import { performance } from "perf_hooks";
 
 const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 const interval = 5000;
@@ -47,10 +53,90 @@ parentPort.on("message", (data) => {
   //parentPort.postMessage(`Worker recibió: ${data}`);
 });
 
+async function runFetchTask(task) {
+  try {
+    const start = performance.now();
+
+    if (task.method && task.url) {
+      const uF = new uFetch();
+      const resp_task = await uF[task.method]({
+        url: task.url,
+        data: task.params,
+      });
+
+      const end = performance.now();
+      const time_execution = end - start; // tiempo en milisegundos;
+
+      if (resp_task.status === 200) {
+        console.log("OK");
+
+        const contentType = resp_task.headers.get("Content-Type") || "?";
+        //console.log(resp_task.headers);
+        let data;
+        if (contentType.includes("json")) {
+          data = await resp_task.json();
+        } else {
+          data = await resp_task.text();
+        }
+        await updateIntervalTaskStatus(task.idtask, 2, data, time_execution);
+      } else {
+        await updateIntervalTaskStatus(
+          task.idtask,
+          3,
+          resp_task,
+          time_execution
+        );
+        console.log("ERROR");
+      }
+    } else {
+      console.log("No URL or Method");
+      await updateIntervalTaskStatus(
+        task.idtask,
+        3,
+        { error: "Not url or method", task: tasks },
+        0
+      );
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    await updateIntervalTaskStatus(task.idtask, 3, error, 0);
+  }
+}
+
 setInterval(() => {
-  console.log(createLog);
+  //console.log();
   //console.log("Ejecutando en un hilo aparte");
-  parentPort.postMessage("Mensaje periódico desde el worker");
+  //parentPort.postMessage("Mensaje periódico desde el worker");
+
+  getIntervalTaskProcess().then((app_tasks) => {
+    app_tasks.forEach((app) => {
+      const json_data = app.toJSON();
+      json_data.tasks.forEach((task) => {
+        //  console.log(task);
+
+        try {
+          if (task.status == 0 || task.status == 2 || task.status == 3) {
+            // TODO: Detectar cuando la tarea se ejecute por mas del tiempo limite para cambiar el estado a 4 (timeout)
+
+            // Se va a ejecutar
+            updateIntervalTaskStatus(task.idtask, 1)
+              .then(async () => {
+                await runFetchTask(task);
+              })
+              .catch(() => {
+                console.error("Error updating status");
+              });
+          } else {
+            console.log("Task in status " + task.status);
+          }
+        } catch (error) {
+          updateIntervalTaskStatus(task.idtask, 3, error, 0).then(() => {
+            console.error("Error:", error);
+          });
+        }
+      });
+    });
+  });
 }, interval);
 
 // Mantén el proceso vivo escuchando mensajes
