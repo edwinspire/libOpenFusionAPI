@@ -172,6 +172,9 @@ export const updateIntervalTaskStatus = async (
   time_execution_ms
 ) => {
   try {
+
+    time_execution_ms = Math.floor(time_execution_ms);
+
     const task = await IntervalTask.findOne({
       where: { idtask: idtask },
     });
@@ -244,6 +247,7 @@ export const updateIntervalTaskStatus = async (
       message: "La tarea fue actualizada correctamente.",
     };
   } catch (error) {
+    console.log(error);
     return { success: false, message: error.message };
   }
 };

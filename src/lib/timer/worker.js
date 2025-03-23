@@ -5,9 +5,11 @@ import {
   updateIntervalTaskStatus,
 } from "../db/interval_task.js";
 import PromiseSequence from "@edwinspire/sequential-promises";
-import uFetch from "@edwinspire/universal-fetch";
+//import uFetch from "@edwinspire/universal-fetch";
 import { performance } from "perf_hooks";
+import { URLAutoEnvironment } from "../server/utils.js";
 
+const fetchOFAPI = new URLAutoEnvironment("no_env");
 const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 const interval = 5000;
 
@@ -58,9 +60,9 @@ async function runFetchTask(task) {
     const start = performance.now();
 
     if (task.method && task.url) {
-      const uF = new uFetch();
+      const uF = fetchOFAPI.create(task.url, false);
       const resp_task = await uF[task.method]({
-        url: task.url,
+        //url: task.url,
         data: task.params,
       });
 
@@ -68,7 +70,7 @@ async function runFetchTask(task) {
       const time_execution = end - start; // tiempo en milisegundos;
 
       if (resp_task.status === 200) {
-        console.log("OK");
+        //console.log("OK", task.url);
 
         const contentType = resp_task.headers.get("Content-Type") || "?";
         //console.log(resp_task.headers);
@@ -83,13 +85,13 @@ async function runFetchTask(task) {
         await updateIntervalTaskStatus(
           task.idtask,
           3,
-          resp_task,
+          { status: resp_task.status, error: resp_task.statusText },
           time_execution
         );
-        console.log("ERROR");
+        //console.log("ERROR", task.url);
       }
     } else {
-      console.log("No URL or Method");
+      //console.log("No URL or Method");
       await updateIntervalTaskStatus(
         task.idtask,
         3,
@@ -99,7 +101,7 @@ async function runFetchTask(task) {
     }
   } catch (error) {
     console.error("Error:", error);
-    await updateIntervalTaskStatus(task.idtask, 3, error, 0);
+    await updateIntervalTaskStatus(task.idtask, 3, { error: error.message }, 0);
   }
 }
 
@@ -130,7 +132,12 @@ setInterval(() => {
             console.log("Task in status " + task.status);
           }
         } catch (error) {
-          updateIntervalTaskStatus(task.idtask, 3, error, 0).then(() => {
+          updateIntervalTaskStatus(
+            task.idtask,
+            3,
+            { error: error.message },
+            0
+          ).then(() => {
             console.error("Error:", error);
           });
         }

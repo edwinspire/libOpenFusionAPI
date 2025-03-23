@@ -385,6 +385,33 @@ export const listFunctionsVars = (request, reply, environment) => {
   const fnUrlae = new URLAutoEnvironment(environment);
   const own_repo = "https://github.com/edwinspire/libOpenFusionAPI";
   return {
+    $_TELEGRAM_: {
+      fn: reply?.openfusionapi?.telegram
+        ? reply.openfusionapi.telegram
+        : undefined,
+      info: "Useful Telegram features.",
+      web: own_repo,
+      methods: [
+        {
+          name: "sendMessage",
+          params: [
+            {
+              name: "data",
+              value: {
+                chatId: 'chatId',
+                message: "Message to send",
+                extra: {
+                  message_thread_id: "Message thread id.",
+                  parse_mode: "MarkdownV2",
+                },
+              },
+              required: true,
+            },
+          ],
+          return: "None",
+        },
+      ],
+    },
     $_XLSX_BODY_TO_JSON_: {
       fn: xlsx_body_to_json,
       info: "Converts the body of a request to a JSON object. The body must be a buffer with any Excel files.",

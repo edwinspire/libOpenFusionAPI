@@ -359,9 +359,15 @@ export default class ServerAPI extends EventEmitter {
         handlerEndpoint.params.app &&
         handlerEndpoint.params.app == "system"
       ) {
-        // server_data.env_function_names = this._fnLocalNames;
-        // server_data.cache_url_response = this._cacheURLResponse;
-        server_data.telegram = this.telegram;
+        
+        //server_data.telegram = this.telegram;
+        if (
+          handlerEndpoint.params.handler == "FUNCTION" ||
+          handlerEndpoint.params.handler == "JS"
+        ) {
+          reply.openfusionapi.telegram = this.telegram;
+        }
+
         if (handlerEndpoint.params.handler == "FUNCTION") {
           server_data.endpoint_class = this.endpoints;
         }

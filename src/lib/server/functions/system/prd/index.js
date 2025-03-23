@@ -405,8 +405,8 @@ export async function fnTelegramsendMessage(params) {
       r.data = { error: "message is required" };
     }
 
-    if (r.code == 200) {
-      r.data = await params.server_data.telegram.sendMessage(
+    if (r.code == 200 && params?.reply?.openfusionapi?.telegram) {
+      r.data = await params.reply.openfusionapi.telegram.sendMessage(
         data.chatId,
         data.message,
         data.extra
