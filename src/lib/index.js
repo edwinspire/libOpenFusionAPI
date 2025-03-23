@@ -347,6 +347,10 @@ export default class ServerAPI extends EventEmitter {
         reply.openfusionapi = {};
       }
 
+      if (handlerEndpoint.params.handler == "JS") {
+        reply.openfusionapi.telegram = this.telegram;
+      }
+
       let server_data = {};
 
       reply.openfusionapi.lastResponse = {
@@ -359,16 +363,9 @@ export default class ServerAPI extends EventEmitter {
         handlerEndpoint.params.app &&
         handlerEndpoint.params.app == "system"
       ) {
-        
         //server_data.telegram = this.telegram;
-        if (
-          handlerEndpoint.params.handler == "FUNCTION" ||
-          handlerEndpoint.params.handler == "JS"
-        ) {
-          reply.openfusionapi.telegram = this.telegram;
-        }
-
         if (handlerEndpoint.params.handler == "FUNCTION") {
+          reply.openfusionapi.telegram = this.telegram;
           server_data.endpoint_class = this.endpoints;
         }
       }
