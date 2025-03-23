@@ -151,7 +151,7 @@ export class TelegramBot extends EventEmitter {
   ) {
     //console.log("Mensaje enviado con éxito");
     if (this.bot) {
-      let msg = text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, "\\$1");
+      let msg = message.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, "\\$1");
       return await this.bot.telegram.sendMessage(chatId, msg, extra);
     } else {
       throw new Error("Telegram Bot no started.");
