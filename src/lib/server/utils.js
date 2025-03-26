@@ -465,8 +465,8 @@ export const listFunctionsVars = (request, reply, environment) => {
       warn: "Discontinued. Use $_FETCH_AUTO_ENV.",
     },
     $_URL_AUTO_ENV_: {
-      fn: request && reply ? fnUrlae.create : undefined,
-      info: 'Automatically change the environment of a relative URL. Replace the original environment prefix with the "auto" prefix to have it replaced by the current environment prefix.',
+      fn: request && reply ? fnUrlae : undefined,
+      info: 'Automatically change the environment of a relative URL. Replace the original environment prefix with the "auto" prefix to have it replaced by the current environment prefix. Use "create" method',
       web: own_repo,
       params: [
         {
@@ -675,7 +675,7 @@ export class URLAutoEnvironment {
   }
 
   _auto(url, auto_environment) {
-    return auto_environment ? this._direct(url) : this._autoEnvironment(url);
+    return auto_environment ? this._autoEnvironment(url) : this._direct(url) ;
   }
 
   _direct(relative_path) {
