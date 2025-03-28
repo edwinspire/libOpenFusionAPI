@@ -601,6 +601,11 @@ export const Endpoint = dbsequelize.define(
 
           instance.idendpoint = uuidv4();
         }
+
+        if (typeof instance.code == "object") {
+          instance.code = JSON.stringify(instance.code);
+        }
+
         //  instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
         //  instance.data_test = JSON_TYPE_Adapter(instance, "data_test");
         //  instance.cors = JSON_TYPE_Adapter(instance, "cors");

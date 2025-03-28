@@ -35,7 +35,7 @@ export const getAllIntervalTasks = async () => {
   }
 };
 
-export const getIntervalTaskByIdApp = async (idapp) => {
+export const getIntervalTaskByIdApp = async (idapp, raw = false) => {
   return Application.findAll({
     where: { idapp: idapp },
     attributes: ["idapp", "app", "enabled"],
@@ -44,7 +44,7 @@ export const getIntervalTaskByIdApp = async (idapp) => {
       as: "tasks",
       //required: true, // INNER JOIN
       attributes: [
-        "id",
+        "idtask",
         "timestamp",
         "iduser",
         "idapp",
@@ -52,10 +52,16 @@ export const getIntervalTaskByIdApp = async (idapp) => {
         "interval",
         "datestart",
         "dateend",
+        "next_run",
+        "last_run",
         "url",
         "method",
         "params",
+        "exec_time_limit",
+        "failed_attempts",
         "status",
+        "last_exec_time",
+        "last_response",
       ],
       order: [["datestart", "ASC"]],
     },
@@ -172,7 +178,6 @@ export const updateIntervalTaskStatus = async (
   time_execution_ms
 ) => {
   try {
-
     time_execution_ms = Math.floor(time_execution_ms);
 
     const task = await IntervalTask.findOne({

@@ -9,6 +9,7 @@ import {
   saveAppWithEndpoints,
 } from "../../../../db/app.js";
 import { createLog, getLogs } from "../../../../db/log.js";
+import { getIntervalTaskByIdApp } from "../../../../db/interval_task.js";
 import { listFunctionsVars } from "../../../utils.js";
 
 export async function fnListFnVarsHandlerJS(params) {
@@ -258,6 +259,34 @@ export async function fnGetAppById(params) {
   }
   return r;
 }
+
+
+export async function fnGetIntervalTasksByIdApp(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    /*
+    let raw =
+      !params.request.query.raw || params.request.query.raw == "false"
+        ? false
+        : true;
+        */
+
+    //console.log(req.params, req.query, raw);
+
+    r.data = await getIntervalTaskByIdApp(params.request.query.idapp);
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
 
 export async function fnSaveApp(params) {
   let r = { data: undefined, code: 204 };
