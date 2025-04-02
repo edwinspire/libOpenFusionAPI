@@ -820,12 +820,6 @@ export const IntervalTask = dbsequelize.define(
       allowNull: false,
       unique: true,
     },
-    timestamp: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-      comment: "Registration date",
-    },
     iduser: {
       type: DataTypes.BIGINT,
       primaryKey: false,
@@ -833,7 +827,7 @@ export const IntervalTask = dbsequelize.define(
       allowNull: true,
       unique: false,
     },
-    idapp: {
+    idendpoint: {
       type: DataTypes.UUID,
       //primaryKey: true,
       //autoIncrement: true,
@@ -867,16 +861,6 @@ export const IntervalTask = dbsequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
       comment: "Next run",
-    },
-    url: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "url request",
-    },
-    method: {
-      type: DataTypes.STRING(15),
-      allowNull: true,
-      comment: "Method request",
     },
     params: {
       type: JSON_TYPE,
@@ -923,10 +907,15 @@ export const IntervalTask = dbsequelize.define(
         JSON_ADAPTER.setData(this, "last_response", value);
       },
     },
+    note: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Notes",
+    },
   },
   {
     freezeTableName: true,
-    timestamps: false, // No necesitamos createdAt ni updatedAt para este caso
+    timestamps: true, // No necesitamos createdAt ni updatedAt para este caso
     paranoid: false, // Evita el soft delete
     comment: "App Intervals",
     hooks: {
@@ -936,8 +925,8 @@ export const IntervalTask = dbsequelize.define(
     },
     indexes: [
       {
-        fields: ["idapp"],
-        name: "idx_interval_idapp", // Nombre del índice
+        fields: ["idendpoint"],
+        name: "idx_interval_idendpoint", // Nombre del índice
         unique: false, // Índice no único
       },
     ],
@@ -945,10 +934,10 @@ export const IntervalTask = dbsequelize.define(
 );
 
 // Relación: Un Application tiene muchos Interval
-Application.hasMany(IntervalTask, { foreignKey: "idapp", as: "tasks" });
+Endpoint.hasMany(IntervalTask, { foreignKey: "idendpoint", as: "tasks" });
 
-// Relación: Un Interval pertenece a un Application
-IntervalTask.belongsTo(Application, { foreignKey: "idapp" });
+// Relación: Un Interval pertenece a un Endpoint
+IntervalTask.belongsTo(Application, { foreignKey: "idendpoint" });
 
 // Definir el modelo de la tabla 'Handler'
 export const tblDemo = dbsequelize.define(

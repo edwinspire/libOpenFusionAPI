@@ -95,7 +95,7 @@ async function runFetchTask(task) {
       await updateIntervalTaskStatus(
         task.idtask,
         3,
-        { error: "Not url or method", task: tasks },
+        { error: "Not url or method", task: task },
         0
       );
     }
@@ -107,19 +107,19 @@ async function runFetchTask(task) {
 
 setInterval(() => {
   //console.log();
-  //console.log("Ejecutando en un hilo aparte");
+  console.log("Ejecutando en un hilo aparte");
   //parentPort.postMessage("Mensaje periódico desde el worker");
 
   getIntervalTaskProcess().then((app_tasks) => {
-    app_tasks.forEach((app) => {
-      const json_data = app.toJSON();
-      json_data.tasks.forEach((task) => {
-        //  console.log(task);
+    app_tasks.forEach((data) => {
+      try {
+        const japp = data.toJSON();
 
-        try {
+        japp.tasks.forEach((task) => {
           if (task.status == 0 || task.status == 2 || task.status == 3) {
             // TODO: Detectar cuando la tarea se ejecute por mas del tiempo limite para cambiar el estado a 4 (timeout)
-
+            task.url = japp.url;
+            task.method = japp.method;
             // Se va a ejecutar
             updateIntervalTaskStatus(task.idtask, 1)
               .then(async () => {
@@ -131,22 +131,25 @@ setInterval(() => {
           } else {
             console.log("Task in status " + task.status);
           }
-        } catch (error) {
-          updateIntervalTaskStatus(
-            task.idtask,
-            3,
-            { error: error.message },
-            0
-          ).then(() => {
-            console.error("Error:", error);
-          });
-        }
-      });
+        });
+      } catch (error) {
+        updateIntervalTaskStatus(
+          task.idtask,
+          3,
+          { error: error.message },
+          0
+        ).then(() => {
+          console.error("Error:", error);
+        });
+      }
     });
-  });
+  }); /*  */
 }, interval);
 
 // Mantén el proceso vivo escuchando mensajes
 parentPort.on("message", (msg) => {
-  if (msg === "stop") process.exit(0);
+  if (msg === "stop") {
+    //process.exit(0)
+    console.log("Worker parentPort STOP");
+  }
 });

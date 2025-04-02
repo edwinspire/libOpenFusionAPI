@@ -1,8 +1,8 @@
 import { Op } from "sequelize";
-//import { DataTypes } from "sequelize";
-import { IntervalTask, Application } from "./models.js";
+import Sequelize from "sequelize";
+import { IntervalTask, Application, Endpoint } from "./models.js";
 
-export const upsertIntervalTask = async () => {
+export const upsertIntervalTask = async (data) => {
   try {
     const [result, created] = await IntervalTask.upsert(data, {
       returning: true,
@@ -36,35 +36,53 @@ export const getAllIntervalTasks = async () => {
 };
 
 export const getIntervalTaskByIdApp = async (idapp, raw = false) => {
-  return Application.findAll({
+  return Endpoint.findAll({
     where: { idapp: idapp },
-    attributes: ["idapp", "app", "enabled"],
-    include: {
-      model: IntervalTask,
-      as: "tasks",
-      //required: true, // INNER JOIN
-      attributes: [
-        "idtask",
-        "timestamp",
-        "iduser",
-        "idapp",
-        "enabled",
-        "interval",
-        "datestart",
-        "dateend",
-        "next_run",
-        "last_run",
+    attributes: [
+      "idapp",
+      "enabled",
+      "method",
+      [
+        Sequelize.literal(
+          `CONCAT('/api',	'/',ofapi_application.app,	resource, '/', environment)`
+        ),
         "url",
-        "method",
-        "params",
-        "exec_time_limit",
-        "failed_attempts",
-        "status",
-        "last_exec_time",
-        "last_response",
-      ],
-      order: [["datestart", "ASC"]],
-    },
+      ], // 🔹 Concatenación de environment, resource y failed_attempts
+    ],
+    include: [
+      {
+        model: IntervalTask,
+        as: "tasks",
+        required: true, // INNER JOIN
+        attributes: [
+          "idtask",
+
+          "iduser",
+          "idendpoint",
+          "enabled",
+          "interval",
+          "datestart",
+          "dateend",
+          "next_run",
+          "last_run",
+          "params",
+          "exec_time_limit",
+          "failed_attempts",
+          "status",
+          "last_exec_time",
+          "last_response",
+          "note",
+        ],
+        order: [["datestart", "ASC"]],
+      },
+      {
+        model: Application,
+        as: "ofapi_application", // 🔹 Cambia al alias correcto
+        attributes: ["app"],
+        required: true, // INNER JOIN
+        //where: { enabled: true },
+      },
+    ],
     raw: raw,
     nest: false,
   });
@@ -72,46 +90,66 @@ export const getIntervalTaskByIdApp = async (idapp, raw = false) => {
 
 export const getIntervalTaskProcess = async () => {
   const MAX_FAILED_ATTEMPTS = 3;
-  return Application.findAll({
+
+  return Endpoint.findAll({
     where: { enabled: true },
-    attributes: ["idapp", "app", "enabled"],
-    include: {
-      model: IntervalTask,
-      as: "tasks",
-      where: {
-        enabled: true,
-        failed_attempts: { [Op.lt]: MAX_FAILED_ATTEMPTS }, // Permitir hasta 3 intentos fallidos
-        //status: { [Op.in]: [0, 2] }, // Permitir que status sea 0 o 2
-        datestart: { [Op.lte]: new Date() },
-        dateend: { [Op.gte]: new Date() },
-        [Op.or]: [
-          { next_run: { [Op.lte]: new Date() } },
-          { next_run: { [Op.is]: null } },
-        ],
-      },
-      required: true, // INNER JOIN
-      attributes: [
-        "idtask",
-        "timestamp",
-        "iduser",
-        "idapp",
-        "enabled",
-        "interval",
-        "datestart",
-        "dateend",
-        "next_run",
-        "last_run",
+    attributes: [
+      "idapp",
+      "enabled",
+      //      "environment",
+      //      "resource",
+      "method",
+      [
+        Sequelize.literal(
+          `CONCAT('/api',	'/',ofapi_application.app,	resource, '/', environment)`
+        ),
         "url",
-        "method",
-        "params",
-        "exec_time_limit",
-        "failed_attempts",
-        "status",
-        "last_exec_time",
-        "last_response",
-      ],
-      order: [["datestart", "ASC"]],
-    },
+      ], // 🔹 Concatenación de environment, resource y failed_attempts
+    ],
+    include: [
+      {
+        model: IntervalTask,
+        as: "tasks",
+        where: {
+          enabled: true,
+          failed_attempts: { [Op.lt]: MAX_FAILED_ATTEMPTS },
+          datestart: { [Op.lte]: new Date() },
+          dateend: { [Op.gte]: new Date() },
+          [Op.or]: [
+            { next_run: { [Op.lte]: new Date() } },
+            { next_run: { [Op.is]: null } },
+          ],
+        },
+        required: true,
+        attributes: [
+          "idtask",
+
+          "iduser",
+          "idendpoint",
+          "enabled",
+          "interval",
+          "datestart",
+          "dateend",
+          "next_run",
+          "last_run",
+          "params",
+          "exec_time_limit",
+          "failed_attempts",
+          "status",
+          "last_exec_time",
+          "last_response",
+          "note",
+        ],
+        order: [["datestart", "ASC"]],
+      },
+      {
+        model: Application,
+        as: "ofapi_application", // 🔹 Cambia al alias correcto
+        attributes: ["app"],
+        required: true, // INNER JOIN
+        where: { enabled: true },
+      },
+    ],
     raw: false,
     nest: true,
   });
