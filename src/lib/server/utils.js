@@ -48,18 +48,12 @@ export const getUUID = () => {
   return uuidv4();
 };
 
-/**
- * @param {import("express-serve-static-core").Request<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>} req
- */
 export function getIPFromRequest(req) {
   const ip =
-    // @ts-ignore
     req.ip ||
     req.headers["x-forwarded-for"] ||
     req.connection.remoteAddress ||
-    // @ts-ignore
     req.socket.remoteAddress ||
-    // @ts-ignore
     (req.connection.socket ? req.connection.socket.remoteAddress : null);
 
   // Puedes manipular la IP según tus necesidades
@@ -74,9 +68,7 @@ export function checkToken(token) {
     // Verificar y decodificar el token
     const decodedToken = tokenVerify(token);
 
-    // @ts-ignore
     if (decodedToken && decodedToken.data) {
-      // @ts-ignore
       return decodedToken.data;
     }
 
@@ -120,9 +112,7 @@ export function ___validateSystemToken(req, res, next) {
  * @param {string | any | undefined} [message]
  */
 export function customError(code, message) {
-  // @ts-ignore
   if (errors[code]) {
-    // @ts-ignore
     let e = { ...errors[code] };
     e.message = message && message.length > 0 ? message : e.message;
     return e;
@@ -228,10 +218,9 @@ export function checkAPIToken(app, endpointData, jwtoken) {
 
     console.log("::::::> checkAPIToken ::: > ", data, endpointData);
 
-    // @ts-ignore
     if (data && data.app && data.env) {
       // Verificar que el app corresponda a la data que está en el jwtoken
-      // @ts-ignore
+
       return data.app == app && data.env == endpointData.env;
     }
 
@@ -398,7 +387,7 @@ export const listFunctionsVars = (request, reply, environment) => {
             {
               name: "data",
               value: {
-                chatId: 'chatId',
+                chatId: "chatId",
                 message: "Message to send",
                 extra: {
                   message_thread_id: "Message thread id.",
@@ -675,7 +664,7 @@ export class URLAutoEnvironment {
   }
 
   _auto(url, auto_environment) {
-    return auto_environment ? this._autoEnvironment(url) : this._direct(url) ;
+    return auto_environment ? this._autoEnvironment(url) : this._direct(url);
   }
 
   _direct(relative_path) {
