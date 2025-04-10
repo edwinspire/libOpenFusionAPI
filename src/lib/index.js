@@ -284,8 +284,8 @@ export default class ServerAPI extends EventEmitter {
       });
     });
 
-    // Route to internal Hook
-    this.fastify.post(internal_url_post_hooks, async (request, reply) => {
+    // Route to internal Hook - TODO: Ruta ya no utilizada, se puede eliminar
+    this.fastify.post('/internal_url_post_hooks', async (request, reply) => {
       // TODO: Evaluar si esta seccion requiere Token valido, ya que el acceso es solo interno
 
       //console.log("\n\n>>>>>++++>>>\n", request.body);

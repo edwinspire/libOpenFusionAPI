@@ -454,7 +454,46 @@ export async function fnTelegramsendMessage(params) {
       r.data = await params.reply.openfusionapi.telegram.sendMessage(
         data.chatId,
         data.message,
-        data.extra
+        data.extra,
+        data.autoscape
+      );
+    }
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnTelegramsendPhoto(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    r.data = {};
+    r.code = 200;
+
+    let data = params.request.body;
+
+    if (!data) {
+      r.code = 400;
+      r.data = { error: "No data" };
+    }
+
+    if (r.code == 200 && !data.chatId) {
+      r.code = 400;
+      r.data = { error: "chatId is required" };
+    }
+
+    if (r.code == 200 && !data.url_photo) {
+      r.code = 400;
+      r.data = { error: "url_photo is required" };
+    }
+
+    if (r.code == 200 && params?.reply?.openfusionapi?.telegram) {
+      r.data = await params.reply.openfusionapi.telegram.sendPhoto(
+        data.chatId,
+        data.url_photo,
+        data.extra,
+        data.autoscape
       );
     }
   } catch (error) {

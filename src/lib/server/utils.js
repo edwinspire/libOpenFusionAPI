@@ -27,21 +27,39 @@ const errors = {
 
 const jwtKey = JWT_KEY || 'oy8632rcv"$/8';
 
-/**
- * @param {any} data
- */
+// Definimos el esquema
+const webhookSchema = Zod.object({
+  host: Zod.string().min(1, { message: "Host is required." }),
+  database: Zod.string().min(1, { message: "Database is required." }),
+  schema: Zod.string().min(0, { message: "Schema is required." }),
+  table: Zod.string().min(1, { message: "Table is required." }),
+  action: Zod.enum(["insert", "update", "delete", "upsert", "afterUpsert", "afterCreate"], {
+    message:
+      "Valid options: 'insert', 'update', 'delete', 'bulk_insert', 'bulk_update', 'upsert'",
+  }),
+  data: Zod.record(Zod.any()).optional(), // Puede ser un objeto vacío o contener datos dinámicos
+});
+
 export async function emitHook(data) {
   //	console.log('---------------------> hookUpsert', modelName);
   // TODO: Revisar utilidad
   try {
-    const urlHooks = "http://localhost:" + PORT + internal_url_post_hooks;
-    const uF = new uFetch(urlHooks);
-    let r = await uF.POST({ data: data });
-    await r.json();
+    const validated = webhookSchema.parse(data);
+
+    if (validated) {
+      const fnUrlae = new URLAutoEnvironment("prd");
+      const uF = fnUrlae.create(internal_url_post_hooks, false);
+
+      let r = await uF.POST({ data: data });
+      return await r.json();
+    } else {
+      console.error("Error validating webhook data", validated.errors);
+      return { error: "Error validating webhook data", data: validated.errors };
+    }
   } catch (error) {
     console.error(error);
+    return { error: "Error validating webhook data", data: error };
   }
-  //console.log("::::::::::>> emitHook :::>", urlHooks, data, await r.json());
 }
 
 export const getUUID = () => {

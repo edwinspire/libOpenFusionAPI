@@ -7,6 +7,15 @@ import { emitHook } from "../server/utils.js";
 const { TABLE_NAME_PREFIX_API } = process.env;
 const JSON_TYPE =
   dbsequelize.getDialect() === "mssql" ? DataTypes.TEXT : DataTypes.JSON;
+const TableName_LogEntry = prefixTableName("log");
+const TableName_User = prefixTableName("user");
+const TableName_Application = prefixTableName("application");
+const TableName_Endpoint = prefixTableName("endpoint");
+const TableName_IntervalTask = prefixTableName("intervaltask");
+const TableName_ApplicationBackup = prefixTableName("application_backup");
+const TableName_Method = prefixTableName("method");
+const TableName_Handler = prefixTableName("handler");
+const TableName_Demo = prefixTableName("demo");
 
 class JSON_ADAPTER {
   constructor() {}
@@ -60,12 +69,12 @@ export function prefixTableName(table_name) {
 }
 
 async function HooksDB(data) {
-  await emitHook({ env: "prd", app: "system", data: { db: data } });
+  return await emitHook(data);
 }
 
 // Definir el modelo de la tabla 'User'
 export const User = dbsequelize.define(
-  prefixTableName("user"),
+  TableName_User,
   {
     iduser: {
       type: DataTypes.BIGINT,
@@ -143,7 +152,7 @@ export const User = dbsequelize.define(
     hooks: {
       afterUpsert: async () => {
         await HooksDB({
-          model: prefixTableName("user"),
+          table: TableName_User,
           action: "afterUpsert",
         });
       },
@@ -166,7 +175,7 @@ export const User = dbsequelize.define(
 
 // Definir el modelo de la tabla 'Method'
 export const Method = dbsequelize.define(
-  prefixTableName("method"),
+  TableName_Method,
   {
     method: {
       type: DataTypes.STRING(10),
@@ -191,7 +200,7 @@ export const Method = dbsequelize.define(
     hooks: {
       afterUpsert: async () => {
         await HooksDB({
-          model: prefixTableName("method"),
+          table: TableName_Method,
           action: "afterUpsert",
         });
       },
@@ -201,7 +210,7 @@ export const Method = dbsequelize.define(
 
 // Definir el modelo de la tabla 'Handler'
 export const Handler = dbsequelize.define(
-  prefixTableName("handler"),
+  TableName_Handler,
   {
     handler: {
       type: DataTypes.STRING(25),
@@ -242,8 +251,8 @@ export const Handler = dbsequelize.define(
     hooks: {
       afterUpsert: async () => {
         await HooksDB({
-          model: prefixTableName("handler"),
-          action: "afterUpsert",
+          table: TableName_Handler,
+          action: "upsert",
         });
       },
     },
@@ -253,7 +262,7 @@ export const Handler = dbsequelize.define(
 // Definir el modelo de la tabla 'App'
 
 export const Application = dbsequelize.define(
-  prefixTableName("application"),
+  TableName_Application,
   {
     idapp: {
       type: DataTypes.UUID,
@@ -308,7 +317,7 @@ export const Application = dbsequelize.define(
 
         //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
         await HooksDB({
-          model: prefixTableName("application"),
+          table: TableName_Application,
           action: "afterUpsert",
           row: instance,
         });
@@ -369,7 +378,7 @@ export const Application = dbsequelize.define(
 );
 
 export const ApplicationBackup = dbsequelize.define(
-  prefixTableName("application_backup"),
+  TableName_ApplicationBackup,
   {
     idbackup: {
       type: DataTypes.BIGINT,
@@ -407,7 +416,7 @@ export const ApplicationBackup = dbsequelize.define(
       afterUpsert: async (/** @type {any} */ instance) => {
         //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
         await HooksDB({
-          model: prefixTableName("application_backup"),
+          table: TableName_ApplicationBackup,
           action: "afterUpsert",
           row: instance,
         });
@@ -446,7 +455,7 @@ export const ApplicationBackup = dbsequelize.define(
 );
 
 export const Endpoint = dbsequelize.define(
-  prefixTableName("endpoint"),
+  TableName_Endpoint,
   {
     idendpoint: {
       type: DataTypes.UUID,
@@ -570,7 +579,7 @@ export const Endpoint = dbsequelize.define(
 
         //   console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
         await HooksDB({
-          model: prefixTableName("endpoint"),
+          table: TableName_Endpoint,
           action: "afterUpsert",
         });
       },
@@ -590,7 +599,7 @@ export const Endpoint = dbsequelize.define(
         }
 
         await HooksDB({
-          model: prefixTableName("endpoint"),
+          table: TableName_Endpoint,
           action: "beforeUpsert",
         });
       },
@@ -650,7 +659,7 @@ Application.hasMany(Endpoint, { foreignKey: "idapp", as: "endpoints" });
 Endpoint.belongsTo(Application, { foreignKey: "idapp" });
 
 export const LogEntry = dbsequelize.define(
-  prefixTableName("log"),
+  TableName_LogEntry,
   {
     timestamp: {
       type: DataTypes.DATE,
@@ -779,6 +788,17 @@ export const LogEntry = dbsequelize.define(
     paranoid: false, // Evita el soft delete
     comment: "Tabla de logs de la aplicación",
     hooks: {
+      afterCreate: async (/** @type {any} */ instance, options) => {
+        //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
+        await HooksDB({
+          host: instance.sequelize.config.host,
+          database: instance.sequelize.config.database,
+          schema: "",
+          table: TableName_LogEntry,
+          action: "afterCreate",
+          data: instance,
+        });
+      },
       beforeValidate: (instance) => {
         if (instance.req_headers) {
           //  instance.req_headers = JSON_TYPE_Adapter(instance, "req_headers");
@@ -811,7 +831,7 @@ export const LogEntry = dbsequelize.define(
 );
 
 export const IntervalTask = dbsequelize.define(
-  prefixTableName("intervaltask"),
+  TableName_IntervalTask,
   {
     idtask: {
       type: DataTypes.BIGINT,
@@ -922,6 +942,18 @@ export const IntervalTask = dbsequelize.define(
       beforeValidate: (instance) => {
         //
       },
+      afterUpsert: async (/** @type {any} */ instance, options) => {
+        //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
+
+        await HooksDB({
+          host: instance.sequelize.config.host,
+          database: instance.sequelize.config.database,
+          schema: "",
+          table: TableName_IntervalTask,
+          action: "afterUpsert",
+          data: instance,
+        });
+      },
     },
     indexes: [
       {
@@ -941,7 +973,7 @@ IntervalTask.belongsTo(Application, { foreignKey: "idendpoint" });
 
 // Definir el modelo de la tabla 'Handler'
 export const tblDemo = dbsequelize.define(
-  prefixTableName("demo"),
+  TableName_Demo,
   {
     name: {
       type: DataTypes.STRING(25),

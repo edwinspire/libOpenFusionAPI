@@ -1,10 +1,11 @@
 import { match } from "path-to-regexp";
 
+
 export const default_port = 3000;
 //export const url_telegram_notifications =  process.env.URL_TELEGRAM_NOTIFICATIONS ?? `/api/system/api/telegram/sendmsg/prd`;
 export const struct_api_path = "/api/:app/*";
 export const internal_url_post_hooks =
-  process.env.PATH_API_HOOKS ?? "/_internal_/system/_hooks_/prd";
+  process.env.PATH_API_HOOKS ?? "/api/system/database/hooks/prd";
 export const websocket_hooks_resource = "/websocket/hooks";
 export const get_url_params = (/** @type {string} */ url) => {
   let reqUrl = new URL(`http://localhost${url.toLowerCase()}`);
