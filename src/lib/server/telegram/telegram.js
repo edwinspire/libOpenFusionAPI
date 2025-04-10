@@ -218,7 +218,7 @@ export class TelegramBot extends EventEmitter {
     if (this.bot) {
       return await this.bot.telegram.sendMessage(
         chatId,
-        this.autoscape(message, parse_mode, autoscape),
+        this.autoscape(message, extra?.parse_mode, autoscape),
         extra
       );
     } else {
