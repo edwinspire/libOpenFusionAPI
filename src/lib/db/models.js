@@ -69,7 +69,24 @@ export function prefixTableName(table_name) {
 }
 
 async function HooksDB(data) {
-  return await emitHook(data);
+  let instance = {};
+
+  if (Array.isArray(data.instance)) {
+    instance = data.instance[0];
+  } else {
+    instance = data.instance;
+  }
+
+  let dataHook = {
+    host: instance.sequelize.config.host,
+    database: instance.sequelize.config.database,
+    schema: data.schema || '',
+    table: data.table,
+    action: data.action,
+    data: instance,
+  };
+
+  return await emitHook(dataHook);
 }
 
 // Definir el modelo de la tabla 'User'
@@ -150,8 +167,9 @@ export const User = dbsequelize.define(
       },
     ],
     hooks: {
-      afterUpsert: async () => {
+      afterUpsert: async (instance) => {
         await HooksDB({
+          instance: instance,
           table: TableName_User,
           action: "afterUpsert",
         });
@@ -198,8 +216,9 @@ export const Method = dbsequelize.define(
     timestamps: true,
     indexes: [],
     hooks: {
-      afterUpsert: async () => {
+      afterUpsert: async (instance) => {
         await HooksDB({
+          instance: instance,
           table: TableName_Method,
           action: "afterUpsert",
         });
@@ -249,8 +268,9 @@ export const Handler = dbsequelize.define(
     timestamps: true,
     indexes: [],
     hooks: {
-      afterUpsert: async () => {
+      afterUpsert: async (instance) => {
         await HooksDB({
+          instance: instance,
           table: TableName_Handler,
           action: "upsert",
         });
@@ -317,9 +337,9 @@ export const Application = dbsequelize.define(
 
         //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
         await HooksDB({
+          instance: instance,
           table: TableName_Application,
-          action: "afterUpsert",
-          row: instance,
+          action: "afterUpsert"
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
@@ -418,7 +438,7 @@ export const ApplicationBackup = dbsequelize.define(
         await HooksDB({
           table: TableName_ApplicationBackup,
           action: "afterUpsert",
-          row: instance,
+          instance: instance,
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
@@ -579,6 +599,7 @@ export const Endpoint = dbsequelize.define(
 
         //   console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
         await HooksDB({
+          instance: instance,
           table: TableName_Endpoint,
           action: "afterUpsert",
         });
@@ -599,6 +620,7 @@ export const Endpoint = dbsequelize.define(
         }
 
         await HooksDB({
+          instance: instance,
           table: TableName_Endpoint,
           action: "beforeUpsert",
         });
@@ -791,12 +813,9 @@ export const LogEntry = dbsequelize.define(
       afterCreate: async (/** @type {any} */ instance, options) => {
         //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
         await HooksDB({
-          host: instance.sequelize.config.host,
-          database: instance.sequelize.config.database,
-          schema: "",
+          instance: instance,
           table: TableName_LogEntry,
-          action: "afterCreate",
-          data: instance,
+          action: "afterCreate"
         });
       },
       beforeValidate: (instance) => {
@@ -946,12 +965,9 @@ export const IntervalTask = dbsequelize.define(
         //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
 
         await HooksDB({
-          host: instance.sequelize.config.host,
-          database: instance.sequelize.config.database,
-          schema: "",
+          instance: instance,
           table: TableName_IntervalTask,
-          action: "afterUpsert",
-          data: instance,
+          action: "afterUpsert"
         });
       },
     },
