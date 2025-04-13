@@ -111,27 +111,22 @@ setInterval(() => {
   //parentPort.postMessage("Mensaje periódico desde el worker");
 
   getIntervalTaskProcess().then((app_tasks) => {
-    app_tasks.forEach((data) => {
+    app_tasks.forEach((task) => {
       try {
-        const japp = data.toJSON();
-
-        japp.tasks.forEach((task) => {
-          if (task.status == 0 || task.status == 2 || task.status == 3) {
-            // TODO: Detectar cuando la tarea se ejecute por mas del tiempo limite para cambiar el estado a 4 (timeout)
-            task.url = japp.url;
-            task.method = japp.method;
-            // Se va a ejecutar
-            updateIntervalTaskStatus(task.idtask, 1)
-              .then(async () => {
-                await runFetchTask(task);
-              })
-              .catch(() => {
-                console.error("Error updating status");
-              });
-          } else {
-            console.log("Task in status " + task.status);
-          }
-        });
+        //const japp = data.toJSON();
+        if (task.status == 0 || task.status == 2 || task.status == 3) {
+          // TODO: Detectar cuando la tarea se ejecute por mas del tiempo limite para cambiar el estado a 4 (timeout)
+          // Se va a ejecutar
+          updateIntervalTaskStatus(task.idtask, 1)
+            .then(async () => {
+              await runFetchTask(task);
+            })
+            .catch(() => {
+              console.error("Error updating status");
+            });
+        } else {
+          console.log("Task in status " + task.status);
+        }
       } catch (error) {
         updateIntervalTaskStatus(
           task.idtask,
@@ -143,7 +138,7 @@ setInterval(() => {
         });
       }
     });
-  }); /*  */
+  });
 }, interval);
 
 // Mantén el proceso vivo escuchando mensajes

@@ -77,14 +77,20 @@ async function HooksDB(data) {
     instance = data.instance;
   }
 
-  let dataHook = {
-    host: instance.sequelize.config.host,
-    database: instance.sequelize.config.database,
-    schema: data.schema || '',
-    table: data.table,
-    action: data.action,
-    data: instance,
-  };
+  let dataHook = {};
+
+  try {
+    dataHook = {
+      host: instance.sequelize.config.host,
+      database: instance.sequelize.config.database,
+      schema: data.schema || "",
+      table: data.table,
+      action: data.action,
+      data: instance,
+    };
+  } catch (error) {
+    confirm.log("Error en HooksDB:", error);
+  }
 
   return await emitHook(dataHook);
 }
@@ -339,7 +345,7 @@ export const Application = dbsequelize.define(
         await HooksDB({
           instance: instance,
           table: TableName_Application,
-          action: "afterUpsert"
+          action: "afterUpsert",
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
@@ -594,10 +600,9 @@ export const Endpoint = dbsequelize.define(
       },
     ],
     hooks: {
-      afterUpsert: async (/** @type {any} */ instance) => {
+      afterUpsert: async (instance) => {
         instance.rowkey = 999;
 
-        //   console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
         await HooksDB({
           instance: instance,
           table: TableName_Endpoint,
@@ -618,12 +623,13 @@ export const Endpoint = dbsequelize.define(
 
           instance.idendpoint = uuidv4();
         }
-
+        /*
         await HooksDB({
           instance: instance,
           table: TableName_Endpoint,
           action: "beforeUpsert",
         });
+        */
       },
       beforeValidate: (instance) => {
         instance.rowkey = Math.floor(Math.random() * 1000);
@@ -636,34 +642,8 @@ export const Endpoint = dbsequelize.define(
         if (typeof instance.code == "object") {
           instance.code = JSON.stringify(instance.code);
         }
-
-        //  instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
-        //  instance.data_test = JSON_TYPE_Adapter(instance, "data_test");
-        //  instance.cors = JSON_TYPE_Adapter(instance, "cors");
-        /*
-          dbsequelize.getDialect() === "mssql" &&
-          typeof instance.data_test === "object"
-            ? JSON.stringify(instance.data_test)
-            : instance.data_test;
-            */
-
-        //  instance.headers_test = JSON_TYPE_Adapter(instance, "headers_test");
-        /*
-          dbsequelize.getDialect() === "mssql" &&
-          typeof instance.headers_test === "object"
-            ? JSON.stringify(instance.headers_test)
-            : instance.headers_test;
-            */
       },
       beforeBulkCreate: (instance) => {
-        /*
-        
-        if (!instance.idendpoint) {
-          
-          instance.idendpoint = uuidv4();
-        }
-        */
-
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeCreate: (instance) => {
@@ -815,7 +795,7 @@ export const LogEntry = dbsequelize.define(
         await HooksDB({
           instance: instance,
           table: TableName_LogEntry,
-          action: "afterCreate"
+          action: "afterCreate",
         });
       },
       beforeValidate: (instance) => {
@@ -967,7 +947,7 @@ export const IntervalTask = dbsequelize.define(
         await HooksDB({
           instance: instance,
           table: TableName_IntervalTask,
-          action: "afterUpsert"
+          action: "afterUpsert",
         });
       },
     },
@@ -985,7 +965,10 @@ export const IntervalTask = dbsequelize.define(
 Endpoint.hasMany(IntervalTask, { foreignKey: "idendpoint", as: "tasks" });
 
 // Relación: Un Interval pertenece a un Endpoint
-IntervalTask.belongsTo(Application, { foreignKey: "idendpoint" });
+IntervalTask.belongsTo(Endpoint, {
+  foreignKey: "idendpoint", // campo FK en IntervalTask
+  targetKey: "idendpoint", // campo PK en Endpoint
+});
 
 // Definir el modelo de la tabla 'Handler'
 export const tblDemo = dbsequelize.define(

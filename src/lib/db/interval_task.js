@@ -35,134 +35,133 @@ export const getAllIntervalTasks = async () => {
   }
 };
 
-export const getIntervalTaskByIdApp = async (idapp, raw = false) => {
-  return Endpoint.findAll({
-    where: { idapp: idapp },
-    attributes: [
-      "idapp",
-      "enabled",
-      "method",
-      [
-        Sequelize.literal(
-          `CONCAT('/api',	'/',ofapi_application.app,	resource, '/', environment)`
-        ),
-        "url",
-      ], // 🔹 Concatenación de environment, resource y failed_attempts
-    ],
-    include: [
-      {
-        model: IntervalTask,
-        as: "tasks",
-        required: true, // INNER JOIN
-        attributes: [
-          "idtask",
+export const getIntervalTask = async (filter = {}) => {
+  try {
+    let results = await IntervalTask.findAll({
+      attributes: [
+        "idtask",
+        "iduser",
+        "idendpoint",
+        ["enabled", "task_enabled"],
+        "interval",
+        "datestart",
+        "dateend",
+        "next_run",
+        "last_run",
+        "params",
+        "exec_time_limit",
+        "failed_attempts",
+        "status",
+        "last_exec_time",
+        "last_response",
+        "note",
+      ],
+      where: filter.tasks, // 🔹 Agregado el filtro aquí
+      include: [
+        {
+          model: Endpoint,
+          attributes: [
+            ["idendpoint", "idendpoint"],
+            ["enabled", "endpoint_enabled"],
+            ["method", "method"],
+            ["resource", "resource"],
+            ["environment", "environment"],
+          ],
+          where: filter.endpoint, // 🔹 Agregado el filtro aquí
+          required: true,
+          include: [
+            {
+              model: Application,
+              attributes: [
+                ["idapp", "idapp"],
+                ["app", "app"],
+                ["enabled", "app_enabled"],
+              ],
+              required: true,
+              where: filter.app, // 🔹 Agregado el filtro aquí
+            },
+          ],
+        },
+      ],
+      raw: true,
+      //nest: true,
+    });
 
-          "iduser",
-          "idendpoint",
-          "enabled",
-          "interval",
-          "datestart",
-          "dateend",
-          "next_run",
-          "last_run",
-          "params",
-          "exec_time_limit",
-          "failed_attempts",
-          "status",
-          "last_exec_time",
-          "last_response",
-          "note",
-        ],
-        order: [["datestart", "ASC"]],
-      },
-      {
-        model: Application,
-        as: "ofapi_application", // 🔹 Cambia al alias correcto
-        attributes: ["app"],
-        required: true, // INNER JOIN
-        //where: { enabled: true },
-      },
-    ],
-    raw: raw,
-    nest: false,
-  });
+    results = results.map((item) => {
+      let new_item = {
+        idapp: item["ofapi_endpoint.ofapi_application.idapp"],
+        app: item["ofapi_endpoint.ofapi_application.app"],
+        app_enabled: item["ofapi_endpoint.ofapi_application.app_enabled"],
+
+        idendpoint: item["ofapi_endpoint.idendpoint"],
+        endpoint_enabled: item["ofapi_endpoint.endpoint_enabled"],
+        method: item["ofapi_endpoint.method"],
+        resource: item["ofapi_endpoint.resource"],
+        environment: item["ofapi_endpoint.environment"],
+
+        idtask: item.idtask,
+        iduser: item.iduser,
+        task_enabled: item.task_enabled,
+        interval: item.interval,
+        datestart: item.datestart,
+        dateend: item.dateend,
+        next_run: item.next_run,
+        last_run: item.last_run,
+        params: item.params,
+        exec_time_limit: item.exec_time_limit,
+        failed_attempts: item.failed_attempts,
+        status: item.status,
+        last_exec_time: item.last_exec_time,
+        last_response: item.last_response,
+        note: item.note,
+      };
+
+      new_item.url = `/api/${new_item.app}/${new_item.resource}/${new_item.environment}`;
+
+      return new_item;
+    });
+
+    return results;
+  } catch (error) {
+    console.error("Error al obtener interval tasks con detalles:", error);
+    throw error;
+  }
 };
 
 export const getIntervalTaskProcess = async () => {
   const MAX_FAILED_ATTEMPTS = 3;
 
-  return Endpoint.findAll({
-    where: { enabled: true },
-    attributes: [
-      "idapp",
-      "enabled",
-      //      "environment",
-      //      "resource",
-      "method",
-      [
-        Sequelize.literal(
-          `CONCAT('/api',	'/',ofapi_application.app,	resource, '/', environment)`
-        ),
-        "url",
-      ], // 🔹 Concatenación de environment, resource y failed_attempts
-    ],
-    include: [
-      {
-        model: IntervalTask,
-        as: "tasks",
-        where: {
-          enabled: true,
-          failed_attempts: { [Op.lt]: MAX_FAILED_ATTEMPTS },
-          datestart: { [Op.lte]: new Date() },
-          dateend: { [Op.gte]: new Date() },
-          [Op.or]: [
-            { next_run: { [Op.lte]: new Date() } },
-            { next_run: { [Op.is]: null } },
-          ],
-        },
-        required: true,
-        attributes: [
-          "idtask",
+  let filter = {
+    endpoint: { enabled: true },
+    app: { enabled: true },
+    tasks: {
+      enabled: true,
+      failed_attempts: { [Op.lt]: MAX_FAILED_ATTEMPTS },
+      datestart: { [Op.lte]: new Date() },
+      dateend: { [Op.gte]: new Date() },
+      [Op.or]: [
+        { next_run: { [Op.lte]: new Date() } },
+        { next_run: { [Op.is]: null } },
+      ],
+    },
+  };
 
-          "iduser",
-          "idendpoint",
-          "enabled",
-          "interval",
-          "datestart",
-          "dateend",
-          "next_run",
-          "last_run",
-          "params",
-          "exec_time_limit",
-          "failed_attempts",
-          "status",
-          "last_exec_time",
-          "last_response",
-          "note",
-        ],
-        order: [["datestart", "ASC"]],
-      },
-      {
-        model: Application,
-        as: "ofapi_application", // 🔹 Cambia al alias correcto
-        attributes: ["app"],
-        required: true, // INNER JOIN
-        where: { enabled: true },
-      },
-    ],
-    raw: false,
-    nest: true,
-  });
+  return await getIntervalTask(filter);
 };
 
 // DELETE
-export const deleteIntervalTask = async (idtask) => {
+export const deleteIntervalTask = async (idtaskList) => {
   try {
-    const ep = await IntervalTask.findByPk(idtask);
-    if (ep) {
-      await ep.destroy();
-      return true; // Deletion successful
+    const deletedCount = await IntervalTask.destroy({
+      where: {
+        idtask: idtaskList,
+      },
+    });
+
+    if (deletedCount > 0) {
+      return true; // User deleted successfully
     }
+
     return false; // User not found
   } catch (error) {
     console.error("Error deleting idendpoint:", error);
