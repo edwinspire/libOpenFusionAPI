@@ -116,7 +116,7 @@ export const getIntervalTask = async (filter = {}) => {
         note: item.note,
       };
 
-      new_item.url = `/api/${new_item.app}/${new_item.resource}/${new_item.environment}`;
+      new_item.url = `/api/${new_item.app}${new_item.resource}/${new_item.environment}`;
 
       return new_item;
     });

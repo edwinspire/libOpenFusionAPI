@@ -792,11 +792,14 @@ export const LogEntry = dbsequelize.define(
     hooks: {
       afterCreate: async (/** @type {any} */ instance, options) => {
         //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
+        
+        /*
         await HooksDB({
           instance: instance,
           table: TableName_LogEntry,
           action: "afterCreate",
         });
+        */
       },
       beforeValidate: (instance) => {
         if (instance.req_headers) {
