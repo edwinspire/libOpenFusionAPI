@@ -39,6 +39,7 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
+  webhookSchema,
 } from "./server/utils.js";
 
 import { schema_input_hooks } from "./server/schemas/index.js";
@@ -117,6 +118,31 @@ export default class ServerAPI extends EventEmitter {
     });
 
     this._build();
+  }
+
+  async checkwebHookDB(request) {
+    const validated = webhookSchema.parse(request.body);
+
+    if (validated) {
+      // Borrar la cache de funciones de la app cuando se actualiza la app
+      if (
+        request?.body?.model == prefixTableName("application") &&
+        request?.body?.action === "afterUpsert"
+      ) {
+        //  console.log('XXXXXXXXXXXXXXXX>', request.body);
+
+        // TODO: Revisar el entorno no solo la app
+        if (request?.body?.data?.app) {
+          setTimeout(() => {
+            // Espera 5 segundos para borrar la cache de las funciones del endpoint
+            this._deleteEndpointsByAppName(request?.body?.data?.app);
+          }, 5000);
+        }
+      }
+    } else {
+      console.error("Error validating webhook data", validated.errors);
+      return { error: "Error validating webhook data", data: validated.errors };
+    }
   }
 
   async _build() {
@@ -285,7 +311,7 @@ export default class ServerAPI extends EventEmitter {
     });
 
     // Route to internal Hook - TODO: Ruta ya no utilizada, se puede eliminar
-    this.fastify.post('/internal_url_post_hooks', async (request, reply) => {
+    this.fastify.post("/internal_url_post_hooks", async (request, reply) => {
       // TODO: Evaluar si esta seccion requiere Token valido, ya que el acceso es solo interno
 
       //console.log("\n\n>>>>>++++>>>\n", request.body);
@@ -342,6 +368,7 @@ export default class ServerAPI extends EventEmitter {
       // await this._preValidation(request, reply);
 
       let handlerEndpoint = request.openfusionapi.handler;
+      request.openfusionapi.ip_request = getIPFromRequest(request);
 
       if (!reply.openfusionapi) {
         reply.openfusionapi = {};
@@ -349,6 +376,7 @@ export default class ServerAPI extends EventEmitter {
 
       if (handlerEndpoint.params.handler == "JS") {
         reply.openfusionapi.telegram = this.telegram;
+        reply.openfusionapi.server = this;
       }
 
       let server_data = {};

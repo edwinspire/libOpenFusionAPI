@@ -28,11 +28,11 @@ const errors = {
 const jwtKey = JWT_KEY || 'oy8632rcv"$/8';
 
 // Definimos el esquema
-const webhookSchema = Zod.object({
+export const webhookSchema = Zod.object({
   host: Zod.string().min(1, { message: "Host is required." }),
   database: Zod.string().min(1, { message: "Database is required." }),
   schema: Zod.string().min(0, { message: "Schema is required." }),
-  table: Zod.string().min(1, { message: "Table is required." }),
+  model: Zod.string().min(1, { message: "Model is required." }),
   action: Zod.enum(["insert", "update", "delete", "upsert", "afterUpsert", "afterCreate"], {
     message:
       "Valid options: 'insert', 'update', 'delete', 'bulk_insert', 'bulk_update', 'upsert'",
@@ -392,6 +392,11 @@ export const listFunctionsVars = (request, reply, environment) => {
   const fnUrlae = new URLAutoEnvironment(environment);
   const own_repo = "https://github.com/edwinspire/libOpenFusionAPI";
   return {
+    $_SERVER_: {
+      fn: reply ? reply?.openfusionapi?.server : undefined,
+      info: "Current Server instance.",
+      web: own_repo,
+    },
     $_TELEGRAM_: {
       fn: reply?.openfusionapi?.telegram
         ? reply.openfusionapi.telegram

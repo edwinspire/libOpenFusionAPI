@@ -84,7 +84,7 @@ async function HooksDB(data) {
       host: instance.sequelize.config.host,
       database: instance.sequelize.config.database,
       schema: data.schema || "",
-      table: data.table,
+      model: data.table,
       action: data.action,
       data: instance,
     };
