@@ -115,6 +115,7 @@ export default class ServerAPI extends EventEmitter {
 
     this.fastify = Fastify({
       logger: false,
+      bodyLimit: MAX_FILE_SIZE_UPLOAD || 50000000, // For multipart forms, the max file size in bytes
     });
 
     this._build();
@@ -146,7 +147,9 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _build() {
-    await this.fastify.register(formbody);
+    await this.fastify.register(formbody, {
+      bodyLimit: MAX_FILE_SIZE_UPLOAD || 50000000, // For multipart forms, the max file size in bytes
+    });
     await this.fastify.register(multipart, {
       attachFieldsToBody: "keyValues",
       limits: {

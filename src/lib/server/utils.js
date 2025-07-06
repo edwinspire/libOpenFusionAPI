@@ -474,7 +474,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? fetchOFAPI : undefined,
       info: "Build a uFetch intance.",
       web: own_repo,
-      warn: "Discontinued. Use $_FETCH_AUTO_ENV.",
+      warn: "Discontinued. Use $_URL_AUTO_ENV_.",
     },
     $_URL_AUTO_ENV_: {
       fn: request && reply ? fnUrlae : undefined,

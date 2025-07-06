@@ -1,3 +1,31 @@
+/**
+ * Extrae database, schema y table de un nombre calificado como:
+ * "[DB].[schema].[table]" o "DB.schema.table"
+ * @param {string} qualifiedName - Ejemplo: "[ITE_Portal].[prt].[tbl_PortalCuadre]"
+ * @returns {{ database: string, schema: string, table: string }}
+ */
+export function parseQualifiedName(qualifiedName) {
+  // Elimine espacios
+  const cleaned = qualifiedName.trim();
+
+  // Reemplace corchetes por nada y divida por punto
+  const parts = cleaned
+    .replace(/\[/g, '')
+    .replace(/\]/g, '')
+    .split('.');
+
+  if (parts.length !== 3) {
+    throw new Error(`Formato inválido: ${qualifiedName}`);
+  }
+
+  const [database, schema, table] = parts;
+
+  return {
+    database,
+    schema,
+    table
+  };
+}
 
 /**
  * @param {any} json

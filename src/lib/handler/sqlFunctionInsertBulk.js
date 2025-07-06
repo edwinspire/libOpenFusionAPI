@@ -1,6 +1,7 @@
 import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
 import { setCacheReply } from "./utils.js";
+import { parseQualifiedName } from "../db/utils.js";
 
 export const sqlFunctionInsertBulk = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
@@ -37,6 +38,18 @@ export const sqlFunctionInsertBulk = async (
       if (paramsSQL.config.database) {
         //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
 
+        try {
+          let { database, schema, table } = parseQualifiedName(
+            paramsSQL.table_name
+          );
+
+          paramsSQL.config.database = database;
+          paramsSQL.config.schema = schema;
+          paramsSQL.table_name = table;
+        } catch (error) {
+          console.error("Error al analizar el nombre calificado:", error);
+        }
+
         // Verificar las configuraciones minimas
         if (paramsSQL && paramsSQL.config.options && paramsSQL.table_name) {
           const sequelize = new Sequelize(
@@ -46,8 +59,9 @@ export const sqlFunctionInsertBulk = async (
             paramsSQL.config.options
           );
 
-          let result_query = await bulkInsert(
+          let result_query = await bulkInsertWithTransaction(
             sequelize,
+            paramsSQL.config.schema,
             paramsSQL.table_name,
             data_request.data
           );
@@ -80,6 +94,35 @@ export const sqlFunctionInsertBulk = async (
     reply.code(500).send(error);
   }
 };
+
+async function bulkInsertWithTransaction(sequelize, schema, tableName, rows) {
+  // Obtiene el queryInterface
+  const queryInterface = sequelize.getQueryInterface();
+
+  // Inicia la transacción
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Ejecuta el bulkInsert dentro de la transacción
+    let result = await queryInterface.bulkInsert(
+      { schema: schema, tableName: tableName },
+      rows,
+      {
+        transaction,
+      }
+    );
+
+    // Si todo salió bien, hace commit
+    await transaction.commit();
+    console.log(`✅ Bulk insert exitoso en ${tableName}`);
+    return { inserted: result }; // Devuelve la cantidad de registros insertados
+  } catch (error) {
+    // Si algo falla, hace rollback
+    await transaction.rollback();
+    console.error(`❌ Error en bulk insert:`, error);
+    throw error;
+  }
+}
 
 function bulkInsert(sequelize, tableName, data) {
   //console.log('bulkInsert >>>>>>>>>>>> ', sequelize, tableName, data);
