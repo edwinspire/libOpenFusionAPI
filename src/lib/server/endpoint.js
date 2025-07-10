@@ -213,9 +213,11 @@ export default class Endpoint extends EventEmitter {
                   hash_request
                 ];
 
+                /*
                 console.log(
                   `Se elimina la cache de ${endpoint_key} luego de ${cache_time} segundos.`
                 );
+                */
               }
             } catch (error) {
               console.error(

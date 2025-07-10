@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
 import { setCacheReply } from "./utils.js";
@@ -9,6 +11,7 @@ export const sqlFunctionInsertBulk = async (
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
+    //    console.log('CODE: ', method.code);
     let paramsSQL = JSON.parse(method.code);
     let data_request = {};
     let query_type = QueryTypes.INSERT;
@@ -50,34 +53,41 @@ export const sqlFunctionInsertBulk = async (
           console.error("Error al analizar el nombre calificado:", error);
         }
 
-        // Verificar las configuraciones minimas
-        if (paramsSQL && paramsSQL.config.options && paramsSQL.table_name) {
-          const sequelize = new Sequelize(
-            paramsSQL.config.database,
-            paramsSQL.config.username,
-            paramsSQL.config.password,
-            paramsSQL.config.options
-          );
+        if (paramsSQL.table_name && paramsSQL.table_name.length > 0) {
+          // Verificar las configuraciones minimas
+          if (paramsSQL && paramsSQL.config.options) {
+            const sequelize = new Sequelize(
+              paramsSQL.config.database,
+              paramsSQL.config.username,
+              paramsSQL.config.password,
+              paramsSQL.config.options
+            );
 
-          let result_query = await bulkInsertWithTransaction(
-            sequelize,
-            paramsSQL.config.schema,
-            paramsSQL.table_name,
-            data_request.data
-          );
+            let result_query = await bulkInsertWithTransaction(
+              sequelize,
+              paramsSQL.config.schema,
+              paramsSQL.table_name,
+              data_request.data,
+              paramsSQL.ignoreDuplicates
+            );
 
-          //  console.log('-------------> ', result_query.toSQL())
+            //  console.log('-------------> ', result_query.toSQL())
 
-          setCacheReply(reply, result_query);
-          reply.code(200).send(result_query);
+            setCacheReply(reply, result_query);
+            reply.code(200).send(result_query);
+          } else {
+            let alt_resp = { error: "Params configuration is not complete" };
+            setCacheReply(reply, alt_resp);
+
+            reply.code(400).send(alt_resp);
+          }
         } else {
-          let alt_resp = { error: "Params configuration is not complete" };
+          let alt_resp = { error: "Table name is required" };
           setCacheReply(reply, alt_resp);
-
           reply.code(400).send(alt_resp);
         }
       } else {
-        let alt_resp = { error: "Params configuration is not complete" };
+        let alt_resp = { error: "Database is required" };
         setCacheReply(reply, alt_resp);
 
         reply.code(400).send(alt_resp);
@@ -88,28 +98,42 @@ export const sqlFunctionInsertBulk = async (
       reply.code(400).send(alt_resp);
     }
   } catch (error) {
-    //console.log(error);
+    console.log(error);
+
+     saveErrorToDisk(error);
+
     setCacheReply(reply, { error: error });
-    // @ts-ignore
     reply.code(500).send(error);
   }
 };
 
-async function bulkInsertWithTransaction(sequelize, schema, tableName, rows) {
+async function bulkInsertWithTransaction(
+  sequelize,
+  schema,
+  tableName,
+  rows,
+  ignoreDuplicates
+) {
   // Obtiene el queryInterface
   const queryInterface = sequelize.getQueryInterface();
 
   // Inicia la transacción
   const transaction = await sequelize.transaction();
 
+  let opts = {
+    transaction,
+    //updateOnDuplicate: updateOnDuplicate,
+    ignoreDuplicates: ignoreDuplicates,
+  };
+
+  //console.log("Bulk insert options:", opts);
+
   try {
     // Ejecuta el bulkInsert dentro de la transacción
     let result = await queryInterface.bulkInsert(
       { schema: schema, tableName: tableName },
       rows,
-      {
-        transaction,
-      }
+      opts
     );
 
     // Si todo salió bien, hace commit
@@ -121,6 +145,38 @@ async function bulkInsertWithTransaction(sequelize, schema, tableName, rows) {
     await transaction.rollback();
     console.error(`❌ Error en bulk insert:`, error);
     throw error;
+  }
+}
+
+/**
+ * Guarda un objeto de error en un archivo JSON con fecha y hora.
+ * @param {Error} error - El objeto de error a guardar.
+ */
+export function saveErrorToDisk(error) {
+  try {
+    // Construye un objeto seguro para serializar
+    const safeError = {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      ...(error.original ? { original: error.original } : {}),
+      ...(error.sql ? { sql: error.sql } : {})
+    };
+
+    // Ruta del archivo: logs/error-<fecha>.json
+    const logDir = path.join(process.cwd(), 'logs');
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/:/g, '-');
+    const logFile = path.join(logDir, `error-${timestamp}.json`);
+
+    fs.writeFileSync(logFile, JSON.stringify(safeError, null, 2), 'utf8');
+
+    console.log(`📂 Error guardado en: ${logFile}`);
+  } catch (fsErr) {
+    console.error('❌ Error guardando el log en disco:', fsErr);
   }
 }
 

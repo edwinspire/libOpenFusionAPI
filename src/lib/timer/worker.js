@@ -107,7 +107,7 @@ async function runFetchTask(task) {
 
 setInterval(() => {
   //console.log();
-  console.log("Ejecutando en un hilo aparte");
+  //console.log("Ejecutando en un hilo aparte");
   //parentPort.postMessage("Mensaje periódico desde el worker");
 
   getIntervalTaskProcess().then((app_tasks) => {

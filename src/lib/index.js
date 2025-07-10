@@ -58,14 +58,14 @@ import path from "path";
 import Ajv from "ajv";
 
 const ajv = new Ajv();
-
+const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 50 MB
 const {
   PATH_APP_FUNCTIONS,
   JWT_KEY,
   HOST,
   TELEGRAM_SERVER_CHATID,
   TELEGRAM_SERVER_MSG_THREAD_ID,
-  MAX_FILE_SIZE_UPLOAD,
+  MAX_FILE_SIZE_UPLOAD, // Default 50 MB
 } = process.env;
 const PORT = process.env.PORT || default_port;
 
@@ -115,7 +115,7 @@ export default class ServerAPI extends EventEmitter {
 
     this.fastify = Fastify({
       logger: false,
-      bodyLimit: MAX_FILE_SIZE_UPLOAD || 50000000, // For multipart forms, the max file size in bytes
+      bodyLimit: parseInt(MAX_FILE_SIZE_UPLOAD, 10)  || DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
     });
 
     this._build();
@@ -148,7 +148,7 @@ export default class ServerAPI extends EventEmitter {
 
   async _build() {
     await this.fastify.register(formbody, {
-      bodyLimit: MAX_FILE_SIZE_UPLOAD || 50000000, // For multipart forms, the max file size in bytes
+      bodyLimit: parseInt(MAX_FILE_SIZE_UPLOAD, 10)  || DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
     });
     await this.fastify.register(multipart, {
       attachFieldsToBody: "keyValues",
@@ -156,7 +156,7 @@ export default class ServerAPI extends EventEmitter {
         //fieldNameSize: 100, // Max field name size in bytes
         //fieldSize: 100, // Max field value size in bytes
         //fields: 10, // Max number of non-file fields
-        fileSize: MAX_FILE_SIZE_UPLOAD || 50000000, // For multipart forms, the max file size in bytes
+        fileSize: parseInt(MAX_FILE_SIZE_UPLOAD, 10)  || DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
         //files: 1, // Max number of file fields
         //headerPairs: 2000, // Max number of header key=>value pairs
         //parts: 1000, // For multipart forms, the max number of parts (fields + files)
