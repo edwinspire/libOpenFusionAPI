@@ -125,7 +125,7 @@ setInterval(() => {
               console.error("Error updating status");
             });
         } else {
-          console.log("Task in status " + task.status);
+         // console.log("Task in status " + task.status);
         }
       } catch (error) {
         updateIntervalTaskStatus(
