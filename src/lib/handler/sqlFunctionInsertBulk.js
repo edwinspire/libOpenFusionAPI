@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
 import { setCacheReply } from "./utils.js";
@@ -100,8 +98,6 @@ export const sqlFunctionInsertBulk = async (
   } catch (error) {
     console.log(error);
 
-     saveErrorToDisk(error);
-
     setCacheReply(reply, { error: error });
     reply.code(500).send(error);
   }
@@ -148,37 +144,6 @@ async function bulkInsertWithTransaction(
   }
 }
 
-/**
- * Guarda un objeto de error en un archivo JSON con fecha y hora.
- * @param {Error} error - El objeto de error a guardar.
- */
-export function saveErrorToDisk(error) {
-  try {
-    // Construye un objeto seguro para serializar
-    const safeError = {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      ...(error.original ? { original: error.original } : {}),
-      ...(error.sql ? { sql: error.sql } : {})
-    };
-
-    // Ruta del archivo: logs/error-<fecha>.json
-    const logDir = path.join(process.cwd(), 'logs');
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
-    }
-
-    const timestamp = new Date().toISOString().replace(/:/g, '-');
-    const logFile = path.join(logDir, `error-${timestamp}.json`);
-
-    fs.writeFileSync(logFile, JSON.stringify(safeError, null, 2), 'utf8');
-
-    console.log(`📂 Error guardado en: ${logFile}`);
-  } catch (fsErr) {
-    console.error('❌ Error guardando el log en disco:', fsErr);
-  }
-}
 
 function bulkInsert(sequelize, tableName, data) {
   //console.log('bulkInsert >>>>>>>>>>>> ', sequelize, tableName, data);
