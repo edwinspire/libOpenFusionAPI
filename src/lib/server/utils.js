@@ -32,10 +32,13 @@ export const webhookSchema = Zod.object({
   database: Zod.string().min(1, { message: "Database is required." }),
   schema: Zod.string().min(0, { message: "Schema is required." }),
   model: Zod.string().min(1, { message: "Model is required." }),
-  action: Zod.enum(["insert", "update", "delete", "upsert", "afterUpsert", "afterCreate"], {
-    message:
-      "Valid options: 'insert', 'update', 'delete', 'bulk_insert', 'bulk_update', 'upsert'",
-  }),
+  action: Zod.enum(
+    ["insert", "update", "delete", "upsert", "afterUpsert", "afterCreate"],
+    {
+      message:
+        "Valid options: 'insert', 'update', 'delete', 'bulk_insert', 'bulk_update', 'upsert'",
+    }
+  ),
   data: Zod.record(Zod.any()).optional(), // Puede ser un objeto vacío o contener datos dinámicos
 });
 
@@ -395,6 +398,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: reply ? reply?.openfusionapi?.server : undefined,
       info: "Current Server instance.",
       web: own_repo,
+      return: "Server instance.",
     },
     $_TELEGRAM_: {
       fn: reply?.openfusionapi?.telegram
@@ -467,7 +471,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       info: "Create the absolute url that points to the internal path of the server.",
       web: own_repo,
       warn: "Discontinued. Replaced by $_FETCH_OFAPI_.",
-      params: [{ name: "relative_path", description: "Relative path" }],
+      params: [{ name: "relative_path", info: "Relative path" }],
     },
     $_FETCH_OFAPI_: {
       fn: request && reply ? fetchOFAPI : undefined,
@@ -482,19 +486,20 @@ export const listFunctionsVars = (request, reply, environment) => {
       params: [
         {
           name: "url",
-          description: 'Relative url to use with environment prefix "auto".',
+          info: 'Relative url to use with environment prefix "auto".',
           required: true,
           value_type: "string",
           default_value: "",
         },
         {
           name: "auto_env",
-          description: "Apply auto environment.",
+          info: "Apply auto environment.",
           required: false,
           value_type: "boolean",
           default_value: true,
         },
       ],
+      return: "uFetch instance.",
     },
     $_MONGOOSE_: {
       fn: request && reply ? mongoose : undefined,
@@ -508,35 +513,55 @@ export const listFunctionsVars = (request, reply, environment) => {
       params: [
         {
           name: "message",
-          description: "The message that will be shown to the user.",
+          info: "The message that will be shown to the user.",
           required: true,
-          value_type: "",
+          value_type: "string",
           default_value: "",
         },
         {
           name: "data",
-          description: "An object of additional data to be sent to the user",
+          info: "An object of additional data to be sent to the user",
           required: false,
           value_type: "any",
           default_value: "",
         },
         {
           name: "statusCode",
-          description:
+          info:
             "HTTP Status Code with which the request will be responded to.",
           required: false,
-          value_type: "",
+          value_type: "int",
           default_value: 500,
         },
       ],
-      return: "Stops the execution of the program and returns a message.",
-      methods: [
-        {
-          name: "create",
-          params: [{ name: "url", value: "", required: true }],
-          return: "Instance uFetch.",
-        },
-      ],
+      return: {
+        value_type: "void",
+        info:
+          "throw - Stops the execution of the program and returns a oject.",
+        object: [
+          {
+            name: "message",
+            info: "The message that will be shown to the user.",
+            value_type: "string",
+          },
+          {
+            name: "data",
+            info: "An object of additional data to be sent to the user",
+            required: false,
+            value_type: "any",
+            default_value: "",
+          },
+          {
+            name: "statusCode",
+            info:
+              "HTTP Status Code with which the request will be responded to.",
+            required: false,
+            value_type: "",
+            default_value: 500,
+          },
+        ],
+      },
+      example: `$_EXCEPTION_('A parameter has not been entered', $_REQUEST_.body, 400);`,
     },
     $_LUXON_: {
       fn: request && reply ? LUXON : undefined,
@@ -722,7 +747,6 @@ const isAbsoluteUrl = (url) => {
   return absoluteUrlPattern.test(url);
 };
 
-
 /**
  * Guarda un objeto de error en un archivo JSON con fecha y hora.
  * @param {Error} error - El objeto de error a guardar.
@@ -735,22 +759,22 @@ export function saveErrorToDisk(error) {
       stack: error.stack,
       name: error.name,
       ...(error.original ? { original: error.original } : {}),
-      ...(error.sql ? { sql: error.sql } : {})
+      ...(error.sql ? { sql: error.sql } : {}),
     };
 
     // Ruta del archivo: logs/error-<fecha>.json
-    const logDir = path.join(process.cwd(), 'logs');
+    const logDir = path.join(process.cwd(), "logs");
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
 
-    const timestamp = new Date().toISOString().replace(/:/g, '-');
+    const timestamp = new Date().toISOString().replace(/:/g, "-");
     const logFile = path.join(logDir, `error-${timestamp}.json`);
 
-    fs.writeFileSync(logFile, JSON.stringify(safeError, null, 2), 'utf8');
+    fs.writeFileSync(logFile, JSON.stringify(safeError, null, 2), "utf8");
 
     console.log(`📂 Error guardado en: ${logFile}`);
   } catch (fsErr) {
-    console.error('❌ Error guardando el log en disco:', fsErr);
+    console.error("❌ Error guardando el log en disco:", fsErr);
   }
 }
