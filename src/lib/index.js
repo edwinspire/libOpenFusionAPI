@@ -16,6 +16,7 @@ import Endpoint from "./server/endpoint.js";
 import { TelegramBot } from "./server/telegram/telegram.js";
 
 import { TasksInterval } from "./timer/tasks.js";
+//import  {MCPServer, StreamableHTTPServerTransport}  from "./server/mcp/server.js";
 
 import dbAPIs from "./db/sequelize.js";
 import {
@@ -112,10 +113,13 @@ export default class ServerAPI extends EventEmitter {
     //this._cacheURLResponse = new Map();
 
     this.TasksInterval = new TasksInterval();
+    //this.MCPServer = new MCPServer();
 
     this.fastify = Fastify({
       logger: false,
-      bodyLimit: parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024  || DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
+      bodyLimit:
+        parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024 ||
+        DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
     });
 
     this._build();
@@ -148,7 +152,9 @@ export default class ServerAPI extends EventEmitter {
 
   async _build() {
     await this.fastify.register(formbody, {
-      bodyLimit: parseInt(MAX_FILE_SIZE_UPLOAD, 10)  * 1024 * 1024  || DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
+      bodyLimit:
+        parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024 ||
+        DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
     });
     await this.fastify.register(multipart, {
       attachFieldsToBody: "keyValues",
@@ -156,7 +162,9 @@ export default class ServerAPI extends EventEmitter {
         //fieldNameSize: 100, // Max field name size in bytes
         //fieldSize: 100, // Max field value size in bytes
         //fields: 10, // Max number of non-file fields
-        fileSize: parseInt(MAX_FILE_SIZE_UPLOAD, 10)  * 1024 * 1024 || DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
+        fileSize:
+          parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024 ||
+          DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
         //files: 1, // Max number of file fields
         //headerPairs: 2000, // Max number of header key=>value pairs
         //parts: 1000, // For multipart forms, the max number of parts (fields + files)
@@ -245,6 +253,41 @@ export default class ServerAPI extends EventEmitter {
         this.endpoints.setCache(handler_param.key, request, reply);
       }
     });
+
+    /*
+this.fastify.post("/mcp", async (request, reply) => {
+  // Aquí puedes manejar las peticiones POST a /mcp
+
+    try {
+    const server = MCPServer; 
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+    reply.raw.on('close', () => {
+      console.log('Request closed');
+      transport.close();
+      server.close();
+    });
+    await server.connect(transport);
+    await transport.handleRequest(request, reply.raw, request.body);
+  } catch (error) {
+    console.error('Error handling MCP request:', error);
+    if (!reply.headersSent) {
+      reply.status(500).send({
+        jsonrpc: '2.0',
+        error: {
+          code: -32603,
+          message: 'Internal server error',
+        },
+        id: null,
+      });
+    }
+  }
+
+  
+  
+});
+*/
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
       // Todos los clientes deben estar registra<zdos para poder hacer broadcast o desconectarlos masivamente
@@ -460,6 +503,7 @@ export default class ServerAPI extends EventEmitter {
     );
 
     this.TasksInterval.run();
+    //this.MCPServer.run();
 
     this.telegram.launch();
 
@@ -784,22 +828,42 @@ export default class ServerAPI extends EventEmitter {
    * @param {boolean} buildDB
    */
   buildDB() {
-    let buildDB = process.env.BUILD_DB;
+    let buildDBEnv = process.env.BUILD_DB;
+    let buildDB =
+      buildDBEnv && buildDBEnv.toString().toUpperCase() == "TRUE"
+        ? true
+        : false;
 
-    if (buildDB && buildDB.toString().toUpperCase() == "TRUE") {
+    if (buildDB) {
       console.log("Crea la base de datos");
 
       (async () => {
         try {
           await dbAPIs.sync({ alter: false });
-          //  await defaultRoles();
+        } catch (error) {
+          console.log(error);
+        }
+
+        try {
           await defaultUser();
+        } catch (error) {
+          console.log(error);
+        }
+
+        try {
           await defaultMethods();
+        } catch (error) {
+          console.log(error);
+        }
+
+        try {
           await defaultHandlers();
+        } catch (error) {
+          console.log(error);
+        }
+
+        try {
           await defaultApps();
-          // await defaultEndpoints();
-          //await defaultAPIUser();
-          //  await defaultAPIUserMapping();
         } catch (error) {
           console.log(error);
         }

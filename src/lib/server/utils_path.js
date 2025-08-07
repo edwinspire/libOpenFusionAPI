@@ -1,6 +1,5 @@
 import { match } from "path-to-regexp";
 
-
 export const default_port = 3000;
 //export const url_telegram_notifications =  process.env.URL_TELEGRAM_NOTIFICATIONS ?? `/api/system/api/telegram/sendmsg/prd`;
 export const struct_api_path = "/api/:app/*";
@@ -29,18 +28,24 @@ export const get_url_params = (/** @type {string} */ url) => {
   return par;
 };
 
+/*
 export const key_url_from_params = (
-  /** @type {{ app: string; method: string; resource: string; }} */ params
+ params
 ) => {
   return `/api/${params.app}${params.resource}/${params.method}`;
 };
+*/
 
 export const key_endpoint_method = (app, resource, environment, method, ws) => {
-  return `${
-    ws ? "/ws/" : "/api/"
-  }${app.toLowerCase()}${resource.toLowerCase()}/${environment.toLowerCase()}|${
+  return `${internal_url_endpoint(app, resource, environment, ws)}|${
     ws ? "WS" : method
   }`;
+};
+
+export const internal_url_endpoint = (app, resource, environment, ws) => {
+  return `${
+    ws ? "/ws/" : "/api/"
+  }${app.toLowerCase()}${resource.toLowerCase()}/${environment.toLowerCase()}`;
 };
 
 /**

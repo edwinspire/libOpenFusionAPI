@@ -86,6 +86,13 @@ export const defaultHandlers = () => {
         icon_class: "fa-solid fa-database",
         color_class: "",
       },
+      {
+        id: "MCP",
+        text: `MCP`,
+        description: "Create an mcp server for the application.",
+        icon_class: "fa-brands fa-connectdevelop",
+        color_class: "danger",
+      },
     ];
 
     handlers.forEach(async (h) => {

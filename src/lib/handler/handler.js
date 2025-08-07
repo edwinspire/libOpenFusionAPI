@@ -7,6 +7,7 @@ import { customFunction } from "./customFunction.js";
 import { sqlHana } from "./sqlHana.js";
 import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
 import { mongodbFunction } from "./mongoDB.js";
+import { mcpFunction } from "./mcpFunction.js";
 
 /**
  * @param {{headers: any;body: any;query: any;}} request
@@ -45,6 +46,9 @@ export async function runHandler(request, response, method, server_data) {
       break;
     case "MONGODB":
       await mongodbFunction(request, response, method);
+      break;
+    case "MCP":
+      await mcpFunction(request, response, method);
       break;
     default:
       response.code(404).send(`handler ${method.handler} not valid`);

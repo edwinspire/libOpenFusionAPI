@@ -33,7 +33,7 @@ export class TasksInterval {
     });
 
     // Enviar mensaje al worker
-    this.worker.postMessage("¡Hola worker, desde el hilo principal!");
+    //this.worker.postMessage("¡Hola worker, desde el hilo principal!");
 
     this.worker.on("error", (err) => {
       console.error("Error en el worker:", err);

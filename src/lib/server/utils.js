@@ -527,8 +527,7 @@ export const listFunctionsVars = (request, reply, environment) => {
         },
         {
           name: "statusCode",
-          info:
-            "HTTP Status Code with which the request will be responded to.",
+          info: "HTTP Status Code with which the request will be responded to.",
           required: false,
           value_type: "int",
           default_value: 500,
@@ -536,8 +535,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       ],
       return: {
         value_type: "void",
-        info:
-          "throw - Stops the execution of the program and returns a oject.",
+        info: "throw - Stops the execution of the program and returns a oject.",
         object: [
           {
             name: "message",
@@ -553,8 +551,7 @@ export const listFunctionsVars = (request, reply, environment) => {
           },
           {
             name: "statusCode",
-            info:
-              "HTTP Status Code with which the request will be responded to.",
+            info: "HTTP Status Code with which the request will be responded to.",
             required: false,
             value_type: "",
             default_value: 500,
@@ -746,6 +743,55 @@ const isAbsoluteUrl = (url) => {
   // Si la URL coincide con el patrón, es absoluta
   return absoluteUrlPattern.test(url);
 };
+
+/**
+ * Devuelve el método de parsing sugerido basado en el Content-Type.
+ *
+ * @param {string} contentType
+ * @returns {"json" | "text" | "blob" | "urlencoded" | "raw"}
+ */
+export /**
+ * Devuelve el método de parsing sugerido basado en el Content-Type.
+ * @param {string} contentType
+ * @returns {"json" | "text" | "blob" | "urlencoded" | "raw"}
+ */
+function getParseMethod(contentType = "") {
+  // Elimina cualquier parámetro como charset, boundary, etc.
+  const mimeType = contentType.split(";")[0].trim().toLowerCase();
+
+  if (mimeType === "application/json") {
+    return "json";
+  }
+
+  if (mimeType.startsWith("text/")) {
+    return "text";
+  }
+
+  if (
+    mimeType === "application/octet-stream" ||
+    mimeType === "application/pdf"
+  ) {
+    return "blob";
+  }
+
+  if (mimeType === "application/x-www-form-urlencoded") {
+    return "urlencoded";
+  }
+
+  if (mimeType === "multipart/form-data") {
+    return "raw"; // requiere plugin multipart
+  }
+
+  if (
+    mimeType.startsWith("image/") ||
+    mimeType.startsWith("audio/") ||
+    mimeType.startsWith("video/")
+  ) {
+    return "blob";
+  }
+
+  return "text"; // Fallback genérico
+}
 
 /**
  * Guarda un objeto de error en un archivo JSON con fecha y hora.
