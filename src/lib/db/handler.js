@@ -3,7 +3,9 @@ import { Handler } from "./models.js";
 export const getAllHandlers = async () => {
   try {
     //const apps = await Application.findAll({ attributes: ["idapp", "app"] });
-    const datas = await Handler.findAll();
+    const datas = await Handler.findAll({
+      order: [["label", "ASC"]], // ASC para ascendente, DESC para descendente
+    });
     return datas;
   } catch (error) {
     console.error("Error retrieving:", error);
@@ -90,7 +92,7 @@ export const defaultHandlers = () => {
         id: "MCP",
         text: `MCP`,
         description: "Create an mcp server for the application.",
-        icon_class: "fa-brands fa-connectdevelop",
+        icon_class: " fa-solid fa-hammer ",
         color_class: "danger",
       },
     ];

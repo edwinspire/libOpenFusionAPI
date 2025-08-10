@@ -30,8 +30,10 @@ export const mcpFunction = async (
 
         if (
           endpoint.enabled &&
+          endpoint.environment == request.openfusionapi.handler.params.environment &&
           endpoint.method != "WS" &&
-          endpoint.handler != "MCP"
+          endpoint.handler != "MCP" &&
+          endpoint?.mcp?.enabled
         ) {
           let url_internal = internal_url_endpoint(
             app.app,
@@ -41,9 +43,9 @@ export const mcpFunction = async (
           );
 
           server.registerTool(
-            `${url_internal} [${endpoint.method}]`,
+            endpoint?.mcp?.name || `${url_internal} [${endpoint.method}]`,
             {
-              title: endpoint.description,
+              title: endpoint?.mcp?.title || endpoint.description,
               description: `${
                 endpoint.access == 0 ? "Public" : "Private"
               } Method: ${endpoint.method} Handler: ${endpoint.handler} ${
@@ -66,9 +68,11 @@ export const mcpFunction = async (
               let data_out = undefined;
               let parse_method = getParseMethod(mimeType);
 
+              /*
               if (parse_method === "json") {
                 // Do something with the custom header
                 data_out = await request_endpoint.json();
+                data_out = JSON.stringify(data_out, null, 2);
                 console.log("Response from endpoint:", data_out);
               } else if (parse_method === "text") {
                 data_out = await request_endpoint.text();
@@ -81,12 +85,16 @@ export const mcpFunction = async (
                 data_out = await request_endpoint.text();
                 console.log("Response from endpoint:", data_out);
               }
+              */
+
+              data_out = await request_endpoint.text();
 
               return {
                 content: [
                   {
+                    type: "text",
                     mimeType: mimeType,
-                    data: data_out,
+                    text: data_out
                   },
                 ],
               };

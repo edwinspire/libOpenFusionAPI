@@ -40,6 +40,7 @@ export const getAppWithEndpoints = async (
         "rowkey",
         "latest_updater",
         "cache_time",
+        "mcp",
       ],
       order: [
         ["resource", "ASC"],

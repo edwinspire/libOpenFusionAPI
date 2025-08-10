@@ -528,6 +528,11 @@ export const Endpoint = dbsequelize.define(
       comment:
         "Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token",
     },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      defaultValue: "",
+    },
     ctrl: {
       type: JSON_TYPE,
       comment: "Additional controls. Users, Logs, etc.",
@@ -553,10 +558,22 @@ export const Endpoint = dbsequelize.define(
         JSON_ADAPTER.setData(this, "cors", value);
       },
     },
-    description: {
-      type: DataTypes.TEXT,
+    cache_time: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: "",
+      defaultValue: 0,
+      comment:
+        "Time in which the data will be kept in cache. Zero to disable the cache.",
+    },
+    mcp: {
+      type: JSON_TYPE,
+      allowNull: true,
+      get() {
+        return JSON_ADAPTER.getData(this, "mcp");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "mcp", value);
+      },
     },
     headers_test: {
       type: JSON_TYPE,
@@ -581,13 +598,6 @@ export const Endpoint = dbsequelize.define(
     latest_updater: {
       type: DataTypes.BIGINT,
       allowNull: true,
-    },
-    cache_time: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      comment:
-        "Time in which the data will be kept in cache. Zero to disable the cache.",
     },
   },
   {
@@ -792,7 +802,6 @@ export const LogEntry = dbsequelize.define(
     hooks: {
       afterCreate: async (/** @type {any} */ instance, options) => {
         //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
-        
         /*
         await HooksDB({
           instance: instance,
