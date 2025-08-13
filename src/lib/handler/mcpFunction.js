@@ -1,12 +1,18 @@
 //import  {MCPServer, StreamableHTTPServerTransport}  from "./server/mcp/server.js";
 import {
-  getServer,
+  //  getServer,
   StreamableHTTPServerTransport,
 } from "../server/mcp/server.js";
-import { z } from "zod";
-import { getAppByName } from "../../lib/db/app.js"; // Import to ensure the database is initialized
-import { URLAutoEnvironment, getParseMethod } from "../server/utils.js";
-import { internal_url_endpoint } from "../server/utils_path.js"; // Import the internal_url_endpoint function
+//import { z } from "zod";
+//import { getAppByName } from "../../lib/db/app.js"; // Import to ensure the database is initialized
+/*
+import {
+  URLAutoEnvironment,
+  getParseMethod,
+  jsonSchemaToZod,
+} from "../server/utils.js";
+*/
+//import { internal_url_endpoint } from "../server/utils_path.js"; // Import the internal_url_endpoint function
 
 export const mcpFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
@@ -16,10 +22,11 @@ export const mcpFunction = async (
   try {
     //    console.log(request.openfusionapi.handler.params.app);
 
-    let apps = await getAppByName(request.openfusionapi.handler.params.app);
+  //  let apps = await getAppByName(request.openfusionapi.handler.params.app);
 
-    const server = getServer();
+    const server = request.openfusionapi.handler.params.server_mcp(request.headers);
 
+    /*
     for (let index = 0; index < apps.length; index++) {
       const app = apps[index];
       // console.log("App:", app);
@@ -30,7 +37,8 @@ export const mcpFunction = async (
 
         if (
           endpoint.enabled &&
-          endpoint.environment == request.openfusionapi.handler.params.environment &&
+          endpoint.environment ==
+            request.openfusionapi.handler.params.environment &&
           endpoint.method != "WS" &&
           endpoint.handler != "MCP" &&
           endpoint?.mcp?.enabled
@@ -51,9 +59,7 @@ export const mcpFunction = async (
               } Method: ${endpoint.method} Handler: ${endpoint.handler} ${
                 endpoint.description
               }`,
-              inputSchema: {
-                data: z.any().describe("Data to send to the endpoint."),
-              },
+              inputSchema: {}//fn_zod_validate_schema,
             },
 
             async (data) => {
@@ -61,31 +67,13 @@ export const mcpFunction = async (
               let uF = auto_env.create(url_internal, false);
 
               let request_endpoint = await uF[endpoint.method.toUpperCase()]({
-                data: data.data,
+                data: data,
                 headers: request.headers,
               });
               const mimeType = request_endpoint.headers.get("content-type");
               let data_out = undefined;
-              let parse_method = getParseMethod(mimeType);
-
-              /*
-              if (parse_method === "json") {
-                // Do something with the custom header
-                data_out = await request_endpoint.json();
-                data_out = JSON.stringify(data_out, null, 2);
-                console.log("Response from endpoint:", data_out);
-              } else if (parse_method === "text") {
-                data_out = await request_endpoint.text();
-                console.log("Response from endpoint:", data_out);
-              } else if (parse_method === "blob") {
-                data_out = await request_endpoint.blob();
-                // TODO: Es posible devolver la imagen en base 64
-                console.log("Response from endpoint:", data_out);
-              } else {
-                data_out = await request_endpoint.text();
-                console.log("Response from endpoint:", data_out);
-              }
-              */
+              //let parse_method = getParseMethod(mimeType);
+              // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
 
               data_out = await request_endpoint.text();
 
@@ -94,7 +82,7 @@ export const mcpFunction = async (
                   {
                     type: "text",
                     mimeType: mimeType,
-                    text: data_out
+                    text: data_out,
                   },
                 ],
               };
@@ -103,6 +91,7 @@ export const mcpFunction = async (
         }
       }
     }
+    */
 
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,

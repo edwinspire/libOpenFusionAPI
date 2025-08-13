@@ -8,6 +8,7 @@ import { sqlHana } from "./sqlHana.js";
 import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
 import { mongodbFunction } from "./mongoDB.js";
 import { mcpFunction } from "./mcpFunction.js";
+import { getRequestData } from "../server/utils.js";
 
 /**
  * @param {{headers: any;body: any;query: any;}} request
@@ -18,12 +19,38 @@ import { mcpFunction } from "./mcpFunction.js";
 export async function runHandler(request, response, method, server_data) {
   //console.log(">>> runHandler <<<<");
 
+  /*
+  const validate =
+    request?.openfusionapi?.handler?.params?.json_schema?.in
+      ?.fn_ajv_validate_schema;
+
+  if (validate) {
+    console.log("Validating request data against schema");
+    let data_validar = getRequestData(request);
+    const valid = validate && validate(data_validar);
+    const errors = validate.errors ? [...validate.errors] : null;
+
+    if (!valid) {
+      response.code(400).send({
+        error: "Validation failed",
+        details: errors,
+      });
+    } else {
+      await runHandlerFunction(request, response, method, server_data);
+    }
+  } else {
+    await runHandlerFunction(request, response, method, server_data);
+  }
+  */
+  await runHandlerFunction(request, response, method, server_data);
+}
+
+async function runHandlerFunction(request, response, method, server_data) {
   switch (method.handler) {
     case "JS":
       await jsFunction(request, response, method);
       break;
     case "FETCH":
-      // @ts-ignore
       await fetchFunction(request, response, method);
       break;
     case "SOAP":

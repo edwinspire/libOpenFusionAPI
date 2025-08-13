@@ -1,11 +1,28 @@
 import { EventEmitter } from "node:events";
-import { get_url_params, key_endpoint_method } from "./utils_path.js";
-import { getAppWithEndpoints } from "../db/app.js";
+import {
+  get_url_params,
+  key_endpoint_method,
+  internal_url_endpoint,
+} from "./utils_path.js";
+import { getAppWithEndpoints, getAppByName } from "../db/app.js";
+import { z } from "zod";
+import { getServer } from "../server/mcp/server.js";
+
 //import { createFunction } from "../handler/utils.js";
-import { md5, getIPFromRequest, createFunction } from "./utils.js";
+import {
+  md5,
+  getIPFromRequest,
+  createFunction,
+  jsonSchemaToZod,
+  URLAutoEnvironment,
+} from "./utils.js";
 //import PromiseSequence from "@edwinspire/sequential-promises";
 import { createLog, getLogLevelByStatusCode } from "../db/log.js";
 import { getMongoDBHandlerParams } from "../handler/mongoDB.js";
+import Ajv from "ajv";
+//import { runHandler } from "../handler/handler.js";
+
+const ajv = new Ajv();
 
 const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 
@@ -31,7 +48,7 @@ export default class Endpoint extends EventEmitter {
   constructor() {
     super();
 
- //   this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
+    //   this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
   }
 
   pushLog(log) {
@@ -419,7 +436,7 @@ export default class Endpoint extends EventEmitter {
 
         const appData = appDatas[0];
 
-        if (appData.enabled && appData.endpoints ) {
+        if (appData.enabled && appData.endpoints) {
           for (let i = 0; i < appData.endpoints.length; i++) {
             let endpoint = appData.endpoints[i];
 
@@ -441,7 +458,7 @@ export default class Endpoint extends EventEmitter {
               }
 
               this.internal_endpoint[endpoint_key].handler =
-               await this._getApiHandler(appData.app, endpoint, appData.vars);
+                await this._getApiHandler(appData.app, endpoint, appData.vars);
 
               break;
             }
@@ -453,7 +470,7 @@ export default class Endpoint extends EventEmitter {
     }
   }
 
-async  _getApiHandler(app_name, endpointData, app_vars) {
+  async _getApiHandler(app_name, endpointData, app_vars) {
     let returnHandler = {};
     returnHandler.params = endpointData;
     returnHandler.params.app = app_name;
@@ -491,6 +508,133 @@ async  _getApiHandler(app_name, endpointData, app_vars) {
                 break;
             }
           }
+        }
+
+        // Habilita la validación de datos de entrada usando AJV
+        if (returnHandler?.params?.json_schema?.in?.enabled) {
+          console.log("Habiltado Validación JSON Schema");
+
+          try {
+            returnHandler.params.json_schema.in.fn_ajv_validate_schema =
+              ajv.compile(returnHandler.params.json_schema.in.schema);
+          } catch (error) {
+            console.trace(error);
+          }
+        }
+        /*
+        // Crea una función para la validación de las entradas del MCP
+        if (returnHandler?.params?.mcp?.enabled) {
+          
+          let zod_inputSchema = z
+            .any()
+            .describe("Data to send to the endpoint.");
+
+          if (returnHandler?.params?.json_schema?.in?.schema) {
+            // Convertir
+            zod_inputSchema = jsonSchemaToZod(
+              returnHandler.params.json_schema.in.schema
+            );
+          }
+
+          returnHandler.params.json_schema.in.fn_zod_validate_schema =
+            zod_inputSchema.shape;
+        }
+        */
+
+        // Para que los datos del server vayan a cache
+        if (returnHandler.params.handler == "MCP") {
+          let apps = await getAppByName(returnHandler.params.app);
+
+          returnHandler.params.server_mcp = (headers) => {
+            const server = getServer();
+
+            // TODO: Es posible que se pueda mejorar esta parte del código para que no sea necesario ejecutarlo en cada llamada.
+
+            for (let index = 0; index < apps.length; index++) {
+              const app = apps[index];
+              // console.log("App:", app);
+
+              for (let index2 = 0; index2 < app.endpoints.length; index2++) {
+                const endpoint = app.endpoints[index2];
+                //  console.log("Endpoint:", endpoint);
+
+                if (
+                  endpoint.enabled &&
+                  endpoint.environment == returnHandler.params.environment &&
+                  endpoint.method != "WS" &&
+                  endpoint.handler != "MCP" &&
+                  endpoint?.mcp?.enabled
+                ) {
+                  let url_internal = internal_url_endpoint(
+                    app.app,
+                    endpoint.resource,
+                    endpoint.environment,
+                    false
+                  );
+
+                  let zod_inputSchema = z
+                    .any()
+                    .describe("Data to send to the endpoint.");
+
+                  //  console.log(z.toJSONSchema(zod_inputSchema));
+
+                  if (
+                    endpoint?.json_schema?.in?.enabled &&
+                    endpoint?.json_schema?.in?.schema
+                  ) {
+                    // Convertir
+                    zod_inputSchema = jsonSchemaToZod(
+                      endpoint.json_schema.in.schema
+                    );
+                  }
+
+                  server.registerTool(
+                    endpoint?.mcp?.name ||
+                      `${url_internal}[${endpoint.method}]`,
+                    {
+                      title: endpoint?.mcp?.title || endpoint.description,
+                      description: `${
+                        endpoint.access == 0 ? "Public" : "Private"
+                      } Method: ${endpoint.method} Handler: ${
+                        endpoint.handler
+                      } ${endpoint.description}`,
+                      inputSchema: zod_inputSchema.shape,
+                    },
+
+                    async (data) => {
+                      let auto_env = new URLAutoEnvironment();
+                      let uF = auto_env.create(url_internal, false);
+
+                      let request_endpoint = await uF[
+                        endpoint.method.toUpperCase()
+                      ]({
+                        data: data,
+                        headers: headers,
+                      });
+                      const mimeType =
+                        request_endpoint.headers.get("content-type");
+                      let data_out = undefined;
+                      //let parse_method = getParseMethod(mimeType);
+                      // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
+
+                      data_out = await request_endpoint.text();
+
+                      return {
+                        content: [
+                          {
+                            type: "text",
+                            mimeType: mimeType,
+                            text: data_out,
+                          },
+                        ],
+                      };
+                    }
+                  );
+                }
+              }
+            }
+            return server;
+          };
         }
 
         if (returnHandler.params.handler == "MONGODB") {

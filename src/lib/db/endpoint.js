@@ -63,6 +63,7 @@ export const getEndpointByApp = async (
     "method",
     "handler",
     "mcp",
+    "json_schema",
     "cache_time",
     "code",
     "environment",

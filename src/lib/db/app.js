@@ -35,6 +35,7 @@ export const getAppWithEndpoints = async (
         "cors",
         "code",
         "description",
+        "json_schema",
         "headers_test",
         "data_test",
         "rowkey",

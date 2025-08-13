@@ -17,6 +17,25 @@ const TableName_Method = prefixTableName("method");
 const TableName_Handler = prefixTableName("handler");
 const TableName_Demo = prefixTableName("demo");
 
+const default_json_schema = {
+  in: {
+    enabled: false,
+    schema: {
+      type: "object",
+      properties: {},
+      additionalProperties: true,
+    },
+  },
+  out: {
+    enabled: false,
+    schema: {
+      type: "object",
+      properties: {},
+      additionalProperties: true,
+    },
+  },
+};
+
 class JSON_ADAPTER {
   constructor() {}
 
@@ -573,6 +592,17 @@ export const Endpoint = dbsequelize.define(
       },
       set(value) {
         JSON_ADAPTER.setData(this, "mcp", value);
+      },
+    },
+    json_schema: {
+      type: JSON_TYPE,
+      allowNull: true,
+      defaultValue: default_json_schema,
+      get() {
+        return JSON_ADAPTER.getData(this, "json_schema");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "json_schema", value);
       },
     },
     headers_test: {
