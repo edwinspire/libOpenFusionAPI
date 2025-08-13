@@ -721,11 +721,11 @@ export class URLAutoEnvironment {
   }
 
   create(url, auto_environment = true) {
-    let new_url = isAbsoluteUrl(url) ? url : this._auto(url, auto_environment);
+    let new_url = isAbsoluteUrl(url) ? url : this.auto(url, auto_environment);
     return new uFetch(new_url);
   }
 
-  _auto(url, auto_environment) {
+  auto(url, auto_environment = true) {
     return auto_environment ? this._autoEnvironment(url) : this._direct(url);
   }
 
@@ -742,7 +742,7 @@ export class URLAutoEnvironment {
 }
 
 export const getInternalURL = (relative_path) => {
-  console.warn("Decrepted getInternalURL!!!!!\n" + relative_path);
+  console.warn("Decrepted getInternalURL!!!!!\n" + relative_path+"\n");
   return `http://localhost:${PORT}${relative_path}`;
 };
 
@@ -843,226 +843,4 @@ export function saveErrorToDisk(error) {
   }
 }
 
-/**
- * Convierte un JSON Schema (objeto) a un schema Zod.
- * @param {object} schema JSON Schema (obj form)
- * @returns {z.ZodTypeAny} Zod schema
- */
-export function jsonSchemaToZod(schema) {
-  const z = Zod;
-  // memo: cache por referencia para evitar recompilación y soportar recursividad
-  const memo = new Map();
 
-  function convert(sch) {
-    if (memo.has(sch)) return memo.get(sch);
-
-    // placeholder para manejar esquemas recursivos
-    const placeholder = z.any();
-    memo.set(sch, placeholder);
-
-    let result;
-
-    // Helper: handle type arrays / unions
-    const buildFromType = (typeVal) => {
-      if (Array.isArray(typeVal)) {
-        // union de tipos
-        const subs = typeVal.map((t) => buildFromType(t));
-        // filtrar z.any placeholders innecesarios
-        return subs.length === 1 ? subs[0] : z.union(subs);
-      }
-
-      switch (typeVal) {
-        case "string":
-          return z.string();
-        case "number":
-          return z.number();
-        case "integer":
-          return z.number().int ? z.number().int() : z.number();
-        case "boolean":
-          return z.boolean();
-        case "null":
-          return z.null();
-        case "object":
-          return z.object({}).passthrough();
-        case "array":
-          return z.array(z.any());
-        default:
-          return z.any();
-      }
-    };
-
-    // if const
-    if (Object.prototype.hasOwnProperty.call(sch, "const")) {
-      result = z.literal(sch.const);
-      memo.set(sch, result);
-      return result;
-    }
-
-    // if enum
-    if (Array.isArray(sch.enum)) {
-      // If all strings and can be used as z.enum
-      const allStrings = sch.enum.every((v) => typeof v === "string");
-      if (allStrings) {
-        result = z.enum(sch.enum);
-      } else {
-        // union de literales
-        const lits = sch.enum.map((v) => z.literal(v));
-        result = lits.length === 1 ? lits[0] : z.union(lits);
-      }
-      memo.set(sch, result);
-      return result;
-    }
-
-    // anyOf / oneOf / allOf
-    if (Array.isArray(sch.oneOf) && sch.oneOf.length) {
-      const sub = sch.oneOf.map(convert);
-      result = sub.length === 1 ? sub[0] : z.union(sub);
-      memo.set(sch, result);
-      return result;
-    }
-
-    if (Array.isArray(sch.anyOf) && sch.anyOf.length) {
-      const sub = sch.anyOf.map(convert);
-      result = sub.length === 1 ? sub[0] : z.union(sub);
-      memo.set(sch, result);
-      return result;
-    }
-
-    if (Array.isArray(sch.allOf) && sch.allOf.length) {
-      // intersección secuencial
-      const subs = sch.allOf.map(convert);
-      result = subs.reduce(
-        (acc, s) => (acc ? z.intersection(acc, s) : s),
-        null
-      );
-      memo.set(sch, result);
-      return result;
-    }
-
-    // Type-based building
-    if (sch.type) {
-      const base = buildFromType(sch.type);
-
-      // String specifics
-      if (
-        sch.type === "string" ||
-        (Array.isArray(sch.type) && sch.type.includes("string"))
-      ) {
-        let s = base;
-        if (typeof sch.minLength === "number") s = s.min(sch.minLength);
-        if (typeof sch.maxLength === "number") s = s.max(sch.maxLength);
-        if (typeof sch.pattern === "string") {
-          try {
-            const re = new RegExp(sch.pattern);
-            s = s.regex(re);
-          } catch (e) {
-            // patrón inválido -> ignorar optimistamente
-          }
-        }
-        if (sch.format === "email") s = s.email ? s.email() : s;
-        if (sch.format === "uri" || sch.format === "url")
-          s = s.url ? s.url() : s;
-        result = s;
-      }
-      // Number specifics
-      else if (
-        sch.type === "number" ||
-        (Array.isArray(sch.type) && sch.type.includes("number")) ||
-        sch.type === "integer"
-      ) {
-        let n = base;
-        if (typeof sch.minimum === "number") n = n.min(sch.minimum);
-        if (typeof sch.maximum === "number") n = n.max(sch.maximum);
-        if (typeof sch.exclusiveMinimum === "number")
-          n = n.gt ? n.gt(sch.exclusiveMinimum) : n;
-        if (typeof sch.exclusiveMaximum === "number")
-          n = n.lt ? n.lt(sch.exclusiveMaximum) : n;
-        // multipleOf -> refine
-        if (typeof sch.multipleOf === "number" && sch.multipleOf !== 0) {
-          n = n.refine(
-            (val) =>
-              Math.abs(
-                val / sch.multipleOf - Math.round(val / sch.multipleOf)
-              ) < 1e-12,
-            {
-              message: `must be multiple of ${sch.multipleOf}`,
-            }
-          );
-        }
-        result = n;
-      }
-      // Object specifics
-      else if (sch.type === "object") {
-        const props = sch.properties || {};
-        const required = Array.isArray(sch.required)
-          ? new Set(sch.required)
-          : new Set();
-
-        const shape = {};
-        for (const [key, subschema] of Object.entries(props)) {
-          const conv = convert(subschema);
-          shape[key] = required.has(key) ? conv : conv.optional();
-        }
-
-        // if additionalProperties === false -> strict, else passthrough
-        const obj = z.object(shape);
-        result =
-          sch.additionalProperties === false ? obj.strict() : obj.passthrough();
-      }
-      // Array specifics
-      else if (sch.type === "array") {
-        if (Array.isArray(sch.items)) {
-          // tuple
-          const tupleSchemas = sch.items.map(convert);
-          let tup = z.tuple(tupleSchemas);
-          if (typeof sch.minItems === "number")
-            tup = tup.min ? tup.min(sch.minItems) : tup;
-          if (typeof sch.maxItems === "number")
-            tup = tup.max ? tup.max(sch.maxItems) : tup;
-          result = tup;
-        } else if (sch.items) {
-          let arr = z.array(convert(sch.items));
-          if (typeof sch.minItems === "number")
-            arr = arr.min ? arr.min(sch.minItems) : arr;
-          if (typeof sch.maxItems === "number")
-            arr = arr.max ? arr.max(sch.maxItems) : arr;
-          result = arr;
-        } else {
-          result = z.array(z.any());
-        }
-      } else {
-        // fallback generic
-        result = base;
-      }
-
-      memo.set(sch, result);
-      return result;
-    }
-
-    // no explicit type: object with properties or empty (any)
-    if (sch.properties || sch.required) {
-      // treat as object
-      const props = sch.properties || {};
-      const required = Array.isArray(sch.required)
-        ? new Set(sch.required)
-        : new Set();
-      const shape = {};
-      for (const [key, subschema] of Object.entries(props)) {
-        const conv = convert(subschema);
-        shape[key] = required.has(key) ? conv : conv.optional();
-      }
-      const obj = z.object(shape);
-      result =
-        sch.additionalProperties === false ? obj.strict() : obj.passthrough();
-      memo.set(sch, result);
-      return result;
-    }
-
-    // fallback: accept any value
-    result = z.any();
-    memo.set(sch, result);
-    return result;
-  }
-
-  return convert(schema);
-}

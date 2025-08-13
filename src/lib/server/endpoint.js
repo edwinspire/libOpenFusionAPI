@@ -5,15 +5,16 @@ import {
   internal_url_endpoint,
 } from "./utils_path.js";
 import { getAppWithEndpoints, getAppByName } from "../db/app.js";
-import { z } from "zod";
+import * as z  from "zod";
 import { getServer } from "../server/mcp/server.js";
-
+//import { jsonSchemaToZod } from "json-schema-to-zod";
+import { JSONSchemaToZod } from "@dmitryrechkin/json-schema-to-zod";
 //import { createFunction } from "../handler/utils.js";
 import {
   md5,
   getIPFromRequest,
   createFunction,
-  jsonSchemaToZod,
+  //jsonSchemaToZod,
   URLAutoEnvironment,
 } from "./utils.js";
 //import PromiseSequence from "@edwinspire/sequential-promises";
@@ -554,83 +555,90 @@ export default class Endpoint extends EventEmitter {
               const app = apps[index];
               // console.log("App:", app);
 
-              for (let index2 = 0; index2 < app.endpoints.length; index2++) {
-                const endpoint = app.endpoints[index2];
-                //  console.log("Endpoint:", endpoint);
-
-                if (
+              let mcp_endpoint_tools = app.endpoints.filter((endpoint) => {
+                return (
                   endpoint.enabled &&
                   endpoint.environment == returnHandler.params.environment &&
                   endpoint.method != "WS" &&
                   endpoint.handler != "MCP" &&
                   endpoint?.mcp?.enabled
+                );
+              });
+
+              for (
+                let index2 = 0;
+                index2 < mcp_endpoint_tools.length;
+                index2++
+              ) {
+                const endpoint = mcp_endpoint_tools[index2];
+                //  console.log("Endpoint:", endpoint);
+                let url_internal = internal_url_endpoint(
+                  app.app,
+                  endpoint.resource,
+                  endpoint.environment,
+                  false
+                );
+                
+                let zod_inputSchema = z
+                  .any()
+                  .describe("Data to send to the endpoint.");
+
+                
+
+                if (
+                  endpoint?.json_schema?.in?.enabled &&
+                  endpoint?.json_schema?.in?.schema
                 ) {
-                  let url_internal = internal_url_endpoint(
-                    app.app,
-                    endpoint.resource,
-                    endpoint.environment,
-                    false
-                  );
-
-                  let zod_inputSchema = z
-                    .any()
-                    .describe("Data to send to the endpoint.");
-
-                  //  console.log(z.toJSONSchema(zod_inputSchema));
-
-                  if (
-                    endpoint?.json_schema?.in?.enabled &&
-                    endpoint?.json_schema?.in?.schema
-                  ) {
-                    // Convertir
-                    zod_inputSchema = jsonSchemaToZod(
-                      endpoint.json_schema.in.schema
-                    );
-                  }
-
-                  server.registerTool(
-                    endpoint?.mcp?.name ||
-                      `${url_internal}[${endpoint.method}]`,
-                    {
-                      title: endpoint?.mcp?.title || endpoint.description,
-                      description: `${
-                        endpoint.access == 0 ? "Public" : "Private"
-                      } Method: ${endpoint.method} Handler: ${
-                        endpoint.handler
-                      } ${endpoint.description}`,
-                      inputSchema: zod_inputSchema.shape,
-                    },
-
-                    async (data) => {
-                      let auto_env = new URLAutoEnvironment();
-                      let uF = auto_env.create(url_internal, false);
-
-                      let request_endpoint = await uF[
-                        endpoint.method.toUpperCase()
-                      ]({
-                        data: data,
-                        headers: headers,
-                      });
-                      const mimeType =
-                        request_endpoint.headers.get("content-type");
-                      let data_out = undefined;
-                      //let parse_method = getParseMethod(mimeType);
-                      // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
-
-                      data_out = await request_endpoint.text();
-
-                      return {
-                        content: [
-                          {
-                            type: "text",
-                            mimeType: mimeType,
-                            text: data_out,
-                          },
-                        ],
-                      };
-                    }
+                  // Convertir
+                  zod_inputSchema = JSONSchemaToZod.convert(
+                    endpoint.json_schema.in.schema
                   );
                 }
+
+             //   let x = z.toJSONSchema(zod_inputSchema.shape);
+             //   console.log(x);
+
+                server.registerTool(
+                  endpoint?.mcp?.name || `${url_internal}[${endpoint.method}]`,
+                  {
+                    title: endpoint?.mcp?.title || endpoint.description,
+                    description: `${
+                      endpoint.access == 0 ? "Public" : "Private"
+                    } Method: ${endpoint.method} Handler: ${endpoint.handler} ${
+                      endpoint.description
+                    }`,
+                    inputSchema: zod_inputSchema.shape,
+                  },
+
+                  async (data) => {
+                    let auto_env = new URLAutoEnvironment();
+                    let uF = auto_env.create(url_internal, false);
+
+                    let request_endpoint = await uF[
+                      endpoint.method.toUpperCase()
+                    ]({
+                      data: data,
+                      headers: headers,
+                    });
+                    const mimeType =
+                      request_endpoint.headers.get("content-type");
+                    let data_out = undefined;
+                    //let parse_method = getParseMethod(mimeType);
+                    // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
+
+                    data_out = await request_endpoint.text();
+
+                    return {
+                      content: [
+                        {
+                          type: "text",
+                          mimeType: mimeType,
+                          text: data_out,
+                        },
+                      ],
+                    };
+                  }
+                );
               }
             }
             return server;
