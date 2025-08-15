@@ -729,6 +729,10 @@ export class URLAutoEnvironment {
     return auto_environment ? this._autoEnvironment(url) : this._direct(url);
   }
 
+  _auto(url, auto_environment = true) {
+    return this.auto(url, auto_environment);
+  }
+
   _direct(relative_path) {
     return `http://localhost:${PORT}${relative_path}`;
   }
@@ -742,7 +746,7 @@ export class URLAutoEnvironment {
 }
 
 export const getInternalURL = (relative_path) => {
-  console.warn("Decrepted getInternalURL!!!!!\n" + relative_path+"\n");
+  console.warn("Decrepted getInternalURL!!!!!\n" + relative_path + "\n");
   return `http://localhost:${PORT}${relative_path}`;
 };
 
@@ -842,5 +846,3 @@ export function saveErrorToDisk(error) {
     console.error("❌ Error guardando el log en disco:", fsErr);
   }
 }
-
-
