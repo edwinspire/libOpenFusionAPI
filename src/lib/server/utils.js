@@ -64,6 +64,7 @@ export async function emitHook(data) {
   //	console.log('---------------------> hookUpsert', modelName);
   // TODO: Revisar utilidad
   try {
+    /*
     const validated = webhookSchema.parse(data);
 
     if (validated) {
@@ -76,6 +77,13 @@ export async function emitHook(data) {
       console.error("Error validating webhook data", validated.errors);
       return { error: "Error validating webhook data", data: validated.errors };
     }
+    */
+
+    const fnUrlae = new URLAutoEnvironment("prd");
+    const uF = fnUrlae.create(internal_url_post_hooks, false);
+
+    let r = await uF.POST({ data: data });
+    return await r.json();
   } catch (error) {
     console.error(error);
     return { error: "Error validating webhook data", data: error };

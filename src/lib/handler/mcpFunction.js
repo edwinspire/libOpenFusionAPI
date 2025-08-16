@@ -20,78 +20,9 @@ export const mcpFunction = async (
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
 ) => {
   try {
-    //    console.log(request.openfusionapi.handler.params.app);
-
-  //  let apps = await getAppByName(request.openfusionapi.handler.params.app);
-
-    const server = request.openfusionapi.handler.params.server_mcp(request.headers);
-
-    /*
-    for (let index = 0; index < apps.length; index++) {
-      const app = apps[index];
-      // console.log("App:", app);
-
-      for (let index2 = 0; index2 < app.endpoints.length; index2++) {
-        const endpoint = app.endpoints[index2];
-        //  console.log("Endpoint:", endpoint);
-
-        if (
-          endpoint.enabled &&
-          endpoint.environment ==
-            request.openfusionapi.handler.params.environment &&
-          endpoint.method != "WS" &&
-          endpoint.handler != "MCP" &&
-          endpoint?.mcp?.enabled
-        ) {
-          let url_internal = internal_url_endpoint(
-            app.app,
-            endpoint.resource,
-            endpoint.environment,
-            false
-          );
-
-          server.registerTool(
-            endpoint?.mcp?.name || `${url_internal} [${endpoint.method}]`,
-            {
-              title: endpoint?.mcp?.title || endpoint.description,
-              description: `${
-                endpoint.access == 0 ? "Public" : "Private"
-              } Method: ${endpoint.method} Handler: ${endpoint.handler} ${
-                endpoint.description
-              }`,
-              inputSchema: {}//fn_zod_validate_schema,
-            },
-
-            async (data) => {
-              let auto_env = new URLAutoEnvironment();
-              let uF = auto_env.create(url_internal, false);
-
-              let request_endpoint = await uF[endpoint.method.toUpperCase()]({
-                data: data,
-                headers: request.headers,
-              });
-              const mimeType = request_endpoint.headers.get("content-type");
-              let data_out = undefined;
-              //let parse_method = getParseMethod(mimeType);
-              // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
-
-              data_out = await request_endpoint.text();
-
-              return {
-                content: [
-                  {
-                    type: "text",
-                    mimeType: mimeType,
-                    text: data_out,
-                  },
-                ],
-              };
-            }
-          );
-        }
-      }
-    }
-    */
+    const server = request.openfusionapi.handler.params.server_mcp(
+      request.headers
+    );
 
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
