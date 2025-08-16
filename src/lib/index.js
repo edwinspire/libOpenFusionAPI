@@ -126,6 +126,23 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async checkwebHookDB(request) {
+    // Borrar la cache de funciones de la app cuando se actualiza la app
+    if (
+      request?.body?.model == prefixTableName("application") &&
+      request?.body?.action === "afterUpsert"
+    ) {
+      //  console.log('XXXXXXXXXXXXXXXX>', request.body);
+
+      // TODO: Revisar el entorno no solo la app
+      if (request?.body?.data?.app) {
+        setTimeout(() => {
+          // Espera 5 segundos para borrar la cache de las funciones del endpoint
+          this._deleteEndpointsByAppName(request?.body?.data?.app);
+        }, 5000);
+      }
+    }
+
+    /*
     const validated = webhookSchema.parse(request.body);
 
     if (validated) {
@@ -148,6 +165,7 @@ export default class ServerAPI extends EventEmitter {
       console.error("Error validating webhook data", validated.errors);
       return { error: "Error validating webhook data", data: validated.errors };
     }
+    */
   }
 
   async _build() {
