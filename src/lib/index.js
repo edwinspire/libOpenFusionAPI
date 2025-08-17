@@ -28,7 +28,7 @@ import {
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
-import { prefixTableName } from "./db/models.js";
+import { prefixTableName, User, Method, Handler, Application, ApplicationBackup, Endpoint as EndpointBBDD, LogEntry, IntervalTask, tblDemo } from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
 // import { createFunction } from "./handler/jsFunction.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
@@ -40,7 +40,7 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
-  webhookSchema,
+//  webhookSchema,
 } from "./server/utils.js";
 
 import { schema_input_hooks } from "./server/schemas/index.js";
@@ -49,7 +49,7 @@ import {
   //key_endpoint_method,
   struct_api_path,
   get_url_params,
-  internal_url_post_hooks,
+  //internal_url_post_hooks,
   default_port,
 } from "./server/utils_path.js";
 
@@ -57,6 +57,7 @@ import fs from "fs";
 import path from "path";
 
 import Ajv from "ajv";
+import { truncate } from "node:fs/promises";
 
 const ajv = new Ajv();
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
@@ -857,7 +858,8 @@ this.fastify.post("/mcp", async (request, reply) => {
 
       (async () => {
         try {
-          await dbAPIs.sync({ alter: false });
+          await dbAPIs.sync({ alter: true });
+          console.log("Database created or updated successfully.");
         } catch (error) {
           console.log(error);
         }
