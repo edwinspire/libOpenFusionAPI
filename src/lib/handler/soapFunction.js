@@ -38,6 +38,8 @@ export const soapFunction = async (
       dataRequest = mergeObjects(dataRequest, SOAPParameters);
     }
 
+    dataRequest.HTTPHeaders = $_REQUEST_.headers;
+
     //console.log('dataRequest>>>>>', dataRequest);
 
     let soap_response = await SOAPGenericClient(dataRequest);
@@ -91,6 +93,16 @@ export const SOAPGenericClient = async (
       SOAPParameters.options ? SOAPParameters.options : {}
     );
 
+
+      // Pasar todos los headers del Request al cliente SOAP
+      for (const [key, value] of Object.entries(SOAPParameters.HTTPHeaders)) {
+        // Evitamos headers que puedan causar conflicto
+        if (key.toLowerCase() !== "content-type" && key.toLowerCase() !== "content-length" && key.toLowerCase() !== "host") {
+          client.addHttpHeader(key, value);
+        }
+      }
+
+
     //     console.log('\n\nClient >>>>>> SOAP: ', describe, SOAPParameters);
 
     if (
@@ -108,7 +120,7 @@ export const SOAPGenericClient = async (
         new soap.BearerSecurity(SOAPParameters.BearerSecurity)
       );
     }
-
+//2130271229
     let r;
 
     if (describe) {
