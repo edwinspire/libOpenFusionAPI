@@ -612,7 +612,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? LANGCHAIN_CHAT_MODEL_UNIVERSAL : undefined,
       info: "LangChain is a framework for developing applications powered by large language models (LLMs). The $_LANGCHAIN_CHAT_MODEL_UNIVERSAL_ (contain initChatModel()) helper method makes it easy to initialize a number of different model integrations without having to worry about import paths and class names. Keep in mind this feature is only for chat models.",
       web: "https://js.langchain.com/docs/how_to/chat_models_universal_init",
-      code_example: `// Returns a @langchain/openai ChatOpenAI instance.
+      example: `// Returns a @langchain/openai ChatOpenAI instance.
 const gpt4o = await $_LANGCHAIN_CHAT_MODEL_UNIVERSAL_("gpt-4o", {
   modelProvider: "openai",
   temperature: 0,
@@ -638,7 +638,7 @@ console.log(await claudeOpus.invoke("what's your name"));
       fn: request && reply ? LANGCHAIN_TOOLS : undefined,
       info: "LangChain is a framework for developing applications powered by large language models (LLMs). Tools are a way to encapsulate a function and its schema in a way that can be passed to a chat model.",
       web: "https://js.langchain.com/docs/concepts/tools",
-      code_example: ``,
+      example: ``,
     },
     $_LANGCHAIN_PROMPTS_: {
       fn: request && reply ? LANGCHAIN_PROMPTS : undefined,
@@ -654,7 +654,7 @@ console.log(await claudeOpus.invoke("what's your name"));
       fn: request && reply ? LANGCHAIN_AGENT_EXECUTOR_MCP : undefined,
       info: "LangChain is a framework for developing applications powered by large language models (LLMs). ",
       web: own_repo,
-      code_example: `const mcpServers = {
+      example: `const mcpServers = {
   farmaenlace: {
     transport: "http",
     url: "http://localhost:3000/api/mcp/server/prd",
