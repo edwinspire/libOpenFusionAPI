@@ -5,7 +5,7 @@ import {
   internal_url_endpoint,
 } from "./utils_path.js";
 import { getAppWithEndpoints, getAppByName } from "../db/app.js";
-import * as z  from "zod";
+import * as z from "zod";
 import { getServer } from "../server/mcp/server.js";
 //import { jsonSchemaToZod } from "json-schema-to-zod";
 import { JSONSchemaToZod } from "@dmitryrechkin/json-schema-to-zod";
@@ -578,12 +578,10 @@ export default class Endpoint extends EventEmitter {
                   endpoint.environment,
                   false
                 );
-                
+
                 let zod_inputSchema = z
                   .any()
                   .describe("Data to send to the endpoint.");
-
-                
 
                 if (
                   endpoint?.json_schema?.in?.enabled &&
@@ -595,8 +593,8 @@ export default class Endpoint extends EventEmitter {
                   );
                 }
 
-             //   let x = z.toJSONSchema(zod_inputSchema.shape);
-             //   console.log(x);
+                //   let x = z.toJSONSchema(zod_inputSchema.shape);
+                //   console.log(x);
 
                 server.registerTool(
                   endpoint?.mcp?.name || `${url_internal}[${endpoint.method}]`,
@@ -604,9 +602,7 @@ export default class Endpoint extends EventEmitter {
                     title: endpoint?.mcp?.title || endpoint.description,
                     description: `${
                       endpoint.access == 0 ? "Public" : "Private"
-                    } Method: ${endpoint.method} Handler: ${endpoint.handler} ${
-                      endpoint.description
-                    }`,
+                    }  ${endpoint?.mcp?.description || endpoint.description}`,
                     inputSchema: zod_inputSchema.shape,
                   },
 
