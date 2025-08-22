@@ -597,12 +597,12 @@ export default class Endpoint extends EventEmitter {
                 //   console.log(x);
 
                 server.registerTool(
-                  endpoint?.mcp?.name || `${url_internal}[${endpoint.method}]`,
+                  endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0 ? endpoint?.mcp?.name : `${url_internal}[${endpoint.method}]`,
                   {
-                    title: endpoint?.mcp?.title || endpoint.description,
+                    title: endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0 ? endpoint?.mcp?.title : endpoint.description,
                     description: `${
                       endpoint.access == 0 ? "Public" : "Private"
-                    }  ${endpoint?.mcp?.description || endpoint.description}`,
+                    }  ${endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0 ? endpoint?.mcp?.description : endpoint.description}`,
                     inputSchema: zod_inputSchema.shape,
                   },
 
