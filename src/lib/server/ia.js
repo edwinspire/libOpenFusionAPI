@@ -40,12 +40,12 @@ const mcpServers = {
 };
 */
 
-const AgentExecutorMCP = async (config_model, mcpServers, prompt) => {
+const AgentExecutorMCP = async (config_model, mcpServers, prompt, agent_options) => {
   const chat = await chatModel(config_model);
-  return AgentExecutorMCPWithoutModel(chat, mcpServers, prompt);
+  return AgentExecutorMCPWithoutModel(chat, mcpServers, prompt, agent_options);
 };
 
-const AgentExecutorMCPWithoutModel = async (chatModel, mcpServers, prompt) => {
+const AgentExecutorMCPWithoutModel = async (chatModel, mcpServers, prompt, agent_options) => {
   let clientMCP;
   let tools = [];
   try {
@@ -125,8 +125,8 @@ const formattedChatPrompt = await chatPromptTemplate.invoke({ topic: "dogs" });
     return new AgentExecutor({
       agent,
       tools,
-      verbose: false,
-      returnIntermediateSteps: true,
+      verbose: agent_options.verbose || false,
+      returnIntermediateSteps: agent_options.returnIntermediateSteps || false,
       maxIterations: 5, // opcional, aumenta si necesitas más pasos
     });
   } catch (error) {
