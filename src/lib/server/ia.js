@@ -7,7 +7,18 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 //import { ChatPromptTemplate, PromptTemplate } from "@langchain/core/prompts";
 import * as LANGCHAIN_PROMPTS from "@langchain/core/prompts";
 
-const chatModel = async (model, options) => {
+
+/*
+const config_model = {
+  modelProvider: "ollama",
+  model: "qwen3:0.6b",
+  temperature: 0.1,
+  baseUrl: "http://localhost:11434",
+  timeout: 60000 * 30, // 30 minutos
+}
+*/
+
+const chatModel = async (config_model) => {
   /*
     if (model.includes("huggingface")) {
     options = { ...model, ...options };
@@ -15,8 +26,9 @@ const chatModel = async (model, options) => {
   } else {
     return await initChatModel(model, options);
   }
+
   */
- return await initChatModel(model, options);
+  return await initChatModel(undefined, config_model);
 };
 
 /*
@@ -28,14 +40,9 @@ const mcpServers = {
 };
 */
 
-const AgentExecutorMCP = async (
-  model,
-  options,
-  mcpServers,
-  prompt
-) => {
-  const chatModel = await chatModel(model, options);
-  return AgentExecutorMCPWithoutModel(chatModel, mcpServers, prompt);
+const AgentExecutorMCP = async (config_model, mcpServers, prompt) => {
+  const chat = await chatModel(config_model);
+  return AgentExecutorMCPWithoutModel(chat, mcpServers, prompt);
 };
 
 const AgentExecutorMCPWithoutModel = async (chatModel, mcpServers, prompt) => {
@@ -54,10 +61,12 @@ const AgentExecutorMCPWithoutModel = async (chatModel, mcpServers, prompt) => {
 
       // Cargar herramientas MCP
       tools = await client.getTools();
+      /*
       console.log(
         `🔧 Herramientas cargadas: ${tools.map((t) => t.name).join(", ")}`,
         tools
       );
+      */
     }
 
     /*
@@ -138,7 +147,13 @@ const formattedChatPrompt = await chatPromptTemplate.invoke({ topic: "dogs" });
     */
 };
 
+const cleanThinkOutput = (text) => {
+  return text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+}
+
+
 export {
+  cleanThinkOutput as LANGCHAIN_CLEAN_THINK_OUTPUT,
   chatModel as LANGCHAIN_CHAT_MODEL,
   LANGCHAIN_TOOLS,
   initChatModel as LANGCHAIN_CHAT_MODEL_UNIVERSAL,

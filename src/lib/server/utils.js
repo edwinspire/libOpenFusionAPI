@@ -20,6 +20,7 @@ import {
   LANGCHAIN_AGENT_EXECUTOR_MCP,
   LANGCHAIN_PROMPTS,
   LANGCHAIN_CHAT_MODEL,
+  LANGCHAIN_CLEAN_THINK_OUTPUT
 } from "./ia.js";
 import * as XLSX from "xlsx";
 
@@ -649,6 +650,12 @@ console.log(await claudeOpus.invoke("what's your name"));
       fn: request && reply ? LANGCHAIN_CHAT_MODEL : undefined,
       info: "LangChain is a framework for developing applications powered by large language models (LLMs). The $_LANGCHAIN_CHAT_MODEL_ (contain initChatModel()) helper method makes it easy to initialize a number of different model integrations without having to worry about import paths and class names.",
       web: "https://js.langchain.com/docs/how_to/chat_models_universal_init",
+    },
+    $_LANGCHAIN_CLEAN_THINK_OUTPUT_: {
+      fn: request && reply ? LANGCHAIN_CLEAN_THINK_OUTPUT : undefined,
+      info: "LangChain is a framework for developing applications powered by large language models (LLMs). The $_LANGCHAIN_CLEAN_THINK_OUTPUT_ helper method makes it easy to clean the output of a chat model by removing <think> tags.",
+      web: own_repo,
+      example: `const cleaned = $_LANGCHAIN_CLEAN_THINK_OUTPUT_("Some output with <think>thoughts</think>");`,
     },
     $_LANGCHAIN_AGENT_EXECUTOR_MCP_: {
       fn: request && reply ? LANGCHAIN_AGENT_EXECUTOR_MCP : undefined,
