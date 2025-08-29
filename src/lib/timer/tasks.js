@@ -7,6 +7,20 @@ import path from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export function safeStringify(obj, space = 2) {
+  const seen = new WeakSet();
+  return JSON.stringify(
+    obj,
+    (key, value) => {
+      if (typeof value === "object" && value !== null) {
+        if (seen.has(value)) return; // elimina la referencia circular
+        seen.add(value);
+      }
+      return value;
+    },
+    space
+  );
+}
 export class TasksInterval {
   constructor() {
     //  super();
@@ -18,7 +32,7 @@ export class TasksInterval {
   }
 
   postMessage(data) {
-    this.worker.postMessage(JSON.stringify(data));
+    this.worker.postMessage(safeStringify(data));
   }
 
   run() {
