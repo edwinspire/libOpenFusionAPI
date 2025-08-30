@@ -92,8 +92,15 @@ export const defaultHandlers = () => {
         id: "MCP",
         text: `MCP`,
         description: "Create an mcp server for the application.",
-        icon_class: " fa-solid fa-hammer ",
+        icon_class: " fa-solid fa-brain ",
         color_class: "danger",
+      },
+      {
+        id: "AGENT_IA",
+        text: `AGENT IA`,
+        description: "Implement a basic AI agent",
+        icon_class: "fa-solid fa-database",
+        color_class: "",
       },
     ];
 

@@ -28,7 +28,18 @@ import {
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
-import { prefixTableName, User, Method, Handler, Application, ApplicationBackup, Endpoint as EndpointBBDD, LogEntry, IntervalTask, tblDemo } from "./db/models.js";
+import {
+  prefixTableName,
+  User,
+  Method,
+  Handler,
+  Application,
+  ApplicationBackup,
+  Endpoint as EndpointBBDD,
+  LogEntry,
+  IntervalTask,
+  tblDemo,
+} from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
 // import { createFunction } from "./handler/jsFunction.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
@@ -40,7 +51,7 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
-//  webhookSchema,
+  //  webhookSchema,
 } from "./server/utils.js";
 
 import { schema_input_hooks } from "./server/schemas/index.js";
@@ -853,42 +864,43 @@ this.fastify.post("/mcp", async (request, reply) => {
         ? true
         : false;
 
-    if (buildDB) {
-      console.log("Crea la base de datos");
+    (async () => {
+      if (buildDB) {
+        console.log("Crea la base de datos");
 
-      (async () => {
         try {
           await dbAPIs.sync({ alter: true });
           console.log("Database created or updated successfully.");
         } catch (error) {
           console.log(error);
         }
+      }
 
-        try {
-          await defaultUser();
-        } catch (error) {
-          console.log(error);
-        }
+      try {
+        await defaultHandlers();
+      } catch (error) {
+        console.log(error);
+      }
 
-        try {
-          await defaultMethods();
-        } catch (error) {
-          console.log(error);
-        }
+      try {
+        await defaultMethods();
+      } catch (error) {
+        console.log(error);
+      }
 
-        try {
-          await defaultHandlers();
-        } catch (error) {
-          console.log(error);
-        }
+      try {
+        await defaultUser();
+      } catch (error) {
+        console.log(error);
+      }
 
-        try {
-          await defaultApps();
-        } catch (error) {
-          console.log(error);
-        }
-      })();
-    }
+      try {
+        await defaultApps();
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+
     return true;
   }
 }

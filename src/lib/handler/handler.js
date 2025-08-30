@@ -8,7 +8,8 @@ import { sqlHana } from "./sqlHana.js";
 import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
 import { mongodbFunction } from "./mongoDB.js";
 import { mcpFunction } from "./mcpFunction.js";
-import { getRequestData } from "../server/utils.js";
+import { agentIAFunction } from "./agentIAFunction.js";
+//import { getRequestData } from "../server/utils.js";
 
 /**
  * @param {{headers: any;body: any;query: any;}} request
@@ -77,6 +78,9 @@ async function runHandlerFunction(request, response, method, server_data) {
     case "MCP":
       await mcpFunction(request, response, method);
       break;
+    case "AGENT_IA":
+      await agentIAFunction(request, response, method);
+      break;      
     default:
       response.code(404).send(`handler ${method.handler} not valid`);
       break;
