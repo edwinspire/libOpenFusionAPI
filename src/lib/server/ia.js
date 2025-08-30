@@ -31,14 +31,6 @@ const chatModel = async (config_model) => {
   return await initChatModel(undefined, config_model);
 };
 
-/*
-const mcpServers = {
-  farmaenlace: {
-    transport: "http",
-    url: "http://192.168.242.59:3030/api/farmaenlace/mcp/server/prd",
-  },
-};
-*/
 
 const AgentExecutorMCP = async (config_model, mcpServers, prompt, agent_options) => {
   const chat = await chatModel(config_model);

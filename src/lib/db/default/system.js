@@ -756,7 +756,7 @@ export const system_app = {
           "json": {
             "code": {
               "chatId": -1001790805365,
-              "url_photo": "https://www.farmaenlace.com/wp-content/uploads/2024/11/MAPA1.jpg",
+              "url_photo": "https://www.demo.com/wp-content/uploads/2024/11/MAPA1.jpg",
               "extra": {
                 "message_thread_id": 16964,
                 "parse_mode": "MarkdownV2",

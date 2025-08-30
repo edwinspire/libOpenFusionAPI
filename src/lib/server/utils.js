@@ -662,7 +662,7 @@ console.log(await claudeOpus.invoke("what's your name"));
       info: "LangChain is a framework for developing applications powered by large language models (LLMs). ",
       web: own_repo,
       example: `const mcpServers = {
-  farmaenlace: {
+  name_my_server_mcp: {
     transport: "http",
     url: "http://localhost:3000/api/mcp/server/prd",
   },
