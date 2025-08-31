@@ -106,6 +106,8 @@ const formattedChatPrompt = await chatPromptTemplate.invoke({ topic: "dogs" });
 
 */
 
+
+
     // Crear agente compatible con AgentExecutor
     const agent = await createToolCallingAgent({
       llm: chatModel,
@@ -119,7 +121,8 @@ const formattedChatPrompt = await chatPromptTemplate.invoke({ topic: "dogs" });
       tools,
       verbose: agent_options.verbose || false,
       returnIntermediateSteps: agent_options.returnIntermediateSteps || false,
-      maxIterations: 5, // opcional, aumenta si necesitas más pasos
+      maxIterations: agent_options.maxIterations || 5, // opcional, aumenta si necesitas más pasos
+      
     });
   } catch (error) {
     console.error("Error al cargar herramientas MCP:", error);

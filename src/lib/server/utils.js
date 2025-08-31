@@ -668,7 +668,7 @@ console.log(await claudeOpus.invoke("what's your name"));
   },
 };
 
-const prompt = _LANGCHAIN_PROMPTS_.ChatPromptTemplate.fromMessages([
+const prompt = $_LANGCHAIN_PROMPTS_.ChatPromptTemplate.fromMessages([
   ["system", "You are a helpful assistant."],
   ["user", "Tell me a joke about {topic}."],
 ]);
@@ -680,7 +680,7 @@ const options = {
   timeout: 60000 * 30, // 30 minutos
 }
 
-const agent = await _LANGCHAIN_AGENT_EXECUTOR_MCP_(model, options, mcpServers, prompt);
+const agent = await $_LANGCHAIN_AGENT_EXECUTOR_MCP_(model, options, mcpServers, prompt);
 
 console.log(agent.invoke({topic: 'cat'}));
 `,
