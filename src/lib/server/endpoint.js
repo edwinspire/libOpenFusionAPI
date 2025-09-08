@@ -485,7 +485,7 @@ export default class Endpoint extends EventEmitter {
       if (endpointData.enabled) {
         if (appVars && typeof appVars === "object") {
           const props = Object.keys(appVars);
-
+          //TODO: No reemplazar los valores por las variables, mejor crear variables constantes al inicio de la función y el resto debería llamar al valor de la variable, esto para no tener que reemplezar valores en varios lugares sino ahorrar lineas de codigo
           for (let i = 0; i < props.length; i++) {
             const prop = props[i];
 
@@ -496,6 +496,13 @@ export default class Endpoint extends EventEmitter {
                   appVars[prop]
                 );
                 break;
+              case "number":
+                returnHandler.params.code = returnHandler.params.code.replace(
+                  prop,
+                  appVars[prop]
+                );
+                break;
+
               case "object":
                 returnHandler.params.code = returnHandler.params.code.replace(
                   '"' + prop + '"',
@@ -506,6 +513,9 @@ export default class Endpoint extends EventEmitter {
                   prop,
                   JSON.stringify(appVars[prop])
                 );
+                break;
+              default:
+                console.log(typeof appVars[prop], appVars[prop]);
                 break;
             }
           }
@@ -597,12 +607,22 @@ export default class Endpoint extends EventEmitter {
                 //   console.log(x);
 
                 server.registerTool(
-                  endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0 ? endpoint?.mcp?.name : `${url_internal}[${endpoint.method}]`,
+                  endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
+                    ? endpoint?.mcp?.name
+                    : `${url_internal}[${endpoint.method}]`,
                   {
-                    title: endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0 ? endpoint?.mcp?.title : endpoint.description,
+                    title:
+                      endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
+                        ? endpoint?.mcp?.title
+                        : endpoint.description,
                     description: `${
                       endpoint.access == 0 ? "Public" : "Private"
-                    }  ${endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0 ? endpoint?.mcp?.description : endpoint.description}`,
+                    }  ${
+                      endpoint?.mcp?.description &&
+                      endpoint?.mcp?.description.length > 0
+                        ? endpoint?.mcp?.description
+                        : endpoint.description
+                    }`,
                     inputSchema: zod_inputSchema.shape,
                   },
 

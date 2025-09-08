@@ -47,7 +47,9 @@ export const jsFunction = async (
   } catch (error) {
     console.trace(error);
     setCacheReply(response, error);
-
+    if (error.message.includes("Error creating function")) {
+      error.message = error.message + " - Check your code.";
+    }
     response
       .code(error.statusCode == null ? 500 : error.statusCode)
       .send(error);

@@ -5,12 +5,36 @@ import {
   LANGCHAIN_CLEAN_THINK_OUTPUT,
 } from "../server/ia.js";
 
+import {
+  HumanMessage,
+  AIMessage,
+  SystemMessage,
+  ToolMessage,
+} from "@langchain/core/messages";
+
 function convertToPrompt(start) {
   let filtered = start.filter((obj) => obj.type && obj.prompt);
 
   return filtered.map((obj) => {
     //const [key, value] = Object.entries(obj)[0]; // Tomamos la primera clave-valor
-    return [obj.type, obj.prompt];
+    //return [obj.type, obj.prompt];
+    //return ['system', obj.prompt];
+    if (
+      obj.type === "user" ||
+      obj.type === "client" ||
+      obj.type === "customer" ||
+      obj.type === "human"
+    ) {
+      return new HumanMessage(obj.prompt);
+    } else if (obj.type === "ai" || obj.type === "assistant") {
+      return new AIMessage(obj.prompt);
+    } else if (obj.type === "system") {
+      return new SystemMessage(obj.prompt);
+    } else if (obj.type === "tool") {
+      return new ToolMessage(obj.prompt);
+    } else {
+      return new HumanMessage(obj.prompt);
+    }
   });
 }
 
@@ -40,41 +64,40 @@ export const agentIAFunction = async (
     };
 */
 
-      let prompts =
+      let init_prompts = convertToPrompt(
         ChatParameters.init_prompts &&
-        Array.isArray(ChatParameters.init_prompts)
+          Array.isArray(ChatParameters.init_prompts)
           ? ChatParameters.init_prompts
-          : [];
+          : []
+      );
 
-      const prompt_history =
+      const chat_history = convertToPrompt(
         $_REQUEST_.body?.prompt?.history &&
-        Array.isArray($_REQUEST_.body?.prompt?.history)
+          Array.isArray($_REQUEST_.body?.prompt?.history)
           ? $_REQUEST_.body?.prompt?.history
-          : [];
-      const prompt_user =
-        $_REQUEST_.body?.prompt?.user &&
-        Array.isArray($_REQUEST_.body?.prompt?.user)
-          ? $_REQUEST_.body?.prompt?.user
-          : [];
+          : []
+      );
+
+      const prompt_user = new HumanMessage($_REQUEST_.body?.prompt?.user);
 
       /*
-      if (prompt_history.length > 0) {
+      if (chat_history.length > 0) {
         // Ignora el promt inicial y une el promt historico con el actual
-        prompts = [...prompt_history, ...prompt_user];
+        prompts = [...chat_history, ...prompt_user];
       } else {
         prompts = [...ChatParameters.init_prompts, ...prompt_user];
       }
 */
 
-      prompts = [
-        ...ChatParameters.init_prompts,
-        ...prompt_history,
-        ...prompt_user,
+      const prompts = [
+        ...init_prompts,
+        new LANGCHAIN_PROMPTS.MessagesPlaceholder("chat_history"),
+        new LANGCHAIN_PROMPTS.MessagesPlaceholder("agent_scratchpad"),
+        prompt_user,
       ];
 
-      const final_prompt = convertToPrompt(prompts);
-      const prompt =
-        LANGCHAIN_PROMPTS.ChatPromptTemplate.fromMessages(final_prompt);
+      // const final_prompt = convertToPrompt(prompts);
+      const prompt = LANGCHAIN_PROMPTS.ChatPromptTemplate.fromMessages(prompts);
 
       /*
     const prompt = LANGCHAIN_PROMPTS.ChatPromptTemplate.fromMessages([
@@ -102,7 +125,9 @@ export const agentIAFunction = async (
       );
 
       //let result_fn = await agent.invoke({ topic: "cat" });
-      let result_fn = await agent.invoke();
+      let result_fn = await agent.invoke({
+        chat_history: chat_history,
+      });
 
       if (
         response.openfusionapi.lastResponse &&
@@ -121,8 +146,23 @@ export const agentIAFunction = async (
     console.trace(error);
     setCacheReply(response, error);
 
-    response
-      .code(error.statusCode == null ? 500 : error.statusCode)
-      .send(error);
+    if (error.constructor.name === "ToolInputParsingException") {
+      console.error(
+        "Se detectó un error de parseo de entrada de herramienta:",
+        error.message
+      );
+      // Manejar específicamente el error de parseo de entrada
+      console.error("Error invoking agent:", error);
+      response.code(200).send({
+        output: `Tool Error: ${error.message} ${error.output}`,
+        error: error,
+      });
+    } else {
+      console.error("Se lanzó algo que no es un error estándar:", error);
+      // Manejar cualquier otra cosa que no sea un error estándar
+      response
+        .code(error.statusCode == null ? 500 : error.statusCode)
+        .send(error);
+    }
   }
 };
