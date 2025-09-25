@@ -17,6 +17,7 @@ import { TelegramBot } from "./server/telegram/telegram.js";
 
 import { TasksInterval } from "./timer/tasks.js";
 //import  {MCPServer, StreamableHTTPServerTransport}  from "./server/mcp/server.js";
+import { version } from "./server/version.js";
 
 import dbAPIs from "./db/sequelize.js";
 import {
@@ -318,6 +319,11 @@ this.fastify.post("/mcp", async (request, reply) => {
   
 });
 */
+
+    this.fastify.get("/server/version", async (request, reply) => {
+      // Aquí puedes manejar las peticiones GET a /server/version
+      reply.send({ version: version });
+    });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
       // Todos los clientes deben estar registra<zdos para poder hacer broadcast o desconectarlos masivamente
