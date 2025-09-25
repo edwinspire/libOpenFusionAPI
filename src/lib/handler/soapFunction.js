@@ -93,15 +93,17 @@ export const SOAPGenericClient = async (
       SOAPParameters.options ? SOAPParameters.options : {}
     );
 
-
-      // Pasar todos los headers del Request al cliente SOAP
-      for (const [key, value] of Object.entries(SOAPParameters.HTTPHeaders)) {
-        // Evitamos headers que puedan causar conflicto
-        if (key.toLowerCase() !== "content-type" && key.toLowerCase() !== "content-length" && key.toLowerCase() !== "host") {
-          client.addHttpHeader(key, value);
-        }
+    // Pasar todos los headers del Request al cliente SOAP
+    for (const [key, value] of Object.entries(SOAPParameters.HTTPHeaders)) {
+      // Evitamos headers que puedan causar conflicto
+      if (
+        key.toLowerCase() !== "content-type" &&
+        key.toLowerCase() !== "content-length" &&
+        key.toLowerCase() !== "host"
+      ) {
+        client.addHttpHeader(key, value);
       }
-
+    }
 
     //     console.log('\n\nClient >>>>>> SOAP: ', describe, SOAPParameters);
 
@@ -120,13 +122,17 @@ export const SOAPGenericClient = async (
         new soap.BearerSecurity(SOAPParameters.BearerSecurity)
       );
     }
-//2130271229
+    //2130271229
     let r;
 
     if (describe) {
       r = client.describe();
     } else {
       let fnName = SOAPParameters.functionName + "Async";
+
+      if (SOAPParameters.endpoint) {
+        client.setEndpoint(SOAPParameters.endpoint);
+      }
 
       if (client[fnName]) {
         let result = await client[fnName](SOAPParameters.RequestArgs);
