@@ -485,40 +485,77 @@ export default class Endpoint extends EventEmitter {
       if (endpointData.enabled) {
         if (appVars && typeof appVars === "object") {
           const props = Object.keys(appVars);
-          //TODO: No reemplazar los valores por las variables, mejor crear variables constantes al inicio de la función y el resto debería llamar al valor de la variable, esto para no tener que reemplezar valores en varios lugares sino ahorrar lineas de codigo
-          for (let i = 0; i < props.length; i++) {
-            const prop = props[i];
 
-            switch (typeof appVars[prop]) {
-              case "string":
-                returnHandler.params.code = returnHandler.params.code.replace(
-                  prop,
-                  appVars[prop]
-                );
-                break;
-              case "number":
-                returnHandler.params.code = returnHandler.params.code.replace(
-                  prop,
-                  appVars[prop]
-                );
-                break;
+          if (endpointData.handler == "JS") {
+            // Para estos casos lo que se hace es agregar las variables al inicio del código como constantes minimizando el uso de memoria
+            for (let i = 0; i < props.length; i++) {
+              const prop = props[i];
 
-              case "object":
-                returnHandler.params.code = returnHandler.params.code.replace(
-                  '"' + prop + '"',
-                  JSON.stringify(appVars[prop])
-                );
+              if (returnHandler.params.code.includes(prop)) {
+                switch (typeof appVars[prop]) {
+                  case "string":
+                    returnHandler.params.code = `const ${prop} = ${JSON.stringify(
+                      appVars[prop]
+                    )};\n ${returnHandler.params.code}`;
+                    break;
+                  case "number":
+                    returnHandler.params.code = `const ${prop} = ${appVars[prop]};\n ${returnHandler.params.code}`;
 
-                returnHandler.params.code = returnHandler.params.code.replace(
-                  prop,
-                  JSON.stringify(appVars[prop])
-                );
-                break;
-              default:
-                console.log(typeof appVars[prop], appVars[prop]);
-                break;
+                    break;
+
+                  case "object":
+                    returnHandler.params.code = `const ${prop} = ${JSON.stringify(
+                      appVars[prop]
+                    )};\n ${returnHandler.params.code}`;
+
+                    break;
+                  default:
+                    console.log(typeof appVars[prop], appVars[prop]);
+                    break;
+                }
+              }
+            }
+          } else {
+            // Para estos casos lo que se hace es remplazar las variables directamente en el código
+            for (let i = 0; i < props.length; i++) {
+              const prop = props[i];
+
+              switch (typeof appVars[prop]) {
+                case "string":
+                  returnHandler.params.code = returnHandler.params.code.replace(
+                    prop,
+                    appVars[prop]
+                  );
+                  break;
+                case "number":
+                  returnHandler.params.code = returnHandler.params.code.replace(
+                    prop,
+                    appVars[prop]
+                  );
+                  break;
+
+                case "object":
+                  returnHandler.params.code = returnHandler.params.code.replace(
+                    '"' + prop + '"',
+                    JSON.stringify(appVars[prop])
+                  );
+
+                  returnHandler.params.code = returnHandler.params.code.replace(
+                    prop,
+                    JSON.stringify(appVars[prop])
+                  );
+                  break;
+                default:
+                  console.log(typeof appVars[prop], appVars[prop]);
+                  break;
+              }
             }
           }
+
+          console.log(
+            "Variables de aplicación agregadas a la función:",
+            returnHandler.params.code
+          );
         }
 
         // Habilita la validación de datos de entrada usando AJV
