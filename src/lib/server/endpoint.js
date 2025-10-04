@@ -551,11 +551,12 @@ export default class Endpoint extends EventEmitter {
               }
             }
           }
-
+/*
           console.log(
             "Variables de aplicación agregadas a la función:",
             returnHandler.params.code
           );
+          */
         }
 
         // Habilita la validación de datos de entrada usando AJV

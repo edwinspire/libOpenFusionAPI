@@ -59,7 +59,7 @@ export const customFunction = async (
     }
   } catch (error) {
     setCacheReply($_REPLY_, error);
-    //console.trace(error);
+    console.trace(error);
     // @ts-ignore
     $_REPLY_.code(500).send(error);
   }

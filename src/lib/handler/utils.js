@@ -1,3 +1,4 @@
+
 export const setCacheReply = (reply, data) => {
   if (reply) {
     if (!reply.openfusionapi) {
@@ -28,4 +29,5 @@ export const isValidHttpStatusCode = (code) => {
   // Verifica si el número está dentro de alguno de los rangos válidos
   return validRanges.some(([min, max]) => code >= min && code <= max);
 };
+
 
