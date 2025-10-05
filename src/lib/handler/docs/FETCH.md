@@ -21,10 +21,7 @@ The operation is fully transparent to the user and mirrors the behavior of a pro
 </details>
 
 
-![an example red dot](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==)
-
-![Alt text](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA...)
-
+![enter image description here](https://github.com/edwinspire/libOpenFusionAPI/blob/main/www/favicon.png)
 
 ---
 
