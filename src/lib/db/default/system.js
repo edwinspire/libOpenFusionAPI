@@ -23,7 +23,7 @@ export const system_app = {
       handler: "FUNCTION",
       mcp: {},
       access: 0,
-      cache_time: 0,
+      cache_time: 3600,
       ctrl: {},
       resource: "/api/handler/documentation",
       code: "fnGetHandlerDocs",

@@ -1,69 +1,49 @@
-# Handler - Fetch
+# Javascript Handler
 
-## Fetch
+The **Javascript Handler** allows you to create the logic for your API using the power and ease of Javascript. 
 
-# This is a Heading h1
-## This is a Heading h2
-###### This is a Heading h6
+From here you can even consume other services using Fetch, preprocessing the data before returning it to the user if you need to.
 
-## Emphasis
+The manager has a built-in code editor, which makes your work easier.
 
-*This text will be italic*  
-_This will also be italic_
+![Editor](../img/javascript_editor.png)
 
-**This text will be bold**  
-__This will also be bold__
+**$_RETURN_DATA_** is the internal variable that contains the data that will be returned to the user.
 
-_You **can** combine them_
 
-## Lists
+## Examples
 
-### Unordered
+  ### Basic without params
 
-* Item 1
-* Item 2
-* Item 2a
-* Item 2b
-    * Item 3a
-    * Item 3b
+	$_RETURN_DATA_ = new Date();
 
-### Ordered
 
-1. Item 1
-2. Item 2
-3. Item 3
-    1. Item 3a
-    2. Item 3b
+### Basic with params GET Method
 
-## Images
+	$_RETURN_DATA_ = $_REQUEST_.query.par1  *  $_REQUEST_.query.par2;
 
-![This is an alt text.](/image/sample.webp "This is a sample image.")
+### Basic with params POST Method
 
-## Links
+	$_RETURN_DATA_ = $_REQUEST_.body.par1  *  $_REQUEST_.body.par2;
 
-You may be using [Markdown Live Preview](https://markdownlivepreview.com/).
+### Call Fetch from javascript
 
-## Blockquotes
+- Url: https://fakestoreapi.com/carts
+- Param: userId
 
-> Markdown is a lightweight markup language with plain-text-formatting syntax, created in 2004 by John Gruber with Aaron Swartz.
->
->> Markdown is often used to format readme files, for writing messages in online discussion forums, and to create rich text using a plain text editor.
+		let uf = new $_UFETCH_();
+		let r1 = await uf.GET({url: "https://fakestoreapi.com/carts", data: {userId: $_REQUEST_.query.userId}});
+		$_RETURN_DATA_ = await r1.json();
 
-## Tables
+### Call Fetch from javascript - Convert GET to POST method
 
-| Left columns  | Right columns |
-| ------------- |:-------------:|
-| left foo      | right foo     |
-| left bar      | right bar     |
-| left baz      | right baz     |
+- Url: https://fakestoreapi.com/carts
+- Param: userId
 
-## Blocks of code
+		let uf = new $_UFETCH_();
+		let r1 = await uf.GET({url: "https://fakestoreapi.com/carts", data: {userId: $_REQUEST_.body.userId}});
+		$_RETURN_DATA_ = await r1.json();
 
-```
-let message = 'Hello world';
-alert(message);
-```
 
-## Inline code
 
-This web site is using `markedjs/marked`.
+[Video tutorial](https://youtu.be/azPkwKMLmhU)
