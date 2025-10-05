@@ -20,14 +20,16 @@ When a client performs a request to an OpenFusionAPI endpoint configured with th
 The operation is fully transparent to the user and mirrors the behavior of a proxy service.
 </details>
 
----
-
-<details>
-<summary>⚙️ Configuration</summary>
 
 ![an example red dot](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==)
 
 ![Alt text](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA...)
+
+
+---
+
+<details>
+<summary>⚙️ Configuration</summary>
 
 General Endpoint settings, such as path, handler, environment, HTTP method, cache time, access level, description, etc.
 
