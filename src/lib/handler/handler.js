@@ -11,6 +11,14 @@ import { mcpFunction } from "./mcpFunction.js";
 import { agentIAFunction } from "./agentIAFunction.js";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from 'url';
+
+// Obtiene la ruta del archivo actual (__filename)
+const __filename = fileURLToPath(import.meta.url);
+
+// Obtiene el directorio (__dirname)
+const __dirname = path.dirname(__filename); 
+
 
 export const Handlers = {
   JS: {
@@ -85,7 +93,7 @@ export const getHandlerDoc = async (handler) => {
       doc.description = h.description;
 
       // Obtener la ruta absoluta del archivo
-      const mdPath = path.resolve(`./src/lib/handler/docs/${handler}.md`);
+      const mdPath = path.resolve(`${__dirname}/docs/${handler}.md`);
 
       // Leer contenido como string
       const jsDoc = fs.readFileSync(mdPath, "utf8");
