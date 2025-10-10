@@ -93,7 +93,7 @@ export const getHandlerDoc = async (handler) => {
       doc.description = h.description;
 
       // Obtener la ruta absoluta del archivo
-      const mdPath = path.resolve(`${__dirname}/docs/${handler}.md`);
+      const mdPath = path.resolve(`${__dirname}/../../../docs/handlers/${handler}/README.md`);
 
       // Leer contenido como string
       const jsDoc = fs.readFileSync(mdPath, "utf8");
