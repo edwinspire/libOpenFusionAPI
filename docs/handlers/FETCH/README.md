@@ -8,7 +8,6 @@ Internally, it is built on top of Node.js’ native `fetch` API, allowing you to
 This handler is particularly useful when you want to expose an external service under the same authentication, logging, or monitoring context of OpenFusionAPI, effectively working as a lightweight **reverse proxy**.
 
 ---
-
 <details>
 <summary>🧠 How It Works</summary>
 
