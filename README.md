@@ -51,9 +51,9 @@ OpenFusion API significantly **reduces API development time** by abstracting rep
 
 ## 🧭 Documentation
 
-- [Creating Applications](./creating_applications_manual.md)
-- [Creating Endpoints](./creating_endpoints_manual.md)
-- [Handler Reference](./handlers_reference.md)
+- [Creating Applications](./docs/App/README.md)
+- [Creating Endpoints](./docs/endpoint/README.md)
+- [Handler Reference](./docs/handlers/README.md)
 
 Each guide provides step-by-step instructions, screenshots, and best practices to ensure a smooth development experience.
 
