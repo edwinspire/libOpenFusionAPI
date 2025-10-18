@@ -1,5 +1,5 @@
-//import Ajv from "ajv";
-//const ajv = new Ajv() ;
+import Ajv from 'ajv';
+export const ajv = new Ajv();
 
 export const schema_input_hooks = {
   type: "object",
@@ -10,3 +10,26 @@ export const schema_input_hooks = {
   },
   required: ["env", "app", "data"],
 };
+
+
+const schema_ws_message = {
+  title: "MensajeConPayload",
+  type: "object",
+  properties: {
+    payload: {
+      description: "Cualquier valor excepto null",
+      type: ["object", "array", "string", "number", "boolean"],
+    },
+    recipients: {
+      description:
+        "Opcional; si está presente debe ser un arreglo (puede estar vacío).",
+      type: "array",
+    },
+  },
+
+  required: ["payload"],
+  additionalProperties: false,
+};
+
+
+export const validateSchemaMessageWebSocket = ajv.compile(schema_ws_message);

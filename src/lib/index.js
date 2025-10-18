@@ -55,7 +55,11 @@ import {
   //  webhookSchema,
 } from "./server/utils.js";
 
-import { schema_input_hooks } from "./server/schemas/index.js";
+import {
+  schema_input_hooks,
+  ajv,
+  validateSchemaMessageWebSocket,
+} from "./server/schemas/index.js";
 
 import {
   //key_endpoint_method,
@@ -68,10 +72,10 @@ import {
 import fs from "fs";
 import path from "path";
 
-import Ajv from "ajv";
-import { truncate } from "node:fs/promises";
+//import Ajv from "ajv";
+import { validate } from "uuid";
 
-const ajv = new Ajv();
+//const ajv = new Ajv();
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
   PATH_APP_FUNCTIONS,
@@ -320,11 +324,6 @@ this.fastify.post("/mcp", async (request, reply) => {
 });
 */
 
-    this.fastify.get("/server/version", async (request, reply) => {
-      // Aquí puedes manejar las peticiones GET a /server/version
-      reply.send({ version: version });
-    });
-
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
       // Todos los clientes deben estar registra<zdos para poder hacer broadcast o desconectarlos masivamente
       // Crea un idclient para poder enviar un mensaje solo para un socket especifico
@@ -368,28 +367,55 @@ this.fastify.post("/mcp", async (request, reply) => {
             ) {
               //client_ws.send("Broadcast: " + message.toString());
               // TODO: Verificar si el mensaje va dirigido a un idcliente en particular o es para todos
-              let msgObj = JSON.parse(message.toString());
+              let msgString = message.toString();
+              let msgObj;
+              try {
+                msgObj = JSON.parse(msgString);
+                let isValid = validateSchemaMessageWebSocket(msgObj);
 
-              if (
-                msgObj.recipients &&
-                Array.isArray(msgObj.recipients) &&
-                msgObj.recipients.find(
-                  (recip) => recip == connection.socket.openfusionapi.idclient
-                )
-              ) {
-                // Envia el mensaje solo a los remitentes que están en la lista
-                client_ws.send(JSON.stringify(msgObj.payload));
-              } else if (msgObj) {
-                // Envia a todos los remitentes siempre y cuando el msgObj sea un objeto json
-                client_ws.send(JSON.stringify(msgObj.payload));
+                if (isValid) {
+                  //console.log("✅ Válido");
+
+                  if (
+                    msgObj.recipients &&
+                    Array.isArray(msgObj.recipients) &&
+                    msgObj.recipients.find(
+                      (recip) =>
+                        recip == connection.socket.openfusionapi.idclient
+                    )
+                  ) {
+                    // Envia el mensaje solo a los remitentes que están en la lista
+                    client_ws.send(JSON.stringify(msgObj.payload));
+                  } else if (msgObj) {
+                    // Envia a todos los remitentes siempre y cuando el msgObj sea un objeto json
+                    client_ws.send(JSON.stringify(msgObj.payload));
+                  }
+                } else {
+              //    console.log("❌ Inválido. Errores detectados:");
+                  // ¡Aquí está la magia! `validate.errors` es un array con los detalles.
+                  connection.socket.send(
+                    JSON.stringify({
+                      error: validateSchemaMessageWebSocket.errors,
+                    })
+                  );
+                }
+              } catch (error) {
+                connection.socket.send(
+                  JSON.stringify({ error: error.message })
+                );
               }
             }
           } catch (error) {
             // Devuelve un mensaje al cliente que originó el mensaje
-            connection.socket.send(error);
+            connection.socket.send(JSON.stringify({ error: error.message }));
           }
         });
       });
+    });
+
+    this.fastify.get("/server/version", async (request, reply) => {
+      // Aquí puedes manejar las peticiones GET a /server/version
+      reply.send({ version: version });
     });
 
     // Route to internal Hook - TODO: Ruta ya no utilizada, se puede eliminar
