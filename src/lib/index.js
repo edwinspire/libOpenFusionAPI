@@ -44,7 +44,7 @@ import {
 import { runHandler } from "./handler/handler.js";
 // import { createFunction } from "./handler/jsFunction.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
-
+import { OpenFusionWebsocketClient } from "./server/websocket_client.js";
 import {
   checkToken,
   getUserPasswordTokenFromRequest,
@@ -65,15 +65,19 @@ import {
   //key_endpoint_method,
   struct_api_path,
   get_url_params,
-  //internal_url_post_hooks,
+  urlSystemPath,
   default_port,
+  internal_url_ws,
+  WebSocketValidateFormatChannelName,
 } from "./server/utils_path.js";
 
 import fs from "fs";
 import path from "path";
+import { channel } from "node:diagnostics_channel";
+import { url } from "node:inspector";
 
 //import Ajv from "ajv";
-import { validate } from "uuid";
+//import { validate } from "uuid";
 
 //const ajv = new Ajv();
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
@@ -121,9 +125,15 @@ export default class ServerAPI extends EventEmitter {
     this.endpoints = new Endpoint();
     this.endpoints.on("log", (data) => {
       this.TasksInterval.pushLog(data);
+      //      this.websocketClientAppInfo.send({ payload: data });
     });
 
     this.SERVER_DATE_START;
+
+    this.websocketClientAppInfo = new OpenFusionWebsocketClient(
+      internal_url_ws(urlSystemPath.Websocket.AppInfo),
+      {}
+    );
 
     this.telegram = new TelegramBot();
     //this._fnLocalNames;
@@ -266,26 +276,40 @@ export default class ServerAPI extends EventEmitter {
 
     this.fastify.addHook("onResponse", async (request, reply) => {
       //  console.log('\n\n\n', request.openfusionapi);
-      const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
-      const timeTaken = Math.round(diff[0] * 1e3 + diff[1] * 1e-6); // Convertimos a milisegundos
-      let handler_param = request?.openfusionapi?.handler?.params;
+      // TODO: verificar si hay problemas al omitir esta parte de codigo para este tipo de método
+      if (request.method !== "OPTIONS") {
+        const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
+        const timeTaken = Math.round(diff[0] * 1e3 + diff[1] * 1e-6); // Convertimos a milisegundos
+        let handler_param = request?.openfusionapi?.handler?.params;
 
-      if (!reply.openfusionapi) {
-        reply.openfusionapi = { lastResponse: { responseTime: timeTaken } };
-      }
+        if (!reply.openfusionapi) {
+          reply.openfusionapi = { lastResponse: { responseTime: timeTaken } };
+        }
 
-      if (!reply.openfusionapi.lastResponse) {
-        reply.openfusionapi.lastResponse = { responseTime: timeTaken };
-      }
+        if (!reply.openfusionapi.lastResponse) {
+          reply.openfusionapi.lastResponse = { responseTime: timeTaken };
+        }
 
-      if (!reply.openfusionapi.lastResponse.responseTime) {
-        reply.openfusionapi.lastResponse.responseTime = timeTaken;
-      }
+        if (!reply.openfusionapi.lastResponse.responseTime) {
+          reply.openfusionapi.lastResponse.responseTime = timeTaken;
+        }
 
-      this.endpoints.saveLog(request, reply);
+        this.websocketClientAppInfo.send({
+          channel: "/app_info",
+          payload: {
+            url: request.url,
+            method: request.method,
+            app: handler_param?.app,
+            environment: handler_param?.environment,
+            endpoint: handler_param?.url_method,
+            responseTime: timeTaken,
+          },
+        });
+        this.endpoints.saveLog(request, reply);
 
-      if (handler_param?.key) {
-        this.endpoints.setCache(handler_param.key, request, reply);
+        if (handler_param?.key) {
+          this.endpoints.setCache(handler_param.key, request, reply);
+        }
       }
     });
 
@@ -348,68 +372,109 @@ this.fastify.post("/mcp", async (request, reply) => {
         // TODO: Validar acceso en cada mensaje
         // TODO: Validar si el usuario solo puede recibir mensajes
         // TODO: Validar si los usuarios pueden enviar un mensaje broadcast
-        // TODO: Habilitar que se puededa realizar comunicación uno a uno entre clientes
+        // TODO: Habilitar que se pueda realizar comunicación uno a uno entre clientes
         // TODO: Tomar en cuenta que si el endpoint se lo deshabilita inmediatamente se debe desconectar a todos los clientes y no permitir la reconexion
+
+        // TODO: Crear canales a los cuales se puede subscribir un cliente para recibir mensajes solo de ese canal, esto facilita la comunicación entre clientes sin necesidad de hacer broadcast a todos los clientes conectados
+        let msgString = message.toString();
+        let msgObj;
+        try {
+          msgObj = JSON.parse(msgString);
+          let validate_channel = WebSocketValidateFormatChannelName(
+            msgObj.channel
+          );
+          if (validate_channel.valid) {
+            let isValid = validateSchemaMessageWebSocket(msgObj);
+
+            if (isValid) {
+              //console.log("✅ Válido");
+
+              // valida si el mensaje es para subscribir a un canal
+              if (msgObj.channel == "/subscribe") {
+                if (msgObj.payload.channel) {
+                  let validate_channel_subscribe =
+                    WebSocketValidateFormatChannelName(msgObj.payload.channel);
+                  if (!validate_channel_subscribe.valid) {
+                    connection.socket.send(
+                      JSON.stringify({
+                        subscribed: false,
+                        channel: msgObj.payload.channel,
+                        error: validate_channel_subscribe.error,
+                      })
+                    );
+                    //return;
+                  } else {
+                    connection.socket.openfusionapi.channel =
+                      msgObj.payload.channel;
+                    connection.socket.send(
+                      JSON.stringify({
+                        subscribed: true,
+                        channel: msgObj.payload.channel,
+                        message: `Subscribed to channel ${msgObj.payload.channel}`,
+                      })
+                    );
+                  }
+                } else {
+                  connection.socket.send(
+                    JSON.stringify({
+                      subscribed: false,
+                      channel: msgObj.payload.channel,
+                      message: `Channel name is required to subscribe`,
+                    })
+                  );
+                }
+              } else {
+                // Broadcast
+                // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
+                this.fastify.websocketServer.clients.forEach((client_ws) => {
+                  try {
+                    if (
+                      client_ws.openfusionapi.handler.url ==
+                        connection.socket.openfusionapi.handler.url &&
+                      client_ws.openfusionapi.idclient !=
+                        connection.socket.openfusionapi.idclient &&
+                      connection.socket.openfusionapi.channel ==
+                        client_ws.openfusionapi.channel
+                    ) {
+                      // Envia el mensaje a los clientes conectados en el mismo endpoint y canal, funciona modo broadcast
+                      // TODO: Ver la forma de que se puede enviar el mensaje solo a un cliente en especifico, puede ser que se cree un canal con un id especifico para comunicacion entre dos clientes, como una sala privada
+                      client_ws.send(JSON.stringify(msgObj.payload));
+                    }
+                  } catch (error) {
+                    // Devuelve un mensaje al cliente que originó el mensaje
+                    connection.socket.send(
+                      JSON.stringify({ error: error.message })
+                    );
+                  }
+                });
+              }
+            } else {
+              //    console.log("❌ Inválido. Errores detectados:");
+              // ¡Aquí está la magia! `validate.errors` es un array con los detalles.
+              connection.socket.send(
+                JSON.stringify({
+                  error: validateSchemaMessageWebSocket.errors,
+                })
+              );
+            }
+          } else {
+            // Devuelve un mensaje al cliente que originó el mensaje
+            connection.socket.send(
+              JSON.stringify({
+                error: "Invalid channel name format",
+                message: msgString,
+              })
+            );
+          }
+        } catch (error) {
+          connection.socket.send(
+            JSON.stringify({ error: error.message, message: msgString })
+          );
+        }
 
         // message.toString() === 'hi from client'
         // console.log(this.fastify.websocketServer.clients);
         //connection.socket.send("hi from server: " + message.toString());
-
-        // Broadcast
-        // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
-        this.fastify.websocketServer.clients.forEach((client_ws) => {
-          try {
-            if (
-              client_ws.openfusionapi.handler.url ==
-                connection.socket.openfusionapi.handler.url &&
-              client_ws.openfusionapi.idclient !=
-                connection.socket.openfusionapi.idclient
-            ) {
-              //client_ws.send("Broadcast: " + message.toString());
-              // TODO: Verificar si el mensaje va dirigido a un idcliente en particular o es para todos
-              let msgString = message.toString();
-              let msgObj;
-              try {
-                msgObj = JSON.parse(msgString);
-                let isValid = validateSchemaMessageWebSocket(msgObj);
-
-                if (isValid) {
-                  //console.log("✅ Válido");
-
-                  if (
-                    msgObj.recipients &&
-                    Array.isArray(msgObj.recipients) &&
-                    msgObj.recipients.find(
-                      (recip) =>
-                        recip == connection.socket.openfusionapi.idclient
-                    )
-                  ) {
-                    // Envia el mensaje solo a los remitentes que están en la lista
-                    client_ws.send(JSON.stringify(msgObj.payload));
-                  } else if (msgObj) {
-                    // Envia a todos los remitentes siempre y cuando el msgObj sea un objeto json
-                    client_ws.send(JSON.stringify(msgObj.payload));
-                  }
-                } else {
-              //    console.log("❌ Inválido. Errores detectados:");
-                  // ¡Aquí está la magia! `validate.errors` es un array con los detalles.
-                  connection.socket.send(
-                    JSON.stringify({
-                      error: validateSchemaMessageWebSocket.errors,
-                    })
-                  );
-                }
-              } catch (error) {
-                connection.socket.send(
-                  JSON.stringify({ error: error.message })
-                );
-              }
-            }
-          } catch (error) {
-            // Devuelve un mensaje al cliente que originó el mensaje
-            connection.socket.send(JSON.stringify({ error: error.message }));
-          }
-        });
       });
     });
 
@@ -564,13 +629,22 @@ this.fastify.post("/mcp", async (request, reply) => {
       HOST
     );
 
-    this.TasksInterval.run();
+    //this.TasksInterval.run();
     //this.MCPServer.run();
 
     this.telegram.launch();
 
     await this.fastify.listen({ port: PORT, host: host });
 
+    this._runOnReady();
+  }
+
+  async _runOnReady() {
+    this.websocketClientAppInfo.on("open", () => {
+      this.websocketClientAppInfo.subscribe("/app_info");
+    });
+
+    this.TasksInterval.run();
     if (TELEGRAM_SERVER_CHATID) {
       try {
         let data = {
@@ -588,7 +662,6 @@ this.fastify.post("/mcp", async (request, reply) => {
       }
     }
   }
-
   _check_auth_Bearer(handler, data_aut) {
     let check =
       data_aut.Bearer &&

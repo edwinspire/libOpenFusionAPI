@@ -25,7 +25,7 @@ import Ajv from "ajv";
 
 const ajv = new Ajv();
 
-const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
+//const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 
 /*
 {
