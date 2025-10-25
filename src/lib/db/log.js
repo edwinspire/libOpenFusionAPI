@@ -1,5 +1,5 @@
-import { LogEntry } from "./models.js";
-import { Op } from "sequelize";
+import { LogEntry, Endpoint } from "./models.js";
+import { Op, Sequelize } from "sequelize";
 
 //import { getRoleById } from "./role.js";
 //import { EncryptPwd, GenToken, customError, md5 } from "../server/utils.js";
@@ -60,6 +60,7 @@ export const getUserById = async (
 };
 */
 
+/*
 export const getLogs = async (
   startDate,
   endDate,
@@ -89,7 +90,7 @@ export const getLogs = async (
     const logs = await LogEntry.findAll({
       where: whereConditions,
       order: [["timestamp", "DESC"]], // Ordenar por fecha ascendente
-      limit: parseInt( limit, 10) || 100
+      limit: parseInt(limit, 10) || 100,
     });
 
     return logs; // Devolver los resultados
@@ -97,4 +98,69 @@ export const getLogs = async (
     console.error("Error retrieving logs:", error);
     throw error;
   }
+};
+*/
+
+export const getLogs = async ({
+  idapp,
+  idendpoint,
+  hours,
+  level,
+  limit,
+} = {}) => {
+  const where = {};
+
+  // 1. Filtro por timestamp
+  if (hours !== undefined) {
+    const cutoffDate = new Date();
+    cutoffDate.setHours(cutoffDate.getHours() - hours);
+    where.timestamp = { [Op.gte]: cutoffDate };
+  }
+
+  // 2. Filtro por idendpoint en LogEntry
+  if (idendpoint) {
+    where.idendpoint = idendpoint;
+  }
+
+  // Agregar filtro por level si está definido
+  // Corrección: El valor 0 es válido, por lo que la comparación debe ser con undefined o null.
+  if (level !== undefined && level !== null) {
+    where.level = level;
+  }
+
+  // 3. Configuración del include para Endpoint
+  const include = [
+    {
+      model: Endpoint,
+      as: "endpoint", // <<< ¡ESTA ES LA LÍNEA CLAVE! Usa el alias definido en la asociación.
+      required: true, // Esto forza un INNER JOIN
+      attributes: ["idapp", "environment", "method", "handler"],
+      // Filtro por idapp en la tabla Endpoint
+      where: idapp ? { idapp } : undefined,
+    },
+  ];
+
+  // 4. Configuración final de la consulta
+  const options = {
+    where,
+    include,
+    attributes: [
+      "idendpoint",
+      // "id", // TU MODELO LogEntry no tiene un campo 'id'. Lo he comentado.
+      "timestamp",
+      "level",
+      "status_code",
+      "user_agent",
+      "client",
+      "req_headers",
+      "response_time",
+      "url",
+    ],
+    // Ordenamos por 'timestamp' que sí existe en tu modelo
+    order: [["timestamp", "DESC"]],
+    limit: limit || 99999,
+    raw: true, // <<< LÍNEA CLAVE: habilita el modo raw
+  };
+
+  return LogEntry.findAll(options);
 };

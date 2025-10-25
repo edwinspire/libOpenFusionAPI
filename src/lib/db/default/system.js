@@ -656,7 +656,7 @@ export const system_app = {
       handler: "FUNCTION",
       mcp: {},
       access: 0,
-      cache_time: 60,
+      cache_time: 5,
       ctrl: {
         users: [],
         log: {

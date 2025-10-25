@@ -73,6 +73,7 @@ import {
 
 import fs from "fs";
 import path from "path";
+import { timeStamp } from "node:console";
 
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
@@ -460,6 +461,8 @@ this.fastify.post("/mcp", async (request, reply) => {
                       // TODO: Ver la forma de que se puede enviar el mensaje solo a un cliente en especifico, puede ser que se cree un canal con un id especifico para comunicacion entre dos clientes, como una sala privada
                       client_ws.send(JSON.stringify(msgObj.payload));
 
+                      // No se habilita este envio ya que se gerenó un bucle infinito que terminó matando el servidor
+                      /*
                       this._emitEndpointEvent("request_start", {
                         idendpoint:
                           client_ws.openfusionapi.handler.params.idendpoint,
@@ -475,6 +478,7 @@ this.fastify.post("/mcp", async (request, reply) => {
                         //responseTime: timeTaken,
                         //statusCode: reply.statusCode,
                       });
+                      */
                     }
                   } catch (error) {
                     // Devuelve un mensaje al cliente que originó el mensaje
@@ -693,6 +697,7 @@ this.fastify.post("/mcp", async (request, reply) => {
       channel: "/endpoint/events",
       payload: {
         event_name: event_name,
+        timestamp: Date.now(), 
         data: data,
       },
     });

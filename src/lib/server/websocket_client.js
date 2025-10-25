@@ -114,7 +114,7 @@ export class OpenFusionWebsocketClient extends EventEmitter {
       this.ws.send(json);
       //console.log("📤 Mensaje JSON enviado:", message);
     } else {
-      console.warn("⚠️ No se puede enviar: conexión no abierta");
+      console.warn("⚠️ No se puede enviar: conexión no abierta", message);
     }
   }
 

@@ -867,9 +867,35 @@ export const LogEntry = dbsequelize.define(
         name: "idx_logentry_idendpoint", // Nombre del índice
         unique: false, // Índice no único
       },
+      // ÍNDICE COMPUESTO PARA TIMESTAMP Y IDENDPOINT
+      {
+        fields: ["timestamp", "idendpoint"], // Orden importante: timestamp primero
+        name: "idx_logentry_timestamp_idendpoint", // Nombre único
+        unique: false,
+      },
     ],
   }
 );
+
+// --- DEFINICIÓN DE LAS RELACIONES ---
+
+// 1. Un Endpoint tiene muchos Logs (Relación Uno a Muchos)
+Endpoint.hasMany(LogEntry, {
+  foreignKey: 'idendpoint', // La clave foránea en la tabla 'LogEntry'
+  sourceKey: 'idendpoint',  // La clave de origen en la tabla 'Endpoint'
+  as: 'logs',               // Alias para usar en las consultas (ej: include: 'logs')
+  onDelete: 'SET NULL',     // Si se borra un Endpoint, el idendpoint en LogEntry se pone a NULL
+  onUpdate: 'CASCADE'       // Si se actualiza el idendpoint en Endpoint, se actualiza en LogEntry
+});
+
+// 2. Un LogEntry pertenece a un Endpoint (Relación Inversa)
+LogEntry.belongsTo(Endpoint, {
+  foreignKey: 'idendpoint', // La clave foránea en la tabla 'LogEntry'
+  targetKey: 'idendpoint',  // La clave destino en la tabla 'Endpoint'
+  as: 'endpoint'            // Alias para usar en las consultas (ej: include: 'endpoint')
+});
+
+// --- FIN DE LA DEFINICIÓN DE LAS RELACIONES ---
 
 export const IntervalTask = dbsequelize.define(
   TableName_IntervalTask,
