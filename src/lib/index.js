@@ -73,13 +73,7 @@ import {
 
 import fs from "fs";
 import path from "path";
-import { channel } from "node:diagnostics_channel";
-import { url } from "node:inspector";
 
-//import Ajv from "ajv";
-//import { validate } from "uuid";
-
-//const ajv = new Ajv();
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
   PATH_APP_FUNCTIONS,
@@ -125,12 +119,20 @@ export default class ServerAPI extends EventEmitter {
     this.endpoints = new Endpoint();
     this.endpoints.on("log", (data) => {
       this.TasksInterval.pushLog(data);
-      //      this.websocketClientAppInfo.send({ payload: data });
+      //      this.websocketClientEndpoint.send({ payload: data });
+    });
+
+    this.endpoints.on("cache_set", (data) => {
+      this._emitEndpointEvent("cache_set", data);
+    });
+
+    this.endpoints.on("cache_released", (data) => {
+      this._emitEndpointEvent("cache_released", data);
     });
 
     this.SERVER_DATE_START;
 
-    this.websocketClientAppInfo = new OpenFusionWebsocketClient(
+    this.websocketClientEndpoint = new OpenFusionWebsocketClient(
       internal_url_ws(urlSystemPath.Websocket.AppInfo),
       {}
     );
@@ -246,10 +248,13 @@ export default class ServerAPI extends EventEmitter {
     this._addFunctions();
 
     this.fastify.addHook("preValidation", async (request, reply) => {
-      let request_path_params = get_url_params(request.url);
+      let request_path_params = get_url_params(request.url, request.method);
 
-      if (request_path_params && request_path_params.path) {
-        let cache_endpoint = await this.endpoints.getEndpoint(request);
+      if (request_path_params && request_path_params.url_key) {
+        let cache_endpoint = await this.endpoints.getEndpoint(
+          request_path_params.app,
+          request_path_params.url_key
+        );
 
         //
         if (cache_endpoint && cache_endpoint.handler) {
@@ -294,21 +299,22 @@ export default class ServerAPI extends EventEmitter {
           reply.openfusionapi.lastResponse.responseTime = timeTaken;
         }
 
-        this.websocketClientAppInfo.send({
-          channel: "/app_info",
-          payload: {
-            url: request.url,
-            method: request.method,
-            app: handler_param?.app,
-            environment: handler_param?.environment,
-            endpoint: handler_param?.url_method,
-            responseTime: timeTaken,
-          },
+        this._emitEndpointEvent("request_completed", {
+          idendpoint: handler_param?.idendpoint,
+          idapp: handler_param?.idapp,
+          url: request.url,
+          method: request.method,
+          app: handler_param?.app,
+          environment: handler_param?.environment,
+          endpoint: handler_param?.url_method,
+          responseTime: timeTaken,
+          statusCode: reply.statusCode,
         });
+
         this.endpoints.saveLog(request, reply);
 
-        if (handler_param?.key) {
-          this.endpoints.setCache(handler_param.key, request, reply);
+        if (handler_param?.idendpoint) {
+          this.endpoints.setCache(handler_param?.url_key, request, reply);
         }
       }
     });
@@ -356,16 +362,16 @@ this.fastify.post("/mcp", async (request, reply) => {
           ? req.openfusionapi
           : {};
 
-        connection.socket.openfusionapi.idclient = getUUID();
+        //connection.socket.openfusionapi.idclient = getUUID();
       } catch (error) {
         console.log(error);
       }
 
       connection.socket.on("open", (message) => {
-        console.log("Abre");
+      //  console.log("Abre");
       });
       connection.socket.on("close", (message) => {
-        console.log("Cierra");
+        //console.log("Cierra");
       });
 
       connection.socket.on("message", (message) => {
@@ -406,6 +412,7 @@ this.fastify.post("/mcp", async (request, reply) => {
                   } else {
                     connection.socket.openfusionapi.channel =
                       msgObj.payload.channel;
+                    connection.socket.openfusionapi.idclient = getUUID();
                     connection.socket.send(
                       JSON.stringify({
                         subscribed: true,
@@ -423,14 +430,27 @@ this.fastify.post("/mcp", async (request, reply) => {
                     })
                   );
                 }
-              } else {
+              } else if (
+                connection.socket.openfusionapi.idclient &&
+                msgObj.channel == "/ping"
+              ) {
+                connection.socket.send(
+                  JSON.stringify({
+                    channel: "/pong",
+                    payload: {},
+                  })
+                );
+              } else if (connection.socket.openfusionapi.idclient) {
                 // Broadcast
                 // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
+                // TODO: Revisar un mecanismo para limitar que un cliente puede enviar mensajes y esté limitado solo a leer mensajes
                 this.fastify.websocketServer.clients.forEach((client_ws) => {
+                  // console.log("Envia mensaje a los clientes conectados");
                   try {
                     if (
-                      client_ws.openfusionapi.handler.url ==
-                        connection.socket.openfusionapi.handler.url &&
+                      client_ws.openfusionapi.handler.params.idendpoint ==
+                        connection.socket.openfusionapi.handler.params
+                          .idendpoint &&
                       client_ws.openfusionapi.idclient !=
                         connection.socket.openfusionapi.idclient &&
                       connection.socket.openfusionapi.channel ==
@@ -439,6 +459,22 @@ this.fastify.post("/mcp", async (request, reply) => {
                       // Envia el mensaje a los clientes conectados en el mismo endpoint y canal, funciona modo broadcast
                       // TODO: Ver la forma de que se puede enviar el mensaje solo a un cliente en especifico, puede ser que se cree un canal con un id especifico para comunicacion entre dos clientes, como una sala privada
                       client_ws.send(JSON.stringify(msgObj.payload));
+
+                      this._emitEndpointEvent("request_start", {
+                        idendpoint:
+                          client_ws.openfusionapi.handler.params.idendpoint,
+                        idapp: client_ws?.openfusionapi?.handler?.params?.idapp,
+                        url: client_ws?.openfusionapi?.handler?.params?.url_key,
+                        method: "WS",
+                        app: client_ws?.openfusionapi?.handler?.params?.app,
+                        environment:
+                          client_ws?.openfusionapi?.handler?.params
+                            ?.environment,
+                        endpoint:
+                          client_ws?.openfusionapi?.handler?.params?.url_key,
+                        //responseTime: timeTaken,
+                        //statusCode: reply.statusCode,
+                      });
                     }
                   } catch (error) {
                     // Devuelve un mensaje al cliente que originó el mensaje
@@ -447,6 +483,11 @@ this.fastify.post("/mcp", async (request, reply) => {
                     );
                   }
                 });
+              } else {
+                connection.socket.send(
+                  JSON.stringify({ error: "Invalid client. Bye." })
+                );
+                connection.socket.close();
               }
             } else {
               //    console.log("❌ Inválido. Errores detectados:");
@@ -456,6 +497,7 @@ this.fastify.post("/mcp", async (request, reply) => {
                   error: validateSchemaMessageWebSocket.errors,
                 })
               );
+              connection.socket.close();
             }
           } else {
             // Devuelve un mensaje al cliente que originó el mensaje
@@ -465,11 +507,13 @@ this.fastify.post("/mcp", async (request, reply) => {
                 message: msgString,
               })
             );
+            connection.socket.close();
           }
         } catch (error) {
           connection.socket.send(
             JSON.stringify({ error: error.message, message: msgString })
           );
+          connection.socket.close();
         }
 
         // message.toString() === 'hi from client'
@@ -571,6 +615,18 @@ this.fastify.post("/mcp", async (request, reply) => {
         }
       }
 
+      this._emitEndpointEvent("request_start", {
+        idendpoint: handlerEndpoint.params?.idendpoint,
+        idapp: handlerEndpoint.params?.idapp,
+        url: request.url,
+        method: request.method,
+        app: handlerEndpoint.params?.app,
+        environment: handlerEndpoint.params?.environment,
+        endpoint: handlerEndpoint.params?.url_method,
+        //responseTime: timeTaken,
+        //statusCode: reply.statusCode,
+      });
+
       if (
         handlerEndpoint.params &&
         handlerEndpoint.params.cache_time &&
@@ -580,20 +636,13 @@ this.fastify.post("/mcp", async (request, reply) => {
 
         let hash_request = this.endpoints.hash_request(
           request,
-          handlerEndpoint.params.key
+          handlerEndpoint.params.url_key
         );
 
         reply.openfusionapi.lastResponse.hash_request = hash_request;
 
-        /*
-        //let data_cache = this._cacheResponse.get(hash_request);
-        let data_cache = this._cacheURLResponse.get(
-          handlerEndpoint.params.url_method
-        );
-        */
-
         let data_cache = this.endpoints.getCache(
-          handlerEndpoint.params.key,
+          handlerEndpoint.params.url_key,
           hash_request
         );
 
@@ -639,9 +688,19 @@ this.fastify.post("/mcp", async (request, reply) => {
     this._runOnReady();
   }
 
+  _emitEndpointEvent(event_name, data) {
+    this.websocketClientEndpoint.send({
+      channel: "/endpoint/events",
+      payload: {
+        event_name: event_name,
+        data: data,
+      },
+    });
+  }
+
   async _runOnReady() {
-    this.websocketClientAppInfo.on("open", () => {
-      this.websocketClientAppInfo.subscribe("/app_info");
+    this.websocketClientEndpoint.on("open", () => {
+      this.websocketClientEndpoint.subscribe("/endpoint/events");
     });
 
     this.TasksInterval.run();

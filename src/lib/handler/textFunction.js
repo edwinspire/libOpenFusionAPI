@@ -1,3 +1,5 @@
+import { setCacheReply } from "./utils.js";
+
 export const textFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
@@ -17,6 +19,8 @@ export const textFunction = async (
 
     let filename = Date.now() + "." + getExtensionFromMimeType(mimeType);
 
+    setCacheReply(response, textConfig.payload);
+
     response
       .code(200)
       .type(mimeType)
@@ -24,7 +28,7 @@ export const textFunction = async (
       .send(textConfig.payload);
   } catch (error) {
     //    console.log(error);
-    setCacheReply(response, error);
+    setCacheReply(response, { error: error });
     // @ts-ignore
     response.code(500).send(error);
   }

@@ -420,6 +420,25 @@ export async function fnGetResponseCountStatus(params) {
   return r;
 }
 
+export async function fnGetInternalAppMetrics(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    r.data = [];
+    r.code = 200;
+
+    r = params.server_data.endpoint_class.getInternalAppMetrics(
+      params?.request?.query?.appName
+    );
+  } catch (error) {
+    //console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
 export async function fnClearCache(params) {
   let r = { data: undefined, code: 204 };
   try {

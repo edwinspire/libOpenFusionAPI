@@ -12,12 +12,16 @@ export const internal_url_http = (relative_path) =>
 export const internal_url_ws = (relative_path) =>
   `http://localhost:${default_port}${relative_path}`;
 
-export const get_url_params = (/** @type {string} */ url) => {
+export const get_url_params = (
+  /** @type {string} */ url,
+  method
+) => {
   let reqUrl = new URL(`http://localhost${url.toLowerCase()}`);
   let fn = match("/(api|ws)/:parts*", { decode: decodeURIComponent });
   let par = fn(reqUrl.pathname);
 
   if (par.params) {
+    method = method ? method.toUpperCase() : "UNKNOW";
     par.app =
       par.params.parts && par.params.parts.length > 0
         ? par.params.parts[0]
@@ -27,6 +31,13 @@ export const get_url_params = (/** @type {string} */ url) => {
         ? par.params.parts.slice(-1)[0]
         : undefined;
     par.resource = "/" + par.params.parts.slice(1, -1).join("/");
+    par.url_key = url_key(
+      par.app,
+      par.resource,
+      par.environment,
+      method,
+      par.params[0] === "ws"
+    );
   } else {
     par = { params: { parts: [] } };
   }
@@ -42,7 +53,8 @@ export const key_url_from_params = (
 };
 */
 
-export const key_endpoint_method = (app, resource, environment, method, ws) => {
+export const url_key = (app, resource, environment, method, ws) => {
+  method = method ? method.toUpperCase() : "UNKNOW";
   return `${internal_url_endpoint(app, resource, environment, ws)}|${
     ws ? "WS" : method
   }`;
@@ -75,7 +87,7 @@ export function validateURL(string_url) {
 
 export const urlSystemPath = {
   Endpoints: {},
-  Websocket: { AppInfo: "/ws/system/websocket/app/info/prd" },
+  Websocket: { AppInfo: "/ws/system/websocket/endpoint/prd" },
 };
 
 export function WebSocketValidateFormatChannelName(cadena) {

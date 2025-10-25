@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
 import {
   get_url_params,
-  key_endpoint_method,
+  url_key,
   internal_url_endpoint,
 } from "./utils_path.js";
 import { getAppWithEndpoints, getAppByName } from "../db/app.js";
@@ -21,6 +21,8 @@ import {
 import { createLog, getLogLevelByStatusCode } from "../db/log.js";
 import { getMongoDBHandlerParams } from "../handler/mongoDB.js";
 import Ajv from "ajv";
+import { url } from "node:inspector";
+import { ur } from "zod/v4/locales";
 //import { runHandler } from "../handler/handler.js";
 
 const ajv = new Ajv();
@@ -90,8 +92,9 @@ export default class Endpoint extends EventEmitter {
     return r;
   }
 
-  async getEndpoint(request) {
-    let request_path_params = get_url_params(request.url);
+  async getEndpoint(app, url_key) {
+    //let request_path_params = get_url_params(request.url);
+    /*
     let endpoint_key = key_endpoint_method(
       request_path_params.app,
       request_path_params.resource,
@@ -99,16 +102,15 @@ export default class Endpoint extends EventEmitter {
       request.method,
       request.ws
     );
+*/
 
     // Revisa si existe el endpoint
-    if (!this.internal_endpoint[endpoint_key]) {
+    if (!this.internal_endpoint[url_key]) {
       // Si no lo tiene cargado lo obtiene de la base de datos
-      await this._loadEndpointsByAPPToCache(
-        request_path_params.app,
-        endpoint_key
-      );
+      await this._loadEndpointsByAPPToCache(app, url_key);
     }
-    return this.internal_endpoint[endpoint_key];
+
+    return this.internal_endpoint[url_key];
   }
 
   getCache(endpoint_key, hash_request) {
@@ -140,6 +142,54 @@ export default class Endpoint extends EventEmitter {
     }
   }
 
+  getCacheSizeEndpoint(url_key) {
+    return this.internal_endpoint[url_key] && this.internal_endpoint[url_key].responses
+      ? Number(
+          (
+            Buffer.byteLength(
+              JSON.stringify(this.internal_endpoint[url_key].responses),
+              "utf-8"
+            ) /
+            1014 /
+            1000
+          ).toFixed(4)
+        )
+      : 0;
+  }
+
+  // this.internal_endpoint[url_key].CountStatusCode
+getInternalAppMetrics(app_name) {
+    let r = { data: undefined, code: 204 };
+    try {
+      r.data = [];
+      r.code = 200;
+      const filteredKeys = Object.keys(this.internal_endpoint).filter((key) => {
+        let u = get_url_params(key);
+        return u.app == app_name;
+      });
+
+      let data = filteredKeys.map((key) => {
+        // Calcula el tamaño de la respuesta
+        //let r = this.internal_endpoint[ep_list[index]].responses;
+        return {
+          idendpoint: this.internal_endpoint[key]?.handler?.params?.idendpoint,
+          cache_size: this.getCacheSizeEndpoint(key),
+          statusCode: this.internal_endpoint[key].CountStatusCode
+        };
+      });
+
+      r.data = data;
+    } catch (error) {
+      //console.log(error);
+
+      r.data = error;
+      r.code = 500;
+      //res.code(500).json({ error: error.message });
+    }
+    return r;
+  }
+
+
   getCacheSize(app_name) {
     let r = { data: undefined, code: 204 };
     try {
@@ -154,17 +204,8 @@ export default class Endpoint extends EventEmitter {
         // Calcula el tamaño de la respuesta
         //let r = this.internal_endpoint[ep_list[index]].responses;
         return {
-          url: key,
-          bytes: Number(
-            (
-              Buffer.byteLength(
-                JSON.stringify(this.internal_endpoint[key].responses),
-                "utf-8"
-              ) /
-              1014 /
-              1000
-            ).toFixed(4)
-          ),
+          idendpoint: this.internal_endpoint[key]?.handler?.params?.idendpoint,
+          size: this.getCacheSizeEndpoint(key),
         };
       });
 
@@ -187,19 +228,19 @@ export default class Endpoint extends EventEmitter {
     });
   }
 
-  setCache(endpoint_key, request, reply) {
+  setCache(url_key, request, reply) {
     // Revisar si el endpoint existe
     // Revisa si el endpoint está habilitado para guardar cache
     // Obtiene el md5 del request
     // Obtiene la ultima respuesta del endpoint
     // Guarda la respuesta en la cache
 
-    let ep = this.internal_endpoint[endpoint_key];
+    let ep = this.internal_endpoint[url_key];
 
     if (ep) {
-      this.addCountStatus(endpoint_key, reply?.statusCode);
+      this.addCountStatus(url_key, reply?.statusCode);
 
-      let hash_request = this.hash_request(request, endpoint_key);
+      let hash_request = this.hash_request(request, url_key);
 
       let reply_lastResponse =
         reply?.openfusionapi?.lastResponse?.data ?? undefined;
@@ -207,30 +248,42 @@ export default class Endpoint extends EventEmitter {
       if (
         reply.statusCode != 500 &&
         reply_lastResponse &&
-        ep?.handler?.params?.cache_time > 0 &&
-        ep?.handler?.params?.key
+        ep?.handler?.params?.cache_time > 0
       ) {
         // Revisa si la propiedad responses existe
-        if (!this.internal_endpoint[endpoint_key].responses) {
-          this.internal_endpoint[endpoint_key].responses = {};
+        if (!this.internal_endpoint[url_key].responses) {
+          this.internal_endpoint[url_key].responses = {};
         }
 
         // Verifica si no existe ya datos en cache para este request
-        if (!this.getCache(endpoint_key, hash_request)) {
-          this.internal_endpoint[endpoint_key].responses[hash_request] =
+        if (!this.getCache(url_key, hash_request)) {
+          this.internal_endpoint[url_key].responses[hash_request] =
             reply_lastResponse;
 
           let cache_time = (ep?.handler?.params?.cache_time ?? 1) * 1000;
 
+          this.emit("cache_set", {
+            app: ep?.handler?.params?.app,
+            idendpoint: ep?.handler?.params?.idendpoint,
+            idapp: ep?.handler?.params?.idapp,
+            cache_size: this.getCacheSizeEndpoint(url_key),
+            count_status_code: ep?.CountStatusCode,
+            url: request.url,
+          });
+
           setTimeout(() => {
             try {
-              if (
-                this.internal_endpoint[endpoint_key]?.responses[hash_request]
-              ) {
-                delete this.internal_endpoint[endpoint_key].responses[
-                  hash_request
-                ];
+              if (this.internal_endpoint[url_key]?.responses[hash_request]) {
+                delete this.internal_endpoint[url_key].responses[hash_request];
 
+                this.emit("cache_released", {
+                  app: ep?.handler?.params?.app,
+                  idendpoint: ep?.handler?.params?.idendpoint,
+                  idapp: ep?.handler?.params?.idapp,
+                  cache_size: this.getCacheSizeEndpoint(url_key),
+                  count_status_code: ep?.CountStatusCode,
+                  url: request.url,
+                });
                 /*
                 console.log(
                   `Se elimina la cache de ${endpoint_key} luego de ${cache_time} segundos.`
@@ -239,7 +292,7 @@ export default class Endpoint extends EventEmitter {
               }
             } catch (error) {
               console.error(
-                "Clean cache endpoint_key " + endpoint_key,
+                `Error clean cache ${ep?.handler?.params?.idendpoint} | url_key: ${url_key}`,
                 error,
                 hash_request
               );
@@ -249,7 +302,7 @@ export default class Endpoint extends EventEmitter {
       }
     } else {
       console.log(
-        `Endpoint ${endpoint_key} no existe. No se puede setear la cache.`
+        `IdEndpoint ${ep?.handler?.params?.idendpoint} not exists | url_key: ${url_key}`
       );
     }
   }
@@ -259,14 +312,18 @@ export default class Endpoint extends EventEmitter {
     try {
       r.data = [];
       r.code = 200;
-      const filteredKeys = Object.keys(this.internal_endpoint).filter((key) => {
-        let u = get_url_params(key);
-        return u.app == app_name && this.internal_endpoint[key].CountStatusCode;
-      });
+      const filteredKeys = Object.keys(this.internal_endpoint).filter(
+        (url_key) => {
+          let u = get_url_params(url_key);
+          return (
+            u.app == app_name && this.internal_endpoint[url_key].CountStatusCode
+          );
+        }
+      );
 
-      let statusCodeList = filteredKeys.map((key) => {
+      let statusCodeList = filteredKeys.map((url_key) => {
         let r = {};
-        r[key] = this.internal_endpoint[key].CountStatusCode;
+        r[url_key] = this.internal_endpoint[url_key].CountStatusCode;
         return r;
       });
 
@@ -399,18 +456,16 @@ export default class Endpoint extends EventEmitter {
     }
   }
 
-  addCountStatus(endpoint_key, statusCode) {
-    if (endpoint_key && statusCode) {
+  addCountStatus(url_key, statusCode) {
+    if (url_key && statusCode) {
       // Revisa si la propiedad responses existe
-      if (!this.internal_endpoint[endpoint_key].CountStatusCode) {
-        this.internal_endpoint[endpoint_key].CountStatusCode = {};
-        this.internal_endpoint[endpoint_key].CountStatusCode[statusCode] = 0;
+      if (!this.internal_endpoint[url_key].CountStatusCode) {
+        this.internal_endpoint[url_key].CountStatusCode = {};
+        this.internal_endpoint[url_key].CountStatusCode[statusCode] = 0;
       }
 
-      if (
-        this.internal_endpoint[endpoint_key]?.CountStatusCode[statusCode] >= 0
-      ) {
-        this.internal_endpoint[endpoint_key].CountStatusCode[statusCode]++;
+      if (this.internal_endpoint[url_key]?.CountStatusCode[statusCode] >= 0) {
+        this.internal_endpoint[url_key].CountStatusCode[statusCode]++;
       }
     }
   }
@@ -427,7 +482,7 @@ export default class Endpoint extends EventEmitter {
     }
   }
 
-  async _loadEndpointsByAPPToCache(app, endpoint_key) {
+  async _loadEndpointsByAPPToCache(app, url_key_endpoint) {
     try {
       // Carga los endpoints de una App a cache
       let appDataResult = await getAppWithEndpoints({ app: app }, false);
@@ -441,6 +496,7 @@ export default class Endpoint extends EventEmitter {
           for (let i = 0; i < appData.endpoints.length; i++) {
             let endpoint = appData.endpoints[i];
 
+            /*
             let url_app_endpoint = key_endpoint_method(
               appData.app,
               endpoint.resource,
@@ -448,17 +504,27 @@ export default class Endpoint extends EventEmitter {
               endpoint.method,
               endpoint.method == "WS"
             );
+            */
+            // (app, resource, environment, method, ws)
+            let current_url_key = url_key(
+              appData.app,
+              endpoint.resource,
+              endpoint.environment,
+              endpoint.method,
+              endpoint.method == "WS"
+            );
 
-            endpoint.key = url_app_endpoint;
-
-            if (endpoint_key && endpoint_key == url_app_endpoint) {
+            if (url_key_endpoint && url_key_endpoint == current_url_key) {
               // Carga solo el endpoind solicitado y sale
 
-              if (!this.internal_endpoint[endpoint_key]) {
-                this.internal_endpoint[endpoint_key] = {};
+              endpoint.url_key = url_key_endpoint;
+              endpoint.idapp = appData.idapp;
+
+              if (!this.internal_endpoint[url_key_endpoint]) {
+                this.internal_endpoint[url_key_endpoint] = {};
               }
 
-              this.internal_endpoint[endpoint_key].handler =
+              this.internal_endpoint[url_key_endpoint].handler =
                 await this._getApiHandler(appData.app, endpoint, appData.vars);
 
               break;
@@ -551,7 +617,7 @@ export default class Endpoint extends EventEmitter {
               }
             }
           }
-/*
+          /*
           console.log(
             "Variables de aplicación agregadas a la función:",
             returnHandler.params.code

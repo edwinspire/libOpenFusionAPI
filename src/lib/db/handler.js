@@ -15,7 +15,7 @@ export const getAllHandlers = async () => {
 
 export const defaultHandlers = () => {
   try {
-    console.log(" defaultHandlers >>>>>> ");
+  //  console.log(" defaultHandlers >>>>>> ");
 
     let handlers = [
       {
