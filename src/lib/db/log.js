@@ -355,13 +355,6 @@ export const getLogs = async (options = {}) => {
     };
 
     // === EJECUTAR CONSULTA ===
-
-    console.log("🔍 Ejecutando consulta con filtros:", {
-      filters: whereConditions,
-      order: `${order} ${orderDirection}`,
-      pagination: { limit: queryOptions.limit, offset: queryOptions.offset },
-    });
-
     // Ejecutar consulta principal
     const logs = await LogEntry.findAll(queryOptions);
 
@@ -396,7 +389,7 @@ export const getLogs = async (options = {}) => {
     };
     */
 
-    console.log(`✅ Consulta ejecutada exitosamente: ${logs.length}`);
+//    console.log(`✅ Consulta ejecutada exitosamente: ${logs.length}`);
     let response = [];
 
     if (logs.length > 0) {
