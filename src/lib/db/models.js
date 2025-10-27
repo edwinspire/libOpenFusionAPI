@@ -878,7 +878,8 @@ export const LogEntry = dbsequelize.define(
 );
 
 // --- DEFINICIÓN DE LAS RELACIONES ---
-
+/*
+No se implementa debido a que causa lentitud cuando hay miles de logs
 // 1. Un Endpoint tiene muchos Logs (Relación Uno a Muchos)
 Endpoint.hasMany(LogEntry, {
   foreignKey: 'idendpoint', // La clave foránea en la tabla 'LogEntry'
@@ -894,6 +895,7 @@ LogEntry.belongsTo(Endpoint, {
   targetKey: 'idendpoint',  // La clave destino en la tabla 'Endpoint'
   as: 'endpoint'            // Alias para usar en las consultas (ej: include: 'endpoint')
 });
+*/
 
 // --- FIN DE LA DEFINICIÓN DE LAS RELACIONES ---
 

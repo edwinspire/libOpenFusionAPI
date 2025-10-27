@@ -1,5 +1,5 @@
 import { parentPort } from "worker_threads";
-import { createLog } from "../db/log.js";
+import { createLog, createLogEntriesBulk } from "../db/log.js";
 import {
   getIntervalTaskProcess,
   updateIntervalTaskStatus,

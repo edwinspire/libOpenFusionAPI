@@ -8,15 +8,18 @@ import {
   upsertApp,
   saveAppWithEndpoints,
 } from "../../../../db/app.js";
-import { createLog, getLogs } from "../../../../db/log.js";
+import {
+  createLog,
+  getLogs,
+  getLogsRecordsPerMinute,
+} from "../../../../db/log.js";
 import {
   getIntervalTask,
   upsertIntervalTask,
-  deleteIntervalTask
+  deleteIntervalTask,
 } from "../../../../db/interval_task.js";
 import { listFunctionsVars } from "../../../utils.js";
 import { getHandlerDoc } from "../../../../handler/handler.js";
-
 
 export async function fnListFnVarsHandlerJS(params) {
   let r = { code: 204, data: undefined };
@@ -139,18 +142,7 @@ export async function fnGetLogs(params) {
   let r = { data: undefined, code: 204 };
 
   try {
-    let startDate = params?.request?.query?.startDate;
-
-    let endDate = params?.request?.query?.endDate;
-
-    //  params?.request?.query?.endDate || currentDate;
-    let idendpoint = params?.request?.query?.idendpoint || null;
-    let level = params?.request?.query?.level || null;
-    let limit = params?.request?.query?.limit || 100;
-
-    // console.log("GETLOGS > ", startDate, endDate, idendpoint, level);
-
-    let data = await getLogs(startDate, endDate, idendpoint, level, limit);
+    let data = await getLogs(params?.request?.query);
 
     r.data = data;
     r.code = 200;
@@ -560,8 +552,6 @@ export async function fnInsertLog(params) {
   return r;
 }
 
-
-
 export async function fnGetHandlerDocs(params) {
   let r = { code: 204, data: undefined };
   try {
@@ -571,6 +561,24 @@ export async function fnGetHandlerDocs(params) {
     //res.code(500).json({ error: error.message });
     r.data = error;
     r.code = 500;
+  }
+  return r;
+}
+
+export async function fnGetLogsRecordsPerMinute(params) {
+  let r = { data: undefined, code: 204 };
+
+  try {
+    let data = await getLogsRecordsPerMinute(params?.request?.query);
+
+    r.data = data;
+    r.code = 200;
+  } catch (error) {
+    //console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
   }
   return r;
 }

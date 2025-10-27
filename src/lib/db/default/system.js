@@ -29,7 +29,7 @@ export const system_app = {
       },
       resource: "/api/token/0.01",
       code: "fnToken",
-      rowkey: 107,
+      rowkey: 513,
       description: "",
       idendpoint: "15ca7819-8823-4835-87c5-04b792bc594d",
       cors: {},
@@ -39,7 +39,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "abf9d90f05425101283d74d0f4927a0045a4512db4e24cc691e8482cf1b5f025",
+        "894969ed12a8051682a909debd0afaa586155f61d8eeb7dd9079a4f2aef452cf",
     },
     {
       enabled: true,
@@ -52,7 +52,7 @@ export const system_app = {
       ctrl: {},
       resource: "/api/handler/documentation",
       code: "fnGetHandlerDocs",
-      rowkey: 143,
+      rowkey: 615,
       description: "Get documentation of a specific handler",
       idendpoint: "25ca7819-8823-4835-87c5-04b792bc594d",
       cors: {},
@@ -79,7 +79,32 @@ export const system_app = {
         },
       },
       internal_hash_row:
-        "a6d7010621e99d9861841a839caaed06dbbc3e2b863505b92258a3cd698237a2",
+        "f19a507afceac471ce6d182c3bb6882c8d73283add2dab8c20269c3b1ee0a441",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/api/token/0.01/qa",
+      method: "POST",
+      handler: "FUNCTION",
+      mcp: {},
+      access: 0,
+      cache_time: 0,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/api/token/0.01",
+      code: "fnToken",
+      rowkey: 624,
+      description: "",
+      idendpoint: "65cdde4c-8000-4248-bd77-157257b6d9c2",
+      cors: {},
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "qa",
+      json_schema: {},
+      internal_hash_row:
+        "a8fde324b6f1ec48bcf6a743868a4cd2b61be81c61e3e781b4cd0e6b49737b62",
     },
     {
       enabled: true,
@@ -92,7 +117,7 @@ export const system_app = {
       ctrl: {},
       resource: "/websocket/endpoint",
       code: "",
-      rowkey: 753,
+      rowkey: 487,
       description: "Send events from apps.",
       idendpoint: "a0130d77-b779-4dea-a87f-6841520ffade",
       cors: {},
@@ -161,7 +186,7 @@ export const system_app = {
         },
       },
       internal_hash_row:
-        "5fbec73b3aac5fc6f433ab0715be874c3388ce31f95c4368193d3042850a5947",
+        "e88e6eee5ef98741cd3a31ca131ed3276a3c4f9b719a72ec190d90b3b7f8571f",
     },
     {
       enabled: true,
@@ -176,7 +201,7 @@ export const system_app = {
       },
       resource: "/api/app/0.01",
       code: "fnGetAppById",
-      rowkey: 917,
+      rowkey: 373,
       description: "",
       idendpoint: "9dcc9e25-1238-411e-87f8-78f318455c7e",
       cors: {},
@@ -186,32 +211,7 @@ export const system_app = {
       environment: "qa",
       json_schema: {},
       internal_hash_row:
-        "2ec36dce1cf220962dba1e1d0dac77ad1d9cc05d7585be8417e1a59015545af1",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/api/token/0.01/qa",
-      method: "POST",
-      handler: "FUNCTION",
-      mcp: {},
-      access: 0,
-      cache_time: 0,
-      ctrl: {
-        admin: true,
-      },
-      resource: "/api/token/0.01",
-      code: "fnToken",
-      rowkey: 824,
-      description: "",
-      idendpoint: "65cdde4c-8000-4248-bd77-157257b6d9c2",
-      cors: {},
-      headers_test: {},
-      data_test: {},
-      latest_updater: null,
-      environment: "qa",
-      json_schema: {},
-      internal_hash_row:
-        "11b9bdcebac354e00177a172dbd0d04df37c8df0b9e5c4b03db602292168f2dd",
+        "6f8d0fddf9cb583cb71186a54e5fd9d8d5667a0a392337d71d570e8fc26f1146",
     },
     {
       enabled: true,
@@ -226,7 +226,7 @@ export const system_app = {
       },
       resource: "/system/environment/0.01",
       code: "fnGetEnvironment",
-      rowkey: 564,
+      rowkey: 413,
       description: "",
       idendpoint: "d7737d40-5cd8-45f2-a60a-1014272a2faf",
       cors: {},
@@ -236,7 +236,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "332d73ed9a176d39b5e8af07d64936dbe90e870777227c00bb95478fa46b9449",
+        "a8d5b2d605aa076a9aedacaba1e6eb969ba41e11829b2a58178d04f133002563",
     },
     {
       enabled: true,
@@ -249,7 +249,7 @@ export const system_app = {
       ctrl: {},
       resource: "/interval_tasks/byidapp",
       code: "fnGetIntervalTasksByIdApp",
-      rowkey: 637,
+      rowkey: 77,
       description: "",
       idendpoint: "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
       cors: {},
@@ -301,7 +301,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "9e337dcf1d38b61c052ad11064fcd90aa44a21f842c7a4ce7093f8eee0f7e3a7",
+        "7c2de2701274ecc5c83b59a364d9d5a0f3e619293a008ee38bb2af3a5c23c1d0",
     },
     {
       enabled: true,
@@ -316,7 +316,7 @@ export const system_app = {
       },
       resource: "/system/login/0.01",
       code: "fnLogin",
-      rowkey: 375,
+      rowkey: 236,
       description: "",
       idendpoint: "871cd2ed-8456-4e5e-8ab5-b7724a908191",
       cors: {},
@@ -326,7 +326,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "3a7ef33e6531fca4f63bdf34d64fe4d7986e73760847168e931b55551311a846",
+        "69390d0ffe75fd3571919071c60881b00347e14f5c25e62a983636bb4d044f16",
     },
     {
       enabled: true,
@@ -341,7 +341,7 @@ export const system_app = {
       },
       resource: "/websocket/hooks",
       code: "",
-      rowkey: 446,
+      rowkey: 26,
       description: "",
       idendpoint: "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
       cors: {},
@@ -351,7 +351,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "7a1556ef16e9dd631f51d7fea07ee2bee08ce6f59e26ae44f47fc41fe3877e86",
+        "cd9eb339fef44b3f83ddeb970fa63230ff3bf6bc9db8a6617e429242635a14a7",
     },
     {
       enabled: true,
@@ -366,7 +366,7 @@ export const system_app = {
       },
       resource: "/api/apps/0.01",
       code: "fnGetApps",
-      rowkey: 329,
+      rowkey: 31,
       description: "",
       idendpoint: "48f6c75d-285c-420d-b6d7-9471bf052c1e",
       cors: {},
@@ -376,7 +376,7 @@ export const system_app = {
       environment: "dev",
       json_schema: {},
       internal_hash_row:
-        "3be72c4505a06d370f4394409753c553ee2cdd7ed3b588a343bc70f4166290cd",
+        "d0e16aaf1b837442526043d8ca715aa3151d098a19e715cf9b927a429a24b2ed",
     },
     {
       enabled: true,
@@ -391,7 +391,7 @@ export const system_app = {
       },
       resource: "/api/apps/0.01",
       code: "fnGetApps",
-      rowkey: 10,
+      rowkey: 570,
       description: "",
       idendpoint: "dae4d3ff-6782-4fd3-8837-d169cf1aded8",
       cors: {},
@@ -401,7 +401,67 @@ export const system_app = {
       environment: "qa",
       json_schema: {},
       internal_hash_row:
-        "fafaf9e4f7af5ce2f46fd3621234b5c1cfe5341bea3f862e3ae47f008b15c26b",
+        "2d58ee2741b260fd7acb5d3184d381bc25de8ac8769d6248107a909404a8221e",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/system/log/prd",
+      method: "POST",
+      handler: "FUNCTION",
+      mcp: {},
+      access: 0,
+      cache_time: 0,
+      ctrl: {
+        users: [],
+        log: {},
+      },
+      resource: "/system/log",
+      code: "fnInsertLog",
+      rowkey: 462,
+      description: "",
+      idendpoint: "18731c87-9d59-44b6-8871-ecaa493008e5",
+      cors: {},
+      headers_test: {},
+      data_test: {
+        body: {
+          js: {
+            code: "{}",
+          },
+          xml: {
+            code: "",
+          },
+          text: {},
+          selection: 0,
+        },
+        auth: {
+          basic: {},
+          bearer: {},
+          selection: 0,
+        },
+        headers: [
+          {
+            enabled: true,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983",
+          },
+        ],
+        query: [
+          {
+            enabled: true,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983",
+          },
+        ],
+      },
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+      internal_hash_row:
+        "a186b375b973c5c400e7b9a90db5c6b1273188de1999efa96aab1d9aaf5daf5e",
     },
     {
       enabled: true,
@@ -416,7 +476,7 @@ export const system_app = {
       },
       resource: "/api/app/0.01",
       code: "fnGetAppById",
-      rowkey: 172,
+      rowkey: 457,
       description: "",
       idendpoint: "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
       cors: {},
@@ -426,7 +486,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "856a009d462ada7a26eab0db28854a8a79500e4f3dc24baec68c861cf417997e",
+        "88a17e8eb025924d10932684195b90b5c5e58e0f638145bd757aaa98846e9381",
     },
     {
       enabled: true,
@@ -441,7 +501,7 @@ export const system_app = {
       },
       resource: "/system/token/api",
       code: "fnToken",
-      rowkey: 881,
+      rowkey: 268,
       description: "",
       idendpoint: "b5141492-3ad1-4ea6-a85d-ceb23ba26244",
       cors: {},
@@ -451,7 +511,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "ddbfe3d168b54a47819f4455523b81fcef942b7f0a613694dd7347d15558a4bc",
+        "7328e5101b9d11c1a411264b47f3326f852573ddaaf199aea2f94b82e3cae69f",
     },
     {
       enabled: true,
@@ -464,7 +524,7 @@ export const system_app = {
       ctrl: {},
       resource: "/cache/response/size",
       code: "fnGetCacheSize",
-      rowkey: 500,
+      rowkey: 181,
       description: "",
       idendpoint: "047845ac-5367-48ed-9465-8e36ba6c7bae",
       cors: {},
@@ -474,7 +534,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "78d15bdfbe76f2212d65beedb354823a07b5f1cf1f4c512410b52dfa5527c2e1",
+        "01aa9cea6c95c50b4390e69d1110c9ad06c4c95dcc6108c61f8c0684213a64c4",
     },
     {
       enabled: true,
@@ -487,7 +547,7 @@ export const system_app = {
       ctrl: {},
       resource: "/cache/clear",
       code: "fnClearCache",
-      rowkey: 567,
+      rowkey: 325,
       description: "",
       idendpoint: "3ead2170-283d-4c6a-abc1-eddd217b6d01",
       cors: {},
@@ -497,7 +557,96 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "2929b173993be013b153b201b8878d3fedbb061f30dbbabf0a0ed988f3d27688",
+        "85ea87c3eec032444f3376bf32d6e4df2c6c32acd1f5099a5d80ea9b4a376cca",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/system/log/recordsperminute/prd",
+      method: "GET",
+      handler: "FUNCTION",
+      mcp: {
+        enabled: false,
+        name: "",
+        title: "",
+        description: "",
+      },
+      access: 0,
+      cache_time: 0,
+      ctrl: {
+        users: [],
+        log: {
+          status_info: 1,
+          status_success: 1,
+          status_redirect: 1,
+          status_client_error: 2,
+          status_server_error: 3,
+        },
+      },
+      resource: "/system/log/recordsperminute",
+      code: "fnGetLogsRecordsPerMinute",
+      rowkey: 37,
+      description: "",
+      idendpoint: "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
+      cors: {},
+      headers_test: {},
+      data_test: {
+        query: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        body: {
+          selection: 0,
+          json: {
+            code: {},
+          },
+          xml: {
+            code: "",
+          },
+          text: {
+            value: "",
+          },
+          form: {},
+        },
+        headers: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        auth: {
+          basic: {
+            username: "",
+            password: "",
+          },
+          bearer: {
+            token: "",
+          },
+          selection: 0,
+        },
+      },
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {
+        in: {
+          enabled: false,
+          schema: {
+            type: "object",
+            properties: {},
+            additionalProperties: true,
+          },
+        },
+        out: {},
+      },
+      internal_hash_row:
+        "500fb5ee322feb95a4358a5a4321d2ef1e18822460c23b39870cf41737731ce1",
     },
     {
       enabled: true,
@@ -513,7 +662,7 @@ export const system_app = {
       },
       resource: "/api/function_names",
       code: "fnFunctionNames",
-      rowkey: 337,
+      rowkey: 866,
       description: "",
       idendpoint: "13f94d7d-6612-4c30-8202-286cbbe3da3e",
       cors: {},
@@ -565,7 +714,309 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "86afedb53471c58bd60cfe26a2245d287f3288c70f921b836c28f80e5a23af1b",
+        "5d77d1128fcaf8c3a798fb1768094c75d06225b4412650027df308554b114584",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/api/app/0.01/qa",
+      method: "POST",
+      handler: "FUNCTION",
+      mcp: {},
+      access: 2,
+      cache_time: 0,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/api/app/0.01",
+      code: "fnSaveApp",
+      rowkey: 857,
+      description: "",
+      idendpoint: "6f1358ae-a638-47f8-a5d1-57818f17426b",
+      cors: {},
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "qa",
+      json_schema: {},
+      internal_hash_row:
+        "a92863f2508ca48b6ef9496b888bba7fa67941cc198fad027cf292d40f852d95",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/interval_tasks/upsert/prd",
+      method: "POST",
+      handler: "FUNCTION",
+      mcp: {},
+      access: 0,
+      cache_time: 0,
+      ctrl: {},
+      resource: "/interval_tasks/upsert",
+      code: "fnUpsertIntervalTask",
+      rowkey: 356,
+      description: "",
+      idendpoint: "34987a43-63e4-4926-824b-5254155b5c80",
+      cors: {},
+      headers_test: {},
+      data_test: {
+        query: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        body: {
+          selection: 0,
+          json: {
+            code: {},
+          },
+          xml: {
+            code: "",
+          },
+          text: {
+            value: "",
+          },
+          form: {},
+        },
+        headers: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        auth: {
+          basic: {
+            username: "",
+            password: "",
+          },
+          bearer: {
+            token: "",
+          },
+          selection: 0,
+        },
+      },
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+      internal_hash_row:
+        "c1a2b73606aa1de8669c7374188cbfcd6bcea4ff503f5d1c128f466154eeb765",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/system/logout/0.01/prd",
+      method: "POST",
+      handler: "FUNCTION",
+      mcp: {},
+      access: 2,
+      cache_time: 0,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/system/logout/0.01",
+      code: "fnLogout",
+      rowkey: 958,
+      description: "",
+      idendpoint: "131cca3e-f835-4414-89ca-5ddbbec5ab89",
+      cors: {},
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+      internal_hash_row:
+        "1c75090ad99106ba84b5bb2235c59188cd8405aa7bf38021f36d04874d08ef26",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/database/hooks/prd",
+      method: "POST",
+      handler: "JS",
+      mcp: {},
+      access: 0,
+      cache_time: 0,
+      ctrl: {
+        users: [],
+        log: {
+          status_info: 1,
+          status_success: 1,
+          status_redirect: 1,
+          status_client_error: 2,
+          status_server_error: 3,
+        },
+      },
+      resource: "/database/hooks",
+      code: "$_SERVER_.checkwebHookDB($_REQUEST_);\n",
+      rowkey: 885,
+      description:
+        "Receiver of hooks issued from the database, these events will be forwarded via websocket to be consumed by clients.",
+      idendpoint: "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
+      cors: {},
+      headers_test: {},
+      data_test: {
+        query: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        body: {
+          selection: 0,
+          json: {
+            code: {},
+          },
+          xml: {
+            code: "",
+          },
+          text: {
+            value: "",
+          },
+          form: {},
+        },
+        headers: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        auth: {
+          basic: {
+            username: "",
+            password: "",
+          },
+          bearer: {
+            token: "",
+          },
+          selection: 0,
+        },
+      },
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+      internal_hash_row:
+        "ca79ced52daa46cbb432bb24d6c9d3df6d15706648c19af821b2cbdbd0762f8c",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/system/log/prd",
+      method: "GET",
+      handler: "FUNCTION",
+      mcp: {},
+      access: 0,
+      cache_time: 5,
+      ctrl: {
+        users: [],
+        log: {
+          level: 0,
+        },
+      },
+      resource: "/system/log",
+      code: "fnGetLogs",
+      rowkey: 936,
+      description: "",
+      idendpoint: "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
+      cors: {},
+      headers_test: {},
+      data_test: {
+        body: {
+          json: {
+            code: "",
+          },
+          xml: {
+            code: "",
+          },
+          text: {},
+          selection: 0,
+        },
+        auth: {
+          basic: {},
+          bearer: {},
+          selection: 0,
+        },
+        headers: [
+          {
+            enabled: true,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983",
+          },
+        ],
+        query: [
+          {
+            enabled: true,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983",
+          },
+        ],
+      },
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+      internal_hash_row:
+        "052cd42ca4cf02bfa7b9da46446eb454982a9f6f8fc055f87773c0616c55fc1f",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/api/app/0.01/prd",
+      method: "POST",
+      handler: "FUNCTION",
+      mcp: {},
+      access: 2,
+      cache_time: 0,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/api/app/0.01",
+      code: "fnSaveApp",
+      rowkey: 525,
+      description: "",
+      idendpoint: "d9086725-367f-4383-8b43-c23071bc8fcc",
+      cors: {},
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+      internal_hash_row:
+        "e786f1f298b166241708876699ff531f37af196dcaa12761e5f7f90a30504556",
+    },
+    {
+      enabled: true,
+      endpoint: "/api/system/api/token/0.01/dev",
+      method: "POST",
+      handler: "FUNCTION",
+      mcp: {},
+      access: 0,
+      cache_time: 0,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/api/token/0.01",
+      code: "fnToken",
+      rowkey: 9,
+      description: "",
+      idendpoint: "52fb738c-7d1f-4eba-afb4-508a9fa9d06a",
+      cors: {},
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "dev",
+      json_schema: {},
+      internal_hash_row:
+        "d336ff2f0fbd1b55508d4580bb39371772cbb62b236671144912d26bea8c6903",
     },
     {
       enabled: true,
@@ -578,7 +1029,7 @@ export const system_app = {
       ctrl: {},
       resource: "/app/internal/metrics",
       code: "fnGetInternalAppMetrics",
-      rowkey: 872,
+      rowkey: 376,
       description: "Return internal metrics",
       idendpoint: "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
       cors: {},
@@ -647,369 +1098,7 @@ export const system_app = {
         },
       },
       internal_hash_row:
-        "3ea47c764c38467e907dba5aee66334f41185a07df5c1a3aebf4b88affff3101",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/system/log/prd",
-      method: "GET",
-      handler: "FUNCTION",
-      mcp: {},
-      access: 0,
-      cache_time: 5,
-      ctrl: {
-        users: [],
-        log: {
-          level: 0,
-        },
-      },
-      resource: "/system/log",
-      code: "fnGetLogs",
-      rowkey: 686,
-      description: "",
-      idendpoint: "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
-      cors: {},
-      headers_test: {},
-      data_test: {
-        body: {
-          json: {
-            code: "",
-          },
-          xml: {
-            code: "",
-          },
-          text: {},
-          selection: 0,
-        },
-        auth: {
-          basic: {},
-          bearer: {},
-          selection: 0,
-        },
-        headers: [
-          {
-            enabled: true,
-            key: "",
-            value: "",
-            internal_hash_row:
-              "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983",
-          },
-        ],
-        query: [
-          {
-            enabled: true,
-            key: "",
-            value: "",
-            internal_hash_row:
-              "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983",
-          },
-        ],
-      },
-      latest_updater: null,
-      environment: "prd",
-      json_schema: {},
-      internal_hash_row:
-        "7f73e54722605dbe5bdf4bbbde20266f4ffe3396cd1c27c5c4a1957610b6adb0",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/system/log/prd",
-      method: "POST",
-      handler: "FUNCTION",
-      mcp: {},
-      access: 0,
-      cache_time: 0,
-      ctrl: {
-        users: [],
-        log: {},
-      },
-      resource: "/system/log",
-      code: "fnInsertLog",
-      rowkey: 376,
-      description: "",
-      idendpoint: "18731c87-9d59-44b6-8871-ecaa493008e5",
-      cors: {},
-      headers_test: {},
-      data_test: {
-        body: {
-          js: {
-            code: "{}",
-          },
-          xml: {
-            code: "",
-          },
-          text: {},
-          selection: 0,
-        },
-        auth: {
-          basic: {},
-          bearer: {},
-          selection: 0,
-        },
-        headers: [
-          {
-            enabled: true,
-            key: "",
-            value: "",
-            internal_hash_row:
-              "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983",
-          },
-        ],
-        query: [
-          {
-            enabled: true,
-            key: "",
-            value: "",
-            internal_hash_row:
-              "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983",
-          },
-        ],
-      },
-      latest_updater: null,
-      environment: "prd",
-      json_schema: {},
-      internal_hash_row:
-        "17966446ab96efee9361b7eec919f25958425f5c5280eec8d0924ba42e059db9",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/interval_tasks/upsert/prd",
-      method: "POST",
-      handler: "FUNCTION",
-      mcp: {},
-      access: 0,
-      cache_time: 0,
-      ctrl: {},
-      resource: "/interval_tasks/upsert",
-      code: "fnUpsertIntervalTask",
-      rowkey: 967,
-      description: "",
-      idendpoint: "34987a43-63e4-4926-824b-5254155b5c80",
-      cors: {},
-      headers_test: {},
-      data_test: {
-        query: [
-          {
-            enabled: false,
-            key: "",
-            value: "",
-            internal_hash_row:
-              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-          },
-        ],
-        body: {
-          selection: 0,
-          json: {
-            code: {},
-          },
-          xml: {
-            code: "",
-          },
-          text: {
-            value: "",
-          },
-          form: {},
-        },
-        headers: [
-          {
-            enabled: false,
-            key: "",
-            value: "",
-            internal_hash_row:
-              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-          },
-        ],
-        auth: {
-          basic: {
-            username: "",
-            password: "",
-          },
-          bearer: {
-            token: "",
-          },
-          selection: 0,
-        },
-      },
-      latest_updater: null,
-      environment: "prd",
-      json_schema: {},
-      internal_hash_row:
-        "0fb106332199a874014b9f21ef28a90c04dc8e52bc92081e32357d702400d930",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/api/app/0.01/qa",
-      method: "POST",
-      handler: "FUNCTION",
-      mcp: {},
-      access: 2,
-      cache_time: 0,
-      ctrl: {
-        admin: true,
-      },
-      resource: "/api/app/0.01",
-      code: "fnSaveApp",
-      rowkey: 161,
-      description: "",
-      idendpoint: "6f1358ae-a638-47f8-a5d1-57818f17426b",
-      cors: {},
-      headers_test: {},
-      data_test: {},
-      latest_updater: null,
-      environment: "qa",
-      json_schema: {},
-      internal_hash_row:
-        "452e6c23e54e0af815e224ac734d1b38f107a6d467057d264e2a650b288ee337",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/system/logout/0.01/prd",
-      method: "POST",
-      handler: "FUNCTION",
-      mcp: {},
-      access: 2,
-      cache_time: 0,
-      ctrl: {
-        admin: true,
-      },
-      resource: "/system/logout/0.01",
-      code: "fnLogout",
-      rowkey: 942,
-      description: "",
-      idendpoint: "131cca3e-f835-4414-89ca-5ddbbec5ab89",
-      cors: {},
-      headers_test: {},
-      data_test: {},
-      latest_updater: null,
-      environment: "prd",
-      json_schema: {},
-      internal_hash_row:
-        "0a0462c6f4c232ed51ca7275be5be5913da48c4a9c356aab8a93a3b1036dc98b",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/api/app/0.01/prd",
-      method: "POST",
-      handler: "FUNCTION",
-      mcp: {},
-      access: 2,
-      cache_time: 0,
-      ctrl: {
-        admin: true,
-      },
-      resource: "/api/app/0.01",
-      code: "fnSaveApp",
-      rowkey: 48,
-      description: "",
-      idendpoint: "d9086725-367f-4383-8b43-c23071bc8fcc",
-      cors: {},
-      headers_test: {},
-      data_test: {},
-      latest_updater: null,
-      environment: "prd",
-      json_schema: {},
-      internal_hash_row:
-        "e15741eaeeaf568b0ff811bfc91e38d20775368c3b7ffa1da57c51c7fa83f574",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/api/token/0.01/dev",
-      method: "POST",
-      handler: "FUNCTION",
-      mcp: {},
-      access: 0,
-      cache_time: 0,
-      ctrl: {
-        admin: true,
-      },
-      resource: "/api/token/0.01",
-      code: "fnToken",
-      rowkey: 948,
-      description: "",
-      idendpoint: "52fb738c-7d1f-4eba-afb4-508a9fa9d06a",
-      cors: {},
-      headers_test: {},
-      data_test: {},
-      latest_updater: null,
-      environment: "dev",
-      json_schema: {},
-      internal_hash_row:
-        "df0177bf733ce07e8c06ebfc39fdc07f4c9770bb7417a804fb58f04dedd8059a",
-    },
-    {
-      enabled: true,
-      endpoint: "/api/system/database/hooks/prd",
-      method: "POST",
-      handler: "JS",
-      mcp: {},
-      access: 0,
-      cache_time: 0,
-      ctrl: {
-        users: [],
-        log: {
-          status_info: 1,
-          status_success: 1,
-          status_redirect: 1,
-          status_client_error: 2,
-          status_server_error: 3,
-        },
-      },
-      resource: "/database/hooks",
-      code: "$_SERVER_.checkwebHookDB($_REQUEST_);\n",
-      rowkey: 780,
-      description:
-        "Receiver of hooks issued from the database, these events will be forwarded via websocket to be consumed by clients.",
-      idendpoint: "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
-      cors: {},
-      headers_test: {},
-      data_test: {
-        query: [
-          {
-            enabled: false,
-            key: "",
-            value: "",
-            internal_hash_row:
-              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-          },
-        ],
-        body: {
-          selection: 0,
-          json: {
-            code: {},
-          },
-          xml: {
-            code: "",
-          },
-          text: {
-            value: "",
-          },
-          form: {},
-        },
-        headers: [
-          {
-            enabled: false,
-            key: "",
-            value: "",
-            internal_hash_row:
-              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-          },
-        ],
-        auth: {
-          basic: {
-            username: "",
-            password: "",
-          },
-          bearer: {
-            token: "",
-          },
-          selection: 0,
-        },
-      },
-      latest_updater: null,
-      environment: "prd",
-      json_schema: {},
-      internal_hash_row:
-        "d96b8c6c09ca73429d26fe565e26551f6b39ee3403e460dd2fed885fab89ece9",
+        "b3889e869eb6489cbf241b6e53716920df25bab3582ea16d8fa01968051ee7a2",
     },
     {
       enabled: true,
@@ -1024,7 +1113,7 @@ export const system_app = {
       },
       resource: "/system/method/0.01",
       code: "fnGetMethod",
-      rowkey: 235,
+      rowkey: 9,
       description: "",
       idendpoint: "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
       cors: {},
@@ -1034,7 +1123,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "32c12f79efd05f55f69f021319e4d263c81d290b42bef5774c66831a9d59add7",
+        "30cbb327f682cbcf867785b02bdafac581338e85e34af47425e6f2d15faa2f2e",
     },
     {
       enabled: true,
@@ -1050,7 +1139,7 @@ export const system_app = {
       },
       resource: "/api/telegram/sendphoto",
       code: "fnTelegramsendPhoto",
-      rowkey: 831,
+      rowkey: 572,
       description: "",
       idendpoint: "db9cff16-81b8-438e-b5fb-6ceb4d6a0a60",
       cors: {},
@@ -1112,7 +1201,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "2c739c949c4039061754acc3545cff6d0b868b9ed1f0be67a4ecf3f50ed8d0df",
+        "1c1204c4e745b6c4aaf769445404f5b10a2921bbce2f4e8c909dd6a300771c16",
     },
     {
       enabled: true,
@@ -1127,7 +1216,7 @@ export const system_app = {
       },
       resource: "/api/apps/0.01",
       code: "fnGetApps",
-      rowkey: 292,
+      rowkey: 637,
       description: "",
       idendpoint: "55bdde78-051e-4844-a4b2-089f122f616e",
       cors: {},
@@ -1137,7 +1226,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "b3acde6638b47040fb5d339f1021b36d82cff13145058e45acbedaf47363ad31",
+        "2bee46bf7a651dfcc40d3dcc37d8e666087ca1e20823dd5a009e2b05dd5cf940",
     },
     {
       enabled: true,
@@ -1160,7 +1249,7 @@ export const system_app = {
       },
       resource: "/api/telegram/sendmsg",
       code: "fnTelegramsendMessage",
-      rowkey: 382,
+      rowkey: 861,
       description: "",
       idendpoint: "9c4c5630-f1da-4885-b845-7b2e03eab215",
       cors: {},
@@ -1213,7 +1302,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "ccae9f8cf983f1f513deb53fe4efdcc008926ade6c7b19299ad1bb2cac749ca5",
+        "43c800902a9a41b30533dd9c7512b5aef6305b19af7675f772dd013636422d0b",
     },
     {
       enabled: true,
@@ -1228,7 +1317,7 @@ export const system_app = {
       },
       resource: "/api/app/0.01",
       code: "fnSaveApp",
-      rowkey: 27,
+      rowkey: 950,
       description: "",
       idendpoint: "bc07e60d-d608-4763-b712-8ae01156fea7",
       cors: {},
@@ -1238,7 +1327,7 @@ export const system_app = {
       environment: "dev",
       json_schema: {},
       internal_hash_row:
-        "3913e6a40b824b427cf4c6dda2630ae805364df6e32f510d1fdf979a6ab068b5",
+        "130547484917edf24a02e08aed4a90018ff5879ce4520be019737533482c3cf8",
     },
     {
       enabled: true,
@@ -1253,7 +1342,7 @@ export const system_app = {
       },
       resource: "/api/app/0.01",
       code: "fnGetAppById",
-      rowkey: 902,
+      rowkey: 378,
       description: "",
       idendpoint: "82a678a2-04ef-4231-8091-7ea3432515f4",
       cors: {},
@@ -1263,7 +1352,7 @@ export const system_app = {
       environment: "dev",
       json_schema: {},
       internal_hash_row:
-        "972a03016b9a35708c85f056c8d49ca89e1f108e1abf7604c98eb0b99b4138b8",
+        "69daf35c4c031ec809d6cccb5b9a6b8a1a503dbe9bec337ab6db6b8a04500965",
     },
     {
       enabled: true,
@@ -1276,7 +1365,7 @@ export const system_app = {
       ctrl: {},
       resource: "/interval_tasks/delete",
       code: "fndeleteIntervalTask",
-      rowkey: 249,
+      rowkey: 626,
       description: "",
       idendpoint: "e753e2db-ca20-4607-82b7-34b70e435a0c",
       cors: {},
@@ -1328,7 +1417,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "e594fce0f366346485b1d3aee557c484b54ac88deca176bb20287738b149d134",
+        "3d292cf808c5ef21a92c07babd9675cbf6d161142a3a3eec248ee798203853bd",
     },
     {
       enabled: true,
@@ -1344,7 +1433,7 @@ export const system_app = {
       },
       resource: "/system/handler/js/funtions",
       code: "fnListFnVarsHandlerJS",
-      rowkey: 879,
+      rowkey: 159,
       description: "",
       idendpoint: "3d3de358-681d-4b61-98dc-c1663db0c02c",
       cors: {},
@@ -1371,7 +1460,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "c628a5313895163d63fe350a11c252f89cc5b3dac22cce9d36cddd80a2645c53",
+        "cad5dd7943e7bfb5b07f98555a6b5efc29f210d901c74f55de6a672d1048fe8a",
     },
     {
       enabled: true,
@@ -1384,7 +1473,7 @@ export const system_app = {
       ctrl: {},
       resource: "/users/list",
       code: "fnGetUsersList",
-      rowkey: 329,
+      rowkey: 858,
       description: "",
       idendpoint: "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
       cors: {},
@@ -1394,7 +1483,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "a3dcbb17ef85c86865e2ebe6f4f8c2f0685099b53aabc10abc1127f9aa644432",
+        "5738eb1c6bf03da2c3dd7b7ff183c3b7414378442ac151bd6a432275d3ac6760",
     },
     {
       enabled: true,
@@ -1409,7 +1498,7 @@ export const system_app = {
       },
       resource: "/system/handler/0.01",
       code: "fnGetHandler",
-      rowkey: 411,
+      rowkey: 508,
       description: "",
       idendpoint: "17c211d6-8c81-4274-b5c4-604126454ab0",
       cors: {},
@@ -1419,7 +1508,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "1bec9056dd2758ac4e763755bf52d447220d9145a8c17a5be43fa45051cd526e",
+        "18a82880c0314bdd971042a218d5e045e3f60167275b45bf25aaa5378003c58f",
     },
     {
       enabled: true,
@@ -1434,7 +1523,7 @@ export const system_app = {
       },
       resource: "/system/api/token",
       code: "fnAPIToken",
-      rowkey: 108,
+      rowkey: 293,
       description: "",
       idendpoint: "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
       cors: {},
@@ -1444,7 +1533,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "f5d43e90956a9318003fef74f566f5fe4ef1bd3216d5db0e013afa6dcca5bf6e",
+        "145e9dc795c7c76d7aa709a91f95cbe15adb8ec7de66aace4405cd5507518edd",
     },
     {
       enabled: true,
@@ -1457,7 +1546,7 @@ export const system_app = {
       ctrl: {},
       resource: "/responses/status_code/count",
       code: "fnGetResponseCountStatus",
-      rowkey: 100,
+      rowkey: 864,
       description: "",
       idendpoint: "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
       cors: {},
@@ -1501,7 +1590,7 @@ export const system_app = {
       environment: "prd",
       json_schema: {},
       internal_hash_row:
-        "5c119c66cccbe73234e0ea9c92d816a393b217a5a2c61b4ea5d2c12b03291ff5",
+        "cc74bca52b0ba3e6b33a918d0e006b9d11cae398e3ffb9af57fe650449718122",
     },
   ],
   environment: "dev",

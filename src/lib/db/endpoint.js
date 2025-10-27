@@ -53,6 +53,20 @@ export const deleteEndpoint = async (
 };
 
 // READ
+export const getEndpointByIdApp = async (
+  /** @type {import("sequelize").Identifier | undefined} */ idapp
+) => {
+  try {
+    //const endpoints = await Endpoint.findAll({attributes: list_fields, where: { appname: appname } });
+    const endpoints = await Endpoint.findAll({ where: { idapp: idapp } });
+    return endpoints;
+  } catch (error) {
+    console.error("Error retrieving user:", error);
+    throw error;
+  }
+};
+
+// READ
 export const getEndpointByApp = async (
   /** @type {import("sequelize").Identifier | undefined} */ appname
 ) => {
