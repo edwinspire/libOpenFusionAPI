@@ -20,6 +20,10 @@ import {
 } from "../../../../db/interval_task.js";
 import { listFunctionsVars } from "../../../utils.js";
 import { getHandlerDoc } from "../../../../handler/handler.js";
+import {
+  getSystemInfoDynamic,
+  getSystemInfoStatic,
+} from "../../../systeminformation.js";
 
 export async function fnListFnVarsHandlerJS(params) {
   let r = { code: 204, data: undefined };
@@ -551,6 +555,32 @@ export async function fnInsertLog(params) {
   }
   return r;
 }
+
+export const fnGetSystemInfoDynamic = async () => {
+  let r = { code: 204, data: undefined };
+  try {
+    r.data = await getSystemInfoDynamic();
+    r.code = 200;
+  } catch (error) {
+    //res.code(500).json({ error: error.message });
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+};
+
+export const fnGetSystemInfoStatic = async () => {
+  let r = { code: 204, data: undefined };
+  try {
+    r.data = await getSystemInfoStatic();
+    r.code = 200;
+  } catch (error) {
+    //res.code(500).json({ error: error.message });
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+};
 
 export async function fnGetHandlerDocs(params) {
   let r = { code: 204, data: undefined };

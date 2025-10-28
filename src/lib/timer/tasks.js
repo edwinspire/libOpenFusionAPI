@@ -54,8 +54,8 @@ export class TasksInterval {
     });
 
     this.worker.on("exit", (code) => {
-      console.warn(`El worker finalizó con código ${code}. Reiniciando...`);
-      setTimeout(() => this.run(), 1000); // Esperar 1 segundo antes de reiniciar
+      console.warn(`${Date.now().toString()} - El worker finalizó con código ${code}. Reiniciando...`);
+      setTimeout(() => this.run(), 5000); // Esperar 1 segundo antes de reiniciar
     });
 
     return this.worker;

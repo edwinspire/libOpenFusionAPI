@@ -87,7 +87,7 @@ export function validateURL(string_url) {
 
 export const urlSystemPath = {
   Endpoints: {},
-  Websocket: { AppInfo: "/ws/system/websocket/endpoint/prd" },
+  Websocket: { EventServer: "/ws/system/websocket/server/prd" },
 };
 
 export function WebSocketValidateFormatChannelName(cadena) {

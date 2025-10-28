@@ -1,6 +1,6 @@
 {
   "name": "@edwinspire/libopenfusionapi",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./test/index.js",
@@ -67,6 +67,7 @@
     "sequelize": "^6.31.1",
     "soap": "^0.45.0",
     "sqlite3": "^5.1.6",
+    "systeminformation": "^5.27.11",
     "tedious": "^16.6.0",
     "telegraf": "^4.16.3",
     "uuid": "^9.0.0",

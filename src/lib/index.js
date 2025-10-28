@@ -73,7 +73,7 @@ import {
 
 import fs from "fs";
 import path from "path";
-import { timeStamp } from "node:console";
+import { getSystemInfoDynamic } from "./server/systeminformation.js";
 
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
@@ -134,7 +134,7 @@ export default class ServerAPI extends EventEmitter {
     this.SERVER_DATE_START;
 
     this.websocketClientEndpoint = new OpenFusionWebsocketClient(
-      internal_url_ws(urlSystemPath.Websocket.AppInfo),
+      internal_url_ws(urlSystemPath.Websocket.EventServer),
       {}
     );
 
@@ -369,7 +369,7 @@ this.fastify.post("/mcp", async (request, reply) => {
       }
 
       connection.socket.on("open", (message) => {
-      //  console.log("Abre");
+        //  console.log("Abre");
       });
       connection.socket.on("close", (message) => {
         //console.log("Cierra");
@@ -694,10 +694,10 @@ this.fastify.post("/mcp", async (request, reply) => {
 
   _emitEndpointEvent(event_name, data) {
     this.websocketClientEndpoint.send({
-      channel: "/endpoint/events",
+      channel: "/server/events",
       payload: {
         event_name: event_name,
-        timestamp: Date.now(), 
+        timestamp: new Date(),
         data: data,
       },
     });
@@ -705,7 +705,7 @@ this.fastify.post("/mcp", async (request, reply) => {
 
   async _runOnReady() {
     this.websocketClientEndpoint.on("open", () => {
-      this.websocketClientEndpoint.subscribe("/endpoint/events");
+      this.websocketClientEndpoint.subscribe("/server/events");
     });
 
     this.TasksInterval.run();
@@ -725,6 +725,39 @@ this.fastify.post("/mcp", async (request, reply) => {
         console.error(error);
       }
     }
+
+    setInterval(async () => {
+      if (this.fastify.websocketServer.clients.size > 1) {
+        //  this._emitEndpointEvent("system_information", await getSystemInfoDynamic());
+
+        for (const client_ws of this.fastify.websocketServer.clients) {
+        //  console.log("Procesando:", valor);
+
+          if (
+            client_ws.openfusionapi?.channel == "/server/events" &&
+            client_ws?.openfusionapi?.handler?.params?.url_key?.startsWith(
+              urlSystemPath.Websocket.EventServer
+            )
+          ) {
+         //   console.log("---");
+            this._emitEndpointEvent(
+              "system_information",
+              await getSystemInfoDynamic()
+            );
+            return;
+          }
+
+          console.log("Continuando con el siguiente valor...");
+        }
+      }
+      //console.log('----', this.fastify.websocketServer.clients);
+      /*
+      this.fastify.websocketServer.clients.find((client_ws)=>{
+//client_ws.openfusionapi.channel
+console.log('----');
+      });
+      */
+    }, 5000);
   }
   _check_auth_Bearer(handler, data_aut) {
     let check =

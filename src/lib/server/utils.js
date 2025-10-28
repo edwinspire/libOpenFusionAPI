@@ -928,3 +928,4 @@ export function saveErrorToDisk(error) {
     console.error("❌ Error guardando el log en disco:", fsErr);
   }
 }
+
