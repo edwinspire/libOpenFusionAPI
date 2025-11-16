@@ -9,10 +9,7 @@ export function parseQualifiedName(qualifiedName) {
   const cleaned = qualifiedName.trim();
 
   // Reemplace corchetes por nada y divida por punto
-  const parts = cleaned
-    .replace(/\[/g, '')
-    .replace(/\]/g, '')
-    .split('.');
+  const parts = cleaned.replace(/\[/g, "").replace(/\]/g, "").split(".");
 
   if (parts.length !== 3) {
     throw new Error(`Formato inválido: ${qualifiedName}`);
@@ -23,7 +20,7 @@ export function parseQualifiedName(qualifiedName) {
   return {
     database,
     schema,
-    table
+    table,
   };
 }
 
@@ -81,9 +78,8 @@ export function AppToTable(json) {
  * @param {any[]} objeto
  */
 export function TableToApp(objeto) {
-  
-  console.log('TableToApp(objeto): ', objeto);
-  
+  console.log("TableToApp(objeto): ", objeto);
+
   let nuevoObjeto = {
     idapp: objeto[0].idapp,
     app: objeto[0].app,
@@ -183,3 +179,5 @@ export function TableToApp(objeto) {
 
   return nuevoObjeto;
 }
+
+

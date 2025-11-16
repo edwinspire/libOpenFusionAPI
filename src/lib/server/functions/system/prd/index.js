@@ -3,8 +3,14 @@ import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllUsers } from "../../../../db/user.js";
 import {
+  upsertEndpoint,
+  getEndpointById,
+  getEndpointByIdApp,
+} from "../../../../db/endpoint.js";
+import {
   getAllApps,
   getAppById,
+  getAppFullById,
   upsertApp,
   saveAppWithEndpoints,
 } from "../../../../db/app.js";
@@ -19,6 +25,8 @@ import {
   deleteIntervalTask,
 } from "../../../../db/interval_task.js";
 import { listFunctionsVars } from "../../../utils.js";
+import { generateDocumentation } from "../../../doc_generator.js";
+import { version } from "../../../version.js";
 import { getHandlerDoc } from "../../../../handler/handler.js";
 import {
   getSystemInfoDynamic,
@@ -238,6 +246,71 @@ export async function fnGetApps(params) {
   return r;
 }
 
+export async function fnEndpointGetById(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    let raw =
+      !params.request.query.raw || params.request.query.raw == "false"
+        ? false
+        : true;
+
+    //console.log(req.params, req.query, raw);
+
+    r.data = await getEndpointById(params.request.query.idapp, raw);
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnEndpointGetByIdApp(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    let raw =
+      !params.request.query.raw || params.request.query.raw == "false"
+        ? false
+        : true;
+
+    //console.log(req.params, req.query, raw);
+
+    r.data = await getEndpointByIdApp(params.request.query.idapp, raw);
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnEndpointUpsert(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await upsertEndpoint(params.request.body);
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
 export async function fnGetAppById(params) {
   let r = { code: 200, data: undefined };
   try {
@@ -248,7 +321,78 @@ export async function fnGetAppById(params) {
 
     //console.log(req.params, req.query, raw);
 
+    r.data = await getAppFullById(params.request.query.idapp, raw);
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnGetAppDocById(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await getAppFullById(params.request.body.idapp, false);
+
+    if (r.data && Array.isArray(r.data) && r.data.length > 0) {
+      r.data = {
+        html: generateDocumentation(
+          r.data[0],
+          version,
+          params.request.body.endpoints
+        ),
+      };
+      r.code = 200;
+    } else {
+      r.data = { error: "App not found" };
+      r.code = 404;
+    }
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnAppGetById(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    let raw =
+      !params.request.query.raw || params.request.query.raw == "false"
+        ? false
+        : true;
+
+    //console.log(req.params, req.query, raw);
+
     r.data = await getAppById(params.request.query.idapp, raw);
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnAppUpsert(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await upsertApp(params.request.body);
     r.code = 200;
 
     //res.code(200).json(data);

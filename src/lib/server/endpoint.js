@@ -20,7 +20,7 @@ import {
 //import PromiseSequence from "@edwinspire/sequential-promises";
 import { createLog, getLogLevelByStatusCode } from "../db/log.js";
 import { getMongoDBHandlerParams } from "../handler/mongoDB.js";
-import Ajv from "ajv";  
+import Ajv from "ajv";
 const ajv = new Ajv();
 
 //const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
@@ -139,7 +139,8 @@ export default class Endpoint extends EventEmitter {
   }
 
   getCacheSizeEndpoint(url_key) {
-    return this.internal_endpoint[url_key] && this.internal_endpoint[url_key].responses
+    return this.internal_endpoint[url_key] &&
+      this.internal_endpoint[url_key].responses
       ? Number(
           (
             Buffer.byteLength(
@@ -154,7 +155,7 @@ export default class Endpoint extends EventEmitter {
   }
 
   // this.internal_endpoint[url_key].CountStatusCode
-getInternalAppMetrics(app_name) {
+  getInternalAppMetrics(app_name) {
     let r = { data: undefined, code: 204 };
     try {
       r.data = [];
@@ -170,7 +171,7 @@ getInternalAppMetrics(app_name) {
         return {
           idendpoint: this.internal_endpoint[key]?.handler?.params?.idendpoint,
           cache_size: this.getCacheSizeEndpoint(key),
-          statusCode: this.internal_endpoint[key].CountStatusCode
+          statusCode: this.internal_endpoint[key].CountStatusCode,
         };
       });
 
@@ -184,7 +185,6 @@ getInternalAppMetrics(app_name) {
     }
     return r;
   }
-
 
   getCacheSize(app_name) {
     let r = { data: undefined, code: 204 };
@@ -236,6 +236,19 @@ getInternalAppMetrics(app_name) {
     if (ep) {
       this.addCountStatus(url_key, reply?.statusCode);
 
+      this.emit("request_completed", {
+        idendpoint: ep.handler?.params?.idendpoint,
+        idapp: ep.handler?.params?.idapp,
+        url: request.url,
+        method: request.method,
+        app: ep.handler?.params?.app,
+        environment: ep.handler?.params?.environment,
+        //endpoint: ep.handler?.params?.url_method,
+        responseTime: reply.openfusionapi.lastResponse.responseTime,
+        statusCode: reply.statusCode,
+        count_status_code: ep?.CountStatusCode,
+      });
+
       let hash_request = this.hash_request(request, url_key);
 
       let reply_lastResponse =
@@ -263,7 +276,7 @@ getInternalAppMetrics(app_name) {
             idendpoint: ep?.handler?.params?.idendpoint,
             idapp: ep?.handler?.params?.idapp,
             cache_size: this.getCacheSizeEndpoint(url_key),
-            count_status_code: ep?.CountStatusCode,
+            //count_status_code: ep?.CountStatusCode,
             url: request.url,
           });
 
@@ -474,6 +487,32 @@ getInternalAppMetrics(app_name) {
       const prms = get_url_params(ep_list[index]);
       if (prms.app == app_name) {
         delete this.internal_endpoint[ep_list[index]];
+      }
+    }
+  }
+
+  deleteEndpointByidEndpoint(idendpoint) {
+    if (idendpoint) {
+      let ep_list = Object.keys(this.internal_endpoint);
+
+      for (let index = 0; index < ep_list.length; index++) {
+        //const prms = get_url_params(ep_list[index]);
+        let ep = this.internal_endpoint[ep_list[index]];
+        if (ep && ep.handler.params.idendpoint == idendpoint) {
+
+          this.emit("cache_released", {
+            app: ep?.handler?.params?.app,
+            idendpoint: ep?.handler?.params?.idendpoint,
+            idapp: ep?.handler?.params?.idapp,
+            cache_size: 0,
+            count_status_code: ep?.CountStatusCode,
+            //                 url: request.url,
+          });
+
+          delete this.internal_endpoint[ep_list[index]];
+
+          break;
+        }
       }
     }
   }

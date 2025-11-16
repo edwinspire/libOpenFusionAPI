@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
 import Zod from "zod";
+import * as $_PDFJS_ from "pdfjs-dist/legacy/build/pdf.mjs";
 //import * as LANGCHAIN_CHAT_MODEL_UNIVERSAL from "langchain/chat_models/universal";
 //import * as LANGCHAIN_TOOLS from "@langchain/core/tools";
 import {
@@ -20,7 +21,7 @@ import {
   LANGCHAIN_AGENT_EXECUTOR_MCP,
   LANGCHAIN_PROMPTS,
   LANGCHAIN_CHAT_MODEL,
-  LANGCHAIN_CLEAN_THINK_OUTPUT
+  LANGCHAIN_CLEAN_THINK_OUTPUT,
 } from "./ia.js";
 import * as XLSX from "xlsx";
 
@@ -599,6 +600,11 @@ export const listFunctionsVars = (request, reply, environment) => {
       info: "Friendly wrapper for JavaScript dates and times",
       web: "https://moment.github.io/luxon",
     },
+     $_PDFJS_: {
+      fn: request && reply ? $_PDFJS_ : undefined,
+      info: "PDF.js is a Portable Document Format (PDF) viewer that is built with HTML5.",
+      web: "https://mozilla.github.io/pdf.js/",
+    },
     $_SEQUELIZE_: {
       fn: request && reply ? SEQUELIZE : undefined,
       info: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",
@@ -929,3 +935,13 @@ export function saveErrorToDisk(error) {
   }
 }
 
+// Función que valida el input para permitir solo letras y números
+export const validateAppName = (name) => {
+  // Expresión regular que permite:
+  // - Letras (a-z, A-Z)
+  // - Números (0-9)
+  // - Caracteres especiales permitidos: - _ . ~
+  // - No permite espacios, caracteres especiales no permitidos, ni caracteres no imprimibles
+  const regex = /^[a-zA-Z0-9_~.-]+$/;
+  return regex.test(name);
+};

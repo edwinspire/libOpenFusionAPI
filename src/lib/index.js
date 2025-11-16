@@ -52,6 +52,7 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
+  //  url_key
   //  webhookSchema,
 } from "./server/utils.js";
 
@@ -69,6 +70,7 @@ import {
   default_port,
   internal_url_ws,
   WebSocketValidateFormatChannelName,
+  url_key,
 } from "./server/utils_path.js";
 
 import fs from "fs";
@@ -131,6 +133,10 @@ export default class ServerAPI extends EventEmitter {
       this._emitEndpointEvent("cache_released", data);
     });
 
+    this.endpoints.on("request_completed", (data) => {
+      this._emitEndpointEvent("request_completed", data);
+    });
+
     this.SERVER_DATE_START;
 
     this.websocketClientEndpoint = new OpenFusionWebsocketClient(
@@ -170,32 +176,14 @@ export default class ServerAPI extends EventEmitter {
           this._deleteEndpointsByAppName(request?.body?.data?.app);
         }, 5000);
       }
+    } else if (
+      request?.body?.model == prefixTableName("endpoint") &&
+      request?.body?.action === "afterUpsert"
+    ) {
+      this.endpoints.deleteEndpointByidEndpoint(
+        request?.body?.data?.idendpoint
+      );
     }
-
-    /*
-    const validated = webhookSchema.parse(request.body);
-
-    if (validated) {
-      // Borrar la cache de funciones de la app cuando se actualiza la app
-      if (
-        request?.body?.model == prefixTableName("application") &&
-        request?.body?.action === "afterUpsert"
-      ) {
-        //  console.log('XXXXXXXXXXXXXXXX>', request.body);
-
-        // TODO: Revisar el entorno no solo la app
-        if (request?.body?.data?.app) {
-          setTimeout(() => {
-            // Espera 5 segundos para borrar la cache de las funciones del endpoint
-            this._deleteEndpointsByAppName(request?.body?.data?.app);
-          }, 5000);
-        }
-      }
-    } else {
-      console.error("Error validating webhook data", validated.errors);
-      return { error: "Error validating webhook data", data: validated.errors };
-    }
-    */
   }
 
   async _build() {
@@ -300,6 +288,7 @@ export default class ServerAPI extends EventEmitter {
           reply.openfusionapi.lastResponse.responseTime = timeTaken;
         }
 
+        /*
         this._emitEndpointEvent("request_completed", {
           idendpoint: handler_param?.idendpoint,
           idapp: handler_param?.idapp,
@@ -311,7 +300,7 @@ export default class ServerAPI extends EventEmitter {
           responseTime: timeTaken,
           statusCode: reply.statusCode,
         });
-
+*/
         this.endpoints.saveLog(request, reply);
 
         if (handler_param?.idendpoint) {
@@ -531,59 +520,6 @@ this.fastify.post("/mcp", async (request, reply) => {
       reply.send({ version: version });
     });
 
-    // Route to internal Hook - TODO: Ruta ya no utilizada, se puede eliminar
-    this.fastify.post("/internal_url_post_hooks", async (request, reply) => {
-      // TODO: Evaluar si esta seccion requiere Token valido, ya que el acceso es solo interno
-
-      //console.log("\n\n>>>>>++++>>>\n", request.body);
-
-      // Valida que el origen sea solo local
-      let ip_request = getIPFromRequest(request);
-
-      if (
-        ip_request === "127.0.0.1" ||
-        ip_request === "::1" ||
-        ip_request === "::ffff:127.0.0.1"
-      ) {
-        // TODO: Manejar un web hook por cada aplicación
-
-        // TODO: Hacer mas pruebas y verificar que pasa con  validate_schema_input_hooks cuando hay varios hilos. Se pueden llegar a mesclar las respuesta?
-
-        //console.log("\n\n>>>>>>>>\n", request.body);
-
-        if (validate_schema_input_hooks(request.body)) {
-          reply.send({ result: true });
-
-          if (request.body.data && request.body.data.db.model) {
-            //   console.log('YYYYYYYYY>>>>>>', request.body);
-
-            if (
-              request.body.data.db.model == prefixTableName("application") &&
-              request.body.data.db.action &&
-              request.body.data.db.action === "afterUpsert"
-            ) {
-              //  console.log('XXXXXXXXXXXXXXXX>', request.body);
-
-              // TODO: Revisar el entorno no solo la app
-
-              setTimeout(() => {
-                // Espera 5 segundos para borrar la cache de las funciones del endpoint
-                request.body.data.db.row.forEach((item) => {
-                  if (item) {
-                    this._deleteEndpointsByAppName(item.app);
-                  }
-                });
-              }, 5000);
-            }
-          }
-        } else {
-          reply.code(400).send(validate_schema_input_hooks.errors);
-        }
-      } else {
-        reply.code(404).send();
-      }
-    });
-
     // Declare a route
     this.fastify.all(struct_api_path, async (request, reply) => {
       // await this._preValidation(request, reply);
@@ -731,7 +667,7 @@ this.fastify.post("/mcp", async (request, reply) => {
         //  this._emitEndpointEvent("system_information", await getSystemInfoDynamic());
 
         for (const client_ws of this.fastify.websocketServer.clients) {
-        //  console.log("Procesando:", valor);
+          //  console.log("Procesando:", valor);
 
           if (
             client_ws.openfusionapi?.channel == "/server/events" &&
@@ -739,7 +675,7 @@ this.fastify.post("/mcp", async (request, reply) => {
               urlSystemPath.Websocket.EventServer
             )
           ) {
-         //   console.log("---");
+            //   console.log("---");
             this._emitEndpointEvent(
               "system_information",
               await getSystemInfoDynamic()

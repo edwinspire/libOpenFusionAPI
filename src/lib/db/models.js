@@ -1,7 +1,8 @@
 import { DataTypes } from "sequelize";
+//import { sql } from '@sequelize/core';
 import dbsequelize from "./sequelize.js";
 import { v4 as uuidv4 } from "uuid";
-import { emitHook } from "../server/utils.js";
+import { emitHook, validateAppName } from "../server/utils.js";
 //import { TasksInterval } from "../timer/tasks.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
@@ -16,6 +17,7 @@ const TableName_ApplicationBackup = prefixTableName("application_backup");
 const TableName_Method = prefixTableName("method");
 const TableName_Handler = prefixTableName("handler");
 const TableName_Demo = prefixTableName("demo");
+const TableName_AppVars = prefixTableName("appvars");
 
 const default_json_schema = {
   in: {
@@ -315,6 +317,7 @@ export const Application = dbsequelize.define(
       //autoIncrement: true,
       allowNull: false,
       unique: true,
+      defaultValue: DataTypes.UUIDV4,
     },
     app: {
       type: DataTypes.STRING(50),
@@ -358,7 +361,7 @@ export const Application = dbsequelize.define(
         //
       },
       afterUpsert: async (/** @type {any} */ instance) => {
-        instance.rowkey = 999;
+        //        instance.rowkey = 999;
 
         //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
         await HooksDB({
@@ -370,10 +373,18 @@ export const Application = dbsequelize.define(
       beforeUpdate: (/** @type {any} */ instance) => {
         instance.rowkey = Math.floor(Math.random() * 1000);
       },
-      beforeUpsert: async (instance) => {
+      beforeUpsert: (instance) => {
         instance.app = instance.app.toLowerCase();
 
-        if (!instance.idapp || instance.idapp == null) {
+        if (instance.app && !validateAppName(instance.app)) {
+          throw new Error("The application name cannot be empty.");
+        }
+
+        if (
+          !instance.idapp ||
+          instance.idapp == null ||
+          instance.idapp.lenght < 1
+        ) {
           //console.log('IDAPP es nulo o no está definido');
           instance.idapp = uuidv4();
         }
@@ -383,6 +394,9 @@ export const Application = dbsequelize.define(
         //console.log('Antes de guardar:', instance.fieldName);
 
         instance.rowkey = Math.floor(Math.random() * 1000);
+        if (!instance.idapp) {
+          instance.idapp = uuidv4();
+        }
       },
       beforeValidate: (instance) => {
         //console.log('>>> beforeValidate >>>> ', instance);
@@ -507,7 +521,7 @@ export const Endpoint = dbsequelize.define(
       primaryKey: true,
       allowNull: false,
       unique: true,
-      //			defaultValue: uuidv4()
+      defaultValue: DataTypes.UUIDV4,
     },
     rowkey: {
       type: DataTypes.SMALLINT,
@@ -641,7 +655,7 @@ export const Endpoint = dbsequelize.define(
     ],
     hooks: {
       afterUpsert: async (instance) => {
-        instance.rowkey = 999;
+        // instance.rowkey = 999;
 
         await HooksDB({
           instance: instance,
@@ -1074,6 +1088,65 @@ export const tblDemo = dbsequelize.define(
       beforeValidate: (instance) => {
         if (instance.json_data) {
           //   instance.json_data = JSON_TYPE_Adapter(instance, "json_data");
+        }
+      },
+    },
+  }
+);
+
+// Definir el modelo de la tabla 'AppVars'
+export const AppVars = dbsequelize.define(
+  TableName_AppVars,
+  {
+    idtask: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+      unique: true,
+    },
+    idapp: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    type: {
+      type: DataTypes.STRING(25),
+      allowNull: false,
+    },
+    environment: {
+      type: DataTypes.STRING(10),
+      allowNull: false,
+    },
+    value: {
+      type: JSON_TYPE,
+      allowNull: true,
+      get() {
+        return JSON_ADAPTER.getData(this, "value");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "value", value);
+      },
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    indexes: [
+      {
+        fields: ["idapp", "name", "environment"],
+        name: "idx_appvars_idapp", // Nombre del índice
+        unique: false, // Índice no único
+      },
+    ],
+    hooks: {
+      beforeValidate: (instance) => {
+        if (instance.value) {
+          //   instance.value = JSON_TYPE_Adapter(instance, "value");
         }
       },
     },

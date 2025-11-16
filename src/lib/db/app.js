@@ -18,6 +18,8 @@ export const getAppWithEndpoints = async (
       "description",
       "rowkey",
       "params",
+      "createdAt",
+      "updatedAt",
     ],
     include: {
       model: Endpoint,
@@ -42,6 +44,8 @@ export const getAppWithEndpoints = async (
         "latest_updater",
         "cache_time",
         "mcp",
+        "createdAt",
+        "updatedAt",
       ],
       order: [
         ["resource", "ASC"],
@@ -55,7 +59,7 @@ export const getAppWithEndpoints = async (
 };
 
 // READ
-export const getAppById = async (
+export const getAppFullById = async (
   /** @type {import("sequelize").Identifier} */ idapp,
   raw = false
 ) => {
@@ -177,3 +181,19 @@ export const defaultApps = async () => {
 
   return result;
 };
+
+export const getAppById = async (
+  /** @type {import("sequelize").Identifier} */ idapp,
+  raw = false
+) => {
+  try {
+    const app = await Application.findByPk(idapp);
+
+    return app;
+  } catch (error) {
+    console.error("Error retrieving app:", error);
+    throw error;
+  }
+};
+
+// idapp=c4ca4238-a0b9-2382-0dcc-509a6f75849b
