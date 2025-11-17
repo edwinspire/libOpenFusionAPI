@@ -577,7 +577,7 @@ export const system_app = {
       ctrl: {
         admin: true,
       },
-      resource: "/api/app/documentation",
+      resource: "/app/documentation",
       code: "fnGetAppDocById",
       rowkey: 407,
       description: "Get documentation to endpoints by app id",
