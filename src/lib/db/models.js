@@ -1054,51 +1054,11 @@ IntervalTask.belongsTo(Endpoint, {
   targetKey: "idendpoint", // campo PK en Endpoint
 });
 
-// Definir el modelo de la tabla 'Handler'
-export const tblDemo = dbsequelize.define(
-  TableName_Demo,
-  {
-    name: {
-      type: DataTypes.STRING(25),
-      primaryKey: true,
-      allowNull: false,
-      unique: true,
-    },
-    label: {
-      type: DataTypes.STRING(25),
-      unique: true,
-      allowNull: false,
-    },
-    json_data: {
-      type: JSON_TYPE,
-      allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "json_data");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "json_data", value);
-      },
-    },
-  },
-  {
-    freezeTableName: true,
-    timestamps: true,
-    indexes: [],
-    hooks: {
-      beforeValidate: (instance) => {
-        if (instance.json_data) {
-          //   instance.json_data = JSON_TYPE_Adapter(instance, "json_data");
-        }
-      },
-    },
-  }
-);
-
 // Definir el modelo de la tabla 'AppVars'
 export const AppVars = dbsequelize.define(
   TableName_AppVars,
   {
-    idtask: {
+    idvar: {
       type: DataTypes.BIGINT,
       primaryKey: true,
       autoIncrement: true,
@@ -1139,14 +1099,63 @@ export const AppVars = dbsequelize.define(
     indexes: [
       {
         fields: ["idapp", "name", "environment"],
-        name: "idx_appvars_idapp", // Nombre del índice
-        unique: false, // Índice no único
+        name: "idx_av_id_n_e", // Nombre del índice
+        unique: true, // Índice no único
       },
     ],
     hooks: {
       beforeValidate: (instance) => {
         if (instance.value) {
           //   instance.value = JSON_TYPE_Adapter(instance, "value");
+        }
+      },
+    },
+  }
+);
+
+// Relación: Un Application tiene muchos variables
+Application.hasMany(AppVars, { foreignKey: "idapp", as: "vars" });
+
+// Relación: Una Variable pertenece a una App
+AppVars.belongsTo(Application, {
+  foreignKey: "idapp", // campo FK en IntervalTask
+  targetKey: "idapp", // campo PK en Endpoint
+});
+
+// Definir el modelo de la tabla 'demo'
+export const tblDemo = dbsequelize.define(
+  TableName_Demo,
+  {
+    name: {
+      type: DataTypes.STRING(25),
+      primaryKey: true,
+      allowNull: false,
+      unique: true,
+    },
+    label: {
+      type: DataTypes.STRING(25),
+      unique: true,
+      allowNull: false,
+    },
+    json_data: {
+      type: JSON_TYPE,
+      allowNull: true,
+      get() {
+        return JSON_ADAPTER.getData(this, "json_data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "json_data", value);
+      },
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    indexes: [],
+    hooks: {
+      beforeValidate: (instance) => {
+        if (instance.json_data) {
+          //   instance.json_data = JSON_TYPE_Adapter(instance, "json_data");
         }
       },
     },
