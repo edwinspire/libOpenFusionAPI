@@ -1,4 +1,4 @@
-function createHtmlDocument(header, endpoints) {
+function createHtmlDocument(appname, header, endpoints) {
   let html = `<!DOCTYPE html>
 <html lang="es">
   <head>
@@ -428,7 +428,7 @@ function createHtmlDocument(header, endpoints) {
 
       <!-- Endpoints -->
       <section class="card" aria-labelledby="endpoints-title">
-        <h2 id="endpoints-title" class="section-title">Available Endpoints</h2>
+        <h2 id="endpoints-title" class="section-title">${appname} Endpoints</h2>
 
        
         ${endpoints}
@@ -711,6 +711,6 @@ export const generateDocumentation = (
       return createEndpointSection(app.app, item);
     })
     .join("\n");
-  const documentHtml = createHtmlDocument(headerHtml, endpointsHtml);
+  const documentHtml = createHtmlDocument(app.app, headerHtml, endpointsHtml);
   return documentHtml;
 };

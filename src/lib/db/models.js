@@ -436,6 +436,96 @@ export const Application = dbsequelize.define(
   }
 );
 
+// ============================================
+// MODELO AppVars (CORREGIDO)
+// ============================================
+export const AppVars = dbsequelize.define(
+  TableName_AppVars,
+  {
+    idvar: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,        // ✅ ÚNICA Primary Key
+      autoIncrement: true,
+      allowNull: false,
+      unique: true,
+    },
+    idapp: {
+      type: DataTypes.UUID,
+      // primaryKey: true,      // ❌ REMOVER ESTO
+      allowNull: false,         // ✅ Solo FK, no PK
+      references: {             // ✅ AGREGAR definición explícita de FK
+        model: TableName_Application,
+        key: 'idapp'
+      },
+      onUpdate: 'CASCADE',      // ✅ Opcional: comportamiento al actualizar
+      onDelete: 'CASCADE'       // ✅ Opcional: comportamiento al eliminar
+    },
+    name: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    type: {
+      type: DataTypes.STRING(25),
+      allowNull: false,
+    },
+    environment: {
+      type: DataTypes.STRING(10),
+      allowNull: false,
+    },
+    value: {
+      type: JSON_TYPE,
+      allowNull: true,
+      get() {
+        return JSON_ADAPTER.getData(this, "value");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "value", value);
+      },
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    indexes: [
+      {
+        // ✅ Índice único para evitar duplicados de variables
+        fields: ["idapp", "name", "environment"],
+        name: "idx_av_id_n_e",
+        unique: true,
+      },
+      {
+        // ✅ AGREGAR: Índice para mejorar performance de FK
+        fields: ["idapp"],
+        name: "idx_av_idapp"
+      }
+    ],
+    hooks: {
+      beforeValidate: (instance) => {
+        if (instance.value) {
+          // instance.value = JSON_TYPE_Adapter(instance, "value");
+        }
+      },
+    },
+  }
+);
+
+// ✅ Relación: Una Application tiene muchas variables
+Application.hasMany(AppVars, { 
+  foreignKey: "idapp",    // FK en AppVars
+  sourceKey: "idapp",     // ✅ AGREGAR: PK en Application
+  as: "vrs",             // Alias para incluir en queries
+  onDelete: 'CASCADE',    // ✅ AGREGAR: Al eliminar app, elimina sus vars
+  onUpdate: 'CASCADE'     // ✅ AGREGAR: Al actualizar idapp, actualiza en vars
+});
+
+// ✅ Relación inversa: Una Variable pertenece a una Application
+AppVars.belongsTo(Application, {
+  foreignKey: "idapp",    // FK en AppVars
+  targetKey: "idapp",     // PK en Application
+  as: "app"       // ✅ AGREGAR: Alias para incluir en queries
+});
+
+
 export const ApplicationBackup = dbsequelize.define(
   TableName_ApplicationBackup,
   {
@@ -1054,73 +1144,6 @@ IntervalTask.belongsTo(Endpoint, {
   targetKey: "idendpoint", // campo PK en Endpoint
 });
 
-// Definir el modelo de la tabla 'AppVars'
-export const AppVars = dbsequelize.define(
-  TableName_AppVars,
-  {
-    idvar: {
-      type: DataTypes.BIGINT,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-      unique: true,
-    },
-    idapp: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      allowNull: false,
-    },
-    name: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-    },
-    type: {
-      type: DataTypes.STRING(25),
-      allowNull: false,
-    },
-    environment: {
-      type: DataTypes.STRING(10),
-      allowNull: false,
-    },
-    value: {
-      type: JSON_TYPE,
-      allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "value");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "value", value);
-      },
-    },
-  },
-  {
-    freezeTableName: true,
-    timestamps: true,
-    indexes: [
-      {
-        fields: ["idapp", "name", "environment"],
-        name: "idx_av_id_n_e", // Nombre del índice
-        unique: true, // Índice no único
-      },
-    ],
-    hooks: {
-      beforeValidate: (instance) => {
-        if (instance.value) {
-          //   instance.value = JSON_TYPE_Adapter(instance, "value");
-        }
-      },
-    },
-  }
-);
-
-// Relación: Un Application tiene muchos variables
-Application.hasMany(AppVars, { foreignKey: "idapp", as: "vars" });
-
-// Relación: Una Variable pertenece a una App
-AppVars.belongsTo(Application, {
-  foreignKey: "idapp", // campo FK en IntervalTask
-  targetKey: "idapp", // campo PK en Endpoint
-});
 
 // Definir el modelo de la tabla 'demo'
 export const tblDemo = dbsequelize.define(
