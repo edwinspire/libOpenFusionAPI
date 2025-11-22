@@ -36,6 +36,7 @@ import {
   Handler,
   Application,
   ApplicationBackup,
+  AppVars,
   Endpoint as EndpointBBDD,
   LogEntry,
   IntervalTask,
@@ -1010,6 +1011,7 @@ console.log('----');
           await dbAPIs.sync({ alter: true });
           console.log("Database created or updated successfully.");
         } catch (error) {
+          // Con sqlite es posible que haya errores al recrear las tablas
           console.log(error);
         }
       }

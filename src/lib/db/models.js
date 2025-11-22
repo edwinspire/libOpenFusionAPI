@@ -437,7 +437,7 @@ export const Application = dbsequelize.define(
 );
 
 // ============================================
-// MODELO AppVars (CORREGIDO)
+// MODELO AppVars 
 // ============================================
 export const AppVars = dbsequelize.define(
   TableName_AppVars,
@@ -451,7 +451,6 @@ export const AppVars = dbsequelize.define(
     },
     idapp: {
       type: DataTypes.UUID,
-      // primaryKey: true,      // ❌ REMOVER ESTO
       allowNull: false,         // ✅ Solo FK, no PK
       references: {             // ✅ AGREGAR definición explícita de FK
         model: TableName_Application,
@@ -467,6 +466,7 @@ export const AppVars = dbsequelize.define(
     type: {
       type: DataTypes.STRING(25),
       allowNull: false,
+      defaultValue: 'json'
     },
     environment: {
       type: DataTypes.STRING(10),

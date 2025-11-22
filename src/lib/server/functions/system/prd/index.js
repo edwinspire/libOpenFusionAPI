@@ -13,12 +13,19 @@ import {
   getAppFullById,
   upsertApp,
   saveAppWithEndpoints,
+  restoreAppFromBackup, 
+  getAppBackupById,
 } from "../../../../db/app.js";
 import {
   createLog,
   getLogs,
   getLogsRecordsPerMinute,
 } from "../../../../db/log.js";
+import {
+  upsertAppVars,
+  deleteAppVars,
+  getAppVarsByIdApp,
+} from "../../../../db/appvars.js";
 import {
   getIntervalTask,
   upsertIntervalTask,
@@ -684,6 +691,22 @@ export async function fnTelegramsendPhoto(params) {
   return r;
 }
 
+export async function fnRestoreAppFromBackup(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    let data = await restoreAppFromBackup(params.request.body);
+    r.data = data;
+    r.code = 200;
+  } catch (error) {
+    //console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
 export async function fnInsertLog(params) {
   let r = { data: undefined, code: 204 };
   try {
@@ -756,3 +779,41 @@ export async function fnGetLogsRecordsPerMinute(params) {
   }
   return r;
 }
+
+export async function fnGetAppVarsByIdApp(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await getAppVarsByIdApp({
+      app: { idapp: params.request.query.idapp },
+    });
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnGetAppBackupById(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await getAppBackupById(params.request.query.idapp);
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+//

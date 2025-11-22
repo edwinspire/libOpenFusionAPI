@@ -1,6 +1,6 @@
 import { ApplicationBackup } from "./models.js";
 
-export const createAppLog = async (app_data) => {
+export const createAppBackup = async (app_data) => {
   try {
     return await ApplicationBackup.create(app_data);
   } catch (error) {

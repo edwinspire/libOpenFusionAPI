@@ -567,6 +567,81 @@ export const system_app = {
         "0e006fd2d70737b128125c6f0d3d8ddd2ef7e9443fb5df03b732a1e1f756799b",
     },
 
+
+{
+      enabled: true,
+      access: 0,
+      method: "GET",
+      handler: "FUNCTION",
+      mcp: {},
+      cache_time: 30,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/app/backup",
+      code: "fnGetAppBackupById",
+
+      description: "Get App data to backup by idapp",
+      idendpoint: "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
+      cors: {},
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+    },
+
+{
+      enabled: true,
+      access: 0,
+      method: "POST",
+      handler: "FUNCTION",
+      mcp: {},
+      cache_time: 0,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/app/backup",
+      code: "fnRestoreAppFromBackup",
+
+      description: "Restore App data from backup by idapp",
+      idendpoint: "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
+      cors: {},
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+    },
+
+
+    {
+      enabled: true,
+      access: 2,
+      method: "GET",
+      handler: "FUNCTION",
+      mcp: {},
+      cache_time: 0,
+      ctrl: {
+        admin: true,
+      },
+      resource: "/app/variables/idapp",
+      code: "fnGetAppVarsByIdApp",
+
+      description: "Get application variables by idapp",
+      idendpoint: "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
+      cors: {},
+      headers_test: {},
+      data_test: {},
+      latest_updater: null,
+      environment: "prd",
+      json_schema: {},
+    },
+
+
+
+
+
     {
       enabled: true,
       access: 0,
