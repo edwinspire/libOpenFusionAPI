@@ -69,7 +69,7 @@ export class OpenFusionWebsocketClient extends EventEmitter {
 
     this.ws.on("close", (code, reason) => {
       console.log(
-        `🔌 Conexión cerrada (code=${code}, reason=${
+        `🔌 Conexión cerrada ${this.url} (code=${code}, reason=${
           reason.toString() || "ninguna"
         })`
       );
@@ -78,7 +78,7 @@ export class OpenFusionWebsocketClient extends EventEmitter {
     });
 
     this.ws.on("error", (err) => {
-      console.error("❌ Error en WebSocket:", err.message);
+      console.error(`❌ Error en WebSocket: ${this.url}`, err.message);
       // 'close' se disparará después y manejará reconexión
     });
   }

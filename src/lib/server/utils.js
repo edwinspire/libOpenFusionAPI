@@ -753,10 +753,11 @@ export const createFunction = async (
   /** @type {string} */ app_vars
 ) => {
   let app_vars_string = "";
-
+// TODO: la variable app_vars no se la debería usar ya que al crear el codigo de la función ya se reemplaza el nombre de la variable por el valor que se la ha asignado.
   let fn = new Function("$_VARS_", "throw new Error('No code to execute');");
 
   try {
+    /*
     if (app_vars && typeof app_vars === "object") {
       app_vars_string = `const $_VARS_APP = ${JSON.stringify(
         app_vars,
@@ -764,6 +765,7 @@ export const createFunction = async (
         2
       )}`;
     }
+    */
 
     let vars = Object.keys(await functionsVars()).join(", ");
 

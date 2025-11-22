@@ -242,8 +242,7 @@ export default class ServerAPI extends EventEmitter {
 
       if (request_path_params && request_path_params.url_key) {
         let cache_endpoint = await this.endpoints.getEndpoint(
-          request_path_params.app,
-          request_path_params.url_key
+          request_path_params
         );
 
         //
@@ -289,19 +288,8 @@ export default class ServerAPI extends EventEmitter {
           reply.openfusionapi.lastResponse.responseTime = timeTaken;
         }
 
-        /*
-        this._emitEndpointEvent("request_completed", {
-          idendpoint: handler_param?.idendpoint,
-          idapp: handler_param?.idapp,
-          url: request.url,
-          method: request.method,
-          app: handler_param?.app,
-          environment: handler_param?.environment,
-          endpoint: handler_param?.url_method,
-          responseTime: timeTaken,
-          statusCode: reply.statusCode,
-        });
-*/
+        
+        
         this.endpoints.saveLog(request, reply);
 
         if (handler_param?.idendpoint) {
@@ -310,43 +298,10 @@ export default class ServerAPI extends EventEmitter {
       }
     });
 
-    /*
-this.fastify.post("/mcp", async (request, reply) => {
-  // Aquí puedes manejar las peticiones POST a /mcp
-
-    try {
-    const server = MCPServer; 
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
-    reply.raw.on('close', () => {
-      console.log('Request closed');
-      transport.close();
-      server.close();
-    });
-    await server.connect(transport);
-    await transport.handleRequest(request, reply.raw, request.body);
-  } catch (error) {
-    console.error('Error handling MCP request:', error);
-    if (!reply.headersSent) {
-      reply.status(500).send({
-        jsonrpc: '2.0',
-        error: {
-          code: -32603,
-          message: 'Internal server error',
-        },
-        id: null,
-      });
-    }
-  }
-
-  
-  
-});
-*/
+    
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
-      // Todos los clientes deben estar registra<zdos para poder hacer broadcast o desconectarlos masivamente
+      // Todos los clientes deben estar registrados para poder hacer broadcast o desconectarlos masivamente
       // Crea un idclient para poder enviar un mensaje solo para un socket especifico
       try {
         connection.socket.openfusionapi = req.openfusionapi

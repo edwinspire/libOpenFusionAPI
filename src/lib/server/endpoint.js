@@ -4,7 +4,11 @@ import {
   url_key,
   internal_url_endpoint,
 } from "./utils_path.js";
-import { getAppWithEndpoints, getAppByName } from "../db/app.js";
+import {
+  getAppWithEndpoints,
+  getAppByName,
+  getApplicationTreeByFilters,
+} from "../db/app.js";
 import * as z from "zod";
 import { getServer } from "../server/mcp/server.js";
 //import { jsonSchemaToZod } from "json-schema-to-zod";
@@ -88,25 +92,14 @@ export default class Endpoint extends EventEmitter {
     return r;
   }
 
-  async getEndpoint(app, url_key) {
-    //let request_path_params = get_url_params(request.url);
-    /*
-    let endpoint_key = key_endpoint_method(
-      request_path_params.app,
-      request_path_params.resource,
-      request_path_params.environment,
-      request.method,
-      request.ws
-    );
-*/
-
+  async getEndpoint(request_path_params) {
     // Revisa si existe el endpoint
-    if (!this.internal_endpoint[url_key]) {
+    if (!this.internal_endpoint[request_path_params.url_key]) {
       // Si no lo tiene cargado lo obtiene de la base de datos
-      await this._loadEndpointsByAPPToCache(app, url_key);
+      await this._loadEndpointsByAPPToCache(request_path_params);
     }
 
-    return this.internal_endpoint[url_key];
+    return this.internal_endpoint[request_path_params.url_key];
   }
 
   getCache(endpoint_key, hash_request) {
@@ -310,9 +303,7 @@ export default class Endpoint extends EventEmitter {
         }
       }
     } else {
-      console.log(
-        `IdEndpoint ${ep?.handler?.params?.idendpoint} not exists | url_key: ${url_key}`
-      );
+      console.log(`${url_key} not exists on cache (internal_endpoint)`);
     }
   }
 
@@ -499,7 +490,6 @@ export default class Endpoint extends EventEmitter {
         //const prms = get_url_params(ep_list[index]);
         let ep = this.internal_endpoint[ep_list[index]];
         if (ep && ep.handler.params.idendpoint == idendpoint) {
-
           this.emit("cache_released", {
             app: ep?.handler?.params?.app,
             idendpoint: ep?.handler?.params?.idendpoint,
@@ -517,53 +507,35 @@ export default class Endpoint extends EventEmitter {
     }
   }
 
-  async _loadEndpointsByAPPToCache(app, url_key_endpoint) {
+  async _loadEndpointsByAPPToCache(params) {
     try {
       // Carga los endpoints de una App a cache
-      let appDataResult = await getAppWithEndpoints({ app: app }, false);
+      //let appDataResult = await getAppWithEndpoints({ app: app }, false);
+      let appData = await getApplicationTreeByFilters({
+        app: params.app,
+        enabled: true,
+        endpoint: {
+          enabled: true,
+          environment: params.environment,
+          method: params.method,
+          resource: params.resource,
+        },
+      });
 
-      if (appDataResult && appDataResult.length > 0) {
-        const appDatas = appDataResult.map((result) => result.toJSON());
-
-        const appData = appDatas[0];
-
+      if (appData && appData.idapp) {
         if (appData.enabled && appData.endpoints) {
           for (let i = 0; i < appData.endpoints.length; i++) {
             let endpoint = appData.endpoints[i];
 
-            /*
-            let url_app_endpoint = key_endpoint_method(
-              appData.app,
-              endpoint.resource,
-              endpoint.environment,
-              endpoint.method,
-              endpoint.method == "WS"
-            );
-            */
-            // (app, resource, environment, method, ws)
-            let current_url_key = url_key(
-              appData.app,
-              endpoint.resource,
-              endpoint.environment,
-              endpoint.method,
-              endpoint.method == "WS"
-            );
+            endpoint.url_key = params.url_key;
+            endpoint.idapp = appData.idapp;
 
-            if (url_key_endpoint && url_key_endpoint == current_url_key) {
-              // Carga solo el endpoind solicitado y sale
-
-              endpoint.url_key = url_key_endpoint;
-              endpoint.idapp = appData.idapp;
-
-              if (!this.internal_endpoint[url_key_endpoint]) {
-                this.internal_endpoint[url_key_endpoint] = {};
-              }
-
-              this.internal_endpoint[url_key_endpoint].handler =
-                await this._getApiHandler(appData.app, endpoint, appData.vars);
-
-              break;
+            if (!this.internal_endpoint[params.url_key]) {
+              this.internal_endpoint[params.url_key] = {};
             }
+
+            this.internal_endpoint[params.url_key].handler =
+              await this._getApiHandler(appData.app, endpoint, appData.vrs);
           }
         }
       }
@@ -578,86 +550,81 @@ export default class Endpoint extends EventEmitter {
     returnHandler.params.app = app_name;
 
     try {
-      app_vars =
-        typeof app_vars !== "object" ? JSON.parse(app_vars) : app_vars ?? {};
-
-      let appVars = app_vars[endpointData.environment];
-
       if (endpointData.enabled) {
-        if (appVars && typeof appVars === "object") {
-          const props = Object.keys(appVars);
+        let props = [];
+        if (Array.isArray(app_vars)) {
+          props = app_vars.filter((item) => {
+            return (endpointData.environment = item.environment);
+          });
+          if (props.length > 0) {
+            if (endpointData.handler == "JS") {
+              // Para estos casos lo que se hace es agregar las variables al inicio del código como constantes minimizando el uso de memoria
+              for (let i = 0; i < props.length; i++) {
+                const prop = props[i];
 
-          if (endpointData.handler == "JS") {
-            // Para estos casos lo que se hace es agregar las variables al inicio del código como constantes minimizando el uso de memoria
-            for (let i = 0; i < props.length; i++) {
-              const prop = props[i];
+                if (returnHandler.params.code.includes(prop.name)) {
+                  switch (typeof prop.value) {
+                    case "string":
+                      returnHandler.params.code = `const ${
+                        prop.name
+                      } = ${JSON.stringify(prop.value)};\n ${
+                        returnHandler.params.code
+                      }`;
+                      break;
+                    case "number":
+                      returnHandler.params.code = `const ${prop.name} = ${prop.value};\n ${returnHandler.params.code}`;
 
-              if (returnHandler.params.code.includes(prop)) {
-                switch (typeof appVars[prop]) {
+                      break;
+
+                    case "object":
+                      returnHandler.params.code = `const ${
+                        prop.name
+                      } = ${JSON.stringify(prop.value)};\n ${
+                        returnHandler.params.code
+                      }`;
+
+                      break;
+                    default:
+                      console.log(prop);
+                      break;
+                  }
+                }
+              }
+            } else {
+              // Para estos casos lo que se hace es remplazar las variables directamente en el código
+              for (let i = 0; i < props.length; i++) {
+                const prop = props[i];
+
+                switch (typeof value) {
                   case "string":
-                    returnHandler.params.code = `const ${prop} = ${JSON.stringify(
-                      appVars[prop]
-                    )};\n ${returnHandler.params.code}`;
+                    returnHandler.params.code =
+                      returnHandler.params.code.replace(prop.name, prop.value);
                     break;
                   case "number":
-                    returnHandler.params.code = `const ${prop} = ${appVars[prop]};\n ${returnHandler.params.code}`;
-
+                    returnHandler.params.code =
+                      returnHandler.params.code.replace(prop.name, prop.value);
                     break;
 
                   case "object":
-                    returnHandler.params.code = `const ${prop} = ${JSON.stringify(
-                      appVars[prop]
-                    )};\n ${returnHandler.params.code}`;
+                    returnHandler.params.code =
+                      returnHandler.params.code.replace(
+                        '"' + prop.name + '"',
+                        JSON.stringify(prop.value)
+                      );
 
+                    returnHandler.params.code =
+                      returnHandler.params.code.replace(
+                        prop.name,
+                        JSON.stringify(prop.value)
+                      );
                     break;
                   default:
-                    console.log(typeof appVars[prop], appVars[prop]);
+                    console.log(prop);
                     break;
                 }
               }
             }
-          } else {
-            // Para estos casos lo que se hace es remplazar las variables directamente en el código
-            for (let i = 0; i < props.length; i++) {
-              const prop = props[i];
-
-              switch (typeof appVars[prop]) {
-                case "string":
-                  returnHandler.params.code = returnHandler.params.code.replace(
-                    prop,
-                    appVars[prop]
-                  );
-                  break;
-                case "number":
-                  returnHandler.params.code = returnHandler.params.code.replace(
-                    prop,
-                    appVars[prop]
-                  );
-                  break;
-
-                case "object":
-                  returnHandler.params.code = returnHandler.params.code.replace(
-                    '"' + prop + '"',
-                    JSON.stringify(appVars[prop])
-                  );
-
-                  returnHandler.params.code = returnHandler.params.code.replace(
-                    prop,
-                    JSON.stringify(appVars[prop])
-                  );
-                  break;
-                default:
-                  console.log(typeof appVars[prop], appVars[prop]);
-                  break;
-              }
-            }
           }
-          /*
-          console.log(
-            "Variables de aplicación agregadas a la función:",
-            returnHandler.params.code
-          );
-          */
         }
 
         // Habilita la validación de datos de entrada usando AJV
@@ -671,131 +638,107 @@ export default class Endpoint extends EventEmitter {
             console.trace(error);
           }
         }
-        /*
-        // Crea una función para la validación de las entradas del MCP
-        if (returnHandler?.params?.mcp?.enabled) {
-          
-          let zod_inputSchema = z
-            .any()
-            .describe("Data to send to the endpoint.");
-
-          if (returnHandler?.params?.json_schema?.in?.schema) {
-            // Convertir
-            zod_inputSchema = jsonSchemaToZod(
-              returnHandler.params.json_schema.in.schema
-            );
-          }
-
-          returnHandler.params.json_schema.in.fn_zod_validate_schema =
-            zod_inputSchema.shape;
-        }
-        */
 
         // Para que los datos del server vayan a cache
         if (returnHandler.params.handler == "MCP") {
-          let apps = await getAppByName(returnHandler.params.app);
+          let app = await getApplicationTreeByFilters({
+            app: returnHandler.params.app,
+            enabled: true,
+            endpoint: {
+              enabled: true,
+              environment: returnHandler.params.environment,
+            },
+          });
 
           returnHandler.params.server_mcp = (headers) => {
             const server = getServer();
 
             // TODO: Es posible que se pueda mejorar esta parte del código para que no sea necesario ejecutarlo en cada llamada.
+            let mcp_endpoint_tools = app.endpoints.filter((endpoint) => {
+              return (
+                endpoint.method != "WS" &&
+                endpoint.handler != "MCP" &&
+                endpoint?.mcp?.enabled
+              );
+            });
 
-            for (let index = 0; index < apps.length; index++) {
-              const app = apps[index];
-              // console.log("App:", app);
+            for (let index2 = 0; index2 < mcp_endpoint_tools.length; index2++) {
+              const endpoint = mcp_endpoint_tools[index2];
+              //  console.log("Endpoint:", endpoint);
+              let url_internal = internal_url_endpoint(
+                app.app,
+                endpoint.resource,
+                endpoint.environment,
+                false
+              );
 
-              let mcp_endpoint_tools = app.endpoints.filter((endpoint) => {
-                return (
-                  endpoint.enabled &&
-                  endpoint.environment == returnHandler.params.environment &&
-                  endpoint.method != "WS" &&
-                  endpoint.handler != "MCP" &&
-                  endpoint?.mcp?.enabled
-                );
-              });
+              let zod_inputSchema = z
+                .any()
+                .describe("Data to send to the endpoint.");
 
-              for (
-                let index2 = 0;
-                index2 < mcp_endpoint_tools.length;
-                index2++
+              if (
+                endpoint?.json_schema?.in?.enabled &&
+                endpoint?.json_schema?.in?.schema
               ) {
-                const endpoint = mcp_endpoint_tools[index2];
-                //  console.log("Endpoint:", endpoint);
-                let url_internal = internal_url_endpoint(
-                  app.app,
-                  endpoint.resource,
-                  endpoint.environment,
-                  false
-                );
-
-                let zod_inputSchema = z
-                  .any()
-                  .describe("Data to send to the endpoint.");
-
-                if (
-                  endpoint?.json_schema?.in?.enabled &&
-                  endpoint?.json_schema?.in?.schema
-                ) {
-                  // Convertir
-                  zod_inputSchema = JSONSchemaToZod.convert(
-                    endpoint.json_schema.in.schema
-                  );
-                }
-
-                //   let x = z.toJSONSchema(zod_inputSchema.shape);
-                //   console.log(x);
-
-                server.registerTool(
-                  endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
-                    ? endpoint?.mcp?.name
-                    : `${url_internal}[${endpoint.method}]`,
-                  {
-                    title:
-                      endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
-                        ? endpoint?.mcp?.title
-                        : endpoint.description,
-                    description: `${
-                      endpoint.access == 0 ? "Public" : "Private"
-                    }  ${
-                      endpoint?.mcp?.description &&
-                      endpoint?.mcp?.description.length > 0
-                        ? endpoint?.mcp?.description
-                        : endpoint.description
-                    }`,
-                    inputSchema: zod_inputSchema.shape,
-                  },
-
-                  async (data) => {
-                    let auto_env = new URLAutoEnvironment();
-                    let uF = auto_env.create(url_internal, false);
-
-                    let request_endpoint = await uF[
-                      endpoint.method.toUpperCase()
-                    ]({
-                      data: data,
-                      headers: headers,
-                    });
-                    const mimeType =
-                      request_endpoint.headers.get("content-type");
-                    let data_out = undefined;
-                    //let parse_method = getParseMethod(mimeType);
-                    // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
-
-                    data_out = await request_endpoint.text();
-
-                    return {
-                      content: [
-                        {
-                          type: "text",
-                          mimeType: mimeType,
-                          text: data_out,
-                        },
-                      ],
-                    };
-                  }
+                // Convertir
+                zod_inputSchema = JSONSchemaToZod.convert(
+                  endpoint.json_schema.in.schema
                 );
               }
+
+              //   let x = z.toJSONSchema(zod_inputSchema.shape);
+              //   console.log(x);
+
+              server.registerTool(
+                endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
+                  ? endpoint?.mcp?.name
+                  : `${url_internal}[${endpoint.method}]`,
+                {
+                  title:
+                    endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
+                      ? endpoint?.mcp?.title
+                      : endpoint.description,
+                  description: `${
+                    endpoint.access == 0 ? "Public" : "Private"
+                  }  ${
+                    endpoint?.mcp?.description &&
+                    endpoint?.mcp?.description.length > 0
+                      ? endpoint?.mcp?.description
+                      : endpoint.description
+                  }`,
+                  inputSchema: zod_inputSchema.shape,
+                },
+
+                async (data) => {
+                  let auto_env = new URLAutoEnvironment();
+                  let uF = auto_env.create(url_internal, false);
+
+                  let request_endpoint = await uF[
+                    endpoint.method.toUpperCase()
+                  ]({
+                    data: data,
+                    headers: headers,
+                  });
+                  const mimeType = request_endpoint.headers.get("content-type");
+                  let data_out = undefined;
+                  //let parse_method = getParseMethod(mimeType);
+                  // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
+
+                  data_out = await request_endpoint.text();
+
+                  return {
+                    content: [
+                      {
+                        type: "text",
+                        mimeType: mimeType,
+                        text: data_out,
+                      },
+                    ],
+                  };
+                }
+              );
             }
+
             return server;
           };
         }
@@ -803,7 +746,7 @@ export default class Endpoint extends EventEmitter {
         if (returnHandler.params.handler == "MONGODB") {
           returnHandler.params.jsFn = await createFunction(
             getMongoDBHandlerParams(returnHandler.params.code).code,
-            appVars
+            app_vars
           );
 
           // Se libera espacio de esta variable ya que no se va a utilizar mas
@@ -811,7 +754,7 @@ export default class Endpoint extends EventEmitter {
         } else if (returnHandler.params.handler == "JS") {
           returnHandler.params.jsFn = await createFunction(
             returnHandler.params.code,
-            appVars
+            app_vars
           );
 
           // Se libera espacio de esta variable ya que no se va a utilizar mas

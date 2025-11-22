@@ -21,7 +21,8 @@ export const get_url_params = (
   let par = fn(reqUrl.pathname);
 
   if (par.params) {
-    method = method ? method.toUpperCase() : "UNKNOW";
+    par.isWebsocket = par.params[0] === "ws" || par.params[0] === "WS";
+    par.method = par.isWebsocket ? "WS" : method ? method.toUpperCase() : "UNKNOW";
     par.app =
       par.params.parts && par.params.parts.length > 0
         ? par.params.parts[0]
@@ -35,8 +36,8 @@ export const get_url_params = (
       par.app,
       par.resource,
       par.environment,
-      method,
-      par.params[0] === "ws"
+      par.method,
+      par.isWebsocket
     );
   } else {
     par = { params: { parts: [] } };

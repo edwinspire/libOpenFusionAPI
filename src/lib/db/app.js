@@ -234,7 +234,7 @@ export const restoreAppFromBackup = async (app) => {
 export const defaultApps = async () => {
   let result = default_apps.map(async (app) => {
     try {
-      return { app: app, result: await saveAppWithEndpoints(app) };
+      return { app: app, result: await restoreAppFromBackup(app) };
     } catch (error) {
       return { app: app, error: error };
     }
@@ -259,7 +259,141 @@ export const getAppById = async (
 
 // idapp=c4ca4238-a0b9-2382-0dcc-509a6f75849b
 
-export const getAppBackupById = async (
+export async function getAppBackupById(idapp) {
+  try {
+    const data = await getApplicationTreeByFilters({ idapp: idapp });
+    return data;
+  } catch (error) {
+    console.error("Error al obtener Application:", error);
+    throw new Error("No se pudo obtener la aplicación");
+  }
+}
+
+export function parseAppVar(appvar) {
+  let v;
+
+  try {
+    switch (appvar.type) {
+      case "number":
+        v =
+          typeof appvar.value === "number"
+            ? appvar.type
+            : parseFloat(appvar.value);
+        break;
+
+      case "json":
+        v =
+          typeof appvar.value === "object"
+            ? appvar.type
+            : JSON.parse(appvar.value);
+        break;
+      case "object":
+        v =
+          typeof appvar.value === "object"
+            ? appvar.type
+            : JSON.parse(appvar.value);
+        break;
+      default:
+        v = JSON.stringify(appvar.value);
+        break;
+    }
+  } catch (error) {
+    v = appvar.value;
+  }
+  return v;
+}
+
+/**
+ * Obtiene la información completa de Application con sus AppVars y Endpoints,
+ * filtrando por app, method, environment y resource (opcionales).
+ *
+ * @param {object} filters
+ * @param {string=} filters.app
+ * @param {string=} filters.method
+ * @param {string=} filters.environment
+ * @param {string=} filters.resource
+ * @returns {Promise<object|null>}
+ */
+export async function getApplicationTreeByFilters(filters = {}) {
+  const { idapp, app, enabled, endpoint } = filters;
+  // method, environment, resource,  handler
+  try {
+    // ===============================
+    // Construcción dinámica del WHERE
+    // ===============================
+    const appWhere = {};
+    const endpointWhere = {};
+
+    if (idapp) {
+      appWhere.idapp = idapp;
+    }
+
+    if (enabled !== null && enabled !== undefined) {
+      appWhere.enabled = enabled;
+    }
+
+    if (app) {
+      appWhere.app = app.toLowerCase(); // Normalizado
+    }
+
+    if (endpoint?.method) {
+      endpointWhere.method = endpoint.method.toUpperCase();
+    }
+
+    if (endpoint?.handler) {
+      endpointWhere.handler = endpoint.handler.toUpperCase();
+    }
+
+    if (endpoint?.environment) {
+      endpointWhere.environment = endpoint.environment;
+    }
+
+    if (endpoint?.resource) {
+      endpointWhere.resource = endpoint.resource;
+    }
+
+    if (endpoint?.enabled !== null && endpoint?.enabled !== undefined) {
+      endpointWhere.enabled = endpoint.enabled;
+    }
+
+    // ========================================================
+    // Consulta con inclusión condicional de filtros en Endpoint
+    // ========================================================
+    const data = await Application.findOne({
+      where: appWhere,
+      include: [
+        {
+          model: AppVars,
+          as: "vrs",
+          required: false,
+        },
+        {
+          model: Endpoint,
+          as: "endpoints",
+          required: Object.keys(endpointWhere).length > 0,
+          where:
+            Object.keys(endpointWhere).length > 0 ? endpointWhere : undefined,
+        },
+      ],
+    });
+
+    if (!data) return {};
+
+    const appData = data.toJSON();
+
+    appData.vrs = appData.vrs.map((item) => {
+      item.value = parseAppVar(item);
+      return item;
+    });
+
+    return appData;
+  } catch (error) {
+    console.error("Error en getApplicationTreeByFilters:", error);
+    throw new Error("No se pudo obtener la información de la aplicación.");
+  }
+}
+
+export const getAppBackupByIdxxx = async (
   /** @type {import("sequelize").Identifier} */ idapp,
   raw = false
 ) => {

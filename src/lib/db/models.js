@@ -1,9 +1,7 @@
 import { DataTypes } from "sequelize";
-//import { sql } from '@sequelize/core';
 import dbsequelize from "./sequelize.js";
 import { v4 as uuidv4 } from "uuid";
 import { emitHook, validateAppName } from "../server/utils.js";
-//import { TasksInterval } from "../timer/tasks.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
 const JSON_TYPE =
@@ -67,20 +65,13 @@ class JSON_ADAPTER {
   }
 }
 
-/*
-function JSON_TYPE_Adapter(instance, fieldName) {
-  if (instance[fieldName]) {
-    console.log("JSON_TYPE_Adapter: ", fieldName, typeof instance[fieldName]);
-
-    return dbsequelize.getDialect() === "mssql" &&
-      typeof instance[fieldName] === "object"
-      ? JSON.stringify(instance[fieldName])
-      : instance[fieldName];
-  } else {
-    return undefined;
-  }
+function ensureUUID(instance, field) {
+  if (!instance[field]) instance[field] = uuidv4();
 }
-*/
+
+function randomRowKey(instance) {
+  instance.rowkey = Math.floor(Math.random() * 1000);
+}
 
 /**
  * @param {string} table_name
@@ -314,7 +305,6 @@ export const Application = dbsequelize.define(
     idapp: {
       type: DataTypes.UUID,
       primaryKey: true,
-      //autoIncrement: true,
       allowNull: false,
       unique: true,
       defaultValue: DataTypes.UUIDV4,
@@ -371,65 +361,31 @@ export const Application = dbsequelize.define(
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
-        instance.rowkey = Math.floor(Math.random() * 1000);
+        randomRowKey(instance);
       },
       beforeUpsert: (instance) => {
-        instance.app = instance.app.toLowerCase();
-
         if (instance.app && !validateAppName(instance.app)) {
           throw new Error("The application name cannot be empty.");
         }
-
-        if (
-          !instance.idapp ||
-          instance.idapp == null ||
-          instance.idapp.lenght < 1
-        ) {
-          //console.log('IDAPP es nulo o no está definido');
-          instance.idapp = uuidv4();
-        }
+        ensureUUID(instance, "idapp");
+        randomRowKey(instance);
       },
       beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
-        // Acciones a realizar antes de guardar el modelo
-        //console.log('Antes de guardar:', instance.fieldName);
-
-        instance.rowkey = Math.floor(Math.random() * 1000);
-        if (!instance.idapp) {
-          instance.idapp = uuidv4();
-        }
+        ensureUUID(instance, "idapp");
+        randomRowKey(instance);
       },
       beforeValidate: (instance) => {
-        //console.log('>>> beforeValidate >>>> ', instance);
-
-        if (!instance.idapp || instance.idapp == null) {
-          console.log("IDAPP es nulo o no está definido");
-          instance.idapp = uuidv4();
-        }
-
-        //instance.vars = JSON_TYPE_Adapter(instance, "vars");
-        //instance.params = JSON_TYPE_Adapter(instance, "params");
-
+        ensureUUID(instance, "idapp");
+        randomRowKey(instance);
         // Esta función si se ejecuta al momento de crear una nueva APP, poniendo en minuscula el nombre de la app
         instance.app = instance.app.toLowerCase();
       },
       beforeCreate: (instance) => {
-        //console.log('>>> beforeValidate >>>> ', instance);
-
-        if (!instance.idapp || instance.idapp == null) {
-          //	console.log('beforeCreate IDAPP es nulo o no está definido');
-          instance.idapp = uuidv4();
-        }
-
-        //instance.vars = JSON_TYPE_Adapter(instance, "vars");
-        //instance.params = JSON_TYPE_Adapter(instance, "params");
+        ensureUUID(instance, "idapp");
       },
       beforeBulkCreate: (instance) => {
         if (instance && Array.isArray(instance)) {
-          instance.forEach((ins, i) => {
-            //	console.log("++++++++>>>>>>>>>>>>>>>>>>>>>>", ins.vars);
-            //instance[i].vars = JSON_TYPE_Adapter(instance[i], "vars");
-            // instance[i].params = JSON_TYPE_Adapter(instance[i], "params");
-          });
+          //
         }
       },
     },
@@ -437,27 +393,28 @@ export const Application = dbsequelize.define(
 );
 
 // ============================================
-// MODELO AppVars 
+// MODELO AppVars
 // ============================================
 export const AppVars = dbsequelize.define(
   TableName_AppVars,
   {
     idvar: {
       type: DataTypes.BIGINT,
-      primaryKey: true,        // ✅ ÚNICA Primary Key
+      primaryKey: true, // ✅ ÚNICA Primary Key
       autoIncrement: true,
       allowNull: false,
       unique: true,
     },
     idapp: {
       type: DataTypes.UUID,
-      allowNull: false,         // ✅ Solo FK, no PK
-      references: {             // ✅ AGREGAR definición explícita de FK
+      allowNull: false, // ✅ Solo FK, no PK
+      references: {
+        // ✅ AGREGAR definición explícita de FK
         model: TableName_Application,
-        key: 'idapp'
+        key: "idapp",
       },
-      onUpdate: 'CASCADE',      // ✅ Opcional: comportamiento al actualizar
-      onDelete: 'CASCADE'       // ✅ Opcional: comportamiento al eliminar
+      onUpdate: "CASCADE", // ✅ Opcional: comportamiento al actualizar
+      onDelete: "CASCADE", // ✅ Opcional: comportamiento al eliminar
     },
     name: {
       type: DataTypes.STRING(50),
@@ -466,7 +423,7 @@ export const AppVars = dbsequelize.define(
     type: {
       type: DataTypes.STRING(25),
       allowNull: false,
-      defaultValue: 'json'
+      defaultValue: "json",
     },
     environment: {
       type: DataTypes.STRING(10),
@@ -496,8 +453,8 @@ export const AppVars = dbsequelize.define(
       {
         // ✅ AGREGAR: Índice para mejorar performance de FK
         fields: ["idapp"],
-        name: "idx_av_idapp"
-      }
+        name: "idx_av_idapp",
+      },
     ],
     hooks: {
       beforeValidate: (instance) => {
@@ -510,21 +467,20 @@ export const AppVars = dbsequelize.define(
 );
 
 // ✅ Relación: Una Application tiene muchas variables
-Application.hasMany(AppVars, { 
-  foreignKey: "idapp",    // FK en AppVars
-  sourceKey: "idapp",     // ✅ AGREGAR: PK en Application
-  as: "vrs",             // Alias para incluir en queries
-  onDelete: 'CASCADE',    // ✅ AGREGAR: Al eliminar app, elimina sus vars
-  onUpdate: 'CASCADE'     // ✅ AGREGAR: Al actualizar idapp, actualiza en vars
+Application.hasMany(AppVars, {
+  foreignKey: "idapp", // FK en AppVars
+  sourceKey: "idapp", // ✅ AGREGAR: PK en Application
+  as: "vrs", // Alias para incluir en queries
+  onDelete: "CASCADE", // ✅ AGREGAR: Al eliminar app, elimina sus vars
+  onUpdate: "CASCADE", // ✅ AGREGAR: Al actualizar idapp, actualiza en vars
 });
 
 // ✅ Relación inversa: Una Variable pertenece a una Application
 AppVars.belongsTo(Application, {
-  foreignKey: "idapp",    // FK en AppVars
-  targetKey: "idapp",     // PK en Application
-  as: "app"       // ✅ AGREGAR: Alias para incluir en queries
+  foreignKey: "idapp", // FK en AppVars
+  targetKey: "idapp", // PK en Application
+  as: "app", // ✅ AGREGAR: Alias para incluir en queries
 });
-
 
 export const ApplicationBackup = dbsequelize.define(
   TableName_ApplicationBackup,
@@ -534,14 +490,10 @@ export const ApplicationBackup = dbsequelize.define(
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
-      //unique: true,
     },
     idapp: {
       type: DataTypes.UUID,
-      //primaryKey: true,
-      //autoIncrement: true,
       allowNull: false,
-      //unique: true,
     },
     iduser: { type: DataTypes.BIGINT, comment: "User editor" },
     data: {
@@ -583,8 +535,6 @@ export const ApplicationBackup = dbsequelize.define(
       },
       beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
         // Acciones a realizar antes de guardar el modelo
-        //console.log('Antes de guardar:', instance.fieldName);
-        //instance.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (instance) => {
         //instance.data = JSON_TYPE_Adapter(instance, "data");
@@ -621,6 +571,12 @@ export const Endpoint = dbsequelize.define(
     idapp: {
       type: DataTypes.UUID,
       allowNull: false,
+      references: {
+        model: Application,
+        key: "idapp",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
 
     environment: {
@@ -701,7 +657,9 @@ export const Endpoint = dbsequelize.define(
     json_schema: {
       type: JSON_TYPE,
       allowNull: true,
-      defaultValue: default_json_schema,
+      defaultValue: JSON_ADAPTER._isMsSql()
+        ? JSON.stringify(default_json_schema)
+        : default_json_schema,
       get() {
         return JSON_ADAPTER.getData(this, "json_schema");
       },
@@ -754,48 +712,27 @@ export const Endpoint = dbsequelize.define(
         });
       },
       beforeUpdate: (/** @type {any} */ instance) => {
-        instance.rowkey = Math.floor(Math.random() * 1000);
+        randomRowKey(instance);
       },
       beforeUpsert: async (
         /** @type {{ rowkey: number; idendpoint: string}} */ instance
       ) => {
-        instance.rowkey = Math.floor(Math.random() * 1000);
-
-        //	console.log('>>>>>>>>>>>>>> Se lanza el beforeUpsert', instance);
-        if (!instance.idendpoint) {
-          //console.log('##################----> beforeValidate: ');
-
-          instance.idendpoint = uuidv4();
-        }
-        /*
-        await HooksDB({
-          instance: instance,
-          table: TableName_Endpoint,
-          action: "beforeUpsert",
-        });
-        */
+        randomRowKey(instance);
+        ensureUUID(instance, "idendpoint");
       },
       beforeValidate: (instance) => {
-        instance.rowkey = Math.floor(Math.random() * 1000);
-        if (!instance.idendpoint) {
-          //console.log('##################----> beforeValidate: ');
-
-          instance.idendpoint = uuidv4();
-        }
+        randomRowKey(instance);
+        ensureUUID(instance, "idendpoint");
 
         if (typeof instance.code == "object") {
           instance.code = JSON.stringify(instance.code);
         }
       },
       beforeBulkCreate: (instance) => {
-        instance.rowkey = Math.floor(Math.random() * 1000);
+        randomRowKey(instance);
       },
       beforeCreate: (instance) => {
-        if (!instance.idendpoint) {
-          //console.log('##################----> beforeCreate: ');
-
-          instance.idendpoint = uuidv4();
-        }
+        ensureUUID(instance, "idendpoint");
       },
     },
   }
@@ -981,28 +918,6 @@ export const LogEntry = dbsequelize.define(
   }
 );
 
-// --- DEFINICIÓN DE LAS RELACIONES ---
-/*
-No se implementa debido a que causa lentitud cuando hay miles de logs
-// 1. Un Endpoint tiene muchos Logs (Relación Uno a Muchos)
-Endpoint.hasMany(LogEntry, {
-  foreignKey: 'idendpoint', // La clave foránea en la tabla 'LogEntry'
-  sourceKey: 'idendpoint',  // La clave de origen en la tabla 'Endpoint'
-  as: 'logs',               // Alias para usar en las consultas (ej: include: 'logs')
-  onDelete: 'SET NULL',     // Si se borra un Endpoint, el idendpoint en LogEntry se pone a NULL
-  onUpdate: 'CASCADE'       // Si se actualiza el idendpoint en Endpoint, se actualiza en LogEntry
-});
-
-// 2. Un LogEntry pertenece a un Endpoint (Relación Inversa)
-LogEntry.belongsTo(Endpoint, {
-  foreignKey: 'idendpoint', // La clave foránea en la tabla 'LogEntry'
-  targetKey: 'idendpoint',  // La clave destino en la tabla 'Endpoint'
-  as: 'endpoint'            // Alias para usar en las consultas (ej: include: 'endpoint')
-});
-*/
-
-// --- FIN DE LA DEFINICIÓN DE LAS RELACIONES ---
-
 export const IntervalTask = dbsequelize.define(
   TableName_IntervalTask,
   {
@@ -1022,10 +937,13 @@ export const IntervalTask = dbsequelize.define(
     },
     idendpoint: {
       type: DataTypes.UUID,
-      //primaryKey: true,
-      //autoIncrement: true,
       allowNull: false,
-      unique: false,
+      references: {
+        model: Endpoint,
+        key: "idendpoint",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     enabled: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
     interval: {
@@ -1108,7 +1026,7 @@ export const IntervalTask = dbsequelize.define(
   },
   {
     freezeTableName: true,
-    timestamps: true, // No necesitamos createdAt ni updatedAt para este caso
+    timestamps: true, //
     paranoid: false, // Evita el soft delete
     comment: "App Intervals",
     hooks: {
@@ -1143,7 +1061,6 @@ IntervalTask.belongsTo(Endpoint, {
   foreignKey: "idendpoint", // campo FK en IntervalTask
   targetKey: "idendpoint", // campo PK en Endpoint
 });
-
 
 // Definir el modelo de la tabla 'demo'
 export const tblDemo = dbsequelize.define(
