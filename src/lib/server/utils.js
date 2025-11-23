@@ -13,8 +13,7 @@ import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
 import Zod from "zod";
 import * as $_PDFJS_ from "pdfjs-dist/legacy/build/pdf.mjs";
-//import * as LANGCHAIN_CHAT_MODEL_UNIVERSAL from "langchain/chat_models/universal";
-//import * as LANGCHAIN_TOOLS from "@langchain/core/tools";
+
 import {
   LANGCHAIN_CHAT_MODEL_UNIVERSAL,
   LANGCHAIN_TOOLS,
@@ -70,24 +69,7 @@ export const getRequestData = (request) => {
 };
 
 export async function emitHook(data) {
-  //	console.log('---------------------> hookUpsert', modelName);
-  // TODO: Revisar utilidad
   try {
-    /*
-    const validated = webhookSchema.parse(data);
-
-    if (validated) {
-      const fnUrlae = new URLAutoEnvironment("prd");
-      const uF = fnUrlae.create(internal_url_post_hooks, false);
-
-      let r = await uF.POST({ data: data });
-      return await r.json();
-    } else {
-      console.error("Error validating webhook data", validated.errors);
-      return { error: "Error validating webhook data", data: validated.errors };
-    }
-    */
-
     const fnUrlae = new URLAutoEnvironment("prd");
     const uF = fnUrlae.create(internal_url_post_hooks, false);
 
@@ -600,7 +582,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       info: "Friendly wrapper for JavaScript dates and times",
       web: "https://moment.github.io/luxon",
     },
-     $_PDFJS_: {
+    $_PDFJS_: {
       fn: request && reply ? $_PDFJS_ : undefined,
       info: "PDF.js is a Portable Document Format (PDF) viewer that is built with HTML5.",
       web: "https://mozilla.github.io/pdf.js/",
@@ -753,20 +735,10 @@ export const createFunction = async (
   /** @type {string} */ app_vars
 ) => {
   let app_vars_string = "";
-// TODO: la variable app_vars no se la debería usar ya que al crear el codigo de la función ya se reemplaza el nombre de la variable por el valor que se la ha asignado.
+  // TODO: la variable app_vars no se la debería usar ya que al crear el codigo de la función ya se reemplaza el nombre de la variable por el valor que se la ha asignado.
   let fn = new Function("$_VARS_", "throw new Error('No code to execute');");
 
   try {
-    /*
-    if (app_vars && typeof app_vars === "object") {
-      app_vars_string = `const $_VARS_APP = ${JSON.stringify(
-        app_vars,
-        null,
-        2
-      )}`;
-    }
-    */
-
     let vars = Object.keys(await functionsVars()).join(", ");
 
     let codefunction = `
@@ -778,18 +750,6 @@ return async()=>{
   return $_RETURN_DATA_;  
 }
 `;
-
-    /*
-    let codefunction = `
-return async()=>{
-  ${app_vars_string}  
-  const {$_REQUEST_, $_UFETCH_, $_SECUENTIAL_PROMISES_, $_REPLY_, $_GEN_TOKEN_, $_GET_INTERNAL_URL_, $_FETCH_OFAPI_,  $_MONGOOSE_, $_EXCEPTION_, $_LUXON_, $_SEQUELIZE_, $_BUILD_INTERNAL_URL} = $_VARS_;
-  let $_RETURN_DATA_ = {};
-  ${code}
-  return $_RETURN_DATA_;  
-}
-`;
-*/
 
     fn = new Function("$_VARS_", codefunction);
   } catch (error) {
@@ -828,8 +788,6 @@ export class URLAutoEnvironment {
   }
   _autoEnvironment(relative_path) {
     return this._direct(
-      //relative_path.replace(/\/(prd|qa|dev)$/, `/${this.environment}`)
-      //relative_path.replace(/\/(auto|env|prd|qa|dev)$/, `/${this.environment}`)
       relative_path.replace(/\/(auto|env)$/, `/${this.environment}`)
     );
   }
@@ -842,8 +800,6 @@ export const getInternalURL = (relative_path) => {
 
 export const fetchOFAPI = (url) => {
   url = isAbsoluteUrl(url) ? url : getInternalURL(url);
-
-  // console.log('\n\n>>>>>>>>>>>>>>>> '+url);
 
   return new uFetch(url);
 };

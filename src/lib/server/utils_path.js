@@ -1,7 +1,7 @@
 import { match } from "path-to-regexp";
 
 export const default_port = process.env.PORT || 3000;
-//export const url_telegram_notifications =  process.env.URL_TELEGRAM_NOTIFICATIONS ?? `/api/system/api/telegram/sendmsg/prd`;
+
 export const struct_api_path = "/api/:app/*";
 export const internal_url_post_hooks =
   process.env.PATH_API_HOOKS ?? "/api/system/database/hooks/prd";
@@ -12,17 +12,18 @@ export const internal_url_http = (relative_path) =>
 export const internal_url_ws = (relative_path) =>
   `http://localhost:${default_port}${relative_path}`;
 
-export const get_url_params = (
-  /** @type {string} */ url,
-  method
-) => {
+export const get_url_params = (/** @type {string} */ url, method) => {
   let reqUrl = new URL(`http://localhost${url.toLowerCase()}`);
   let fn = match("/(api|ws)/:parts*", { decode: decodeURIComponent });
   let par = fn(reqUrl.pathname);
 
   if (par.params) {
     par.isWebsocket = par.params[0] === "ws" || par.params[0] === "WS";
-    par.method = par.isWebsocket ? "WS" : method ? method.toUpperCase() : "UNKNOW";
+    par.method = par.isWebsocket
+      ? "WS"
+      : method
+      ? method.toUpperCase()
+      : "UNKNOW";
     par.app =
       par.params.parts && par.params.parts.length > 0
         ? par.params.parts[0]
@@ -46,14 +47,6 @@ export const get_url_params = (
   return par;
 };
 
-/*
-export const key_url_from_params = (
- params
-) => {
-  return `/api/${params.app}${params.resource}/${params.method}`;
-};
-*/
-
 export const url_key = (app, resource, environment, method, ws) => {
   method = method ? method.toUpperCase() : "UNKNOW";
   return `${internal_url_endpoint(app, resource, environment, ws)}|${
@@ -72,12 +65,6 @@ export const internal_url_endpoint = (app, resource, environment, ws) => {
  */
 export function validateURL(string_url) {
   const patron = /^\/[a-zA-Z0-9\-._~%]+(\/[a-zA-Z0-9\-._~%]+)*\/?$/;
-  // ^ Inicio de la cadena
-  // \/ Barra inicial
-  // [a-zA-Z0-9\-._~%]+ Uno o más caracteres permitidos en la ruta
-  // (\/[a-zA-Z0-9\-._~%]+)* Cero o más grupos adicionales de barra seguido de caracteres permitidos
-  // \/? Barra opcional al final
-  // $ Fin de la cadena
 
   if (patron.test(string_url)) {
     return true;

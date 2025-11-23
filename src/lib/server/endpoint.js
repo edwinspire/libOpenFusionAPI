@@ -28,6 +28,46 @@ import Ajv from "ajv";
 const ajv = new Ajv();
 
 //const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
+class CacheExpirationQueue {
+  constructor() {
+    this.heap = [];
+    this.timer = null;
+  }
+
+  add(expireAt, callback) {
+    this.heap.push({ expireAt, callback });
+    this.heap.sort((a, b) => a.expireAt - b.expireAt); // simple heap
+    this._resetTimer();
+  }
+
+  _resetTimer() {
+    if (this.timer) clearTimeout(this.timer);
+
+    if (this.heap.length === 0) return;
+
+    const next = this.heap[0];
+    const delay = Math.max(0, next.expireAt - Date.now());
+
+    this.timer = setTimeout(() => {
+      const item = this.heap.shift();
+      item.callback();
+      this._resetTimer();
+    }, delay);
+  }
+}
+
+function getLogLevelForStatus(status) {
+  if (status >= 100 && status <= 199) return "info";
+  if (status >= 200 && status <= 299) return "success";
+  if (status >= 300 && status <= 399) return "redirect";
+  if (status >= 400 && status <= 499) return "client_error";
+  if (status >= 500 && status <= 599) return "server_error";
+  return "unknown";
+}
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 /*
 {
@@ -50,7 +90,7 @@ export default class Endpoint extends EventEmitter {
 
   constructor() {
     super();
-
+    this.cacheQueue = new CacheExpirationQueue();
     //   this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
   }
 
@@ -61,8 +101,8 @@ export default class Endpoint extends EventEmitter {
 
       try {
         data = await createLog(log);
-      } catch (error) {
-        error = error;
+      } catch (err) {
+        error = err;
       }
       //    console.log(data, error)
       resolve({ data: data, error: error });
@@ -108,10 +148,10 @@ export default class Endpoint extends EventEmitter {
       this.internal_endpoint &&
       this.internal_endpoint[endpoint_key] &&
       this.internal_endpoint[endpoint_key].responses &&
-      this.internal_endpoint[endpoint_key].responses[hash_request] !== undefined
+      this.internal_endpoint[endpoint_key].responses[hash_request]?.data
     ) {
       // Devuelve el valor si todas las propiedades existen
-      return this.internal_endpoint[endpoint_key].responses[hash_request];
+      return this.internal_endpoint[endpoint_key].responses[hash_request].data;
     } else {
       return null; // O un valor por defecto
     }
@@ -124,7 +164,7 @@ export default class Endpoint extends EventEmitter {
       this.internal_endpoint[endpoint_key].responses
     ) {
       // Devuelve el valor si todas las propiedades existen
-      this.internal_endpoint[endpoint_key].responses = [];
+      this.internal_endpoint[endpoint_key].responses = {};
       return true;
     } else {
       return false;
@@ -132,19 +172,15 @@ export default class Endpoint extends EventEmitter {
   }
 
   getCacheSizeEndpoint(url_key) {
-    return this.internal_endpoint[url_key] &&
-      this.internal_endpoint[url_key].responses
-      ? Number(
-          (
-            Buffer.byteLength(
-              JSON.stringify(this.internal_endpoint[url_key].responses),
-              "utf-8"
-            ) /
-            1014 /
-            1000
-          ).toFixed(4)
-        )
-      : 0;
+    const responses = this.internal_endpoint[url_key]?.responses;
+    if (!responses) return 0;
+
+    let total = 0;
+    for (const item of Object.values(responses)) {
+      total += item.size;
+    }
+
+    return (total / 1024).toFixed(3);
   }
 
   // this.internal_endpoint[url_key].CountStatusCode
@@ -237,7 +273,7 @@ export default class Endpoint extends EventEmitter {
         app: ep.handler?.params?.app,
         environment: ep.handler?.params?.environment,
         //endpoint: ep.handler?.params?.url_method,
-        responseTime: reply.openfusionapi.lastResponse.responseTime,
+        responseTime: reply?.openfusionapi?.lastResponse?.responseTime,
         statusCode: reply.statusCode,
         count_status_code: ep?.CountStatusCode,
       });
@@ -259,8 +295,15 @@ export default class Endpoint extends EventEmitter {
 
         // Verifica si no existe ya datos en cache para este request
         if (!this.getCache(url_key, hash_request)) {
-          this.internal_endpoint[url_key].responses[hash_request] =
-            reply_lastResponse;
+          const size = Buffer.byteLength(
+            JSON.stringify(reply_lastResponse),
+            "utf8"
+          );
+
+          this.internal_endpoint[url_key].responses[hash_request] = {
+            data: reply_lastResponse,
+            size,
+          };
 
           let cache_time = (ep?.handler?.params?.cache_time ?? 1) * 1000;
 
@@ -273,6 +316,18 @@ export default class Endpoint extends EventEmitter {
             url: request.url,
           });
 
+          this.cacheQueue.add(Date.now() + cache_time, () => {
+            delete this.internal_endpoint[url_key].responses[hash_request];
+
+            this.emit("cache_released", {
+              app: ep?.handler?.params?.app,
+              idendpoint: ep?.handler?.params?.idendpoint,
+              idapp: ep?.handler?.params?.idapp,
+              cache_size: this.getCacheSizeEndpoint(url_key),
+            });
+          });
+
+          /*
           setTimeout(() => {
             try {
               if (this.internal_endpoint[url_key]?.responses[hash_request]) {
@@ -286,11 +341,7 @@ export default class Endpoint extends EventEmitter {
                   count_status_code: ep?.CountStatusCode,
                   url: request.url,
                 });
-                /*
-                console.log(
-                  `Se elimina la cache de ${endpoint_key} luego de ${cache_time} segundos.`
-                );
-                */
+                
               }
             } catch (error) {
               console.error(
@@ -300,6 +351,7 @@ export default class Endpoint extends EventEmitter {
               );
             }
           }, cache_time);
+          */
         }
       }
     } else {
@@ -417,8 +469,14 @@ export default class Endpoint extends EventEmitter {
       // TODO: No guardar en cache respuestas con error
       // TODO: capturar tambien los errores 500 para que en el log se lo pueda visualizar
       let param_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
-      let save_log = undefined;
+      // let save_log = undefined;
 
+      const category = getLogLevelForStatus(reply.statusCode);
+      const level = param_log[`status_${category}`] ?? 1;
+
+      const save_log = this.getDataLog(level, request, reply);
+
+      /*
       if (reply.statusCode >= 100 && reply.statusCode <= 199) {
         save_log = this.getDataLog(param_log.status_info, request, reply);
       } else if (reply.statusCode >= 200 && reply.statusCode <= 299) {
@@ -443,6 +501,7 @@ export default class Endpoint extends EventEmitter {
         // Forzar el guardado de los errores 404
         save_log = this.getDataLog(1, request, reply);
       }
+      */
 
       // console.log(">>>> param_log >>> ", param_log, save_log);
       //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
@@ -464,9 +523,10 @@ export default class Endpoint extends EventEmitter {
         this.internal_endpoint[url_key].CountStatusCode[statusCode] = 0;
       }
 
-      if (this.internal_endpoint[url_key]?.CountStatusCode[statusCode] >= 0) {
-        this.internal_endpoint[url_key].CountStatusCode[statusCode]++;
+      if (!this.internal_endpoint[url_key].CountStatusCode[statusCode]) {
+        this.internal_endpoint[url_key].CountStatusCode[statusCode] = 0;
       }
+      this.internal_endpoint[url_key].CountStatusCode[statusCode]++;
     }
   }
 
@@ -527,15 +587,25 @@ export default class Endpoint extends EventEmitter {
           for (let i = 0; i < appData.endpoints.length; i++) {
             let endpoint = appData.endpoints[i];
 
-            endpoint.url_key = params.url_key;
+            const key = url_key(
+              appData.app,
+              endpoint.resource,
+              endpoint.environment,
+              endpoint.method,
+              endpoint.method == "WS"
+            );
+            endpoint.url_key = key;
             endpoint.idapp = appData.idapp;
 
-            if (!this.internal_endpoint[params.url_key]) {
-              this.internal_endpoint[params.url_key] = {};
+            if (!this.internal_endpoint[key]) {
+              this.internal_endpoint[key] = {};
             }
 
-            this.internal_endpoint[params.url_key].handler =
-              await this._getApiHandler(appData.app, endpoint, appData.vrs);
+            this.internal_endpoint[key].handler = await this._getApiHandler(
+              appData.app,
+              endpoint,
+              appData.vrs
+            );
           }
         }
       }
@@ -554,7 +624,7 @@ export default class Endpoint extends EventEmitter {
         let props = [];
         if (Array.isArray(app_vars)) {
           props = app_vars.filter((item) => {
-            return (endpointData.environment = item.environment);
+            return endpointData.environment == item.environment;
           });
           if (props.length > 0) {
             if (endpointData.handler == "JS") {
@@ -562,26 +632,30 @@ export default class Endpoint extends EventEmitter {
               for (let i = 0; i < props.length; i++) {
                 const prop = props[i];
 
-                if (returnHandler.params.code.includes(prop.name)) {
+                const code = String(returnHandler.params.code ?? "");
+
+                if (code.includes(prop.name)) {
                   switch (typeof prop.value) {
                     case "string":
-                      returnHandler.params.code = `const ${
-                        prop.name
-                      } = ${JSON.stringify(prop.value)};\n ${
-                        returnHandler.params.code
-                      }`;
+                      returnHandler.params.code = String(
+                        `const ${prop.name} = ${JSON.stringify(
+                          prop.value
+                        )};\n ${returnHandler.params.code}`
+                      );
                       break;
                     case "number":
-                      returnHandler.params.code = `const ${prop.name} = ${prop.value};\n ${returnHandler.params.code}`;
+                      returnHandler.params.code = String(
+                        `const ${prop.name} = ${prop.value};\n ${returnHandler.params.code}`
+                      );
 
                       break;
 
                     case "object":
-                      returnHandler.params.code = `const ${
-                        prop.name
-                      } = ${JSON.stringify(prop.value)};\n ${
-                        returnHandler.params.code
-                      }`;
+                      returnHandler.params.code = String(
+                        `const ${prop.name} = ${JSON.stringify(
+                          prop.value
+                        )};\n ${returnHandler.params.code}`
+                      );
 
                       break;
                     default:
@@ -594,29 +668,32 @@ export default class Endpoint extends EventEmitter {
               // Para estos casos lo que se hace es remplazar las variables directamente en el código
               for (let i = 0; i < props.length; i++) {
                 const prop = props[i];
+                const re = new RegExp(`\\b${escapeRegExp(prop.name)}\\b`, "g");
 
-                switch (typeof value) {
+                switch (typeof prop.value) {
                   case "string":
                     returnHandler.params.code =
-                      returnHandler.params.code.replace(prop.name, prop.value);
+                      returnHandler.params.code.replace(re, prop.value);
                     break;
                   case "number":
                     returnHandler.params.code =
-                      returnHandler.params.code.replace(prop.name, prop.value);
+                      returnHandler.params.code.replace(re, prop.value);
                     break;
 
                   case "object":
-                    returnHandler.params.code =
-                      returnHandler.params.code.replace(
-                        '"' + prop.name + '"',
-                        JSON.stringify(prop.value)
-                      );
+                    // Este para los casos en que en el código hayan guardado la variable de aplicación con comillas
+                    const reo = new RegExp(
+                      `\\b${escapeRegExp(`"${prop.name}"`)}\\b`,
+                      "g"
+                    );
+                    const value_str = JSON.stringify(prop.value);
 
                     returnHandler.params.code =
-                      returnHandler.params.code.replace(
-                        prop.name,
-                        JSON.stringify(prop.value)
-                      );
+                      returnHandler.params.code.replace(reo, value_str);
+                    // Este bloque reemplaza las variables que no estén entre comillas
+                    returnHandler.params.code =
+                      returnHandler.params.code.replace(re, value_str);
+
                     break;
                   default:
                     console.log(prop);
