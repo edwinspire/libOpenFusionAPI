@@ -1,5 +1,4 @@
 import { login } from "../../../../db/user.js";
-//import { getAPIToken } from "../../../../db/api_user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";

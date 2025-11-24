@@ -3,9 +3,6 @@ import { getEndpointByIdApp, getAllEndpoints } from "./endpoint.js";
 import { Op, Sequelize } from "sequelize";
 import { DateTime } from "luxon";
 
-//import { getRoleById } from "./role.js";
-//import { EncryptPwd, GenToken, customError, md5 } from "../server/utils.js";
-
 export const LOG_LEVEL = Object.freeze({
   TRACE: 0,
   DEBUG: 1,

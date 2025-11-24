@@ -253,7 +253,7 @@ export default class ServerAPI extends EventEmitter {
             request.openfusionapi = { handler: handlerEndpoint };
             await this._check_auth(handlerEndpoint, request, reply);
           } else {
-            reply.code(200).send({ message: "Endpoint unabled." });
+            reply.code(410).send({ message: "Endpoint unabled." });
           }
         } else {
           reply
@@ -483,6 +483,8 @@ export default class ServerAPI extends EventEmitter {
       let handlerEndpoint = request.openfusionapi.handler;
       request.openfusionapi.ip_request = getIPFromRequest(request);
 
+      // Aqui se debería obtener el md5 del la solicitud
+
       if (!reply.openfusionapi) {
         reply.openfusionapi = {};
       }
@@ -536,6 +538,7 @@ export default class ServerAPI extends EventEmitter {
         );
 
         reply.openfusionapi.lastResponse.hash_request = hash_request;
+        request.openfusionapi.hash_request = hash_request;
 
         let data_cache = this.endpoints.getCache(
           handlerEndpoint.params.url_key,

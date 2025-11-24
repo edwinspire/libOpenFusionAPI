@@ -278,7 +278,8 @@ export default class Endpoint extends EventEmitter {
         count_status_code: ep?.CountStatusCode,
       });
 
-      let hash_request = this.hash_request(request, url_key);
+      //let hash_request = this.hash_request(request, url_key);
+      let hash_request = request.openfusionapi.hash_request;
 
       let reply_lastResponse =
         reply?.openfusionapi?.lastResponse?.data ?? undefined;
@@ -326,32 +327,6 @@ export default class Endpoint extends EventEmitter {
               cache_size: this.getCacheSizeEndpoint(url_key),
             });
           });
-
-          /*
-          setTimeout(() => {
-            try {
-              if (this.internal_endpoint[url_key]?.responses[hash_request]) {
-                delete this.internal_endpoint[url_key].responses[hash_request];
-
-                this.emit("cache_released", {
-                  app: ep?.handler?.params?.app,
-                  idendpoint: ep?.handler?.params?.idendpoint,
-                  idapp: ep?.handler?.params?.idapp,
-                  cache_size: this.getCacheSizeEndpoint(url_key),
-                  count_status_code: ep?.CountStatusCode,
-                  url: request.url,
-                });
-                
-              }
-            } catch (error) {
-              console.error(
-                `Error clean cache ${ep?.handler?.params?.idendpoint} | url_key: ${url_key}`,
-                error,
-                hash_request
-              );
-            }
-          }, cache_time);
-          */
         }
       }
     } else {

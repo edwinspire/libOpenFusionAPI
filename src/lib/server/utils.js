@@ -3,7 +3,6 @@ import fs from "fs";
 import path from "path";
 import { Buffer } from "node:buffer";
 import jwt from "jsonwebtoken";
-import uFetch from "@edwinspire/universal-fetch";
 import { internal_url_post_hooks } from "./utils_path.js"; //
 import { v4 as uuidv4 } from "uuid";
 import $_UFETCH_ from "@edwinspire/universal-fetch";
@@ -32,7 +31,7 @@ const errors = {
   2: { code: 2, message: "Invalid credentials" },
 };
 
-const jwtKey = JWT_KEY || 'oy8632rcv"$/8';
+const jwtKey = JWT_KEY ?? 'oy8632rcv"$/8';
 
 // Definimos el esquema
 export const webhookSchema = Zod.object({
@@ -168,23 +167,9 @@ export function EncryptPwd(pwd) {
 /**
  * @param {any} data
  */
-export function GenToken(
-  data,
-  exp_seconds = Math.floor(Date.now() / 1000) + 60 * 60
-) {
-  console.log("GenToken > ", data);
-  let exp = Math.floor(Date.now() / 1000) + exp_seconds;
-  // Genera un Token
-  return jwt.sign(
-    {
-      data: {
-        ...data,
-        _rnd_: (Math.random() * (100 - 0.01) + 0.01).toFixed(2),
-      },
-      exp: Number(exp),
-    },
-    jwtKey
-  );
+export function GenToken(data, exp_seconds = 3600 /* 1 hora */) {
+  const exp = Math.floor(Date.now() / 1000) + Number(exp_seconds);
+  return jwt.sign({ data: { ...data, _rnd_: Math.random() }, exp }, jwtKey);
 }
 
 /**
@@ -198,26 +183,30 @@ export function tokenVerify(token) {
  * @param {any} req
  */
 export function getUserPasswordTokenFromRequest(req) {
-  const authHeader = req.headers.authorization;
-
+  const authHeader = req.headers?.authorization;
   let username, token, password, data_token;
 
-  if (authHeader && authHeader.startsWith("Basic")) {
-    const encodedCredentials = authHeader.split(" ")[1];
-    const decodedCredentials = Buffer.from(
-      encodedCredentials,
-      "base64"
-    ).toString("utf-8");
-    [username, password] = decodedCredentials.split(":");
-  } else if (authHeader && authHeader.startsWith("Bearer")) {
+  if (authHeader?.startsWith("Basic ")) {
+    const encoded = authHeader.split(" ")[1] ?? "";
+    const decoded = Buffer.from(encoded, "base64").toString("utf8");
+    const idx = decoded.indexOf(":");
+    if (idx >= 0) {
+      username = decoded.slice(0, idx);
+      password = decoded.slice(idx + 1);
+    } else {
+      username = decoded;
+      password = undefined;
+    }
+  } else if (authHeader?.startsWith("Bearer ")) {
     token = authHeader.split(" ")[1];
-    data_token = checkToken(token);
+    try {
+      data_token = checkToken(token);
+    } catch (e) {
+      data_token = null;
+    }
   }
 
-  return {
-    Basic: { username: username, password: password },
-    Bearer: { token: token, data: data_token },
-  };
+  return { Basic: { username, password }, Bearer: { token, data: data_token } };
 }
 
 /**
@@ -227,20 +216,6 @@ export function websocketUnauthorized(socket) {
   // Si el cliente no está autenticado, responder con un error 401 Unauthorized
   socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
   socket.destroy();
-}
-
-export function createAPIKey() {
-  const caracteres =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@-|#/=¿.!:*$&";
-  let cadena = "";
-  while (cadena.length < 50) {
-    const caracterAleatorio =
-      caracteres[Math.floor(Math.random() * caracteres.length)];
-    if (cadena.indexOf(caracterAleatorio) === -1) {
-      cadena += caracterAleatorio;
-    }
-  }
-  return cadena;
 }
 
 /**
@@ -272,13 +247,13 @@ export function checkAPIToken(app, endpointData, jwtoken) {
  * @param {string} path_file
  */
 function getPathParts(path_file) {
-  const part = path_file.split("/");
-  const last_parts = part.slice(-3);
-  //return last_parts;
+  const normalized = path.normalize(path_file);
+  const parts = normalized.split(path.sep);
+  const last = parts.slice(-3);
   return {
-    appName: last_parts[0],
-    environment: last_parts[1],
-    file: last_parts[2],
+    appName: last[0],
+    environment: last[1],
+    file: last[2],
   };
 }
 
@@ -352,54 +327,6 @@ export const mergeObjects = (obj1, obj2) => {
   }
   //console.log('\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>', obj1, obj2, merged);
   return merged;
-};
-
-export const roughSizeOfMap = (map, visited = new Set()) => {
-  let bytes = 0;
-
-  function sizeOf(value) {
-    if (value === null || value === undefined) {
-      return 0;
-    }
-
-    switch (typeof value) {
-      case "number":
-        return 8;
-      case "string":
-        return value.length * 2;
-      case "boolean":
-        return 4;
-      case "object":
-        if (visited.has(value)) {
-          return 0;
-        }
-        visited.add(value);
-
-        let objectBytes = 0;
-        if (Array.isArray(value)) {
-          value.forEach((element) => {
-            objectBytes += sizeOf(element);
-          });
-        } else {
-          for (const key in value) {
-            if (Object.hasOwnProperty.call(value, key)) {
-              objectBytes += sizeOf(key);
-              objectBytes += sizeOf(value[key]);
-            }
-          }
-        }
-        return objectBytes;
-      default:
-        return 0;
-    }
-  }
-
-  for (let [key, value] of map) {
-    bytes += sizeOf(key);
-    bytes += sizeOf(value);
-  }
-
-  return bytes;
 };
 
 export const jsException = (message, data, http_statusCode = 500) => {
@@ -691,7 +618,8 @@ export const xlsx_body_to_json = (request_body) => {
 
       // Detectar si el elemento es un buffer
       if (Buffer.isBuffer(element)) {
-        let workbook = XLSX.read(element);
+        //let workbook = XLSX.read(element);
+        let workbook = XLSX.read(element, { type: "buffer" });
 
         let sheet_names = workbook.SheetNames;
         let sheets = [];
@@ -759,12 +687,6 @@ return async()=>{
   return fn;
 };
 
-export const sizeOfMapInKB = (map) => {
-  const bytes = roughSizeOfMap(map);
-  const kilobytes = bytes / 1024;
-  return kilobytes;
-};
-
 export class URLAutoEnvironment {
   constructor(environment) {
     this.environment = environment;
@@ -772,7 +694,7 @@ export class URLAutoEnvironment {
 
   create(url, auto_environment = true) {
     let new_url = isAbsoluteUrl(url) ? url : this.auto(url, auto_environment);
-    return new uFetch(new_url);
+    return new $_UFETCH_(new_url);
   }
 
   auto(url, auto_environment = true) {
@@ -787,6 +709,7 @@ export class URLAutoEnvironment {
     return `http://localhost:${PORT}${relative_path}`;
   }
   _autoEnvironment(relative_path) {
+    // Reemplaza el ultimo segmento por this.environment cuando la ruta termine en auto o env
     return this._direct(
       relative_path.replace(/\/(auto|env)$/, `/${this.environment}`)
     );
@@ -801,7 +724,7 @@ export const getInternalURL = (relative_path) => {
 export const fetchOFAPI = (url) => {
   url = isAbsoluteUrl(url) ? url : getInternalURL(url);
 
-  return new uFetch(url);
+  return new $_UFETCH_(url);
 };
 
 const isAbsoluteUrl = (url) => {
@@ -812,12 +735,6 @@ const isAbsoluteUrl = (url) => {
   return absoluteUrlPattern.test(url);
 };
 
-/**
- * Devuelve el método de parsing sugerido basado en el Content-Type.
- *
- * @param {string} contentType
- * @returns {"json" | "text" | "blob" | "urlencoded" | "raw"}
- */
 export /**
  * Devuelve el método de parsing sugerido basado en el Content-Type.
  * @param {string} contentType
@@ -859,38 +776,6 @@ function getParseMethod(contentType = "") {
   }
 
   return "text"; // Fallback genérico
-}
-
-/**
- * Guarda un objeto de error en un archivo JSON con fecha y hora.
- * @param {Error} error - El objeto de error a guardar.
- */
-export function saveErrorToDisk(error) {
-  try {
-    // Construye un objeto seguro para serializar
-    const safeError = {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      ...(error.original ? { original: error.original } : {}),
-      ...(error.sql ? { sql: error.sql } : {}),
-    };
-
-    // Ruta del archivo: logs/error-<fecha>.json
-    const logDir = path.join(process.cwd(), "logs");
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
-    }
-
-    const timestamp = new Date().toISOString().replace(/:/g, "-");
-    const logFile = path.join(logDir, `error-${timestamp}.json`);
-
-    fs.writeFileSync(logFile, JSON.stringify(safeError, null, 2), "utf8");
-
-    console.log(`📂 Error guardado en: ${logFile}`);
-  } catch (fsErr) {
-    console.error("❌ Error guardando el log en disco:", fsErr);
-  }
 }
 
 // Función que valida el input para permitir solo letras y números
