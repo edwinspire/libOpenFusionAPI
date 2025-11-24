@@ -277,20 +277,20 @@ export function parseAppVar(appvar) {
       case "number":
         v =
           typeof appvar.value === "number"
-            ? appvar.type
+            ? appvar.value
             : parseFloat(appvar.value);
         break;
 
       case "json":
         v =
           typeof appvar.value === "object"
-            ? appvar.type
+            ? appvar.value
             : JSON.parse(appvar.value);
         break;
       case "object":
         v =
           typeof appvar.value === "object"
-            ? appvar.type
+            ? appvar.value
             : JSON.parse(appvar.value);
         break;
       default:

@@ -399,22 +399,21 @@ export const AppVars = dbsequelize.define(
   TableName_AppVars,
   {
     idvar: {
-      type: DataTypes.BIGINT,
-      primaryKey: true, // ✅ ÚNICA Primary Key
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      primaryKey: true,
       allowNull: false,
       unique: true,
+      defaultValue: DataTypes.UUIDV4,
     },
     idapp: {
       type: DataTypes.UUID,
-      allowNull: false, // ✅ Solo FK, no PK
+      allowNull: false,
       references: {
-        // ✅ AGREGAR definición explícita de FK
         model: TableName_Application,
         key: "idapp",
       },
-      onUpdate: "CASCADE", // ✅ Opcional: comportamiento al actualizar
-      onDelete: "CASCADE", // ✅ Opcional: comportamiento al eliminar
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
     name: {
       type: DataTypes.STRING(50),
@@ -443,24 +442,29 @@ export const AppVars = dbsequelize.define(
   {
     freezeTableName: true,
     timestamps: true,
+
+    // ✔ Necesario para que Sequelize reconozca correctamente el índice único
+    uniqueKeys: {
+      unique_av_combo: {
+        fields: ["idapp", "name", "environment"],
+      },
+    },
+
     indexes: [
       {
-        // ✅ Índice único para evitar duplicados de variables
         fields: ["idapp", "name", "environment"],
         name: "idx_av_id_n_e",
         unique: true,
       },
       {
-        // ✅ AGREGAR: Índice para mejorar performance de FK
         fields: ["idapp"],
         name: "idx_av_idapp",
       },
     ],
+
     hooks: {
       beforeValidate: (instance) => {
-        if (instance.value) {
-          // instance.value = JSON_TYPE_Adapter(instance, "value");
-        }
+        // Si hay que adaptar JSON, se hace aquí
       },
     },
   }
