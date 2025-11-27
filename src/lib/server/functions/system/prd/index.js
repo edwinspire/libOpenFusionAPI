@@ -85,14 +85,31 @@ export async function fnLogin(params) {
     );
 
     //res.header("OFAPI-TOKEN", '');
-    params.reply.cookie("OFAPI-TOKEN", "");
+    //params.reply.cookie("OFAPI-TOKEN", "");
+    // Establecer una cookie básica
+    params.reply.setCookie("OFAPI-TOKEN", "", {
+      path: "/", // Ruta para la que es válida la cookie
+      httpOnly: true, // La cookie no es accesible desde JavaScript
+      //secure: true,       // Solo se envía en conexiones HTTPS
+      sameSite: "Strict", // Protección CSRF (opciones: 'Strict', 'Lax', 'None')
+      maxAge: 5, //  (en segundos)
+      //domain: 'tudominio.com' // Dominio para el que es válida
+    });
 
     if (user.login) {
       //res.header("OFAPI-TOKEN", user.token);
 
       let aut = `Bearer ${user.token}`;
       params.reply.header("Authorization", aut);
-      params.reply.cookie("OFAPI-TOKEN", user.token);
+
+      params.reply.setCookie("OFAPI-TOKEN", aut, {
+        path: "/", // Ruta para la que es válida la cookie
+        httpOnly: true, // La cookie no es accesible desde JavaScript
+        //secure: true,       // Solo se envía en conexiones HTTPS
+        sameSite: "Lax", // Protección CSRF (opciones: 'Strict', 'Lax', 'None')
+        maxAge: 60 * 60, // (en segundos)
+        //domain: 'tudominio.com' // Dominio para el que es válida
+      });
 
       //res.code(200).json(user);
       r.data = user;

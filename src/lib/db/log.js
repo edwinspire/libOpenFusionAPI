@@ -1,6 +1,8 @@
 import { LogEntry } from "./models.js";
 import { getEndpointByIdApp, getAllEndpoints } from "./endpoint.js";
 import { Op, Sequelize } from "sequelize";
+import dbsequelize from "./sequelize.js";
+
 import { DateTime } from "luxon";
 
 export const LOG_LEVEL = Object.freeze({
@@ -618,6 +620,7 @@ export const getLogsRecordsPerMinute = async (options) => {
 
     // === CONSULTA PARA OBTENER CONTEOS POR MINUTO ===
     // Usamos DATE_TRUNC de PostgreSQL para agrupar por minuto
+    /*
     const rawResults = await LogEntry.findAll({
       where: {
         [Op.and]: [
@@ -638,6 +641,8 @@ export const getLogsRecordsPerMinute = async (options) => {
       order: [["minute", "ASC"]],
       raw: true, // Obtenemos resultados crudos para manipular fechas
     });
+    */
+   const rawResults = await getCountsByMinute(sequelize, startDate, endDate, endpointFilter);
 
     /*
     // === GENERAR TODOS LOS MINUTOS EN EL RANGO (24 HORAS) ===
@@ -700,3 +705,54 @@ export const getLogsRecordsPerMinute = async (options) => {
     };
   }
 };
+
+
+
+// === CONSULTA PARA OBTENER CONTEOS POR MINUTO ===
+async function getCountsByMinute(sequelize, startDate, endDate, endpointFilter) {
+  // Función para generar el truncado de fecha según el tipo de BD
+  const getTruncatedMinuteColumn = () => {
+    const dialect = sequelize.getDialect(); // Accedemos al dialecto desde el modelo
+    
+    switch (dialect) {
+      case 'postgres':
+        return sequelize.fn("DATE_TRUNC", "minute", sequelize.col("timestamp"));
+      case 'mysql':
+        return sequelize.fn("DATE_FORMAT", sequelize.col("timestamp"), "%Y-%m-%d %H:%i:00");
+      case 'mssql':
+        return sequelize.fn(
+          "DATEADD", 
+          "minute", 
+          sequelize.fn("DATEDIFF", "minute", sequelize.literal("0"), sequelize.col("timestamp")), 
+          sequelize.literal("0")
+        );
+      case 'sqlite':
+        return sequelize.fn("STRFTIME", "%Y-%m-%d %H:%M:00", sequelize.col("timestamp"));
+      default:
+        // Fallback para otros dialectos o error
+        throw new Error(`Dialecto no soportado: ${dialect}`);
+    }
+  };
+
+  const truncatedColumn = getTruncatedMinuteColumn();
+
+  const rawResults = await LogEntry.findAll({
+    where: {
+      [Op.and]: [
+        { timestamp: { [Op.between]: [startDate, endDate] } },
+        { idendpoint: endpointFilter },
+      ],
+    },
+    attributes: [
+      // Usamos la columna truncada generada dinámicamente
+      [truncatedColumn, "minute"],
+      "idendpoint",
+      [sequelize.fn("COUNT", "*"), "count"],
+    ],
+    group: ["minute", "idendpoint"], // Agrupamos por las columnas alias y idendpoint
+    order: [["minute", "ASC"]],
+    raw: true, // Resultados crudos para manipular fechas
+  });
+
+  return rawResults;
+}

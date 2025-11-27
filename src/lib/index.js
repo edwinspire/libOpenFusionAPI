@@ -227,6 +227,9 @@ export default class ServerAPI extends EventEmitter {
 
     await this.fastify.register(cors, {
       origin: "*",
+      credentials: true, // 🚨 OBLIGATORIO para que el navegador envíe las cookies
+      allowedHeaders: ["Content-Type", "Authorization"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     });
     await this.fastify.register(websocket);
 
