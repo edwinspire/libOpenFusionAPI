@@ -178,9 +178,10 @@ export default class ServerAPI extends EventEmitter {
       }
     } else if (
       request?.body?.model == prefixTableName("appvars") &&
-      request?.body?.action === "afterUpsert"
+      (request?.body?.action === "afterUpsert" ||
+        request?.body?.action === "afterDestroy")
     ) {
-      // Cuando se modifica la variable de aplicación
+      // Cuando se modifica / borra una variable de aplicación
       this.endpoints.deleteEndpointsByIdApp(
         request?.body?.data?.idapp,
         request?.body?.data?.environment

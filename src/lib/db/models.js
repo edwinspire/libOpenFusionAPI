@@ -486,6 +486,13 @@ export const AppVars = dbsequelize.define(
           action: "afterUpsert",
         });
       },
+      afterDestroy: async (/** @type {any} */ instance) => {
+        await HooksDB({
+          instance: instance,
+          table: TableName_AppVars,
+          action: "afterDestroy",
+        });
+      },
     },
   }
 );
