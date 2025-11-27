@@ -167,7 +167,7 @@ export default class ServerAPI extends EventEmitter {
       request?.body?.model == prefixTableName("application") &&
       request?.body?.action === "afterUpsert"
     ) {
-      //  console.log('XXXXXXXXXXXXXXXX>', request.body);
+      // Cuando se modifica una app
 
       // TODO: Revisar el entorno no solo la app
       if (request?.body?.data?.app) {
@@ -177,11 +177,22 @@ export default class ServerAPI extends EventEmitter {
         }, 5000);
       }
     } else if (
+      request?.body?.model == prefixTableName("appvars") &&
+      request?.body?.action === "afterUpsert"
+    ) {
+      // Cuando se modifica la variable de aplicación
+      this.endpoints.deleteEndpointsByIdApp(
+        request?.body?.data?.idapp,
+        request?.body?.data?.environment
+      );
+    } else if (
       request?.body?.model == prefixTableName("endpoint") &&
       request?.body?.action === "afterUpsert"
     ) {
+      // Cuando hay cambios en un endpoint
       this.endpoints.deleteEndpointByidEndpoint(
-        request?.body?.data?.idendpoint
+        request?.body?.data?.idendpoint,
+        request?.body?.data?.environment
       );
     }
   }
@@ -287,8 +298,6 @@ export default class ServerAPI extends EventEmitter {
           reply.openfusionapi.lastResponse.responseTime = timeTaken;
         }
 
-        
-        
         this.endpoints.saveLog(request, reply);
 
         if (handler_param?.idendpoint) {
@@ -296,8 +305,6 @@ export default class ServerAPI extends EventEmitter {
         }
       }
     });
-
-    
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
       // Todos los clientes deben estar registrados para poder hacer broadcast o desconectarlos masivamente

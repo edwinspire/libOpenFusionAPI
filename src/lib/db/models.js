@@ -479,6 +479,13 @@ export const AppVars = dbsequelize.define(
       beforeValidate: (instance) => {
         // Si hay que adaptar JSON, se hace aquí
       },
+      afterUpsert: async (/** @type {any} */ instance) => {
+        await HooksDB({
+          instance: instance,
+          table: TableName_AppVars,
+          action: "afterUpsert",
+        });
+      },
     },
   }
 );

@@ -542,6 +542,35 @@ export default class Endpoint extends EventEmitter {
     }
   }
 
+  deleteEndpointsByIdApp(idapp, env) {
+    if (idapp) {
+      let ep_list = Object.keys(this.internal_endpoint);
+
+      for (let index = 0; index < ep_list.length; index++) {
+        //const prms = get_url_params(ep_list[index]);
+        let ep = this.internal_endpoint[ep_list[index]];
+        if (
+          ep &&
+          ep.handler.params.idapp == idapp &&
+          ep.handler.params.environment == env
+        ) {
+          this.emit("cache_released", {
+            app: ep?.handler?.params?.app,
+            idendpoint: ep?.handler?.params?.idendpoint,
+            idapp: ep?.handler?.params?.idapp,
+            cache_size: 0,
+            count_status_code: ep?.CountStatusCode,
+            //                 url: request.url,
+          });
+
+          delete this.internal_endpoint[ep_list[index]];
+
+          break;
+        }
+      }
+    }
+  }
+
   async _loadEndpointsByAPPToCache(params) {
     try {
       // Carga los endpoints de una App a cache
