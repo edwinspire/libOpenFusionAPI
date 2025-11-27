@@ -1,11 +1,10 @@
 import { Application, AppVars, Endpoint } from "./models.js";
-import { createAppBackup } from "./app_backup.js";
 import {
   deleteEndpoint,
   getEndpointByIdApp,
   upsertEndpoint,
 } from "./endpoint.js";
-import { getAppVarsByIdApp, upsertAppVars } from "./appvars.js";
+import { getAppVarsByIdApp, upsertAppVar } from "./appvars.js";
 import { default_apps } from "./default/index.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -127,9 +126,9 @@ export const saveAppWithEndpoints = async (app) => {
         let current_app = array_current_app[0];
 
         // Crear el backup de la app
-        await createAppBackup({ idapp: app.idapp, data: current_app });
+        //   await createAppBackup({ idapp: app.idapp, data: current_app });
 
-        // upsertAppVars
+        // upsertAppVar
 
         // Buscar los endpoints que no están en la app actual
         let endpoints_to_delete = current_app.endpoints.filter(
@@ -180,47 +179,56 @@ export const saveAppWithEndpoints = async (app) => {
 export const restoreAppFromBackup = async (app) => {
   try {
     if (app.idapp) {
-      // Para la version anterior del backup
-      // TODO: Esto se debe eliminar despues de la migración
-      if (app.vars && typeof app.vars === "object") {
-        // Hacemos un upsert de las variables de aplicación
-        let promises_vars = [];
-        let k_env = Object.keys(app.vars);
-        for (let index = 0; index < k_env.length; index++) {
-          const env_name = k_env[index];
+      // Upsert a la tabla de aplicaciones
+      let restore_app = await upsertApp(app);
 
-          let k_vars = Object.keys(app.vars[env_name]);
+      if (restore_app.idapp == app.idapp) {
+        // Restaurado, se procede a cargar el resto de tablas relacionadas
 
-          for (let index2 = 0; index2 < k_vars.length; index2++) {
-            const name_var = k_vars[index2];
-            let v = {
-              idapp: app.idapp,
-              name: name_var,
-              environment: env_name,
-              value: app.vars[env_name][name_var],
-            };
-            promises_vars.push(upsertAppVars(v));
+        // Para la version anterior del backup
+        // TODO: Esto se debe eliminar despues de la migración
+        /*
+        if (app.vars && typeof app.vars === "object") {
+          // Hacemos un upsert de las variables de aplicación
+          let promises_vars = [];
+          let k_env = Object.keys(app.vars);
+          for (let index = 0; index < k_env.length; index++) {
+            const env_name = k_env[index];
+
+            let k_vars = Object.keys(app.vars[env_name]);
+
+            for (let index2 = 0; index2 < k_vars.length; index2++) {
+              const name_var = k_vars[index2];
+              let v = {
+                idapp: app.idapp,
+                name: name_var,
+                environment: env_name,
+                value: app.vars[env_name][name_var],
+              };
+              promises_vars.push(upsertAppVar(v));
+            }
           }
+
+          await Promise.allSettled(promises_vars);
+        }
+        */
+
+        if (Array.isArray(app.vrs) && app.vrs.length > 0) {
+          // Hacemos un upsert de las variables de aplicación
+          let promises_appvars = app.vrs.map((v) => {
+            return upsertAppVar(v);
+          });
+
+          await Promise.allSettled(promises_appvars);
         }
 
-        await Promise.allSettled(promises_vars);
-      }
-
-      if (Array.isArray(app.vrs) && app.vrs.length > 0) {
-        // Hacemos un upsert de las variables de aplicación
-        let promises_appvars = app.vrs.map((v) => {
-          return upsertAppVars(v);
-        });
-
-        await Promise.allSettled(promises_appvars);
-      }
-
-      if (Array.isArray(app.endpoints) && app.endpoints.length > 0) {
-        // Eliminar los endpoints que no están en la app actual
-        let promises_endpoints = app.endpoints.map((ep) => {
-          return upsertEndpoint(ep);
-        });
-        await Promise.allSettled(promises_endpoints);
+        if (Array.isArray(app.endpoints) && app.endpoints.length > 0) {
+          // Eliminar los endpoints que no están en la app actual
+          let promises_endpoints = app.endpoints.map((ep) => {
+            return upsertEndpoint(ep);
+          });
+          await Promise.allSettled(promises_endpoints);
+        }
       }
 
       let new_backup = await getAppBackupById(app.idapp);
@@ -234,7 +242,8 @@ export const restoreAppFromBackup = async (app) => {
 export const defaultApps = async () => {
   let result = default_apps.map(async (app) => {
     try {
-      return { app: app, result: await restoreAppFromBackup(app) };
+      let r = await restoreAppFromBackup(app);
+      return { app: app, result: r};
     } catch (error) {
       return { app: app, error: error };
     }

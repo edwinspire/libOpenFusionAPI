@@ -13,7 +13,7 @@ import {
   getAppFullById,
   upsertApp,
   saveAppWithEndpoints,
-  restoreAppFromBackup, 
+  restoreAppFromBackup,
   getAppBackupById,
 } from "../../../../db/app.js";
 import {
@@ -22,8 +22,8 @@ import {
   getLogsRecordsPerMinute,
 } from "../../../../db/log.js";
 import {
-  upsertAppVars,
-  deleteAppVars,
+  upsertAppVar,
+  deleteAppVar,
   getAppVarsByIdApp,
 } from "../../../../db/appvars.js";
 import {
@@ -783,9 +783,7 @@ export async function fnGetLogsRecordsPerMinute(params) {
 export async function fnGetAppVarsByIdApp(params) {
   let r = { code: 200, data: undefined };
   try {
-    r.data = await getAppVarsByIdApp({
-      app: { idapp: params.request.query.idapp },
-    });
+    r.data = await getAppVarsByIdApp(params.request.query.idapp);
     r.code = 200;
 
     //res.code(200).json(data);
@@ -817,3 +815,26 @@ export async function fnGetAppBackupById(params) {
 }
 
 //
+export async function fnDeleteAppVar(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    r.data = await deleteAppVar(params.request.query.idvar);
+    r.code = 200;
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnUpsertAppVar(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    r.data = await upsertAppVar(params.request.body);
+    r.code = 200;
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}

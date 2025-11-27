@@ -1,11 +1,11 @@
 import { AppVars } from "./models.js";
 
-export const upsertAppVars = async (
+export const upsertAppVar = async (
   /** @type {import("sequelize").Optional<any, string>} */ data
 ) => {
   try {
-    const [result, created] = await AppVars.upsert(data, { returning: true });
-    return { result, created };
+    const [result] = await AppVars.upsert(data, { returning: true });
+    return result;
   } catch (error) {
     console.error("Error retrieving:", error, data);
     throw error; // c4ca4238-a0b9-2382-0dcc-509a6f75849b
@@ -27,18 +27,18 @@ export const getAppVarsById = async (
 
 
 // DELETE
-export const deleteAppVars = async (
-  /** @type {import("sequelize").Identifier | undefined} */ idAppVars
+export const deleteAppVar = async (
+  /** @type {import("sequelize").Identifier | undefined} */ idappvar
 ) => {
   try {
-    const ep = await AppVars.findByPk(idAppVars);
+    const ep = await AppVars.findByPk(idappvar);
     if (ep) {
       await ep.destroy();
       return true; // Deletion successful
     }
     return false; // User not found
   } catch (error) {
-    console.error("Error deleting idAppVars:", error);
+    console.error("Error deleting idappvar:", error);
     throw error;
   }
 };

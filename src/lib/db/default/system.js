@@ -1,9 +1,4 @@
 export const system_app = {
-  vars: {
-    dev: {},
-    qa: {},
-    prd: {},
-  },
   params: {
     users: [],
     telegram: {
@@ -989,6 +984,7 @@ export const system_app = {
       createdAt: "2025-11-21T22:04:52.725Z",
       updatedAt: "2025-11-22T00:11:42.109Z",
     },
+
     {
       ctrl: {
         admin: true,
@@ -1014,6 +1010,59 @@ export const system_app = {
       createdAt: "2025-11-21T22:04:52.724Z",
       updatedAt: "2025-11-22T00:11:42.106Z",
     },
+
+    {
+      ctrl: {
+        admin: true,
+      },
+      cors: {},
+      mcp: {},
+      json_schema: {},
+      headers_test: {},
+      data_test: {},
+      idendpoint: "2034cf9-4c94-43ba-bc7a-3d762f62d7ff",
+      rowkey: 696,
+      enabled: true,
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      environment: "prd",
+      resource: "/app/var",
+      method: "DELETE",
+      handler: "FUNCTION",
+      access: 0,
+      description: "Delete app var",
+      code: "fnDeleteAppVar",
+      cache_time: 0,
+      latest_updater: null,
+      createdAt: "2025-11-21T22:04:52.724Z",
+      updatedAt: "2025-11-22T00:11:42.106Z",
+    },
+
+    {
+      ctrl: {
+        admin: true,
+      },
+      cors: {},
+      mcp: {},
+      json_schema: {},
+      headers_test: {},
+      data_test: {},
+      idendpoint: "3034cf9-4c94-43ba-bc7a-3d762f62d7ff",
+      rowkey: 69,
+      enabled: true,
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      environment: "prd",
+      resource: "/app/var",
+      method: "POST",
+      handler: "FUNCTION",
+      access: 0,
+      description: "UPSERT app var",
+      code: "fnUpsertAppVar",
+      cache_time: 0,
+      latest_updater: null,
+      createdAt: "2025-11-21T22:04:52.724Z",
+      updatedAt: "2025-11-22T00:11:42.106Z",
+    },
+
     {
       ctrl: {},
       cors: {},

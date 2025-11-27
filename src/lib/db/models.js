@@ -4,14 +4,15 @@ import { v4 as uuidv4 } from "uuid";
 import { emitHook, validateAppName } from "../server/utils.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
-const JSON_TYPE =
-  dbsequelize.getDialect() === "mssql" ? DataTypes.TEXT : DataTypes.JSON;
+const JSON_TYPE = ["mssql", "sqlite"].includes(dbsequelize.getDialect())
+  ? DataTypes.TEXT
+  : DataTypes.JSON;
+
 const TableName_LogEntry = prefixTableName("log");
 const TableName_User = prefixTableName("user");
 const TableName_Application = prefixTableName("application");
 const TableName_Endpoint = prefixTableName("endpoint");
 const TableName_IntervalTask = prefixTableName("intervaltask");
-const TableName_ApplicationBackup = prefixTableName("application_backup");
 const TableName_Method = prefixTableName("method");
 const TableName_Handler = prefixTableName("handler");
 const TableName_Demo = prefixTableName("demo");
@@ -40,14 +41,22 @@ class JSON_ADAPTER {
   constructor() {}
 
   static getData(instance, fieldName, defaulValue = {}) {
-    const data = instance.getDataValue(fieldName) ?? defaulValue;
-    return JSON_ADAPTER._isMsSql() && JSON_ADAPTER._isString(data)
-      ? JSON.parse(data)
-      : data;
+    let data = instance.getDataValue(fieldName) ?? defaulValue;
+
+    if (JSON_ADAPTER._isMsSql() && JSON_ADAPTER._isString(data)) {
+      try {
+        data = JSON.parse(data);
+      } catch (error) {
+        data = JSON.stringify(data);
+      }
+    }
+
+    return data;
   }
 
   static setData(instance, fieldName, value, defaulValue = {}) {
     const data = value ?? defaulValue;
+
     const new_data =
       JSON_ADAPTER._isMsSql() && !JSON_ADAPTER._isString(data)
         ? JSON.stringify(data)
@@ -56,12 +65,16 @@ class JSON_ADAPTER {
   }
 
   static _isMsSql() {
-    return dbsequelize.getDialect() === "mssql";
+    return ["mssql", "sqlite"].includes(dbsequelize.getDialect());
   }
 
   static _isString(data) {
     //console.log(typeof data);
     return typeof data === "string";
+  }
+  static _isObject(data) {
+    //console.log(typeof data);
+    return typeof data === "object";
   }
 }
 
@@ -454,7 +467,7 @@ export const AppVars = dbsequelize.define(
       {
         fields: ["idapp", "name", "environment"],
         name: "idx_av_id_n_e",
-        unique: true,
+        //  unique: true,
       },
       {
         fields: ["idapp"],
@@ -485,77 +498,6 @@ AppVars.belongsTo(Application, {
   targetKey: "idapp", // PK en Application
   as: "app", // ✅ AGREGAR: Alias para incluir en queries
 });
-
-export const ApplicationBackup = dbsequelize.define(
-  TableName_ApplicationBackup,
-  {
-    idbackup: {
-      type: DataTypes.BIGINT,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-    },
-    idapp: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
-    iduser: { type: DataTypes.BIGINT, comment: "User editor" },
-    data: {
-      type: JSON_TYPE,
-      get() {
-        return JSON_ADAPTER.getData(this, "data");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "data", value);
-      },
-    },
-  },
-  {
-    freezeTableName: true,
-    timestamps: true,
-    indexes: [],
-    hooks: {
-      afterBulkCreate: async (intance) => {
-        //
-      },
-      afterUpsert: async (/** @type {any} */ instance) => {
-        //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
-        await HooksDB({
-          table: TableName_ApplicationBackup,
-          action: "afterUpsert",
-          instance: instance,
-        });
-      },
-      beforeUpdate: (/** @type {any} */ instance) => {
-        //instance.rowkey = Math.floor(Math.random() * 1000);
-      },
-      beforeUpsert: async (instance) => {
-        instance.app = instance.app.toLowerCase();
-
-        if (!instance.idapp || instance.idapp == null) {
-          //console.log('IDAPP es nulo o no está definido');
-          instance.idapp = uuidv4();
-        }
-      },
-      beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
-        // Acciones a realizar antes de guardar el modelo
-      },
-      beforeValidate: (instance) => {
-        //instance.data = JSON_TYPE_Adapter(instance, "data");
-      },
-      beforeCreate: (instance) => {
-        // instance.data = JSON_TYPE_Adapter(instance, "data");
-      },
-      beforeBulkCreate: (instance) => {
-        if (instance && Array.isArray(instance)) {
-          instance.forEach((ins, i) => {
-            //   instance[i].data = JSON_TYPE_Adapter(instance[i], "data");
-          });
-        }
-      },
-    },
-  }
-);
 
 export const Endpoint = dbsequelize.define(
   TableName_Endpoint,
@@ -630,6 +572,7 @@ export const Endpoint = dbsequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
       defaultValue: "",
+      comment: "Code and parameters",
     },
     cors: {
       type: JSON_TYPE,
@@ -699,9 +642,15 @@ export const Endpoint = dbsequelize.define(
   {
     freezeTableName: true,
     timestamps: true,
+    // ✔ Necesario para que Sequelize reconozca correctamente el índice único
+    uniqueKeys: {
+      unique_av_combo: {
+        fields: ["idapp", "environment", "resource", "method"],
+      },
+    },
     indexes: [
       {
-        unique: true,
+        //  unique: true,
         fields: ["idapp", "environment", "resource", "method"],
       },
     ],
