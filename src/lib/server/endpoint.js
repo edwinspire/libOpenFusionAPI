@@ -318,7 +318,8 @@ export default class Endpoint extends EventEmitter {
           });
 
           this.cacheQueue.add(Date.now() + cache_time, () => {
-            delete this.internal_endpoint[url_key].responses[hash_request];
+            //delete this.internal_endpoint[url_key].responses[hash_request];
+            delete this.internal_endpoint?.[url_key]?.responses?.[hash_request];
 
             this.emit("cache_released", {
               app: ep?.handler?.params?.app,
