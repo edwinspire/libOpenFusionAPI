@@ -84,10 +84,10 @@ export const getEndpointByApp = async (
     "resource",
     "cors",
     "description",
+    "keywords",
     "headers_test",
     "data_test",
     "ctrl",
-    "latest_updater",
     "rowkey",
   ];
 
