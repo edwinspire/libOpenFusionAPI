@@ -2,28 +2,11 @@ import { DataTypes } from "sequelize";
 import dbsequelize from "./sequelize.js";
 import { v4 as uuidv4 } from "uuid";
 import { emitHook, validateAppName } from "../server/utils.js";
-import { modelNames } from "mongoose";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
 const JSON_TYPE = ["mssql", "sqlite"].includes(dbsequelize.getDialect())
   ? DataTypes.TEXT
   : DataTypes.JSON;
-
-/*
-const ModelNames.LogEntry = prefixTableName("log");
-const ModelNames.User = prefixTableName("user");
-const ModelNames.Application = prefixTableName("application");
-const ModelNames.Endpoint = prefixTableName("endpoint");
-const ModelNames.IntervalTask = prefixTableName("intervaltask");
-const ModelNames.Method = prefixTableName("method");
-const ModelNames.Handler = prefixTableName("handler");
-const ModelNames.Demo = prefixTableName("demo");
-const ModelNames.AppVars = prefixTableName("appvars");
-const ModelNames.ApiKeys = prefixTableName("api_keys");
-const ModelNames.ApiProfiles = prefixTableName("api_profiles");
-const ModelNames.ApiProfilesEndpoints = prefixTableName("api_profile_endpoints");
-const ModelNames.ApiKeysProfiles = prefixTableName("api_key_profile");
-*/
 
 export const ModelNames = {
   LogEntry: prefixTableName("log"),
@@ -35,11 +18,9 @@ export const ModelNames = {
   Handler: prefixTableName("handler"),
   Demo: prefixTableName("demo"),
   AppVars: prefixTableName("appvars"),
-  ApiKey: prefixTableName("api_key"),
-  ApiProfile: prefixTableName("api_profile"),
-  ApiProfileEndpoint: prefixTableName("api_profile_endpoint"),
-  ApiKeyProfile: prefixTableName("api_key_profile"),
-  ApiUser: prefixTableName("api_user")
+  UserProfile: prefixTableName("user_profile"),
+  SystemUserProfile: prefixTableName("system_user_profiles"),
+  UserProfileEndpoint: prefixTableName("user_profile_endpoints"),
 };
 
 const default_json_schema = {
@@ -230,10 +211,6 @@ export const User = dbsequelize.define(
         });
       },
       beforeUpdate: (/** @type {any} */ user) => {
-        //			user.ts = new Date();
-
-        //user.password = EncryptPwd(user.password);
-
         user.rowkey = Math.floor(Math.random() * 1000);
       },
       beforeValidate: (instance) => {
@@ -521,22 +498,6 @@ export const AppVars = dbsequelize.define(
   }
 );
 
-// ✅ Relación: Una Application tiene muchas variables
-Application.hasMany(AppVars, {
-  foreignKey: "idapp", // FK en AppVars
-  sourceKey: "idapp", // ✅ AGREGAR: PK en Application
-  as: "vrs", // Alias para incluir en queries
-  onDelete: "CASCADE", // ✅ AGREGAR: Al eliminar app, elimina sus vars
-  onUpdate: "CASCADE", // ✅ AGREGAR: Al actualizar idapp, actualiza en vars
-});
-
-// ✅ Relación inversa: Una Variable pertenece a una Application
-AppVars.belongsTo(Application, {
-  foreignKey: "idapp", // FK en AppVars
-  targetKey: "idapp", // PK en Application
-  as: "app", // ✅ AGREGAR: Alias para incluir en queries
-});
-
 export const Endpoint = dbsequelize.define(
   ModelNames.Endpoint,
   {
@@ -729,9 +690,6 @@ export const Endpoint = dbsequelize.define(
     },
   }
 );
-
-Application.hasMany(Endpoint, { foreignKey: "idapp", as: "endpoints" });
-Endpoint.belongsTo(Application, { foreignKey: "idapp" });
 
 export const LogEntry = dbsequelize.define(
   ModelNames.LogEntry,
@@ -1045,15 +1003,6 @@ export const IntervalTask = dbsequelize.define(
   }
 );
 
-// Relación: Un Application tiene muchos Interval
-Endpoint.hasMany(IntervalTask, { foreignKey: "idendpoint", as: "tasks" });
-
-// Relación: Un Interval pertenece a un Endpoint
-IntervalTask.belongsTo(Endpoint, {
-  foreignKey: "idendpoint", // campo FK en IntervalTask
-  targetKey: "idendpoint", // campo PK en Endpoint
-});
-
 // Definir el modelo de la tabla 'demo'
 export const tblDemo = dbsequelize.define(
   ModelNames.Demo,
@@ -1094,95 +1043,8 @@ export const tblDemo = dbsequelize.define(
   }
 );
 
-/////////////////////////////////////////
-// Modelo ApiUser (Usuarios consumidores de APIs)
-export const ApiUser = dbsequelize.define(
-  ModelNames.ApiUser,
-  {
-    idapiuser: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
-    },
-    name: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING(120),
-      allowNull: true,
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    enabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-  },
-  {
-    timestamps: true,
-    freezeTableName: true,
-  }
-);
-
-// Relación ApiUser → ApiKey (1:N)
-ApiUser.hasMany(ApiKey, {
-  foreignKey: "idapiuser",
-  as: "apikeys",
-  onDelete: "CASCADE",
-});
-
-ApiKey.belongsTo(ApiUser, {
-  foreignKey: "idapiuser",
-  as: "apiuser",
-});
-
-
-
-// ===============================
-// Modelo ApiKey
-// ===============================
-export const ApiKey = dbsequelize.define(
-  ModelNames.ApiKey,
-  {
-    idapikey: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
-    },
-    apikey: {
-      type: DataTypes.STRING(200), // Guardar hash
-      allowNull: false,
-    },
-    owner: {
-      type: DataTypes.STRING(100), // Nombre del cliente
-      allowNull: true,
-    },
-    enabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    expires_at: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-  },
-  {
-    timestamps: true,
-    freezeTableName: true,
-    indexes: [{ fields: ["apikey"], unique: true }, { fields: ["enabled"] }],
-  }
-);
-
-// ===============================
-// Modelo ApiProfile
-// ===============================
-export const ApiProfile = dbsequelize.define(
-  ModelNames.ApiProfile,
+export const UserProfile = dbsequelize.define(
+  ModelNames.UserProfile,
   {
     idprofile: {
       type: DataTypes.UUID,
@@ -1190,7 +1052,7 @@ export const ApiProfile = dbsequelize.define(
       defaultValue: DataTypes.UUIDV4,
     },
     name: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
     },
@@ -1202,96 +1064,133 @@ export const ApiProfile = dbsequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    startAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    endAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
-  {
-    timestamps: true,
-    freezeTableName: true,
-  }
+  { timestamps: true, freezeTableName: true }
 );
 
-// ===============================
-// Relación perfiles <-> endpoints (N:N)
-// ===============================
-export const ApiProfileEndpoint = dbsequelize.define(
-  ModelNames.ApiProfilesEndpoint,
+export const SystemUserProfile = dbsequelize.define(
+  ModelNames.SystemUserProfile,
   {
+    idrelation: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    iduser: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
     idprofile: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: ApiProfile, key: "idprofile" },
-      onDelete: "CASCADE",
+    },
+    startAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    endAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    enabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+  },
+  { timestamps: true, freezeTableName: true }
+);
+
+export const UserProfileEndpoint = dbsequelize.define(
+  ModelNames.UserProfileEndpoint,
+  {
+    idrelation: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    idprofile: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
     idendpoint: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: Endpoint, key: "idendpoint" },
-      onDelete: "CASCADE",
     },
   },
-  {
-    timestamps: false,
-    freezeTableName: true,
-    indexes: [
-      { fields: ["idprofile"] },
-      { fields: ["idendpoint"] },
-      { fields: ["idprofile", "idendpoint"], unique: true },
-    ],
-  }
+  { timestamps: true, freezeTableName: true }
 );
 
-// Relaciones N:N
-ApiProfile.belongsToMany(Endpoint, {
-  through: ApiProfileEndpoint,
-  foreignKey: "idprofile",
-  as: "allowed_endpoints",
+// ✅ Relación: Una Application tiene muchas variables
+Application.hasMany(AppVars, {
+  foreignKey: "idapp", // FK en AppVars
+  sourceKey: "idapp", // ✅ AGREGAR: PK en Application
+  as: "vrs", // Alias para incluir en queries
+  onDelete: "CASCADE", // ✅ AGREGAR: Al eliminar app, elimina sus vars
+  onUpdate: "CASCADE", // ✅ AGREGAR: Al actualizar idapp, actualiza en vars
 });
 
-Endpoint.belongsToMany(ApiProfile, {
-  through: ApiProfileEndpoint,
+// ✅ Relación inversa: Una Variable pertenece a una Application
+AppVars.belongsTo(Application, {
+  foreignKey: "idapp", // FK en AppVars
+  targetKey: "idapp", // PK en Application
+  as: "app", // ✅ AGREGAR: Alias para incluir en queries
+});
+
+Application.hasMany(Endpoint, { foreignKey: "idapp", as: "endpoints" });
+Endpoint.belongsTo(Application, { foreignKey: "idapp" });
+
+// Relación: Un Application tiene muchos Interval
+Endpoint.hasMany(IntervalTask, { foreignKey: "idendpoint", as: "tasks" });
+
+// Relación: Un Interval pertenece a un Endpoint
+IntervalTask.belongsTo(Endpoint, {
+  foreignKey: "idendpoint", // campo FK en IntervalTask
+  targetKey: "idendpoint", // campo PK en Endpoint
+});
+
+User.belongsToMany(Endpoint, {
+  through: UserProfileEndpoint,
+  foreignKey: "idprofile",
+  as: "endpoints",
+});
+
+Endpoint.belongsToMany(User, {
+  through: UserProfileEndpoint,
   foreignKey: "idendpoint",
   as: "profiles",
 });
 
-// ===============================
-// Relación ApiKey <-> ApiProfile (N:N)
-// ===============================
-export const ApiKeyProfile = dbsequelize.define(
-  ModelNames.ApiKeyProfile,
-  {
-    idapikey: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: { model: ApiKey, key: "idapikey" },
-      onDelete: "CASCADE",
-    },
-    idprofile: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: { model: ApiProfile, key: "idprofile" },
-      onDelete: "CASCADE",
-    },
-  },
-  {
-    timestamps: false,
-    freezeTableName: true,
-    indexes: [
-      { fields: ["idapikey"] },
-      { fields: ["idprofile"] },
-      { fields: ["idapikey", "idprofile"], unique: true },
-    ],
-  }
-);
+/////////////////////
 
-// Relaciones N:N
-ApiKey.belongsToMany(ApiProfile, {
-  through: ApiKeyProfile,
-  foreignKey: "idapikey",
+User.belongsToMany(UserProfile, {
+  through: SystemUserProfile,
+  foreignKey: "iduser",
+  otherKey: "idprofile",
   as: "profiles",
 });
 
-ApiProfile.belongsToMany(ApiKey, {
-  through: ApiKeyProfile,
+UserProfile.belongsToMany(User, {
+  through: SystemUserProfile,
   foreignKey: "idprofile",
-  as: "apikeys",
+  otherKey: "iduser",
+  as: "users",
 });
 
+//////////////////////
+UserProfile.hasMany(UserProfileEndpoint, {
+  foreignKey: "idprofile",
+  as: "profile_endpoints",
+});
+
+UserProfileEndpoint.belongsTo(UserProfile, {
+  foreignKey: "idprofile",
+  as: "profile",
+});

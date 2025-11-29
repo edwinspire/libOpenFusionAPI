@@ -1,6 +1,6 @@
-import { User } from "./models.js";
-//import { getRoleById } from "./role.js";
-import { EncryptPwd, GenToken, customError, md5 } from "../server/utils.js";
+import { EncryptPwd, GenToken, customError } from "../server/utils.js";
+import { UserProfile, User, UserProfileEndpoint } from "./models.js";
+import { Op } from "sequelize";
 
 export const upsertUser = async (
   /** @type {import("sequelize").Optional<any, string>} */ userData
@@ -36,7 +36,6 @@ export const getAllUsers = async () => {
     throw error;
   }
 };
-
 
 // DELETE
 export const deleteUser = async (
@@ -96,7 +95,6 @@ export const defaultUser = async () => {
       });
     }
 
-
     const existingClient = await User.findOne({
       where: { username: "client_api" },
     });
@@ -112,7 +110,6 @@ export const defaultUser = async () => {
         ctrl: {},
       });
     }
-
 
     // Verificar si el usuario "admin" ya existe
     const existingUserAdmin = await User.findOne({
@@ -232,4 +229,151 @@ export async function login(username, password) {
   } catch (error) {
     return error;
   }
+}
+
+export async function getUserProfileEndpointData({
+  username = null,
+  userEnabled = null,
+  profileName = null,
+  profileEnabled = null,
+  idendpoint = null,
+  only_date_valid = false,
+  raw = false,
+} = {}) {
+  const now = new Date();
+
+  // ===============================
+  // WHERE dinámico del usuario
+  // ===============================
+  const userWhere = {};
+  if (username) userWhere.username = username;
+  if (userEnabled !== null) userWhere.enabled = userEnabled;
+
+  // ===============================
+  // WHERE dinámico del perfil
+  // ===============================
+  const profileWhere = {};
+  if (profileName) profileWhere.name = profileName;
+  if (profileEnabled !== null) profileWhere.enabled = profileEnabled;
+
+  // ===============================
+  // WHERE dinámico de la relación user ↔ profile
+  // ===============================
+  const profileRelationWhere = {};
+
+  if (only_date_valid) {
+    profileRelationWhere.startAt = {
+      [Op.or]: [{ [Op.lte]: now }, { [Op.is]: null }],
+    };
+    profileRelationWhere.endAt = {
+      [Op.or]: [{ [Op.gte]: now }, { [Op.is]: null }],
+    };
+  }
+
+  // ===============================
+  // WHERE dinámico de la vigencia del perfil
+  // ===============================
+  if (only_date_valid) {
+    profileWhere.startAt = { [Op.or]: [{ [Op.lte]: now }, { [Op.is]: null }] };
+    profileWhere.endAt = { [Op.or]: [{ [Op.gte]: now }, { [Op.is]: null }] };
+  }
+
+  // ===============================
+  // Consulta principal: usuarios + perfiles
+  // ===============================
+  let users = await User.findAll({
+    where: userWhere,
+    include: [
+      {
+        model: UserProfile,
+        as: "profiles",
+        where: Object.keys(profileWhere).length ? profileWhere : undefined,
+        through: {
+          attributes: [],
+          where: Object.keys(profileRelationWhere).length
+            ? profileRelationWhere
+            : undefined,
+        },
+      },
+    ],
+    raw: raw,
+    nest: !raw,
+  });
+
+  if (raw) return users;
+
+  users = users.map((u) => {
+    return u.toJSON();
+  });
+
+  // ===============================
+  // Obtener endpoints desde UserProfileEndpoint
+  // ===============================
+  const profileIds = [
+    ...new Set(users.flatMap((u) => u.profiles?.map((p) => p.idprofile) || [])),
+  ];
+
+  if (profileIds.length === 0) {
+    return users.map((u) => ({ ...u, profiles: [] }));
+  }
+
+  // WHERE dinámico for UserProfileEndpoint
+  const endpointWhere = { idprofile: profileIds };
+
+  if (idendpoint) {
+    endpointWhere.idendpoint = idendpoint;
+  }
+
+  if (only_date_valid) {
+    endpointWhere.startAt = { [Op.or]: [{ [Op.lte]: now }, { [Op.is]: null }] };
+    endpointWhere.endAt = { [Op.or]: [{ [Op.gte]: now }, { [Op.is]: null }] };
+  }
+
+  const profileEndpoints = await UserProfileEndpoint.findAll({
+    where: endpointWhere,
+    raw: true,
+  });
+
+  // Agrupación por idprofile
+  const endpointsGrouped = {};
+  for (const row of profileEndpoints) {
+    if (!endpointsGrouped[row.idprofile]) {
+      endpointsGrouped[row.idprofile] = [];
+    }
+    endpointsGrouped[row.idprofile].push({
+      idendpoint: row.idendpoint,
+      enabled: row.enabled,
+      startAt: row.startAt,
+      endAt: row.endAt,
+    });
+  }
+
+  // ===============================
+  // Construcción del árbol JSON final
+  // ===============================
+  const result = users.map((item) => {
+    let u = item.toJSON();
+
+    return {
+      iduser: u.iduser,
+      username: u.username,
+      fullname: u.fullname,
+      email: u.email,
+      enabled: u.enabled,
+      profiles: u.profiles.map((pr) => {
+        let p = pr.toJSON();
+        return {
+          idprofile: p.idprofile,
+          name: p.name,
+          description: p.description,
+          enabled: p.enabled,
+          startAt: p.startAt,
+          endAt: p.endAt,
+          endpoints: endpointsGrouped[p.idprofile] || [],
+        };
+      }),
+    };
+  });
+
+  return result.toJSON();
 }

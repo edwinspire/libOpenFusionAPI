@@ -1,4 +1,4 @@
-import { login } from "../../../../db/user.js";
+import { login , getUserProfileEndpointData} from "../../../../db/user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllUsers } from "../../../../db/user.js";
@@ -68,6 +68,21 @@ export async function fnDemo(/** @type {any} */ params) {
     r.data = { demo: "demo" };
     r.code = 200;
     //res.code(200).json({ demo: 'demo' });
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnGetUserProfileEndpointData(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    const hs = await getUserProfileEndpointData(params.request.query);
+
+    r.data = hs;
+    r.code = 200;
   } catch (error) {
     r.data = error;
     r.code = 500;
