@@ -706,7 +706,7 @@ export default class Endpoint extends EventEmitter {
 
         // Habilita la validación de datos de entrada usando AJV
         if (returnHandler?.params?.json_schema?.in?.enabled) {
-          console.log("Habiltado Validación JSON Schema");
+        //  console.log("Habiltado Validación JSON Schema");
 
           try {
             returnHandler.params.json_schema.in.fn_ajv_validate_schema =
@@ -762,9 +762,6 @@ export default class Endpoint extends EventEmitter {
                   endpoint.json_schema.in.schema
                 );
               }
-
-              //   let x = z.toJSONSchema(zod_inputSchema.shape);
-              console.log(zod_inputSchema);
 
               server.registerTool(
                 endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
