@@ -12,15 +12,6 @@ import * as LUXON from "luxon";
 import * as SEQUELIZE from "sequelize";
 import Zod from "zod";
 import * as $_PDFJS_ from "pdfjs-dist/legacy/build/pdf.mjs";
-
-import {
-  LANGCHAIN_CHAT_MODEL_UNIVERSAL,
-  LANGCHAIN_TOOLS,
-  LANGCHAIN_AGENT_EXECUTOR_MCP,
-  LANGCHAIN_PROMPTS,
-  LANGCHAIN_CHAT_MODEL,
-  LANGCHAIN_CLEAN_THINK_OUTPUT,
-} from "./ia.js";
 import * as XLSX from "xlsx";
 
 import { isValidHttpStatusCode } from "../handler/utils.js";
@@ -523,82 +514,6 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? Zod : undefined,
       info: "Zod is a TypeScript-first schema declaration and validation library. ",
       web: "https://zod.dev/?id=introduction",
-    },
-    $_LANGCHAIN_CHAT_MODEL_UNIVERSAL_: {
-      fn: request && reply ? LANGCHAIN_CHAT_MODEL_UNIVERSAL : undefined,
-      info: "LangChain is a framework for developing applications powered by large language models (LLMs). The $_LANGCHAIN_CHAT_MODEL_UNIVERSAL_ (contain initChatModel()) helper method makes it easy to initialize a number of different model integrations without having to worry about import paths and class names. Keep in mind this feature is only for chat models.",
-      web: "https://js.langchain.com/docs/how_to/chat_models_universal_init",
-      example: `// Returns a @langchain/openai ChatOpenAI instance.
-const gpt4o = await $_LANGCHAIN_CHAT_MODEL_UNIVERSAL_("gpt-4o", {
-  modelProvider: "openai",
-  temperature: 0,
-});
-
-// You can also specify the model provider in the model name like this in
-// langchain>=0.3.18:
-
-// Returns a @langchain/anthropic ChatAnthropic instance.
-const claudeOpus = await $_LANGCHAIN_CHAT_MODEL_UNIVERSAL_(
-  "anthropic:claude-3-opus-20240229",
-  {
-    temperature: 0,
-  }
-);
-
-// Since all model integrations implement the ChatModel interface, you can use them in the same way.
-console.log(await gpt4o.invoke("what's your name"));
-console.log(await claudeOpus.invoke("what's your name"));
-`,
-    },
-    $_LANGCHAIN_TOOLS_: {
-      fn: request && reply ? LANGCHAIN_TOOLS : undefined,
-      info: "LangChain is a framework for developing applications powered by large language models (LLMs). Tools are a way to encapsulate a function and its schema in a way that can be passed to a chat model.",
-      web: "https://js.langchain.com/docs/concepts/tools",
-      example: ``,
-    },
-    $_LANGCHAIN_PROMPTS_: {
-      fn: request && reply ? LANGCHAIN_PROMPTS : undefined,
-      info: "LangChain is a framework for developing applications powered by large language models (LLMs). Prompts are a way to define the input structure and behavior of a chat model.",
-      web: "https://js.langchain.com/docs/concepts/prompt_templates/",
-    },
-    $_LANGCHAIN_CHAT_MODEL_: {
-      fn: request && reply ? LANGCHAIN_CHAT_MODEL : undefined,
-      info: "LangChain is a framework for developing applications powered by large language models (LLMs). The $_LANGCHAIN_CHAT_MODEL_ (contain initChatModel()) helper method makes it easy to initialize a number of different model integrations without having to worry about import paths and class names.",
-      web: "https://js.langchain.com/docs/how_to/chat_models_universal_init",
-    },
-    $_LANGCHAIN_CLEAN_THINK_OUTPUT_: {
-      fn: request && reply ? LANGCHAIN_CLEAN_THINK_OUTPUT : undefined,
-      info: "LangChain is a framework for developing applications powered by large language models (LLMs). The $_LANGCHAIN_CLEAN_THINK_OUTPUT_ helper method makes it easy to clean the output of a chat model by removing <think> tags.",
-      web: own_repo,
-      example: `const cleaned = $_LANGCHAIN_CLEAN_THINK_OUTPUT_("Some output with <think>thoughts</think>");`,
-    },
-    $_LANGCHAIN_AGENT_EXECUTOR_MCP_: {
-      fn: request && reply ? LANGCHAIN_AGENT_EXECUTOR_MCP : undefined,
-      info: "LangChain is a framework for developing applications powered by large language models (LLMs). ",
-      web: own_repo,
-      example: `const mcpServers = {
-  name_my_server_mcp: {
-    transport: "http",
-    url: "http://localhost:3000/api/mcp/server/prd",
-  },
-};
-
-const prompt = $_LANGCHAIN_PROMPTS_.ChatPromptTemplate.fromMessages([
-  ["system", "You are a helpful assistant."],
-  ["user", "Tell me a joke about {topic}."],
-]);
-
-const model = "ollama:qwen3:0.6b";
-const options = {
-  temperature: 0.1,
-  baseUrl: "http://172.16.243.104:11434",
-  timeout: 60000 * 30, // 30 minutos
-}
-
-const agent = await $_LANGCHAIN_AGENT_EXECUTOR_MCP_(model, options, mcpServers, prompt);
-
-console.log(agent.invoke({topic: 'cat'}));
-`,
     },
     $_XLSX_: {
       fn: request && reply ? XLSX : undefined,

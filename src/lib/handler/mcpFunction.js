@@ -1,18 +1,7 @@
-//import  {MCPServer, StreamableHTTPServerTransport}  from "./server/mcp/server.js";
 import {
-  //  getServer,
   StreamableHTTPServerTransport,
 } from "../server/mcp/server.js";
-//import { z } from "zod";
-//import { getAppByName } from "../../lib/db/app.js"; // Import to ensure the database is initialized
-/*
-import {
-  URLAutoEnvironment,
-  getParseMethod,
-  jsonSchemaToZod,
-} from "../server/utils.js";
-*/
-//import { internal_url_endpoint } from "../server/utils_path.js"; // Import the internal_url_endpoint function
+
 
 export const mcpFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,

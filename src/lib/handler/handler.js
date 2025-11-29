@@ -8,7 +8,6 @@ import { sqlHana } from "./sqlHana.js";
 import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
 import { mongodbFunction } from "./mongoDB.js";
 import { mcpFunction } from "./mcpFunction.js";
-import { agentIAFunction } from "./agentIAFunction.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from 'url';
@@ -73,13 +72,7 @@ export const Handlers = {
     fn: mcpFunction,
     description:
       "Proporciona funcionalidades de procesamiento de múltiples canales.",
-  },
-  AGENT_IA: {
-    label: "Agent IA",
-    fn: agentIAFunction,
-    description:
-      "Integra capacidades de inteligencia artificial para agentes conversacionales.",
-  },
+  }
 };
 
 export const getHandlerDoc = async (handler) => {

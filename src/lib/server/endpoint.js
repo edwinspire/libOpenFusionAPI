@@ -11,17 +11,12 @@ import {
 } from "../db/app.js";
 import * as z from "zod";
 import { getServer } from "../server/mcp/server.js";
-//import { jsonSchemaToZod } from "json-schema-to-zod";
-import { JSONSchemaToZod } from "@dmitryrechkin/json-schema-to-zod";
-//import { createFunction } from "../handler/utils.js";
 import {
   md5,
   getIPFromRequest,
   createFunction,
-  //jsonSchemaToZod,
   URLAutoEnvironment,
 } from "./utils.js";
-//import PromiseSequence from "@edwinspire/sequential-promises";
 import { createLog, getLogLevelByStatusCode } from "../db/log.js";
 import { getMongoDBHandlerParams } from "../handler/mongoDB.js";
 import Ajv from "ajv";
@@ -763,7 +758,7 @@ export default class Endpoint extends EventEmitter {
                 endpoint?.json_schema?.in?.schema
               ) {
                 // Convertir
-                zod_inputSchema = JSONSchemaToZod.convert(
+                zod_inputSchema = jsonSchemaToZod(
                   endpoint.json_schema.in.schema
                 );
               }

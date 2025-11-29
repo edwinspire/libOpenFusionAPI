@@ -16,7 +16,6 @@ import Endpoint from "./server/endpoint.js";
 import { TelegramBot } from "./server/telegram/telegram.js";
 
 import { TasksInterval } from "./timer/tasks.js";
-//import  {MCPServer, StreamableHTTPServerTransport}  from "./server/mcp/server.js";
 import { version } from "./server/version.js";
 
 import dbAPIs from "./db/sequelize.js";
@@ -149,7 +148,6 @@ export default class ServerAPI extends EventEmitter {
     //this._cacheURLResponse = new Map();
 
     this.TasksInterval = new TasksInterval();
-    //this.MCPServer = new MCPServer();
 
     this.fastify = Fastify({
       logger: false,
@@ -587,8 +585,6 @@ export default class ServerAPI extends EventEmitter {
       HOST
     );
 
-    //this.TasksInterval.run();
-    //this.MCPServer.run();
 
     this.telegram.launch();
 
