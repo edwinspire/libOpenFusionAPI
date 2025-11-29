@@ -789,7 +789,7 @@ console.log('----');
       if (fnSystem.fn_system_prd) {
         const entries = Object.entries(fnSystem.fn_system_prd);
         for (let [fName, fn] of entries) {
-          console.log(":::::.> fnSystem >> ", fName, fn);
+          // console.log(":::::.> fnSystem >> ", fName, fn);
           this._appendAppFunction("system", "prd", fName, fn);
         }
       }
@@ -797,7 +797,7 @@ console.log('----');
       if (fnSystem.fn_system_qa) {
         const entries = Object.entries(fnSystem.fn_system_qa);
         for (let [fName, fn] of entries) {
-          console.log(":::::.> fnSystem >> ", fName, fn);
+          // console.log(":::::.> fnSystem >> ", fName, fn);
           this._appendAppFunction("system", "qa", fName, fn);
         }
       }
@@ -805,7 +805,7 @@ console.log('----');
       if (fnSystem.fn_system_dev) {
         const entries = Object.entries(fnSystem.fn_system_dev);
         for (let [fName, fn] of entries) {
-          console.log(":::::.> fnSystem >> ", fName, fn);
+          // console.log(":::::.> fnSystem >> ", fName, fn);
           this._appendAppFunction("system", "dev", fName, fn);
         }
       }
@@ -924,7 +924,7 @@ console.log('----');
   }
 
   _appendAppFunction(appname, environment, functionName, fn) {
-    //console.log(appname, environment, functionName);
+    console.log(`::> Add Function ${functionName} on ${environment}`);
     if (functionName.startsWith("fn")) {
       // Crea el environment vacío si no existe
       if (!this.endpoints.fnLocal[environment]) {

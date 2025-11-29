@@ -21,6 +21,12 @@ export const ModelNames = {
   UserProfile: prefixTableName("user_profile"),
   SystemUserProfile: prefixTableName("system_user_profiles"),
   UserProfileEndpoint: prefixTableName("user_profile_endpoints"),
+  ApiClient: prefixTableName("api_client"),
+  ApiKey: prefixTableName("api_key"),
+  ClientWallet: prefixTableName("client_wallet"),
+  WalletMovement: prefixTableName("wallet_movement"),
+  ApiKeyEndpoint: prefixTableName("apiKey_endpoint"),
+  ApiUsageLog: prefixTableName("api_usageLog"),
 };
 
 const default_json_schema = {
@@ -557,6 +563,11 @@ export const Endpoint = dbsequelize.define(
       allowNull: false,
       defaultValue: "",
     },
+    cost: {
+      type: DataTypes.DECIMAL(6, 6),
+      allowNull: false,
+      defaultValue: 0.000001,
+    },
     keywords: {
       type: DataTypes.TEXT,
       allowNull: false,
@@ -1043,6 +1054,7 @@ export const tblDemo = dbsequelize.define(
   }
 );
 
+///////////
 export const UserProfile = dbsequelize.define(
   ModelNames.UserProfile,
   {
@@ -1128,6 +1140,135 @@ export const UserProfileEndpoint = dbsequelize.define(
   { timestamps: true, freezeTableName: true }
 );
 
+// ApiClient (usuario externo) - Con vigencia, enabled y datos básicos de facturación.
+export const ApiClient = dbsequelize.define(
+  ModelNames.ApiClient,
+  {
+    idclient: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    username: { type: DataTypes.STRING(100), allowNull: false, unique: true },
+    email: { type: DataTypes.STRING(150), allowNull: true },
+    document: { type: DataTypes.STRING(50), allowNull: true },
+    phone: { type: DataTypes.STRING(30), allowNull: true },
+
+    startAt: { type: DataTypes.DATE, allowNull: false },
+    endAt: { type: DataTypes.DATE, allowNull: true },
+    enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+  },
+  { timestamps: true, freezeTableName: true }
+);
+
+// ApiKey (varias APIKeys por usuario)
+export const ApiKey = dbsequelize.define(
+  ModelNames.ApiKey,
+  {
+    idkey: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    idclient: { type: DataTypes.UUID, allowNull: false },
+    apikey: { type: DataTypes.STRING(200), allowNull: false, unique: true },
+
+    startAt: { type: DataTypes.DATE, allowNull: false },
+    endAt: { type: DataTypes.DATE },
+    enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+  },
+  { timestamps: true, freezeTableName: true }
+);
+
+// ClientWallet (saldo de créditos) - Un solo registro por cliente.
+export const ClientWallet = dbsequelize.define(
+  ModelNames.ClientWallet,
+  {
+    idwallet: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    idclient: { type: DataTypes.UUID, allowNull: false },
+
+    balance: { type: DataTypes.DECIMAL(18, 6), defaultValue: 0 },
+    currency: { type: DataTypes.STRING(10), defaultValue: "CREDITS" },
+  },
+  { timestamps: true, freezeTableName: true }
+);
+
+// WalletMovement (historial de movimientos)
+export const WalletMovement = dbsequelize.define(
+  ModelNames.WalletMovement,
+  {
+    idmovement: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    idwallet: { type: DataTypes.UUID, allowNull: false },
+
+    type: {
+      type: DataTypes.ENUM("credit", "debit", "refund"),
+      allowNull: false,
+    },
+    amount: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
+    description: { type: DataTypes.STRING(255) },
+  },
+  { timestamps: true, freezeTableName: true }
+);
+
+// ApiKeyEndpoint (qué endpoints puede usar cada APIKey)
+export const ApiKeyEndpoint = dbsequelize.define(
+  ModelNames.ApiKeyEndpoint,
+  {
+    idkeyendpoint: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+
+    idkey: { type: DataTypes.UUID, allowNull: false },
+    idendpoint: { type: DataTypes.UUID, allowNull: false },
+
+    startAt: { type: DataTypes.DATE, allowNull: false },
+    endAt: { type: DataTypes.DATE },
+    enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+  },
+  { timestamps: true, freezeTableName: true }
+);
+
+// ApiUsageLog (tabla super liviana) - ⚠ Sin asociaciones, sin foreign keys, sin índices complejos → Para rendimiento máximo en inserciones
+export const ApiUsageLog = dbsequelize.define(
+  ModelNames.ApiUsageLog,
+  {
+    idlog: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+
+    idclient: { type: DataTypes.UUID, allowNull: false },
+    idkey: { type: DataTypes.UUID, allowNull: false },
+    idendpoint: { type: DataTypes.UUID, allowNull: false },
+
+    cost: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
+    balance_after: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
+
+    success: { type: DataTypes.BOOLEAN, defaultValue: true },
+    error_message: { type: DataTypes.STRING(255), allowNull: true },
+  },
+  {
+    timestamps: true,
+    freezeTableName: true,
+    indexes: [
+      // Únicamente un índice moderado para análisis temporal
+      { fields: ["createdAt"] },
+    ],
+  }
+);
+
+//////////////////////////////////////////////////////
 // ✅ Relación: Una Application tiene muchas variables
 Application.hasMany(AppVars, {
   foreignKey: "idapp", // FK en AppVars
@@ -1194,3 +1335,24 @@ UserProfileEndpoint.belongsTo(UserProfile, {
   foreignKey: "idprofile",
   as: "profile",
 });
+
+ApiClient.hasMany(ApiKey, { foreignKey: "idclient", as: "apikeys" });
+ApiKey.belongsTo(ApiClient, { foreignKey: "idclient", as: "client" });
+
+ApiClient.hasOne(ClientWallet, { foreignKey: "idclient", as: "wallet" });
+ClientWallet.belongsTo(ApiClient, { foreignKey: "idclient", as: "client" });
+
+ClientWallet.hasMany(WalletMovement, {
+  foreignKey: "idwallet",
+  as: "movements",
+});
+WalletMovement.belongsTo(ClientWallet, {
+  foreignKey: "idwallet",
+  as: "wallet",
+});
+
+ApiKey.hasMany(ApiKeyEndpoint, {
+  foreignKey: "idkey",
+  as: "allowed_endpoints",
+});
+ApiKeyEndpoint.belongsTo(ApiKey, { foreignKey: "idkey", as: "apikey" });
