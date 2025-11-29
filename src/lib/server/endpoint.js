@@ -10,7 +10,7 @@ import {
   getApplicationTreeByFilters,
 } from "../db/app.js";
 import * as z from "zod";
-import { getServer } from "../server/mcp/server.js";
+import { getServer, jsonSchemaToZod } from "../server/mcp/server.js";
 import {
   md5,
   getIPFromRequest,
@@ -764,7 +764,7 @@ export default class Endpoint extends EventEmitter {
               }
 
               //   let x = z.toJSONSchema(zod_inputSchema.shape);
-              //   console.log(x);
+              console.log(zod_inputSchema);
 
               server.registerTool(
                 endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
@@ -783,7 +783,8 @@ export default class Endpoint extends EventEmitter {
                       ? endpoint?.mcp?.description
                       : endpoint.description
                   }`,
-                  inputSchema: zod_inputSchema.shape,
+                  // inputSchema: zod_inputSchema.shape,
+                  inputSchema: zod_inputSchema,
                 },
 
                 async (data) => {
