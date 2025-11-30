@@ -1980,8 +1980,7 @@ export const system_app = {
       updatedAt: "2025-11-22T00:11:42.104Z",
     },
 
-
-{
+    {
       ctrl: {
         admin: true,
       },
@@ -1998,12 +1997,34 @@ export const system_app = {
       resource: "/user/profile",
       method: "GET",
       handler: "FUNCTION",
-      access: 1,
+      access: 2,
       description: "Get data user profile full",
       code: "fnGetUserProfileEndpointData",
       cache_time: 5,
     },
 
+    {
+      ctrl: {
+        admin: true,
+      },
+      cors: {},
+      mcp: {},
+      json_schema: {},
+      headers_test: {},
+      data_test: {},
+      idendpoint: "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
+      rowkey: 0,
+      enabled: true,
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      environment: "prd",
+      resource: "/user/chagepassword",
+      method: "POST",
+      handler: "FUNCTION",
+      access: 2,
+      description: "Update user password",
+      code: "fnUpdateUserPassword",
+      cache_time: 0,
+    },
 
     {
       ctrl: {

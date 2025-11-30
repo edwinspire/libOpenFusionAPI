@@ -1,5 +1,6 @@
 import { EncryptPwd, GenToken, customError } from "../server/utils.js";
 import { UserProfile, User, UserProfileEndpoint } from "./models.js";
+import dbsequelize from "./sequelize.js";
 import { Op } from "sequelize";
 
 export const upsertUser = async (
@@ -376,4 +377,94 @@ export async function getUserProfileEndpointData({
   });
 
   return result.toJSON();
+}
+
+/**
+ * Actualiza la contraseña de un usuario con validación de la clave anterior
+ * @param {string} username - Nombre de usuario
+ * @param {string} oldPassword - Contraseña actual
+ * @param {string} newPassword - Nueva contraseña
+ * @returns {Promise<Object>} - Resultado de la operación
+ */
+export async function updateUserPassword({
+  username,
+  oldPassword,
+  newPassword,
+}) {
+  const transaction = await dbsequelize.transaction();
+
+  try {
+    // 1. Validar parámetros de entrada
+    if (!username || !oldPassword || !newPassword) {
+      throw new Error(
+        "All parameters are required: username, oldPassword, newPassword"
+      );
+    }
+
+    if (oldPassword === newPassword) {
+      throw new Error("The new password must be different from the old one.");
+    }
+
+    // 2. Buscar usuario y verificar contraseña actual
+    const user = await User.findOne({
+      where: {
+        username,
+        enabled: true,
+        start_date: { [Op.lte]: new Date() },
+        end_date: { [Op.gte]: new Date() },
+      },
+      transaction,
+    });
+
+    if (!user) {
+      throw new Error("User not found or inactive");
+    }
+
+    const oldPasswordHash = EncryptPwd(oldPassword || "");
+    // 3. Verificar contraseña actual
+    const isCurrentPasswordValid = oldPasswordHash == user.password;
+
+    if (!isCurrentPasswordValid) {
+      throw new Error("The current password is incorrect.");
+    }
+
+    // 4. Hashear nueva contraseña
+    const hashedNewPassword = EncryptPwd(newPassword);
+
+    // 5. Actualizar contraseña
+    const [affectedRows] = await User.update(
+      {
+        password: hashedNewPassword,
+      },
+      {
+        where: { username },
+        transaction,
+      }
+    );
+
+    if (affectedRows === 0) {
+      throw new Error("The password could not be updated.");
+    }
+
+    // 6. Confirmar transacción
+    await transaction.commit();
+
+    return {
+      success: true,
+      message: "Password successfully updated",
+      username: user.username,
+      updatedAt: new Date(),
+    };
+  } catch (error) {
+    // 7. Revertir transacción en caso de error
+    await transaction.rollback();
+
+    console.error("Password update error:", error.message);
+
+    return {
+      success: false,
+      error: error.message,
+      username,
+    };
+  }
 }

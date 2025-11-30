@@ -1,7 +1,7 @@
 import { login , getUserProfileEndpointData} from "../../../../db/user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
-import { getAllUsers } from "../../../../db/user.js";
+import { getAllUsers , updateUserPassword} from "../../../../db/user.js";
 import {
   upsertEndpoint,
   getEndpointById,
@@ -867,6 +867,24 @@ export async function fnUpsertAppVar(params) {
   } catch (error) {
     r.data = error;
     r.code = 500;
+  }
+  return r;
+}
+
+export async function fnUpdateUserPassword(params) {
+  let r = { data: undefined, code: 204 };
+
+  try {
+    let data = await updateUserPassword(params?.request?.body);
+
+    r.data = data;
+    r.code = 200;
+  } catch (error) {
+    //console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
   }
   return r;
 }
