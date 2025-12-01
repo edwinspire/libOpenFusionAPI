@@ -13,6 +13,10 @@ import * as SEQUELIZE from "sequelize";
 import Zod from "zod";
 import * as $_PDFJS_ from "pdfjs-dist/legacy/build/pdf.mjs";
 import * as XLSX from "xlsx";
+import {
+  createImage as $_CREATE_IMAGE_FROM_HTML_,
+  createPDF as $_CREATE_PDF_FROM_HTML,
+} from "../server/pdf-generator.js";
 
 import { isValidHttpStatusCode } from "../handler/utils.js";
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
@@ -504,7 +508,103 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? $_PDFJS_ : undefined,
       info: "PDF.js is a Portable Document Format (PDF) viewer that is built with HTML5.",
       web: "https://mozilla.github.io/pdf.js/",
+      params: [
+        {
+          name: "html",
+          info: "String HTML",
+          required: false,
+          value_type: "string",
+          default_value: "",
+        },
+        {
+          name: "url",
+          info: "URL resource",
+          required: false,
+          value_type: "string",
+          default_value: "",
+        },
+        {
+          name: "format",
+          info: "Output format",
+          required: false,
+          value_type: "string",
+          default_value: "A4",
+        },
+        {
+          name: "landscape",
+          info: "landscape",
+          required: false,
+          value_type: "boolean",
+          default_value: false,
+        },
+        {
+          name: "margin",
+          info: "margin on milimeters",
+          required: false,
+          value_type: "string",
+          default_value: "10mm",
+        },
+        {
+          name: "printBackground",
+          info: "print Background",
+          required: false,
+          value_type: "boolean",
+          default_value: true,
+        },
+      ],
+      return: "NodeJS.ArrayBufferView",
     },
+
+    $_CREATE_IMAGE_FROM_HTML_: {
+      fn: request && reply ? $_CREATE_IMAGE_FROM_HTML_ : undefined,
+      info: "Create a Image from HTML code or URL",
+      web: own_repo,
+      params: [
+        {
+          name: "html",
+          info: "String HTML",
+          required: false,
+          value_type: "string",
+          default_value: "",
+        },
+        {
+          name: "url",
+          info: "URL resource",
+          required: false,
+          value_type: "string",
+          default_value: "",
+        },
+        {
+          name: "type",
+          info: "Output type",
+          required: false,
+          value_type: "string",
+          default_value: "png",
+        },
+        {
+          name: "quality",
+          info: "quality",
+          required: false,
+          value_type: "integer",
+          default_value: 90,
+        },
+        {
+          name: "fullPage",
+          info: "fullPage",
+          required: false,
+          value_type: "boolean",
+          default_value: true,
+        },
+      ],
+      return: "NodeJS.ArrayBufferView",
+    },
+
+    $_CREATE_PDF_FROM_HTML: {
+      fn: request && reply ? $_CREATE_PDF_FROM_HTML : undefined,
+      info: "Create a PDF from HTML code or URL",
+      web: own_repo,
+    },
+
     $_SEQUELIZE_: {
       fn: request && reply ? SEQUELIZE : undefined,
       info: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",

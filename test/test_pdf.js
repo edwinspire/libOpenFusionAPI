@@ -1,4 +1,4 @@
-import { createPDF } from "./pdf-generator.js";
+import { createPDF } from "../src/lib/server/pdf-generator.js";
 import fs from "fs";
 
 (async () => {
