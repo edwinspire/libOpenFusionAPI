@@ -1,7 +1,7 @@
 /**
  * Extrae database, schema y table de un nombre calificado como:
  * "[DB].[schema].[table]" o "DB.schema.table"
- * @param {string} qualifiedName - Ejemplo: "[ITE_Portal].[prt].[tbl_PortalCuadre]"
+ * @param {string} qualifiedName - 
  * @returns {{ database: string, schema: string, table: string }}
  */
 export function parseQualifiedName(qualifiedName) {
@@ -181,3 +181,34 @@ export function TableToApp(objeto) {
 }
 
 
+/**
+ * Valida políticas de seguridad para contraseñas
+ */
+export const validatePasswordSecurity = (password) => {
+  const errors = [];
+
+  if (password.length < 8) {
+    errors.push("Mínimo 8 caracteres");
+  }
+
+  if (!/(?=.*[a-z])/.test(password)) {
+    errors.push("Al menos una minúscula");
+  }
+
+  if (!/(?=.*[A-Z])/.test(password)) {
+    errors.push("Al menos una mayúscula");
+  }
+
+  if (!/(?=.*\d)/.test(password)) {
+    errors.push("Al menos un número");
+  }
+
+  if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(password)) {
+    errors.push("Al menos un carácter especial");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+};

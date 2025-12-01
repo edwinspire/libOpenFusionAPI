@@ -1,4 +1,5 @@
 import { EncryptPwd, GenToken, customError } from "../server/utils.js";
+import { validatePasswordSecurity } from "./utils.js";
 import { UserProfile, User, UserProfileEndpoint } from "./models.js";
 import dbsequelize from "./sequelize.js";
 import { Op } from "sequelize";
@@ -403,6 +404,11 @@ export async function updateUserPassword({
 
     if (oldPassword === newPassword) {
       throw new Error("The new password must be different from the old one.");
+    }
+
+    let validationSecurity = validatePasswordSecurity(newPassword);
+    if (!validationSecurity.isValid) {
+      throw new Error(validationSecurity.errors[0]);
     }
 
     // 2. Buscar usuario y verificar contraseña actual
