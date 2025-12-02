@@ -125,11 +125,6 @@ export const saveAppWithEndpoints = async (app) => {
       if (array_current_app.length > 0) {
         let current_app = array_current_app[0];
 
-        // Crear el backup de la app
-        //   await createAppBackup({ idapp: app.idapp, data: current_app });
-
-        // upsertAppVar
-
         // Buscar los endpoints que no están en la app actual
         let endpoints_to_delete = current_app.endpoints.filter(
           (ep) => !app.endpoints.find((e) => e.idendpoint === ep.idendpoint)
@@ -143,7 +138,7 @@ export const saveAppWithEndpoints = async (app) => {
       }
     }
   } catch (error) {
-    console.error("Error creating backup app:", error);
+    console.error("Error saveAppWithEndpoints:", error);
   }
 
   try {
@@ -266,7 +261,6 @@ export const getAppById = async (
   }
 };
 
-// idapp=c4ca4238-a0b9-2382-0dcc-509a6f75849b
 
 export async function getAppBackupById(idapp) {
   try {

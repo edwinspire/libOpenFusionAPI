@@ -21,7 +21,10 @@ export const ApiClientCRUD = {
 
   async get(idclient) {
     return await ApiClient.findByPk(idclient, {
-      include: [{ model: ApiKey, as: "apikeys" }, { model: ClientWallet, as: "wallet" }],
+      include: [
+        { model: ApiKey, as: "apikeys" },
+        { model: ClientWallet, as: "wallet" },
+      ],
     });
   },
 
@@ -32,8 +35,13 @@ export const ApiClientCRUD = {
   async list(filter = {}) {
     const where = {};
     if (filter.enabled !== undefined) where.enabled = filter.enabled;
-    if (filter.username) where.username = { [Op.iLike]: `%${filter.username}%` };
-    return await ApiClient.findAll({ where, limit: filter.limit || 100, order: [["createdAt", "DESC"]] });
+    if (filter.username)
+      where.username = { [Op.iLike]: `%${filter.username}%` };
+    return await ApiClient.findAll({
+      where,
+      limit: filter.limit || 100,
+      order: [["createdAt", "DESC"]],
+    });
   },
 
   async update(idclient, data) {
@@ -57,7 +65,9 @@ export const ApiKeyCRUD = {
   },
 
   async get(idkey) {
-    return await ApiKey.findByPk(idkey, { include: [{ model: ApiClient, as: "client" }] });
+    return await ApiKey.findByPk(idkey, {
+      include: [{ model: ApiClient, as: "client" }],
+    });
   },
 
   async findByKeyHash(keyHash) {
@@ -68,7 +78,11 @@ export const ApiKeyCRUD = {
     const where = {};
     if (filter.idclient) where.idclient = filter.idclient;
     if (filter.enabled !== undefined) where.enabled = filter.enabled;
-    return await ApiKey.findAll({ where, limit: filter.limit || 100, order: [["createdAt", "DESC"]] });
+    return await ApiKey.findAll({
+      where,
+      limit: filter.limit || 100,
+      order: [["createdAt", "DESC"]],
+    });
   },
 
   async update(idkey, data) {
@@ -110,18 +124,33 @@ export const ClientWalletCRUD = {
   async list(filter = {}) {
     const where = {};
     if (filter.idclient) where.idclient = filter.idclient;
-    return await ClientWallet.findAll({ where, limit: filter.limit || 100, order: [["createdAt", "DESC"]] });
+    return await ClientWallet.findAll({
+      where,
+      limit: filter.limit || 100,
+      order: [["createdAt", "DESC"]],
+    });
   },
 
   // Creditar saldo (transaccional) => crea WalletMovement
-  async credit(idclient, amount, { description = "credit", tx: externalTx = null } = {}) {
+  async credit(
+    idclient,
+    amount,
+    { description = "credit", tx: externalTx = null } = {}
+  ) {
     if (amount <= 0) throw new Error("amount must be positive");
     const autoTx = !externalTx;
     const tx = externalTx || (await dbsequelize.transaction());
     try {
-      let wallet = await ClientWallet.findOne({ where: { idclient }, transaction: tx, lock: tx.LOCK.UPDATE });
+      let wallet = await ClientWallet.findOne({
+        where: { idclient },
+        transaction: tx,
+        lock: tx.LOCK.UPDATE,
+      });
       if (!wallet) {
-        wallet = await ClientWallet.create({ idclient, balance: 0 }, { transaction: tx });
+        wallet = await ClientWallet.create(
+          { idclient, balance: 0 },
+          { transaction: tx }
+        );
       }
       const newBalance = parseFloat(wallet.balance) + parseFloat(amount);
       await wallet.update({ balance: newBalance }, { transaction: tx });
@@ -140,12 +169,20 @@ export const ClientWalletCRUD = {
   },
 
   // Debitar saldo (transaccional) => crea WalletMovement; no permite saldo negativo por defecto
-  async debit(idclient, amount, { description = "debit", allowNegative = false, tx: externalTx = null } = {}) {
+  async debit(
+    idclient,
+    amount,
+    { description = "debit", allowNegative = false, tx: externalTx = null } = {}
+  ) {
     if (amount <= 0) throw new Error("amount must be positive");
     const autoTx = !externalTx;
     const tx = externalTx || (await dbsequelize.transaction());
     try {
-      const wallet = await ClientWallet.findOne({ where: { idclient }, transaction: tx, lock: tx.LOCK.UPDATE });
+      const wallet = await ClientWallet.findOne({
+        where: { idclient },
+        transaction: tx,
+        lock: tx.LOCK.UPDATE,
+      });
       if (!wallet) throw new Error("wallet_not_found");
 
       const current = parseFloat(wallet.balance);
@@ -195,7 +232,11 @@ export const WalletMovementCRUD = {
     const where = {};
     if (filter.idwallet) where.idwallet = filter.idwallet;
     if (filter.type) where.type = filter.type;
-    return await WalletMovement.findAll({ where, limit: filter.limit || 200, order: [["createdAt", "DESC"]] });
+    return await WalletMovement.findAll({
+      where,
+      limit: filter.limit || 200,
+      order: [["createdAt", "DESC"]],
+    });
   },
 
   async delete(idmovement) {
@@ -273,12 +314,18 @@ export const ApiUsageLogCRUD = {
     if (filter.idkey) where.idkey = filter.idkey;
     if (filter.idendpoint) where.idendpoint = filter.idendpoint;
     if (filter.since) where.createdAt = { [Op.gte]: filter.since };
-    return await ApiUsageLog.findAll({ where, limit: filter.limit || 1000, order: [["createdAt", "DESC"]] });
+    return await ApiUsageLog.findAll({
+      where,
+      limit: filter.limit || 1000,
+      order: [["createdAt", "DESC"]],
+    });
   },
 
   // Borrar logs antiguos por retention policy
   async deleteOlderThan(date) {
-    return await ApiUsageLog.destroy({ where: { createdAt: { [Op.lt]: date } } });
+    return await ApiUsageLog.destroy({
+      where: { createdAt: { [Op.lt]: date } },
+    });
   },
 };
 
@@ -287,13 +334,25 @@ export const ApiUsageLogCRUD = {
 // consumeCredits: valida acceso y descuenta créditos del wallet
 // (usa Endpoint.cost para determinar el costo)
 // -----------------------------
-export async function consumeCreditsForRequest({ keyHash, idendpoint, requestMeta = {} }) {
+export async function consumeCreditsForRequest({
+  keyHash,
+  idendpoint,
+  requestMeta = {},
+}) {
   const tx = await dbsequelize.transaction();
   try {
     // 1) localizar ApiKey
-    const apikey = await ApiKey.findOne({ where: { apikey: keyHash }, transaction: tx, lock: tx.LOCK.UPDATE });
+    const apikey = await ApiKey.findOne({
+      where: { apikey: keyHash },
+      transaction: tx,
+      lock: tx.LOCK.UPDATE,
+    });
     if (!apikey) throw new Error("apikey_not_found");
-    if (!apikey.enabled || (apikey.startAt && apikey.startAt > new Date()) || (apikey.endAt && apikey.endAt < new Date())) {
+    if (
+      !apikey.enabled ||
+      (apikey.startAt && apikey.startAt > new Date()) ||
+      (apikey.endAt && apikey.endAt < new Date())
+    ) {
       throw new Error("apikey_inactive");
     }
 
@@ -303,25 +362,48 @@ export async function consumeCreditsForRequest({ keyHash, idendpoint, requestMet
       transaction: tx,
       lock: tx.LOCK.UPDATE,
     });
-    if (!assignment || !assignment.enabled || (assignment.startAt && assignment.startAt > new Date()) || (assignment.endAt && assignment.endAt < new Date())) {
+    if (
+      !assignment ||
+      !assignment.enabled ||
+      (assignment.startAt && assignment.startAt > new Date()) ||
+      (assignment.endAt && assignment.endAt < new Date())
+    ) {
       throw new Error("endpoint_not_allowed");
     }
 
     // 3) obtener costo del endpoint (campo cost del modelo Endpoint)
-    const ep = await Endpoint.findByPk(idendpoint, { transaction: tx, lock: tx.LOCK.UPDATE });
+    const ep = await Endpoint.findByPk(idendpoint, {
+      transaction: tx,
+      lock: tx.LOCK.UPDATE,
+    });
     if (!ep) throw new Error("endpoint_not_found");
     const cost = parseFloat(ep.cost || 0);
 
     // 4) obtener wallet del cliente
-    const client = await ApiClient.findByPk(apikey.idclient, { transaction: tx, lock: tx.LOCK.UPDATE });
-    if (!client || !client.enabled || (client.startAt && client.startAt > new Date()) || (client.endAt && client.endAt < new Date())) {
+    const client = await ApiClient.findByPk(apikey.idclient, {
+      transaction: tx,
+      lock: tx.LOCK.UPDATE,
+    });
+    if (
+      !client ||
+      !client.enabled ||
+      (client.startAt && client.startAt > new Date()) ||
+      (client.endAt && client.endAt < new Date())
+    ) {
       throw new Error("client_inactive");
     }
 
-    let wallet = await ClientWallet.findOne({ where: { idclient: client.idclient }, transaction: tx, lock: tx.LOCK.UPDATE });
+    let wallet = await ClientWallet.findOne({
+      where: { idclient: client.idclient },
+      transaction: tx,
+      lock: tx.LOCK.UPDATE,
+    });
     if (!wallet) {
       // crear wallet con balance 0 si no existe
-      wallet = await ClientWallet.create({ idclient: client.idclient, balance: 0 }, { transaction: tx });
+      wallet = await ClientWallet.create(
+        { idclient: client.idclient, balance: 0 },
+        { transaction: tx }
+      );
     }
 
     // 5) verificar saldo
@@ -380,5 +462,59 @@ export async function consumeCreditsForRequest({ keyHash, idendpoint, requestMet
     }
 
     throw err;
+  }
+}
+
+/**
+ * Inserta un nuevo cliente externo (ApiClient).
+ * @param {object} data - Datos del cliente.
+ * @returns {Promise<object>} - Resultado de la operación.
+ */
+export async function createApiClient(data) {
+  try {
+    // Validaciones iniciales
+    if (!data.username) {
+      throw new Error("El campo 'username' es obligatorio.");
+    }
+
+    // startAt es obligatorio según el modelo
+    if (!data.startAt) {
+      throw new Error("El campo 'startAt' es obligatorio.");
+    }
+
+    // Insertar registro
+    const newClient = await ApiClient.create({
+      username: data.username,
+      email: data.email || null,
+      document: data.document || null,
+      phone: data.phone || null,
+
+      startAt: data.startAt,
+      endAt: data.endAt || null,
+      enabled: data.enabled ?? true,
+    });
+
+    return {
+      success: true,
+      message: "Cliente creado correctamente.",
+      idclient: newClient.idclient,
+      username: newClient.username,
+    };
+  } catch (err) {
+    // Error de unicidad (username duplicado)
+    if (err.name === "SequelizeUniqueConstraintError") {
+      return {
+        success: false,
+        message: `El cliente con username '${data.username}' ya existe.`,
+        error: err.errors?.map((e) => e.message) || err.message,
+      };
+    }
+
+    // Otros errores
+    return {
+      success: false,
+      message: "Error al crear el cliente.",
+      error: err.message,
+    };
   }
 }

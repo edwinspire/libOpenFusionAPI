@@ -1,7 +1,11 @@
-import { login , getUserProfileEndpointData} from "../../../../db/user.js";
+import { login, getUserProfileEndpointData } from "../../../../db/user.js";
 import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
-import { getAllUsers , updateUserPassword} from "../../../../db/user.js";
+import {
+  getAllUsers,
+  updateUserPassword,
+  createUser,
+} from "../../../../db/user.js";
 import {
   upsertEndpoint,
   getEndpointById,
@@ -39,6 +43,7 @@ import {
   getSystemInfoDynamic,
   getSystemInfoStatic,
 } from "../../../systeminformation.js";
+import { createApiClient } from "../../../../db/apiclient.js";
 
 export async function fnListFnVarsHandlerJS(params) {
   let r = { code: 204, data: undefined };
@@ -876,6 +881,42 @@ export async function fnUpdateUserPassword(params) {
 
   try {
     let data = await updateUserPassword(params?.request?.body);
+
+    r.data = data;
+    r.code = 200;
+  } catch (error) {
+    //console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnCreateApiClient(params) {
+  let r = { data: undefined, code: 204 };
+
+  try {
+    let data = await createApiClient(params?.request?.body);
+
+    r.data = data;
+    r.code = 200;
+  } catch (error) {
+    //console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnCreateUser(params) {
+  let r = { data: undefined, code: 204 };
+
+  try {
+    let data = await createUser(params?.request?.body);
 
     r.data = data;
     r.code = 200;

@@ -585,7 +585,6 @@ export default class ServerAPI extends EventEmitter {
       HOST
     );
 
-
     this.telegram.launch();
 
     await this.fastify.listen({ port: PORT, host: host });
@@ -676,6 +675,8 @@ console.log('----');
 
       if (user.username == "superuser" && user.enabled) {
         return true;
+      } else if (handler.params.app == "system" && user.ctrl.as_admin) {
+        return true;
       } else if (handler.params.app == "system" && !user.ctrl.as_admin) {
         return false;
       } else if (
@@ -732,7 +733,7 @@ console.log('----');
         }
       } else {
         //
-
+        // TODO: Implementar correctamente el control de acceso
         switch (handler.params.access) {
           case 1: // Basic
             // Aqui el código para validar usuario y clave de API
@@ -762,9 +763,6 @@ console.log('----');
               request.openfusionapi.user = data_aut.Bearer.data;
             } else if (data_aut.Basic.username && data_aut.Basic.password) {
               await this._check_auth_Basic(handler, data_aut, request, reply);
-              console.log(
-                ">>>>>> this._check_auth_Basic(handler, data_aut, request, reply);"
-              );
             } else {
               reply
                 .code(401)

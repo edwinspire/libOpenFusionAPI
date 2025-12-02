@@ -474,3 +474,55 @@ export async function updateUserPassword({
     };
   }
 }
+
+/**
+ * Inserta un nuevo usuario en la tabla User.
+ * @param {object} data - Datos del nuevo usuario.
+ * @returns {Promise<object>} - Resultado de la operación.
+ */
+export async function createUser(data) {
+  try {
+    // Validaciones mínimas
+    if (!data.username) {
+      throw new Error("El campo 'username' es obligatorio.");
+    }
+
+    // Crear usuario
+    const newUser = await User.create({
+      username: data.username,
+      password: data.password || null,
+      first_name: data.first_name || null,
+      last_name: data.last_name || null,
+      email: data.email || null,
+      enabled: data.enabled ?? true,
+      ctrl: data.ctrl || {},
+      start_date: data.start_date || "2000-01-01",
+      end_date: data.end_date || "9999-12-31",
+      exp_time: data.exp_time ?? 3600,
+    });
+
+    // Retornar estructura limpia
+    return {
+      success: true,
+      message: "Usuario creado correctamente.",
+      iduser: newUser.iduser,
+      username: newUser.username
+    };
+  } catch (err) {
+    // Error de username duplicado (unique constraint)
+    if (err.name === "SequelizeUniqueConstraintError") {
+      return {
+        success: false,
+        message: `El usuario '${data.username}' ya existe.`,
+        error: err.errors?.map(e => e.message) || err.message
+      };
+    }
+
+    // Otros errores
+    return {
+      success: false,
+      message: "Error al crear el usuario.",
+      error: err.message
+    };
+  }
+}
