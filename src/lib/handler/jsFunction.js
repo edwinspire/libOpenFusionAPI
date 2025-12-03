@@ -44,6 +44,14 @@ export const jsFunction = async (
       response.openfusionapi.lastResponse.data = result_fn;
     }
     response.code(200).send(result_fn);
+
+    /*
+ response
+      .code(200)
+      .type(mimeType)
+      .header("Content-Disposition", `attachment; filename="${filename}"`)
+      .send(textConfig.payload);
+       */
   } catch (error) {
     console.trace(error);
     setCacheReply(response, error);

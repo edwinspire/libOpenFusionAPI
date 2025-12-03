@@ -5,7 +5,7 @@ import { Sequelize } from "sequelize";
 //Temporal DDBB
 const tmpPath = path.join(os.tmpdir(), "ofapi.sqlite");
 
-const db_conn = process.env.DATABASE_URI_API || `sqlite:${tmpPath}`;
+const db_conn = process.env.DATABASE_URL || process.env.DATABASE_URI_API || `sqlite:${tmpPath}`;
 
 const dbsequelize = new Sequelize(db_conn, {
   logging: false, // Imprime el SQL en consola
