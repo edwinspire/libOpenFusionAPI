@@ -13,6 +13,7 @@ import * as SEQUELIZE from "sequelize";
 import Zod from "zod";
 import * as $_PDFJS_ from "pdfjs-dist/legacy/build/pdf.mjs";
 import * as XLSX from "xlsx";
+import $_NODEMAILER_ from "nodemailer";
 import {
   createImage as $_CREATE_IMAGE_FROM_HTML_,
   createPDF as $_CREATE_PDF_FROM_HTML,
@@ -615,6 +616,12 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? Zod : undefined,
       info: "Zod is a TypeScript-first schema declaration and validation library. ",
       web: "https://zod.dev/?id=introduction",
+    },
+    $_NODEMAILER_: {
+      fn: request && reply ? $_NODEMAILER_ : undefined,
+      info: "Nodemailer makes sending email from a Node.js application straightforward and secure, without pulling in a single runtime dependency.",
+      web: "https://nodemailer.com/",
+
     },
     $_XLSX_: {
       fn: request && reply ? XLSX : undefined,
