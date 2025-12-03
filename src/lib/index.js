@@ -481,7 +481,7 @@ export default class ServerAPI extends EventEmitter {
 
     this.fastify.get("/server/version", async (request, reply) => {
       // Aquí puedes manejar las peticiones GET a /server/version
-      reply.send({ version: version });
+      reply.send({ version: version, ddbb: dbAPIs.getDialect() });
     });
 
     // Declare a route
