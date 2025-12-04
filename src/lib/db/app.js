@@ -238,8 +238,9 @@ export const defaultApps = async () => {
   let result = default_apps.map(async (app) => {
     try {
       let r = await restoreAppFromBackup(app);
-      return { app: app, result: r};
+      return { app: app, result: r };
     } catch (error) {
+      console.log("Error defaultApps:", error);
       return { app: app, error: error };
     }
   });
@@ -260,7 +261,6 @@ export const getAppById = async (
     throw error;
   }
 };
-
 
 export async function getAppBackupById(idapp) {
   try {
