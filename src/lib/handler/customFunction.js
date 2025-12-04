@@ -46,7 +46,7 @@ export const customFunction = async (
         $_REPLY_.code(500).send(errors);
       }
     } else {
-      let alt_resp = { error: `Function ${method.code} not found.` };
+      let alt_resp = { error: `URL: ${_REQUEST_} - Function ${method.code} not found.` };
       //setCacheReply($_REPLY_, alt_resp);
 
       $_REPLY_.code(500).send(alt_resp);
