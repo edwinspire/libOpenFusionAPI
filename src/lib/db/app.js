@@ -329,12 +329,14 @@ function ValidateEndpoint(default_endpoints, system_endpoints) {
       }
 
       result.valid = field_diff.length == 0;
-      result.diff = { endpoint: element };
-      result.message = `Endpoint ${
-        element.idendpoint
-      } has modified fields: ${field_diff.join(", ")}`;
-
-      break;
+      if (!result.valid) {
+        result.diff = { endpoint: element };
+        result.message = `Endpoint ${
+          element.idendpoint
+        } has modified fields: ${field_diff.join(", ")}`;
+        break;
+      }
+      
     }
   }
   return result;
