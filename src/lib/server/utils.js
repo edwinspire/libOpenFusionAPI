@@ -381,6 +381,12 @@ export const listFunctionsVars = (request, reply, environment) => {
       web: own_repo,
       return: "Any",
     },
+    $_CUSTOM_HEADERS_: {
+      fn: new Map(),
+      info: "Custom headers to send in the reply.",
+      web: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+      return: "Map object",
+    },
     $_REPLY_: {
       fn: reply,
       info: "Fastify Reply. Is the object used to send a response to the client.",
@@ -622,7 +628,6 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? $_NODEMAILER_ : undefined,
       info: "Nodemailer makes sending email from a Node.js application straightforward and secure, without pulling in a single runtime dependency.",
       web: "https://nodemailer.com/",
-
     },
     $_XLSX_: {
       fn: request && reply ? XLSX : undefined,
@@ -699,7 +704,7 @@ return async()=>{
   let {${vars}} = $_VARS_;
   
   ${code}
-  return $_RETURN_DATA_;  
+  return {data: $_RETURN_DATA_, headers: $_CUSTOM_HEADERS_};  
 }
 `;
 

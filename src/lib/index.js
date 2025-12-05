@@ -41,7 +41,6 @@ import {
   tblDemo,
 } from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
-// import { createFunction } from "./handler/jsFunction.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
 import { OpenFusionWebsocketClient } from "./server/websocket_client.js";
 import {

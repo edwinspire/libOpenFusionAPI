@@ -41,9 +41,17 @@ export const jsFunction = async (
       response.openfusionapi.lastResponse &&
       response.openfusionapi.lastResponse.hash_request
     ) {
-      response.openfusionapi.lastResponse.data = result_fn;
+      response.openfusionapi.lastResponse.data = result_fn.data;
     }
-    response.code(200).send(result_fn);
+
+    if (result_fn.headers && result_fn.headers.size > 0) {
+      for (const [key, value] of result_fn.headers) {
+        //console.log(`${key}: ${value}`);
+        response.header(key, value);
+      }
+    }
+
+    response.code(200).send(result_fn.data);
 
     /*
  response
