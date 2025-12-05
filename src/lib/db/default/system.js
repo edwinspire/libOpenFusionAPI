@@ -1220,7 +1220,7 @@ export const system_app = {
       resource: "/database/hooks",
       method: "POST",
       handler: "JS",
-      access: 2,
+      access: 0,
       description:
         "Receiver of hooks issued from the database, these events will be forwarded via websocket to be consumed by clients.",
       cost: 0.000001,
