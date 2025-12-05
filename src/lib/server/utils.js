@@ -179,6 +179,7 @@ export function tokenVerify(token) {
  * @param {any} req
  */
 export function getUserPasswordTokenFromRequest(req) {
+  // TODO: Tambien buscar el Token en las cookies
   const authHeader = req.headers?.authorization;
   let username, token, password, data_token;
 

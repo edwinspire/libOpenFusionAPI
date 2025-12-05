@@ -687,10 +687,20 @@ export const Endpoint = dbsequelize.define(
       beforeValidate: (instance) => {
         randomRowKey(instance);
         ensureUUID(instance, "idendpoint");
-
+        if (
+          instance.handler == "FUNCTION" &&
+          (!instance.code || instance.code.length < 1)
+        ) {
+          throw Error(
+            "The handle FUNCTION must be associated with a function; it cannot be empty."
+          );
+        }
+        
         if (typeof instance.code == "object") {
           instance.code = JSON.stringify(instance.code);
         }
+        
+        
       },
       beforeBulkCreate: (instance) => {
         randomRowKey(instance);

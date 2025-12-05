@@ -277,29 +277,63 @@ function ValidateEndpoint(default_endpoints, system_endpoints) {
 
   for (let index = 0; index < default_endpoints.length; index++) {
     const element = default_endpoints[index];
-    let dif = system_endpoints.find((item) => {
-      const r =
-        JSON.stringify(element.json_schema) ===
-          JSON.stringify(item.json_schema) &&
-        element.idendpoint === item.idendpoint &&
-        element.enabled === item.enabled &&
-        element.idapp === item.idapp &&
-        element.environment === item.environment &&
-        element.resource === item.resource &&
-        element.method === item.method &&
-        element.handler === item.handler &&
-        element.access === item.access &&
-        element.code === item.code &&
-        element.cache_time === item.cache_time;
 
-      return r;
+    let dif = system_endpoints.find((item) => {
+      return item.idendpoint == element.idendpoint;
     });
 
     if (!dif) {
       // No se encontró el endoint sale del bucle y reporta la diferencia
       result.valid = false;
       result.diff = { endpoint: element };
-      result.message = "Differences were found in the endpoints.";
+      result.message = `Endpoint ${element.idendpoint} not found`;
+      break;
+    } else {
+      let field_diff = [];
+
+      if (
+        JSON.stringify(element.json_schema) !== JSON.stringify(dif.json_schema)
+      ) {
+        field_diff.push("json_schema");
+      }
+      if (element.enabled !== dif.enabled) {
+        field_diff.push("enabled");
+      }
+      if (element.enabled !== dif.enabled) {
+        field_diff.push("enabled");
+      }
+      if (element.idapp !== dif.idapp) {
+        field_diff.push("idapp");
+      }
+      if (element.environment !== dif.environment) {
+        field_diff.push("environment");
+      }
+      if (element.resource !== dif.resource) {
+        field_diff.push("resource");
+      }
+      if (element.method !== dif.method) {
+        field_diff.push("method");
+      }
+
+      if (element.handler !== dif.handler) {
+        field_diff.push("handler");
+      }
+      if (element.access !== dif.access) {
+        field_diff.push("access");
+      }
+      if (JSON.stringify(element.code) !== JSON.stringify(dif.code)) {
+        field_diff.push("code");
+      }
+      if (element.cache_time !== dif.cache_time) {
+        field_diff.push("cache_time");
+      }
+
+      result.valid = field_diff.length == 0;
+      result.diff = { endpoint: element };
+      result.message = `Endpoint ${
+        element.idendpoint
+      } has modified fields: ${field_diff.join(", ")}`;
+
       break;
     }
   }

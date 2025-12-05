@@ -19,7 +19,7 @@ import {
   saveAppWithEndpoints,
   restoreAppFromBackup,
   getAppBackupById,
-  checkSystemApp
+  checkSystemApp,
 } from "../../../../db/app.js";
 import {
   createLog,
@@ -45,6 +45,7 @@ import {
   getSystemInfoStatic,
 } from "../../../systeminformation.js";
 import { createApiClient } from "../../../../db/apiclient.js";
+import { getUserPasswordTokenFromRequest } from "../../../utils.js";
 
 export async function fnListFnVarsHandlerJS(params) {
   let r = { code: 204, data: undefined };
@@ -100,10 +101,9 @@ export async function fnGetUserProfileEndpointData(params) {
 export async function fnLogin(params) {
   let r = { code: 204, data: undefined };
   try {
-    let user = await login(
-      params.request.body.username,
-      params.request.body.password
-    );
+    let auth_data = getUserPasswordTokenFromRequest(params.request);
+
+    let user = await login(auth_data.Basic.username, auth_data.Basic.password);
 
     //res.header("OFAPI-TOKEN", '');
     //params.reply.cookie("OFAPI-TOKEN", "");
@@ -150,9 +150,11 @@ export async function fnLogin(params) {
   return r;
 }
 
+/*
 export async function fnToken(params) {
   return fnLogin(params.request, params.data_user, params.reply);
 }
+*/
 
 export async function fnLogout(params) {
   let r = { data: undefined, code: 204 };
@@ -326,6 +328,27 @@ export async function fnEndpointGetByIdApp(params) {
     //console.log(req.params, req.query, raw);
 
     r.data = await getEndpointByIdApp(params.request.query.idapp, raw);
+    r.code = 200;
+
+    //res.code(200).json(data);
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //		res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+export async function fnAPIToken(params) {
+  //TODO:  Esta Funcíon debe generar el Token para los usuarios externos - Token para las API
+  let r = { code: 200, data: undefined };
+  try {
+
+    let auth_data = getUserPasswordTokenFromRequest(params.request);
+    
+    r.data = false;
     r.code = 200;
 
     //res.code(200).json(data);
@@ -729,9 +752,6 @@ export async function fnTelegramsendPhoto(params) {
   return r;
 }
 
-
-
-
 export async function fnRestoreAppFromBackup(params) {
   let r = { data: undefined, code: 204 };
   try {
@@ -934,8 +954,6 @@ export async function fnCheckSystemApp(params) {
   }
   return r;
 }
-
-
 
 export async function fnCreateUser(params) {
   let r = { data: undefined, code: 204 };
