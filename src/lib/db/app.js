@@ -7,6 +7,7 @@ import {
 import { getAppVarsByIdApp, upsertAppVar } from "./appvars.js";
 import { default_apps } from "./default/index.js";
 import { v4 as uuidv4 } from "uuid";
+import { system_app } from "./default/system.js";
 
 export const getAppWithEndpoints = async (
   /** @type {any} */ where,
@@ -182,7 +183,7 @@ export const restoreAppFromBackup = async (app) => {
 
         // Para la version anterior del backup
         // TODO: Esto se debe eliminar despues de la migración
-        /*
+
         if (app.vars && typeof app.vars === "object") {
           // Hacemos un upsert de las variables de aplicación
           let promises_vars = [];
@@ -206,7 +207,6 @@ export const restoreAppFromBackup = async (app) => {
 
           await Promise.allSettled(promises_vars);
         }
-        */
 
         if (Array.isArray(app.vrs) && app.vrs.length > 0) {
           // Hacemos un upsert de las variables de aplicación
@@ -269,6 +269,66 @@ export async function getAppBackupById(idapp) {
   } catch (error) {
     console.error("Error al obtener Application:", error);
     throw new Error("No se pudo obtener la aplicación");
+  }
+}
+
+function ValidateEndpoint(default_endpoints, system_endpoints) {
+  let result = { valid: true, message: "All endpoints are correct." };
+
+  for (let index = 0; index < default_endpoints.length; index++) {
+    const element = default_endpoints[index];
+    let dif = system_endpoints.find((item) => {
+      const r =
+        JSON.stringify(element.json_schema) ===
+          JSON.stringify(item.json_schema) &&
+        element.idendpoint === item.idendpoint &&
+        element.enabled === item.enabled &&
+        element.idapp === item.idapp &&
+        element.environment === item.environment &&
+        element.resource === item.resource &&
+        element.method === item.method &&
+        element.handler === item.handler &&
+        element.access === item.access &&
+        element.code === item.code &&
+        element.cache_time === item.cache_time;
+
+      return r;
+    });
+
+    if (!dif) {
+      // No se encontró el endoint sale del bucle y reporta la diferencia
+      result.valid = false;
+      result.diff = { endpoint: element };
+      result.message = "Differences were found in the endpoints.";
+      break;
+    }
+  }
+  return result;
+}
+
+export async function checkSystemApp(restore = false) {
+  try {
+    let result = { valid: true, diff: {} };
+
+    // Obtener la data actual
+    const data = await getApplicationTreeByFilters({
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+    });
+
+    // Validar endpoints
+    result = ValidateEndpoint(system_app.endpoints, data.endpoints);
+
+    // Si se solicita sincronizar hacerlo
+    if (restore && !result.valid) {
+      let r = await restoreAppFromBackup(system_app);
+      result = ValidateEndpoint(system_app.endpoints, r.endpoints);
+    }
+
+    // Devuelve si hay diferencias
+    return result;
+  } catch (error) {
+    console.error("Error al verificar los datos del sistema:", error);
+    throw new Error("The system endpoints could not be verified");
   }
 }
 

@@ -19,6 +19,7 @@ import {
   saveAppWithEndpoints,
   restoreAppFromBackup,
   getAppBackupById,
+  checkSystemApp
 } from "../../../../db/app.js";
 import {
   createLog,
@@ -728,6 +729,9 @@ export async function fnTelegramsendPhoto(params) {
   return r;
 }
 
+
+
+
 export async function fnRestoreAppFromBackup(params) {
   let r = { data: undefined, code: 204 };
   try {
@@ -911,6 +915,27 @@ export async function fnCreateApiClient(params) {
   }
   return r;
 }
+
+//
+export async function fnCheckSystemApp(params) {
+  let r = { data: undefined, code: 204 };
+
+  try {
+    let data = await checkSystemApp(params?.request?.body.restore);
+
+    r.data = data;
+    r.code = 200;
+  } catch (error) {
+    //console.log(error);
+
+    r.data = error;
+    r.code = 500;
+    //res.code(500).json({ error: error.message });
+  }
+  return r;
+}
+
+
 
 export async function fnCreateUser(params) {
   let r = { data: undefined, code: 204 };
