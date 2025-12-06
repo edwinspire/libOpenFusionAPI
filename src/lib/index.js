@@ -21,10 +21,7 @@ import { version } from "./server/version.js";
 import dbAPIs from "./db/sequelize.js";
 import {
   defaultApps,
-  //getAppByName,
-  //  getAppWithEndpoints,
 } from "./db/app.js";
-//import { defaultEndpoints } from "./db/endpoint.js";
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";

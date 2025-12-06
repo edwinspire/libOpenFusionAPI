@@ -78,18 +78,6 @@ export const getAppFullById = async (
   }
 };
 
-export const getAppByName = async (
-  /** @type {String} */ appname,
-  raw = false
-) => {
-  try {
-    const app = await getAppWithEndpoints({ app: appname }, raw);
-    return app;
-  } catch (error) {
-    console.error("Error retrieving app:", error);
-    throw error;
-  }
-};
 
 export const getAllApps = async () => {
   try {

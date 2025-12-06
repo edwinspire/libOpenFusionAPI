@@ -629,6 +629,19 @@ export const Endpoint = dbsequelize.define(
         JSON_ADAPTER.setData(this, "json_schema", value);
       },
     },
+    custom_data: {
+      type: JSON_TYPE,
+      allowNull: true,
+      defaultValue: JSON_ADAPTER._isMsSql()
+        ? JSON.stringify({})
+        : {},
+      get() {
+        return JSON_ADAPTER.getData(this, "custom_data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "custom_data", value);
+      },
+    },
     headers_test: {
       type: JSON_TYPE,
       allowNull: true,

@@ -5,8 +5,6 @@ import {
   internal_url_endpoint,
 } from "./utils_path.js";
 import {
-  getAppWithEndpoints,
-  getAppByName,
   getApplicationTreeByFilters,
 } from "../db/app.js";
 import * as z from "zod";
@@ -570,7 +568,6 @@ export default class Endpoint extends EventEmitter {
   async _loadEndpointsByAPPToCache(params) {
     try {
       // Carga los endpoints de una App a cache
-      //let appDataResult = await getAppWithEndpoints({ app: app }, false);
       let appData = await getApplicationTreeByFilters({
         app: params.app,
         enabled: true,
