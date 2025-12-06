@@ -167,6 +167,7 @@ export const User = dbsequelize.define(
     email: {
       type: DataTypes.STRING,
     },
+    change_password: { type: DataTypes.BOOLEAN, defaultValue: true },
     start_date: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -632,9 +633,7 @@ export const Endpoint = dbsequelize.define(
     custom_data: {
       type: JSON_TYPE,
       allowNull: true,
-      defaultValue: JSON_ADAPTER._isMsSql()
-        ? JSON.stringify({})
-        : {},
+      defaultValue: JSON_ADAPTER._isMsSql() ? JSON.stringify({}) : {},
       get() {
         return JSON_ADAPTER.getData(this, "custom_data");
       },
@@ -708,12 +707,10 @@ export const Endpoint = dbsequelize.define(
             "The handle FUNCTION must be associated with a function; it cannot be empty."
           );
         }
-        
+
         if (typeof instance.code == "object") {
           instance.code = JSON.stringify(instance.code);
         }
-        
-        
       },
       beforeBulkCreate: (instance) => {
         randomRowKey(instance);
@@ -1173,10 +1170,10 @@ export const ApiClient = dbsequelize.define(
       defaultValue: DataTypes.UUIDV4,
     },
     username: { type: DataTypes.STRING(100), allowNull: false, unique: true },
+    change_password: { type: DataTypes.BOOLEAN, defaultValue: true },
     email: { type: DataTypes.STRING(150), allowNull: true },
     document: { type: DataTypes.STRING(50), allowNull: true },
     phone: { type: DataTypes.STRING(30), allowNull: true },
-
     startAt: { type: DataTypes.DATE, allowNull: false },
     endAt: { type: DataTypes.DATE, allowNull: true },
     enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
