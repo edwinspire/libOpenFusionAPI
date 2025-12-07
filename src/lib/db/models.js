@@ -574,11 +574,17 @@ export const Endpoint = dbsequelize.define(
       allowNull: false,
       defaultValue: "",
     },
-    cost: {
-      type: DataTypes.DECIMAL(6, 6),
+    cost_by_request: {
+      type: DataTypes.DECIMAL(18, 6),
       allowNull: false,
       defaultValue: 0.000001,
     },
+    cost_by_kb: {
+      type: DataTypes.DECIMAL(18, 6),
+      allowNull: false,
+      defaultValue: 0.00001,
+    },
+
     keywords: {
       type: DataTypes.TEXT,
       allowNull: false,
@@ -1292,16 +1298,7 @@ export const ApiUsageLog = dbsequelize.define(
     idkey: { type: DataTypes.UUID, allowNull: false },
     idendpoint: { type: DataTypes.UUID, allowNull: false },
 
-    cost_by_request: {
-      type: DataTypes.DECIMAL(18, 6),
-      allowNull: false,
-      defaultValue: 0.000001,
-    },
-    cost_by_kb: {
-      type: DataTypes.DECIMAL(18, 6),
-      allowNull: false,
-      defaultValue: 0.00001,
-    },
+    cost: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
     balance_after: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
 
     success: { type: DataTypes.BOOLEAN, defaultValue: true },
