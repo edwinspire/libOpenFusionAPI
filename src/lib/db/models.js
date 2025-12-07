@@ -190,6 +190,16 @@ export const User = dbsequelize.define(
         JSON_ADAPTER.setData(this, "ctrl", value);
       },
     },
+    custom_data: {
+      type: JSON_TYPE,
+      comment: "User custom data",
+      get() {
+        return JSON_ADAPTER.getData(this, "custom_data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "custom_data", value);
+      },
+    },
     exp_time: {
       type: DataTypes.BIGINT,
       defaultValue: 3600,
@@ -1176,6 +1186,16 @@ export const ApiClient = dbsequelize.define(
     phone: { type: DataTypes.STRING(30), allowNull: true },
     startAt: { type: DataTypes.DATE, allowNull: false },
     endAt: { type: DataTypes.DATE, allowNull: true },
+    custom_data: {
+      type: JSON_TYPE,
+      comment: "User custom data",
+      get() {
+        return JSON_ADAPTER.getData(this, "custom_data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "custom_data", value);
+      },
+    },
     enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
   },
   { timestamps: true, freezeTableName: true }
@@ -1272,7 +1292,16 @@ export const ApiUsageLog = dbsequelize.define(
     idkey: { type: DataTypes.UUID, allowNull: false },
     idendpoint: { type: DataTypes.UUID, allowNull: false },
 
-    cost: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
+    cost_by_request: {
+      type: DataTypes.DECIMAL(18, 6),
+      allowNull: false,
+      defaultValue: 0.000001,
+    },
+    cost_by_kb: {
+      type: DataTypes.DECIMAL(18, 6),
+      allowNull: false,
+      defaultValue: 0.00001,
+    },
     balance_after: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
 
     success: { type: DataTypes.BOOLEAN, defaultValue: true },
