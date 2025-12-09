@@ -4,9 +4,7 @@ import {
   url_key,
   internal_url_endpoint,
 } from "./utils_path.js";
-import {
-  getApplicationTreeByFilters,
-} from "../db/app.js";
+import { getApplicationTreeByFilters } from "../db/app.js";
 import * as z from "zod";
 import { getServer, jsonSchemaToZod } from "../server/mcp/server.js";
 import {
@@ -62,29 +60,13 @@ function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/*
-{
-    "/ggg/jjg/kkk|POST": {
-        "handler": "fn",
-        "responses": {
-            "cache": {
-                "md5_request": "data_timeout"
-            },
-            "status": {"100": 10, "500": 345}
-        }
-    }
-}
-*/
-
 export default class Endpoint extends EventEmitter {
   internal_endpoint = {};
   fnLocal = {};
-  //queueLog = new PromiseSequence();
 
   constructor() {
     super();
     this.cacheQueue = new CacheExpirationQueue();
-    //   this.queueLog.thread(this.pushLog, QUEUE_LOG_NUM_THREAD, []);
   }
 
   pushLog(log) {
@@ -97,14 +79,14 @@ export default class Endpoint extends EventEmitter {
       } catch (err) {
         error = err;
       }
-      //    console.log(data, error)
+
       resolve({ data: data, error: error });
     });
   }
 
   getFnNames() {
     let r = {};
-    // this.endpoints.fnLocal[environment][appname][functionName] = fn;
+
     if (this.fnLocal) {
       let list_env = Object.keys(this.fnLocal);
 
@@ -176,7 +158,6 @@ export default class Endpoint extends EventEmitter {
     return (total / 1024).toFixed(3);
   }
 
-  // this.internal_endpoint[url_key].CountStatusCode
   getInternalAppMetrics(app_name) {
     let r = { data: undefined, code: 204 };
     try {
@@ -189,7 +170,6 @@ export default class Endpoint extends EventEmitter {
 
       let data = filteredKeys.map((key) => {
         // Calcula el tamaño de la respuesta
-        //let r = this.internal_endpoint[ep_list[index]].responses;
         return {
           idendpoint: this.internal_endpoint[key]?.handler?.params?.idendpoint,
           cache_size: this.getCacheSizeEndpoint(key),
@@ -199,11 +179,8 @@ export default class Endpoint extends EventEmitter {
 
       r.data = data;
     } catch (error) {
-      //console.log(error);
-
       r.data = error;
       r.code = 500;
-      //res.code(500).json({ error: error.message });
     }
     return r;
   }
@@ -220,7 +197,6 @@ export default class Endpoint extends EventEmitter {
 
       let sizeList = filteredKeys.map((key) => {
         // Calcula el tamaño de la respuesta
-        //let r = this.internal_endpoint[ep_list[index]].responses;
         return {
           idendpoint: this.internal_endpoint[key]?.handler?.params?.idendpoint,
           size: this.getCacheSizeEndpoint(key),
@@ -229,11 +205,8 @@ export default class Endpoint extends EventEmitter {
 
       r.data = sizeList;
     } catch (error) {
-      //console.log(error);
-
       r.data = error;
       r.code = 500;
-      //res.code(500).json({ error: error.message });
     }
     return r;
   }
@@ -265,13 +238,12 @@ export default class Endpoint extends EventEmitter {
         method: request.method,
         app: ep.handler?.params?.app,
         environment: ep.handler?.params?.environment,
-        //endpoint: ep.handler?.params?.url_method,
+
         responseTime: reply?.openfusionapi?.lastResponse?.responseTime,
         statusCode: reply.statusCode,
         count_status_code: ep?.CountStatusCode,
       });
 
-      //let hash_request = this.hash_request(request, url_key);
       let hash_request = request.openfusionapi.hash_request;
 
       let reply_lastResponse =
@@ -306,12 +278,11 @@ export default class Endpoint extends EventEmitter {
             idendpoint: ep?.handler?.params?.idendpoint,
             idapp: ep?.handler?.params?.idapp,
             cache_size: this.getCacheSizeEndpoint(url_key),
-            //count_status_code: ep?.CountStatusCode,
+
             url: request.url,
           });
 
           this.cacheQueue.add(Date.now() + cache_time, () => {
-            //delete this.internal_endpoint[url_key].responses[hash_request];
             delete this.internal_endpoint?.[url_key]?.responses?.[hash_request];
 
             this.emit("cache_released", {
@@ -350,19 +321,14 @@ export default class Endpoint extends EventEmitter {
 
       r.data = statusCodeList;
     } catch (error) {
-      //console.log(error);
-
       r.data = error;
       r.code = 500;
-      //res.code(500).json({ error: error.message });
     }
     return r;
   }
 
   getDataLog(log_level, request, reply) {
     let handler_param = request?.openfusionapi?.handler?.params;
-
-    // TODO: No guardar en los parameros de handler los datos de test, y analizar tambien si no se debe guardar el codigo
 
     if (handler_param?.data_test) {
       handler_param.data_test = undefined;
@@ -413,8 +379,7 @@ export default class Endpoint extends EventEmitter {
       case 2:
         data_log.req_headers = request.headers;
         data_log.res_headers = reply.getHeaders();
-        //data_log.query = request.query;
-        //data_log.body = request.body;
+
         data_log.user_agent = request.headers["user-agent"];
         data_log.client = getIPFromRequest(request);
         break;
@@ -435,48 +400,13 @@ export default class Endpoint extends EventEmitter {
 
   saveLog(request, reply) {
     try {
-      // TODO: No guardar en cache respuestas con error
-      // TODO: capturar tambien los errores 500 para que en el log se lo pueda visualizar
       let param_log = request?.openfusionapi?.handler?.params?.ctrl?.log ?? {};
-      // let save_log = undefined;
-
       const category = getLogLevelForStatus(reply.statusCode);
       const level = param_log[`status_${category}`] ?? 1;
 
       const save_log = this.getDataLog(level, request, reply);
 
-      /*
-      if (reply.statusCode >= 100 && reply.statusCode <= 199) {
-        save_log = this.getDataLog(param_log.status_info, request, reply);
-      } else if (reply.statusCode >= 200 && reply.statusCode <= 299) {
-        save_log = this.getDataLog(param_log.status_success, request, reply);
-      } else if (reply.statusCode >= 300 && reply.statusCode <= 399) {
-        save_log = this.getDataLog(param_log.status_redirect, request, reply);
-      } else if (reply.statusCode >= 400 && reply.statusCode <= 499) {
-        save_log = this.getDataLog(
-          param_log.status_client_error,
-          request,
-          reply
-        );
-      } else if (reply.statusCode >= 500 && reply.statusCode <= 599) {
-        save_log = this.getDataLog(
-          param_log.status_server_error == null
-            ? 3
-            : param_log.status_server_error,
-          request,
-          reply
-        );
-      } else if (reply.statusCode == 404) {
-        // Forzar el guardado de los errores 404
-        save_log = this.getDataLog(1, request, reply);
-      }
-      */
-
-      // console.log(">>>> param_log >>> ", param_log, save_log);
-      //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
-
       if (save_log) {
-        //this.queueLog.push(save_log);
         this.emit("log", save_log);
       }
     } catch (error) {
@@ -516,7 +446,6 @@ export default class Endpoint extends EventEmitter {
       let ep_list = Object.keys(this.internal_endpoint);
 
       for (let index = 0; index < ep_list.length; index++) {
-        //const prms = get_url_params(ep_list[index]);
         let ep = this.internal_endpoint[ep_list[index]];
         if (ep && ep.handler.params.idendpoint == idendpoint) {
           this.emit("cache_released", {
@@ -525,7 +454,6 @@ export default class Endpoint extends EventEmitter {
             idapp: ep?.handler?.params?.idapp,
             cache_size: 0,
             count_status_code: ep?.CountStatusCode,
-            //                 url: request.url,
           });
 
           delete this.internal_endpoint[ep_list[index]];
@@ -541,7 +469,6 @@ export default class Endpoint extends EventEmitter {
       let ep_list = Object.keys(this.internal_endpoint);
 
       for (let index = 0; index < ep_list.length; index++) {
-        //const prms = get_url_params(ep_list[index]);
         let ep = this.internal_endpoint[ep_list[index]];
         if (
           ep &&
@@ -554,12 +481,9 @@ export default class Endpoint extends EventEmitter {
             idapp: ep?.handler?.params?.idapp,
             cache_size: 0,
             count_status_code: ep?.CountStatusCode,
-            //                 url: request.url,
           });
 
           delete this.internal_endpoint[ep_list[index]];
-
-        //  break;
         }
       }
     }
@@ -701,10 +625,7 @@ export default class Endpoint extends EventEmitter {
           }
         }
 
-        // Habilita la validación de datos de entrada usando AJV
         if (returnHandler?.params?.json_schema?.in?.enabled) {
-        //  console.log("Habiltado Validación JSON Schema");
-
           try {
             returnHandler.params.json_schema.in.fn_ajv_validate_schema =
               ajv.compile(returnHandler.params.json_schema.in.schema);
@@ -738,7 +659,7 @@ export default class Endpoint extends EventEmitter {
 
             for (let index2 = 0; index2 < mcp_endpoint_tools.length; index2++) {
               const endpoint = mcp_endpoint_tools[index2];
-              //  console.log("Endpoint:", endpoint);
+
               let url_internal = internal_url_endpoint(
                 app.app,
                 endpoint.resource,
@@ -777,7 +698,7 @@ export default class Endpoint extends EventEmitter {
                       ? endpoint?.mcp?.description
                       : endpoint.description
                   }`,
-                  // inputSchema: zod_inputSchema.shape,
+
                   inputSchema: zod_inputSchema,
                 },
 
@@ -793,9 +714,8 @@ export default class Endpoint extends EventEmitter {
                   });
                   const mimeType = request_endpoint.headers.get("content-type");
                   let data_out = undefined;
-                  //let parse_method = getParseMethod(mimeType);
-                  // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
 
+                  // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
                   data_out = await request_endpoint.text();
 
                   return {
@@ -832,7 +752,6 @@ export default class Endpoint extends EventEmitter {
           // Se libera espacio de esta variable ya que no se va a utilizar mas
           returnHandler.params.code = undefined;
         } else if (returnHandler.params.handler == "FUNCTION") {
-          // Console obtiene la función
           if (
             this.fnLocal[returnHandler.params.environment] &&
             this.fnLocal[returnHandler.params.environment][
@@ -867,7 +786,6 @@ export default class Endpoint extends EventEmitter {
       } else {
         returnHandler.message = `Method ${endpointData.method} Unabled`;
         returnHandler.status = 404;
-        //console.log(endpointData);
       }
     } catch (error) {
       returnHandler.message = error.message;

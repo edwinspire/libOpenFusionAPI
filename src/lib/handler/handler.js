@@ -89,6 +89,8 @@ export const getHandlerDoc = async (handler) => {
         `${__dirname}/../../../docs/handlers/${handler}/README.md`
       );
 
+      console.log(`=>>> Obtener documentación ${handler}`);
+
       // fs.readFileSync() → BLOQUEA el event loop
       // Leer contenido como string
       //const jsDoc = fs.readFileSync(mdPath, "utf8");
