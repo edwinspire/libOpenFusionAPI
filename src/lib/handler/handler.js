@@ -10,14 +10,13 @@ import { mongodbFunction } from "./mongoDB.js";
 import { mcpFunction } from "./mcpFunction.js";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
 // Obtiene la ruta del archivo actual (__filename)
 const __filename = fileURLToPath(import.meta.url);
 
 // Obtiene el directorio (__dirname)
-const __dirname = path.dirname(__filename); 
-
+const __dirname = path.dirname(__filename);
 
 export const Handlers = {
   JS: {
@@ -72,7 +71,7 @@ export const Handlers = {
     fn: mcpFunction,
     description:
       "Proporciona funcionalidades de procesamiento de múltiples canales.",
-  }
+  },
 };
 
 export const getHandlerDoc = async (handler) => {
@@ -86,8 +85,11 @@ export const getHandlerDoc = async (handler) => {
       doc.description = h.description;
 
       // Obtener la ruta absoluta del archivo
-      const mdPath = path.resolve(`${__dirname}/../../../docs/handlers/${handler}/README.md`);
+      const mdPath = path.resolve(
+        `${__dirname}/../../../docs/handlers/${handler}/README.md`
+      );
 
+      // fs.readFileSync() → BLOQUEA el event loop
       // Leer contenido como string
       const jsDoc = fs.readFileSync(mdPath, "utf8");
 
@@ -101,61 +103,25 @@ export const getHandlerDoc = async (handler) => {
   return doc;
 };
 
-/**
- * @param {{headers: any;body: any;query: any;}} request
- * @param {any} response
- * @param {{handler: string;code: string;}} method
- * @param {{ [x: string]: (arg0: { method?: any; headers: any; body: any; query: any; }, arg1: { status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }) => void; }} appFunctions
- */
+/* ============================================================
+   EJECUTAR HANDLER
+   ============================================================ */
 export async function runHandler(request, response, method, server_data) {
-  await runHandlerFunction(request, response, method, server_data);
-}
+  try {
+    const handler = Handlers[method.handler];
 
-async function runHandlerFunction(request, response, method, server_data) {
-  const handler = Handlers[method.handler];
-  if (handler && handler.fn) {
+    if (!handler || !handler.fn) {
+      response
+        .code(404)
+        .send({ error: `Handler '${method.handler}' no es válido` });
+    }
+
     await handler.fn(request, response, method, server_data);
-  } else {
-    response.code(404).send(`handler ${method.handler} not valid`);
+  } catch (err) {
+    console.error(err);
+    response.code(500).send({
+      error: `Error to execute Handler: '${method.handler}'`,
+      message: err.message,
+    });
   }
-  /*
-  switch (method.handler) {
-    case "JS":
-      await jsFunction(request, response, method);
-      break;
-    case "FETCH":
-      await fetchFunction(request, response, method);
-      break;
-    case "SOAP":
-      await soapFunction(request, response, method);
-      break;
-    case "TEXT":
-      await textFunction(request, response, method);
-      break;
-    case "SQL":
-      await sqlFunction(request, response, method);
-      break;
-    case "SQL_BULK_I":
-      await sqlFunctionInsertBulk(request, response, method);
-      break;
-    case "HANA":
-      await sqlHana(request, response, method);
-      break;
-    case "FUNCTION":
-      await customFunction(request, response, method, server_data);
-      break;
-    case "MONGODB":
-      await mongodbFunction(request, response, method);
-      break;
-    case "MCP":
-      await mcpFunction(request, response, method);
-      break;
-    case "AGENT_IA":
-      await agentIAFunction(request, response, method);
-      break;      
-    default:
-      response.code(404).send(`handler ${method.handler} not valid`);
-      break;
-  }
-  */
 }

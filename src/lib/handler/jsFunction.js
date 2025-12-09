@@ -6,8 +6,7 @@ export const jsFunction = async (
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
 ) => {
-  try {
-    //    let $_UFETCH_ = new uFetch();
+  try { 
 
     let f;
 
@@ -53,13 +52,6 @@ export const jsFunction = async (
 
     response.code(200).send(result_fn.data);
 
-    /*
- response
-      .code(200)
-      .type(mimeType)
-      .header("Content-Disposition", `attachment; filename="${filename}"`)
-      .send(textConfig.payload);
-       */
   } catch (error) {
     console.trace(error);
     setCacheReply(response, error);
