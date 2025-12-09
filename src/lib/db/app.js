@@ -476,7 +476,7 @@ export async function getApplicationTreeByFilters(filters = {}) {
     return appData;
   } catch (error) {
     console.error("Error en getApplicationTreeByFilters:", error);
-    throw new Error("No se pudo obtener la información de la aplicación.");
+    throw new Error("No se pudo obtener la información de la aplicación. getApplicationTreeByFilters");
   }
 }
 

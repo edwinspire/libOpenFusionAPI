@@ -1,4 +1,5 @@
 import { match } from "path-to-regexp";
+import { system_app } from "../db/default/system.js";
 
 export const default_port = process.env.PORT || 3000;
 
@@ -102,3 +103,33 @@ export function WebSocketValidateFormatChannelName(cadena) {
   // Si pasa ambas validaciones
   return { valid: true };
 }
+
+export const GetSystemPaths = () => {
+  let endpoints = {};
+  let idendpoints = {
+    SEND_EMAIL: "cff35b3a-7ca0-4ef8-882d-d39815d55616",
+    WEBSOCKET_HOOK: "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
+    SYSTEM_LOGIN: "871cd2ed-8456-4e5e-8ab5-b7724a908191",
+  };
+
+  // buscamos los endpoints de la lista
+  if (system_app.endpoints && Array.isArray(system_app.endpoints)) {
+    for (const [key, value] of Object.entries(idendpoints)) {
+      const endpoint = system_app.endpoints.find((item) => {
+        return item.idendpoint == value;
+      });
+
+      if (endpoint) {
+        endpoints[key] = {
+          PATH: internal_url_http(
+            `/api/system${endpoint.resource}/${endpoint.environment}`
+          ),
+          METHOD: endpoint.method,
+          ACCESS: endpoint.access,
+        };
+      }
+    }
+  }
+
+  return endpoints;
+};

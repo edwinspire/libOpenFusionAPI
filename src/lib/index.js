@@ -16,12 +16,10 @@ import Endpoint from "./server/endpoint.js";
 import { TelegramBot } from "./server/telegram/telegram.js";
 
 import { TasksInterval } from "./timer/tasks.js";
-import { version } from "./server/version.js";
+//import { version } from "./server/version.js";
 
 import dbAPIs from "./db/sequelize.js";
-import {
-  defaultApps,
-} from "./db/app.js";
+import { defaultApps } from "./db/app.js";
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
@@ -47,6 +45,8 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
+  GenToken,
+  CreateOpenFusionAPIToken,
   //  url_key
   //  webhookSchema,
 } from "./server/utils.js";
@@ -475,10 +475,12 @@ export default class ServerAPI extends EventEmitter {
       });
     });
 
+    /*
     this.fastify.get("/server/version", async (request, reply) => {
       // Aquí puedes manejar las peticiones GET a /server/version
       reply.send({ version: version, ddbb: dbAPIs.getDialect() });
     });
+    */
 
     // Declare a route
     this.fastify.all(struct_api_path, async (request, reply) => {
@@ -656,57 +658,44 @@ console.log('----');
     }, 3000);
   }
   _check_auth_Bearer(handler, data_aut) {
-    let check =
+    // En este metodo se debe validar de que clase de usuario es, si es del sistema o si es usuario externo
+    let check = false;
+    /*
       data_aut.Bearer &&
       data_aut.Bearer.data &&
       data_aut.Bearer.data.enabled &&
       data_aut.Bearer.data.ctrl &&
-      handler.params &&
-      handler.params.environment
+      handler.params
         ? true
         : false;
+*/
 
-    if (check) {
-      let user = data_aut.Bearer.data;
+    if (data_aut?.Bearer?.data?.api && handler.params) {
+      check = true; // De momento usuarios de API tiene acceso libre
+    } else if (data_aut?.Bearer?.data?.admin && handler.params) {
+      let user = data_aut.Bearer.data.admin;
 
       if (user.username == "superuser" && user.enabled) {
-        return true;
+        check = true;
       } else if (handler.params.app == "system" && user.ctrl.as_admin) {
-        return true;
+        check = true;
       } else if (handler.params.app == "system" && !user.ctrl.as_admin) {
-        return false;
-      } else if (
-        handler.params.ctrl &&
-        handler.params.ctrl.users &&
-        Array.isArray(handler.params.ctrl.users)
-      ) {
-        return handler.params.ctrl.users.includes(user.iduser);
+        check = false;
       }
-    } else {
-      return false;
     }
+
+    return check;
   }
 
-  async _check_auth_Basic(handler, data_aut, request, reply) {
-    try {
-      let user = await login(data_aut.Basic.username, data_aut.Basic.password);
+  async _check_auth_Basic(handler, data_aut) {
+    let user = await login(data_aut.Basic.username, data_aut.Basic.password);
 
-      if (user.login) {
-        let data_user = checkToken(user.token);
-
-        // Simulamos un Bearer para usar el mismo método
-        data_aut.Bearer.data = data_user;
-
-        if (this._check_auth_Bearer(handler, data_aut)) {
-          request.openfusionapi.user = data_user;
-        } else {
-          reply.code(401).send({ error: "The API requires a valid Token." });
-        }
-      } else {
-        reply.code(401).send({ error: "The API requires a valid Token." });
-      }
-    } catch (error) {
-      reply.code(500).send({ error: error.message });
+    if (user.login) {
+      // Simulamos un Bearer para usar el mismo método
+      data_aut.Bearer.data = user;
+      return this._check_auth_Bearer(handler, data_aut) ? data_user : null;
+    } else {
+      return false;
     }
   }
 
@@ -735,39 +724,42 @@ console.log('----');
             // Aqui el código para validar usuario y clave de API
             // Este paso puede ser pesado ya que se debe consultar a la base de datos. Es recomendable usarlo en lo minimo
             if (data_aut.Basic.username && data_aut.Basic.password) {
-              await this._check_auth_Basic(handler, data_aut, request, reply);
+              let checkbasic = await this._check_auth_Basic(handler, data_aut);
+              if (checkbasic) {
+                request.openfusionapi.user = data_aut.Bearer.checkbasic;
+              }
             } else {
-              reply
-                .code(401)
-                .send({ error: "The API requires a valid Token." });
+              reply.code(401).send({
+                error: "The API requires a valid Username y Password",
+              });
             }
 
             break;
 
-          case 2:
-            if (this._check_auth_Bearer(handler, data_aut)) {
-              request.openfusionapi.user = data_aut.Bearer.data;
-            } else {
-              reply
-                .code(401)
-                .send({ error: "The API requires a valid Token." });
-            }
-
-            break;
           case 3:
             if (this._check_auth_Bearer(handler, data_aut)) {
               request.openfusionapi.user = data_aut.Bearer.data;
             } else if (data_aut.Basic.username && data_aut.Basic.password) {
-              await this._check_auth_Basic(handler, data_aut, request, reply);
+              let checkbasic = await this._check_auth_Basic(handler, data_aut);
+              if (checkbasic) {
+                request.openfusionapi.user = data_aut.Bearer.checkbasic;
+              }
+            } else {
+              reply.code(401).send({
+                error: "The API requires a Token or Username and Password",
+              });
+            }
+
+            break;
+          default:
+            // Por default use BEARER
+            if (this._check_auth_Bearer(handler, data_aut)) {
+              request.openfusionapi.user = data_aut.Bearer.data;
             } else {
               reply
                 .code(401)
                 .send({ error: "The API requires a valid Token." });
             }
-
-            break;
-          default:
-            reply.code(401).send({ error: "Unknown authorization type." });
             break;
         }
       }
@@ -997,6 +989,9 @@ console.log('----');
       } catch (error) {
         console.log(error);
       }
+
+      // Crea un token para tener acceso a los endpoints protegidos
+      CreateOpenFusionAPIToken();
     })();
 
     return true;

@@ -1,4 +1,6 @@
 import { listFunctionsVars } from "../../../utils.js";
+import { version } from "../../../version.js";
+import  dbsequelize  from "../../../../db/sequelize.js";
 
 export * from "./user/index.js";
 export * from "./handler/index.js";
@@ -7,6 +9,8 @@ export * from "./method/index.js";
 export * from "./app/index.js";
 export * from "./apiclient/index.js";
 export * from "./appvars/index.js";
+export * from "./endpoint/index.js";
+export * from "./interval_tasks/index.js";
 
 export async function fnListFnVarsHandlerJS(params) {
   let r = { code: 204, data: undefined };
@@ -56,6 +60,18 @@ export async function fnGetEnvironment(params) {
     r.code = 200;
 
     r.data = env;
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnGetServerVersion(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    r.code = 200;
+    r.data = { version: version, ddbb: dbsequelize.getDialect() };
   } catch (error) {
     r.data = error;
     r.code = 500;

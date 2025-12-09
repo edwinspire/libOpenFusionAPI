@@ -35,10 +35,10 @@ export async function fnLogin(req, data, res) {
   try {
     let user = await login(req.body.username, req.body.password);
 
-    res.header("OFAPI-TOKEN", '');
+    res.header("OFAPI_TOKEN", '');
 
     if (user.login) {
-      res.header("OFAPI-TOKEN", user.token);
+      res.header("OFAPI_TOKEN", user.token);
       //res.code(200).json(user);
       r.data = user;
       r.code = 200;
@@ -73,7 +73,7 @@ export async function fnLogout(req, res) {
   let r = { data: undefined, code: 204 };
   try {
     // TODO: ver la forma de hacer un logout correctamente e invalide el token
-    res.set("OFAPI-TOKEN", undefined);
+    res.set("OFAPI_TOKEN", undefined);
 
     /*
 		res.code(200).json({

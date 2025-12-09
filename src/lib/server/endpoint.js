@@ -559,7 +559,7 @@ export default class Endpoint extends EventEmitter {
 
           delete this.internal_endpoint[ep_list[index]];
 
-          break;
+        //  break;
         }
       }
     }

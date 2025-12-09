@@ -567,7 +567,7 @@ export const Endpoint = dbsequelize.define(
       allowNull: false,
       defaultValue: 2,
       comment:
-        "Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token",
+        "Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token, 4 - Local (Uso solo desde localhost)",
     },
     description: {
       type: DataTypes.TEXT,
@@ -1156,27 +1156,9 @@ export const SystemUserProfile = dbsequelize.define(
   { timestamps: true, freezeTableName: true }
 );
 
-export const UserProfileEndpoint = dbsequelize.define(
-  ModelNames.UserProfileEndpoint,
-  {
-    idrelation: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-    },
-    idprofile: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
-    idendpoint: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
-  },
-  { timestamps: true, freezeTableName: true }
-);
 
-// ApiClient (usuario externo) - Con vigencia, enabled y datos básicos de facturación.
+
+////////////////////////////////////////////////////
 export const ApiClient = dbsequelize.define(
   ModelNames.ApiClient,
   {
@@ -1185,12 +1167,21 @@ export const ApiClient = dbsequelize.define(
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    username: { type: DataTypes.STRING(100), allowNull: false, unique: true },
+    username: { type: DataTypes.STRING(150), allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false }, // << corregido
+    status: {
+      type: DataTypes.ENUM("initial", "active", "suspended", "inactive"),
+      defaultValue: "initial",
+    },
     change_password: { type: DataTypes.BOOLEAN, defaultValue: true },
-    email: { type: DataTypes.STRING(150), allowNull: true },
-    document: { type: DataTypes.STRING(50), allowNull: true },
-    phone: { type: DataTypes.STRING(30), allowNull: true },
-    startAt: { type: DataTypes.DATE, allowNull: false },
+    email: { type: DataTypes.STRING(150), allowNull: false },
+    document_id: { type: DataTypes.STRING(50), allowNull: true },
+    phone: { type: DataTypes.STRING(50), allowNull: true },
+    startAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
     endAt: { type: DataTypes.DATE, allowNull: true },
     custom_data: {
       type: JSON_TYPE,
@@ -1202,12 +1193,36 @@ export const ApiClient = dbsequelize.define(
         JSON_ADAPTER.setData(this, "custom_data", value);
       },
     },
-    enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+    last_login: {
+      type: DataTypes.DATE,
+      allowNull: true, // << corregido
+    },
   },
-  { timestamps: true, freezeTableName: true }
+  {
+    timestamps: true,
+    freezeTableName: true,
+    hooks: {
+      beforeValidate: (instance) => {
+        if (!instance.email) {
+          throw new Error("The 'email' field is required.");
+        }
+
+        // Use email if not exists username
+        if (!instance.username) {
+          instance.username = instance.email;
+        }
+      },
+
+      beforeSave: (instance) => {
+        if (instance.endAt && instance.endAt < instance.startAt) {
+          throw new Error("'endAt' cannot be before 'startAt'.");
+        }
+      },
+    },
+  }
 );
 
-// ApiKey (varias APIKeys por usuario)
+
 export const ApiKey = dbsequelize.define(
   ModelNames.ApiKey,
   {
@@ -1217,102 +1232,84 @@ export const ApiKey = dbsequelize.define(
       defaultValue: DataTypes.UUIDV4,
     },
     idclient: { type: DataTypes.UUID, allowNull: false },
-    apikey: { type: DataTypes.STRING(200), allowNull: false, unique: true },
-
-    startAt: { type: DataTypes.DATE, allowNull: false },
-    endAt: { type: DataTypes.DATE },
     enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
-  },
-  { timestamps: true, freezeTableName: true }
-);
-
-// ClientWallet (saldo de créditos) - Un solo registro por cliente.
-export const ClientWallet = dbsequelize.define(
-  ModelNames.ClientWallet,
-  {
-    idwallet: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-    },
-    idclient: { type: DataTypes.UUID, allowNull: false },
-
-    balance: { type: DataTypes.DECIMAL(18, 6), defaultValue: 0 },
-    currency: { type: DataTypes.STRING(10), defaultValue: "CREDITS" },
-  },
-  { timestamps: true, freezeTableName: true }
-);
-
-// WalletMovement (historial de movimientos)
-export const WalletMovement = dbsequelize.define(
-  ModelNames.WalletMovement,
-  {
-    idmovement: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-    },
-    idwallet: { type: DataTypes.UUID, allowNull: false },
-
-    type: {
-      type: DataTypes.ENUM("credit", "debit", "refund"),
+    startAt: {
+      type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
-    amount: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
-    description: { type: DataTypes.STRING(255) },
-  },
-  { timestamps: true, freezeTableName: true }
-);
-
-// ApiKeyEndpoint (qué endpoints puede usar cada APIKey)
-export const ApiKeyEndpoint = dbsequelize.define(
-  ModelNames.ApiKeyEndpoint,
-  {
-    idkeyendpoint: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-    },
-
-    idkey: { type: DataTypes.UUID, allowNull: false },
-    idendpoint: { type: DataTypes.UUID, allowNull: false },
-
-    startAt: { type: DataTypes.DATE, allowNull: false },
-    endAt: { type: DataTypes.DATE },
-    enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
-  },
-  { timestamps: true, freezeTableName: true }
-);
-
-// ApiUsageLog (tabla super liviana) - ⚠ Sin asociaciones, sin foreign keys, sin índices complejos → Para rendimiento máximo en inserciones
-export const ApiUsageLog = dbsequelize.define(
-  ModelNames.ApiUsageLog,
-  {
-    idlog: {
-      type: DataTypes.BIGINT,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-
-    idclient: { type: DataTypes.UUID, allowNull: false },
-    idkey: { type: DataTypes.UUID, allowNull: false },
-    idendpoint: { type: DataTypes.UUID, allowNull: false },
-
-    cost: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
-    balance_after: { type: DataTypes.DECIMAL(18, 6), allowNull: false },
-
-    success: { type: DataTypes.BOOLEAN, defaultValue: true },
-    error_message: { type: DataTypes.STRING(255), allowNull: true },
+    endAt: { type: DataTypes.DATE }, 
+    description: { type: DataTypes.STRING(150) }, 
   },
   {
     timestamps: true,
     freezeTableName: true,
-    indexes: [
-      // Únicamente un índice moderado para análisis temporal
-      { fields: ["createdAt"] },
-    ],
+    hooks: {
+      beforeCreate(instance) {
+        if (!instance.endAt) {
+          const oneYear = new Date();
+          oneYear.setFullYear(oneYear.getFullYear() + 1);
+          instance.endAt = oneYear;
+        }
+      }
+    }
   }
 );
+
+
+// ApiKeyEndpoint - Si Se elimina un idkey en el modelo ApiKey tambien debe eliminarse en cascada de este modelo, lo mismo con el campo idendpoint.
+export const ApiKeyEndpoint = dbsequelize.define(
+  ModelNames.ApiKeyEndpoint,
+  {
+    idkey: { type: DataTypes.UUID, allowNull: false }, // Es llave foranea del modelo ApiKey
+    idendpoint: { type: DataTypes.UUID, allowNull: false }, // Es llave foranea de idendpoint del Modelo Endpoint
+  },
+  { timestamps: true, freezeTableName: true }
+);
+
+/*
+ApiClient → ApiKey (1:N)
+Un cliente puede tener varias API Keys.
+*/
+ApiClient.hasMany(ApiKey, {
+  foreignKey: 'idclient',
+  onDelete: 'CASCADE',
+});
+
+ApiKey.belongsTo(ApiClient, {
+  foreignKey: 'idclient',
+});
+
+/*
+ApiKey → ApiKeyEndpoint (1:N)
+Una API Key puede estar autorizada para varios endpoints.
+*/
+ApiKey.hasMany(ApiKeyEndpoint, {
+  foreignKey: 'idkey',
+  onDelete: 'CASCADE',
+});
+
+ApiKeyEndpoint.belongsTo(ApiKey, {
+  foreignKey: 'idkey',
+});
+
+/*
+Endpoint → ApiKeyEndpoint (1:N)
+(Suponiendo que el modelo Endpoint existe y tiene idendpoint como PK)
+*/
+Endpoint.hasMany(ApiKeyEndpoint, {
+  foreignKey: 'idendpoint',
+  onDelete: 'CASCADE',
+});
+
+ApiKeyEndpoint.belongsTo(Endpoint, {
+  foreignKey: 'idendpoint',
+});
+
+
+
+
+
 
 //////////////////////////////////////////////////////
 // ✅ Relación: Una Application tiene muchas variables
@@ -1342,63 +1339,3 @@ IntervalTask.belongsTo(Endpoint, {
   foreignKey: "idendpoint", // campo FK en IntervalTask
   targetKey: "idendpoint", // campo PK en Endpoint
 });
-
-User.belongsToMany(Endpoint, {
-  through: UserProfileEndpoint,
-  foreignKey: "idprofile",
-  as: "endpoints",
-});
-
-Endpoint.belongsToMany(User, {
-  through: UserProfileEndpoint,
-  foreignKey: "idendpoint",
-  as: "profiles",
-});
-
-/////////////////////
-
-User.belongsToMany(UserProfile, {
-  through: SystemUserProfile,
-  foreignKey: "iduser",
-  otherKey: "idprofile",
-  as: "profiles",
-});
-
-UserProfile.belongsToMany(User, {
-  through: SystemUserProfile,
-  foreignKey: "idprofile",
-  otherKey: "iduser",
-  as: "users",
-});
-
-//////////////////////
-UserProfile.hasMany(UserProfileEndpoint, {
-  foreignKey: "idprofile",
-  as: "profile_endpoints",
-});
-
-UserProfileEndpoint.belongsTo(UserProfile, {
-  foreignKey: "idprofile",
-  as: "profile",
-});
-
-ApiClient.hasMany(ApiKey, { foreignKey: "idclient", as: "apikeys" });
-ApiKey.belongsTo(ApiClient, { foreignKey: "idclient", as: "client" });
-
-ApiClient.hasOne(ClientWallet, { foreignKey: "idclient", as: "wallet" });
-ClientWallet.belongsTo(ApiClient, { foreignKey: "idclient", as: "client" });
-
-ClientWallet.hasMany(WalletMovement, {
-  foreignKey: "idwallet",
-  as: "movements",
-});
-WalletMovement.belongsTo(ClientWallet, {
-  foreignKey: "idwallet",
-  as: "wallet",
-});
-
-ApiKey.hasMany(ApiKeyEndpoint, {
-  foreignKey: "idkey",
-  as: "allowed_endpoints",
-});
-ApiKeyEndpoint.belongsTo(ApiKey, { foreignKey: "idkey", as: "apikey" });

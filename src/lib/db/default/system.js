@@ -14,8 +14,91 @@ export const system_app = {
   description: "App System",
   createdAt: "2025-11-21T22:04:52.650Z",
   updatedAt: "2025-11-22T00:11:41.979Z",
-  vrs: [],
+  vrs: [
+    
+  ],
   endpoints: [
+    {
+      ctrl: {
+        users: [],
+        log: {
+          status_info: 1,
+          status_success: 1,
+          status_redirect: 1,
+          status_client_error: 2,
+          status_server_error: 3,
+        },
+      },
+      cors: {},
+      mcp: {},
+      json_schema: {
+        in: {
+          enabled: false,
+          schema: {},
+        },
+        out: {},
+      },
+      headers_test: {},
+      data_test: {
+        query: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        body: {
+          selection: 0,
+          json: {
+            code: {},
+          },
+          xml: {
+            code: "",
+          },
+          text: {
+            value: "",
+          },
+          form: {},
+        },
+        headers: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        auth: {
+          basic: {
+            username: "",
+            password: "",
+          },
+          bearer: {
+            token: "",
+          },
+          selection: 0,
+        },
+      },
+      idendpoint: "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
+      rowkey: 492,
+      enabled: true,
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      environment: "prd",
+      resource: "/server/version",
+      method: "GET",
+      handler: "FUNCTION",
+      access: 2,
+      description: "Get version API server",
+      cost: 0.000001,
+      keywords: "",
+      code: "fnGetServerVersion",
+      cache_time: 9999,
+      createdAt: "2025-11-21T22:04:52.726Z",
+      updatedAt: "2025-11-22T00:11:42.112Z",
+    },
     {
       ctrl: {
         users: [],
@@ -840,7 +923,7 @@ export const system_app = {
       createdAt: "2025-11-21T22:04:52.724Z",
       updatedAt: "2025-11-22T00:11:42.107Z",
     },
-    
+
     {
       ctrl: {
         admin: true,
@@ -858,7 +941,7 @@ export const system_app = {
       resource: "/apiclient",
       method: "POST",
       handler: "FUNCTION",
-      access: 2,
+      access: 0,
       description: "Create user external",
       cost: 0.000001,
       keywords: "",
@@ -1352,7 +1435,7 @@ export const system_app = {
       resource: "/email/smtp",
       method: "POST",
       handler: "JS",
-      access: 3,
+      access: 2,
       description: "Send emails using SMTP.",
       cost: 0.000001,
       keywords: "",
@@ -1823,14 +1906,14 @@ export const system_app = {
       enabled: true,
       idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       environment: "prd",
-      resource: "/api/token",
+      resource: "/apiclient/login",
       method: "GET",
       handler: "FUNCTION",
-      access: 2,
+      access: 0,
       description: "",
       cost: 0.000001,
       keywords: "",
-      code: "fnAPIToken",
+      code: "fnLoginApiClient",
       cache_time: 0,
       createdAt: "2025-11-21T22:04:52.727Z",
       updatedAt: "2025-11-22T00:11:42.114Z",
@@ -2291,7 +2374,7 @@ export const system_app = {
       enabled: true,
       idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       environment: "prd",
-      resource: "/user/chagepassword",
+      resource: "/user/changepassword",
       method: "POST",
       handler: "FUNCTION",
       access: 2,
@@ -2303,6 +2386,34 @@ export const system_app = {
       createdAt: "2025-11-30T04:19:03.270Z",
       updatedAt: "2025-12-03T16:27:48.432Z",
     },
+
+    {
+      ctrl: {
+        admin: true,
+      },
+      cors: {},
+      mcp: {},
+      json_schema: {},
+      headers_test: {},
+      data_test: {},
+      idendpoint: "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
+      rowkey: 808,
+      enabled: true,
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      environment: "prd",
+      resource: "/apiclient/changepassword",
+      method: "POST",
+      handler: "FUNCTION",
+      access: 2,
+      description: "Update API Client password",
+      cost: 0.000001,
+      keywords: "",
+      code: "fnUpdateAPIClientPassword",
+      cache_time: 0,
+      createdAt: "2025-11-30T04:19:03.270Z",
+      updatedAt: "2025-12-03T16:27:48.432Z",
+    },
+
     {
       ctrl: {
         admin: true,

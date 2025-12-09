@@ -1,4 +1,4 @@
-import { createHmac, createHash } from "crypto";
+import { createHmac, createHash, randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
 import { Buffer } from "node:buffer";
@@ -153,6 +153,11 @@ export function customError(code, message) {
   }
 }
 
+export function CreateRandomPassword(prefix = "rp") {
+  const password = prefix + "_" + randomUUID();
+  return { password, encrypted: EncryptPwd(password) };
+}
+
 /**
  * @param {import("crypto").BinaryLike} pwd
  */
@@ -179,7 +184,6 @@ export function tokenVerify(token) {
  * @param {any} req
  */
 export function getUserPasswordTokenFromRequest(req) {
-  // TODO: Tambien buscar el Token en las cookies
   const authHeader = req.headers?.authorization;
   let username, token, password, data_token;
 
@@ -197,6 +201,14 @@ export function getUserPasswordTokenFromRequest(req) {
   } else if (authHeader?.startsWith("Bearer ")) {
     token = authHeader.split(" ")[1];
     try {
+      data_token = checkToken(token);
+    } catch (e) {
+      data_token = null;
+    }
+  } else {
+    // Buscamos en las cookies como ultima alterntiva
+    try {
+      let token = req.cookies.OFAPI_TOKEN;
       data_token = checkToken(token);
     } catch (e) {
       data_token = null;
@@ -816,4 +828,23 @@ export const validateAppName = (name) => {
   // - No permite espacios, caracteres especiales no permitidos, ni caracteres no imprimibles
   const regex = /^[a-zA-Z0-9_~.-]+$/;
   return regex.test(name);
+};
+
+export const CreateOpenFusionAPIToken = () => {
+  // Obtener un token interno para el acceso a los endpoints protegidos
+  const token = GenToken(
+    {
+      admin: {
+        username: "openfusionapi",
+        first_name: "openfusionapi",
+        last_name: "openfusionapi",
+        enabled: true,
+        ctrl: {
+          as_admin: true,
+        },
+      },
+    },
+    60 * 60 * 24 * 365
+  ); // Valido por un año
+  process.env.USER_OPENFUSIONAPI_TOKEN = token;
 };

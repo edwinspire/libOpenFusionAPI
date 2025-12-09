@@ -1,10 +1,10 @@
 import {
   createUser,
   login,
-  getUserProfileEndpointData,
   getAllUsers,
   updateUserPassword,
 } from "../../../../../db/user.js";
+import {getUserPasswordTokenFromRequest} from "../../../../utils.js";
 
 export async function fnCreateUser(params) {
   let r = { data: undefined, code: 204 };
@@ -15,29 +15,13 @@ export async function fnCreateUser(params) {
     r.data = data;
     r.code = 200;
   } catch (error) {
-    //console.log(error);
-
     r.data = error;
     r.code = 500;
-    //res.code(500).json({ error: error.message });
   }
   return r;
 }
 
-export async function fnGetUserProfileEndpointData(params) {
-  let r = { code: 204, data: undefined };
-  try {
-    const hs = await getUserProfileEndpointData(params.request.query);
 
-    r.data = hs;
-    r.code = 200;
-  } catch (error) {
-    r.data = error;
-    r.code = 500;
-    //res.code(500).json({ error: error.message });
-  }
-  return r;
-}
 
 export async function fnLogin(params) {
   let r = { code: 204, data: undefined };
@@ -46,10 +30,10 @@ export async function fnLogin(params) {
 
     let user = await login(auth_data.Basic.username, auth_data.Basic.password);
 
-    //res.header("OFAPI-TOKEN", '');
-    //params.reply.cookie("OFAPI-TOKEN", "");
+    //res.header("OFAPI_TOKEN", '');
+    //params.reply.cookie("OFAPI_TOKEN", "");
     // Establecer una cookie básica
-    params.reply.setCookie("OFAPI-TOKEN", "", {
+    params.reply.setCookie("OFAPI_TOKEN", "", {
       path: "/", // Ruta para la que es válida la cookie
       httpOnly: true, // La cookie no es accesible desde JavaScript
       //secure: true,       // Solo se envía en conexiones HTTPS
@@ -59,12 +43,12 @@ export async function fnLogin(params) {
     });
 
     if (user.login) {
-      //res.header("OFAPI-TOKEN", user.token);
+      //res.header("OFAPI_TOKEN", user.token);
 
       let aut = `Bearer ${user.token}`;
       params.reply.header("Authorization", aut);
 
-      params.reply.setCookie("OFAPI-TOKEN", aut, {
+      params.reply.setCookie("OFAPI_TOKEN", user.token, {
         path: "/", // Ruta para la que es válida la cookie
         httpOnly: true, // La cookie no es accesible desde JavaScript
         //secure: true,       // Solo se envía en conexiones HTTPS
@@ -73,20 +57,15 @@ export async function fnLogin(params) {
         //domain: 'tudominio.com' // Dominio para el que es válida
       });
 
-      //res.code(200).json(user);
       r.data = user;
       r.code = 200;
     } else {
-      //			res.code(401).json(user);
       r.data = user;
       r.code = 401;
     }
   } catch (error) {
-    //console.log(error);
-
     r.data = error;
     r.code = 500;
-    //res.code(500).json({ error: error.message });
   }
   return r;
 }
@@ -95,7 +74,7 @@ export async function fnLogout(params) {
   let r = { data: undefined, code: 204 };
   try {
     // TODO: ver la forma de hacer un logout correctamente e invalide el token
-    params.reply.set("OFAPI-TOKEN", undefined);
+    params.reply.set("OFAPI_TOKEN", undefined);
 
     r.data = {
       logout: true,
@@ -104,7 +83,6 @@ export async function fnLogout(params) {
   } catch (error) {
     r.data = error;
     r.code = 500;
-    //res.code(500).json({ error: error.message });
   }
   return r;
 }
@@ -129,7 +107,6 @@ export async function fnGetUsersList(params) {
   } catch (error) {
     r.data = error;
     r.code = 500;
-    //res.code(500).json({ error: error.message });
   }
   return r;
 }
@@ -143,11 +120,8 @@ export async function fnUpdateUserPassword(params) {
     r.data = data;
     r.code = 200;
   } catch (error) {
-    //console.log(error);
-
     r.data = error;
     r.code = 500;
-    //res.code(500).json({ error: error.message });
   }
   return r;
 }

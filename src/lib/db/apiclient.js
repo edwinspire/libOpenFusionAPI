@@ -1,520 +1,279 @@
-// crud_credit_system.js
-import dbsequelize from "./sequelize.js"; // su instancia sequelize
 import { Op } from "sequelize";
-import {
-  ApiClient,
-  ApiKey,
-  ClientWallet,
-  WalletMovement,
-  ApiKeyEndpoint,
-  ApiUsageLog,
-  Endpoint,
-} from "./models.js"; // ajuste la ruta si la tiene en otro archivo
+import { ApiClient, ApiKey, ApiKeyEndpoint } from "./models.js";
+import { EncryptPwd, GenToken, CreateRandomPassword } from "../server/utils.js";
+import { validatePasswordSecurity } from "./utils.js";
 
-// -----------------------------
-// ApiClient CRUD
-// -----------------------------
-export const ApiClientCRUD = {
-  async create(data) {
-    return await ApiClient.create(data);
-  },
 
-  async get(idclient) {
-    return await ApiClient.findByPk(idclient, {
-      include: [
-        { model: ApiKey, as: "apikeys" },
-        { model: ClientWallet, as: "wallet" },
-      ],
-    });
-  },
+export const AuthorizedEnpointsClient = [];
 
-  async findByUsername(username) {
-    return await ApiClient.findOne({ where: { username } });
-  },
-
-  async list(filter = {}) {
-    const where = {};
-    if (filter.enabled !== undefined) where.enabled = filter.enabled;
-    if (filter.username)
-      where.username = { [Op.iLike]: `%${filter.username}%` };
-    return await ApiClient.findAll({
-      where,
-      limit: filter.limit || 100,
-      order: [["createdAt", "DESC"]],
-    });
-  },
-
-  async update(idclient, data) {
-    const rec = await ApiClient.findByPk(idclient);
-    if (!rec) return null;
-    return await rec.update(data);
-  },
-
-  async delete(idclient) {
-    return await ApiClient.destroy({ where: { idclient } });
-  },
-};
-
-// -----------------------------
-// ApiKey CRUD
-// -----------------------------
-export const ApiKeyCRUD = {
-  async create(data) {
-    // data must include idclient and apikey (hash)
-    return await ApiKey.create(data);
-  },
-
-  async get(idkey) {
-    return await ApiKey.findByPk(idkey, {
-      include: [{ model: ApiClient, as: "client" }],
-    });
-  },
-
-  async findByKeyHash(keyHash) {
-    return await ApiKey.findOne({ where: { apikey: keyHash } });
-  },
-
-  async list(filter = {}) {
-    const where = {};
-    if (filter.idclient) where.idclient = filter.idclient;
-    if (filter.enabled !== undefined) where.enabled = filter.enabled;
-    return await ApiKey.findAll({
-      where,
-      limit: filter.limit || 100,
-      order: [["createdAt", "DESC"]],
-    });
-  },
-
-  async update(idkey, data) {
-    const rec = await ApiKey.findByPk(idkey);
-    if (!rec) return null;
-    return await rec.update(data);
-  },
-
-  async delete(idkey) {
-    return await ApiKey.destroy({ where: { idkey } });
-  },
-
-  async revoke(idkey) {
-    const rec = await ApiKey.findByPk(idkey);
-    if (!rec) return null;
-    rec.enabled = false;
-    rec.revokedAt = new Date();
-    await rec.save();
-    return rec;
-  },
-};
-
-// -----------------------------
-// ClientWallet CRUD + helpers (transaccionales)
-// -----------------------------
-export const ClientWalletCRUD = {
-  async create(idclient, initial = 0) {
-    return await ClientWallet.create({ idclient, balance: initial });
-  },
-
-  async getByClient(idclient) {
-    return await ClientWallet.findOne({ where: { idclient } });
-  },
-
-  async getById(idwallet) {
-    return await ClientWallet.findByPk(idwallet);
-  },
-
-  async list(filter = {}) {
-    const where = {};
-    if (filter.idclient) where.idclient = filter.idclient;
-    return await ClientWallet.findAll({
-      where,
-      limit: filter.limit || 100,
-      order: [["createdAt", "DESC"]],
-    });
-  },
-
-  // Creditar saldo (transaccional) => crea WalletMovement
-  async credit(
-    idclient,
-    amount,
-    { description = "credit", tx: externalTx = null } = {}
-  ) {
-    if (amount <= 0) throw new Error("amount must be positive");
-    const autoTx = !externalTx;
-    const tx = externalTx || (await dbsequelize.transaction());
-    try {
-      let wallet = await ClientWallet.findOne({
-        where: { idclient },
-        transaction: tx,
-        lock: tx.LOCK.UPDATE,
-      });
-      if (!wallet) {
-        wallet = await ClientWallet.create(
-          { idclient, balance: 0 },
-          { transaction: tx }
-        );
-      }
-      const newBalance = parseFloat(wallet.balance) + parseFloat(amount);
-      await wallet.update({ balance: newBalance }, { transaction: tx });
-
-      await WalletMovement.create(
-        { idwallet: wallet.idwallet, type: "credit", amount, description },
-        { transaction: tx }
-      );
-
-      if (autoTx) await tx.commit();
-      return { wallet, movement: true };
-    } catch (err) {
-      if (autoTx) await tx.rollback();
-      throw err;
-    }
-  },
-
-  // Debitar saldo (transaccional) => crea WalletMovement; no permite saldo negativo por defecto
-  async debit(
-    idclient,
-    amount,
-    { description = "debit", allowNegative = false, tx: externalTx = null } = {}
-  ) {
-    if (amount <= 0) throw new Error("amount must be positive");
-    const autoTx = !externalTx;
-    const tx = externalTx || (await dbsequelize.transaction());
-    try {
-      const wallet = await ClientWallet.findOne({
-        where: { idclient },
-        transaction: tx,
-        lock: tx.LOCK.UPDATE,
-      });
-      if (!wallet) throw new Error("wallet_not_found");
-
-      const current = parseFloat(wallet.balance);
-      const newBalance = current - parseFloat(amount);
-      if (!allowNegative && newBalance < 0) {
-        throw new Error("insufficient_funds");
-      }
-
-      await wallet.update({ balance: newBalance }, { transaction: tx });
-
-      await WalletMovement.create(
-        { idwallet: wallet.idwallet, type: "debit", amount, description },
-        { transaction: tx }
-      );
-
-      if (autoTx) await tx.commit();
-      return { wallet, movement: true };
-    } catch (err) {
-      if (autoTx) await tx.rollback();
-      throw err;
-    }
-  },
-
-  async deleteByClient(idclient) {
-    // elimina wallet y movimientos (si lo desea)
-    const wallet = await ClientWallet.findOne({ where: { idclient } });
-    if (!wallet) return 0;
-    await WalletMovement.destroy({ where: { idwallet: wallet.idwallet } });
-    return await wallet.destroy();
-  },
-};
-
-// -----------------------------
-// WalletMovement CRUD
-// -----------------------------
-export const WalletMovementCRUD = {
-  async create(data) {
-    // data must include idwallet, type, amount
-    return await WalletMovement.create(data);
-  },
-
-  async get(idmovement) {
-    return await WalletMovement.findByPk(idmovement);
-  },
-
-  async list(filter = {}) {
-    const where = {};
-    if (filter.idwallet) where.idwallet = filter.idwallet;
-    if (filter.type) where.type = filter.type;
-    return await WalletMovement.findAll({
-      where,
-      limit: filter.limit || 200,
-      order: [["createdAt", "DESC"]],
-    });
-  },
-
-  async delete(idmovement) {
-    return await WalletMovement.destroy({ where: { idmovement } });
-  },
-};
-
-// -----------------------------
-// ApiKeyEndpoint CRUD
-// -----------------------------
-export const ApiKeyEndpointCRUD = {
-  async create(data) {
-    // data should include idkey and idendpoint and startAt
-    return await ApiKeyEndpoint.create(data);
-  },
-
-  async get(idkeyendpoint) {
-    return await ApiKeyEndpoint.findByPk(idkeyendpoint);
-  },
-
-  async find(idkey, idendpoint) {
-    return await ApiKeyEndpoint.findOne({ where: { idkey, idendpoint } });
-  },
-
-  async listByKey(idkey) {
-    return await ApiKeyEndpoint.findAll({ where: { idkey } });
-  },
-
-  async listByEndpoint(idendpoint) {
-    return await ApiKeyEndpoint.findAll({ where: { idendpoint } });
-  },
-
-  async update(idkeyendpoint, data) {
-    const rec = await ApiKeyEndpoint.findByPk(idkeyendpoint);
-    if (!rec) return null;
-    return await rec.update(data);
-  },
-
-  async delete(idkeyendpoint) {
-    return await ApiKeyEndpoint.destroy({ where: { idkeyendpoint } });
-  },
-
-  async assignKeyToEndpoint(idkey, idendpoint, opts = {}) {
-    // crea o actualiza asignación
-    const [rec, created] = await ApiKeyEndpoint.findOrCreate({
-      where: { idkey, idendpoint },
-      defaults: { ...opts },
-    });
-    if (!created && Object.keys(opts).length) {
-      await rec.update(opts);
-    }
-    return rec;
-  },
-
-  async removeAssignment(idkey, idendpoint) {
-    return await ApiKeyEndpoint.destroy({ where: { idkey, idendpoint } });
-  },
-};
-
-// -----------------------------
-// ApiUsageLog CRUD (ultra ligero)
-// -----------------------------
-export const ApiUsageLogCRUD = {
-  // Inserción ligera (no transacciones pesadas aquí)
-  async create(data) {
-    // data: { idclient, idkey, idendpoint, cost, balance_after, success, error_message }
-    // Mantener campos mínimos para alto rendimiento
-    return await ApiUsageLog.create(data);
-  },
-
-  // Consulta básica para reporte (no recomendamos joins pesados)
-  async list(filter = {}) {
-    const where = {};
-    if (filter.idclient) where.idclient = filter.idclient;
-    if (filter.idkey) where.idkey = filter.idkey;
-    if (filter.idendpoint) where.idendpoint = filter.idendpoint;
-    if (filter.since) where.createdAt = { [Op.gte]: filter.since };
-    return await ApiUsageLog.findAll({
-      where,
-      limit: filter.limit || 1000,
-      order: [["createdAt", "DESC"]],
-    });
-  },
-
-  // Borrar logs antiguos por retention policy
-  async deleteOlderThan(date) {
-    return await ApiUsageLog.destroy({
-      where: { createdAt: { [Op.lt]: date } },
-    });
-  },
-};
-
-// -----------------------------
-// Función utilitaria rápida:
-// consumeCredits: valida acceso y descuenta créditos del wallet
-// (usa Endpoint.cost para determinar el costo)
-// -----------------------------
-export async function consumeCreditsForRequest({
-  keyHash,
-  idendpoint,
-  requestMeta = {},
-}) {
-  const tx = await dbsequelize.transaction();
-  try {
-    // 1) localizar ApiKey
-    const apikey = await ApiKey.findOne({
-      where: { apikey: keyHash },
-      transaction: tx,
-      lock: tx.LOCK.UPDATE,
-    });
-    if (!apikey) throw new Error("apikey_not_found");
-    if (
-      !apikey.enabled ||
-      (apikey.startAt && apikey.startAt > new Date()) ||
-      (apikey.endAt && apikey.endAt < new Date())
-    ) {
-      throw new Error("apikey_inactive");
-    }
-
-    // 2) verificar permiso ApiKeyEndpoint
-    const assignment = await ApiKeyEndpoint.findOne({
-      where: { idkey: apikey.idkey, idendpoint },
-      transaction: tx,
-      lock: tx.LOCK.UPDATE,
-    });
-    if (
-      !assignment ||
-      !assignment.enabled ||
-      (assignment.startAt && assignment.startAt > new Date()) ||
-      (assignment.endAt && assignment.endAt < new Date())
-    ) {
-      throw new Error("endpoint_not_allowed");
-    }
-
-    // 3) obtener costo del endpoint (campo cost del modelo Endpoint)
-    const ep = await Endpoint.findByPk(idendpoint, {
-      transaction: tx,
-      lock: tx.LOCK.UPDATE,
-    });
-    if (!ep) throw new Error("endpoint_not_found");
-    const cost = parseFloat(ep.cost || 0);
-
-    // 4) obtener wallet del cliente
-    const client = await ApiClient.findByPk(apikey.idclient, {
-      transaction: tx,
-      lock: tx.LOCK.UPDATE,
-    });
-    if (
-      !client ||
-      !client.enabled ||
-      (client.startAt && client.startAt > new Date()) ||
-      (client.endAt && client.endAt < new Date())
-    ) {
-      throw new Error("client_inactive");
-    }
-
-    let wallet = await ClientWallet.findOne({
-      where: { idclient: client.idclient },
-      transaction: tx,
-      lock: tx.LOCK.UPDATE,
-    });
-    if (!wallet) {
-      // crear wallet con balance 0 si no existe
-      wallet = await ClientWallet.create(
-        { idclient: client.idclient, balance: 0 },
-        { transaction: tx }
-      );
-    }
-
-    // 5) verificar saldo
-    const currentBalance = parseFloat(wallet.balance);
-    if (currentBalance < cost) {
-      throw new Error("insufficient_credits");
-    }
-
-    // 6) restar saldo y crear movimiento
-    const newBalance = currentBalance - cost;
-    await wallet.update({ balance: newBalance }, { transaction: tx });
-
-    await WalletMovement.create(
-      {
-        idwallet: wallet.idwallet,
-        type: "debit",
-        amount: cost,
-        description: `consumption endpoint ${idendpoint}`,
-      },
-      { transaction: tx }
-    );
-
-    // 7) insertar log ligero
-    const log = await ApiUsageLog.create(
-      {
-        idclient: client.idclient,
-        idkey: apikey.idkey,
-        idendpoint,
-        cost,
-        balance_after: newBalance,
-        success: true,
-      },
-      { transaction: tx }
-    );
-
-    // 8) commit
-    await tx.commit();
-
-    return { allowed: true, cost, balance_after: newBalance, logId: log.idlog };
-  } catch (err) {
-    await tx.rollback();
-
-    // intentar loguear fallo sin interferir (no block)
-    try {
-      await ApiUsageLog.create({
-        idclient: null,
-        idkey: null,
-        idendpoint,
-        cost: 0,
-        balance_after: null,
-        success: false,
-        error_message: err.message,
-      });
-    } catch (_) {
-      // swallow
-    }
-
-    throw err;
+// Agregar este método estático al modelo ApiClient (después de define)
+export const ApiClientfindByIdOrUsername = async (filters = {}) => {
+  const { idclient, username } = filters;
+  // Validación: al menos uno de los parámetros debe estar presente
+  if (!idclient && !username) {
+    throw new Error('Debe proporcionar al menos "idclient" o "username"');
   }
-}
+
+  const where = {};
+
+  if (idclient && username) {
+    // Si se pasan ambos, usar OR (busca por cualquiera de los dos)
+    where[Op.or] = [{ idclient }, { username }];
+  } else if (idclient) {
+    // Solo idclient
+    where.idclient = idclient;
+  } else {
+    // Solo username
+    where.username = username;
+  }
+
+  // Buscar el registro (incluye timestamps por defecto del modelo)
+  const registro = await ApiClient.findOne({
+    where,
+    // Opcional: incluir campos relacionados si los tienes
+    // include: [ /* otros modelos */ ]
+  });
+
+  return registro;
+};
 
 /**
  * Inserta un nuevo cliente externo (ApiClient).
  * @param {object} data - Datos del cliente.
  * @returns {Promise<object>} - Resultado de la operación.
  */
-export async function createApiClient(data) {
+export async function createApiClient(data, random_password = true) {
   try {
-    // Validaciones iniciales
-    if (!data.username) {
-      throw new Error("El campo 'username' es obligatorio.");
+    let randompwd = CreateRandomPassword();
+    let pwd;
+    if (random_password) {
+      pwd = randompwd.password;
+      data.password = randompwd.encrypted;
+    } else {
+      pwd = data.password || randompwd.password;
+      data.password = EncryptPwd(pwd);
     }
 
-    // startAt es obligatorio según el modelo
-    if (!data.startAt) {
-      throw new Error("El campo 'startAt' es obligatorio.");
+    const newClient = await ApiClient.create(data);
+    let result = newClient.toJSON();
+    result.password = undefined;
+
+    return { client: result, password: pwd };
+  } catch (err) {
+    throw new Error(err.message);
+  }
+}
+
+/**
+ * Finds a valid API client by username and password.
+ * Applies the following constraints:
+ *  - enabled = true
+ *  - current date is between startAt and endAt
+ *  - excludes the "password" field from the result
+ *
+ * @param {string} username
+ * @param {string} password
+ * @returns {Promise<object|null>} ApiClient data without password
+ */
+export async function loginApiClient(username, password) {
+  const now = new Date();
+  // TODO: ver la forma de asegurar esta función para evitar creación indiscriminada de usuarios
+  // 1. Buscar usuario con filtros
+  const client = await ApiClient.findOne({
+    where: {
+      username,
+      password: EncryptPwd(password),
+      status: ["active", "initial"],
+      // startAt: { [Op.lte]: now },
+      //   [Op.or]: [{ endAt: null }, { endAt: { [Op.gte]: now } }],
+    },
+    attributes: {
+      exclude: ["password"],
+    },
+  });
+
+  if (client) {
+    let u = client.toJSON();
+    const validity = 60 * 60; // Una hora
+    // Aqui se asigan los endpoints a los que el cliente tiene acceso (Son definidos desde el sistema y son fijos)
+    u.Authorized = AuthorizedEnpointsClient;
+    let token = GenToken({ api: u }, validity); // Valido por una hora
+    let refresh_token = GenToken(
+      {
+        api: {
+          username: u.username,
+          status: u.status,
+          email: u.email,
+          now: Date.now(),
+        },
+      },
+      validity
+    ); // Valido por una hora
+
+    await client.update({ last_login: new Date() });
+    await client.save();
+
+    return {
+      login: true,
+      user: u,
+      token: token,
+      refresh_token: refresh_token,
+    };
+  }
+
+  return client;
+}
+
+/**
+ * Actualiza la contraseña de un usuario con validación de la clave anterior
+ * @param {string} username - Nombre de usuario
+ * @param {string} oldPassword - Contraseña actual
+ * @param {string} newPassword - Nueva contraseña
+ * @returns {Promise<Object>} - Resultado de la operación
+ */
+export async function updateAPIClientPassword({
+  username,
+  oldPassword,
+  newPassword,
+}) {
+  const transaction = await dbsequelize.transaction();
+
+  try {
+    // 1. Validar parámetros de entrada
+    if (!username || !oldPassword || !newPassword) {
+      throw new Error(
+        "All parameters are required: username, oldPassword, newPassword"
+      );
     }
 
-    // Insertar registro
-    const newClient = await ApiClient.create({
-      username: data.username,
-      email: data.email || null,
-      document: data.document || null,
-      phone: data.phone || null,
+    if (oldPassword === newPassword) {
+      throw new Error("The new password must be different from the old one.");
+    }
 
-      startAt: data.startAt,
-      endAt: data.endAt || null,
-      enabled: data.enabled ?? true,
+    let validationSecurity = validatePasswordSecurity(newPassword);
+    if (!validationSecurity.isValid) {
+      throw new Error(validationSecurity.errors[0]);
+    }
+
+    // 2. Buscar usuario y verificar contraseña actual
+    const user = await ApiClient.findOne({
+      where: {
+        username,
+        status: ["active", "initial"],
+        startAt: { [Op.lte]: new Date() },
+        endAt: { [Op.gte]: new Date() },
+      },
+      transaction,
     });
+
+    if (!user) {
+      throw new Error("APIClient not found or inactive");
+    }
+
+    const oldPasswordHash = EncryptPwd(oldPassword || "");
+    // 3. Verificar contraseña actual
+    const isCurrentPasswordValid = oldPasswordHash == user.password;
+
+    if (!isCurrentPasswordValid) {
+      throw new Error("The current password is incorrect.");
+    }
+
+    // 4. Hashear nueva contraseña
+    const hashedNewPassword = EncryptPwd(newPassword);
+
+    // 5. Actualizar contraseña
+    const [affectedRows] = await User.update(
+      {
+        password: hashedNewPassword,
+      },
+      {
+        where: { username },
+        transaction,
+      }
+    );
+
+    if (affectedRows === 0) {
+      throw new Error("The password could not be updated.");
+    }
+
+    // 6. Confirmar transacción
+    await transaction.commit();
 
     return {
       success: true,
-      message: "Cliente creado correctamente.",
-      idclient: newClient.idclient,
-      username: newClient.username,
+      message: "Password successfully updated",
+      username: user.username,
+      updatedAt: new Date(),
     };
-  } catch (err) {
-    // Error de unicidad (username duplicado)
-    if (err.name === "SequelizeUniqueConstraintError") {
-      return {
-        success: false,
-        message: `El cliente con username '${data.username}' ya existe.`,
-        error: err.errors?.map((e) => e.message) || err.message,
-      };
-    }
+  } catch (error) {
+    // 7. Revertir transacción en caso de error
+    await transaction.rollback();
 
-    // Otros errores
+    console.error("Password update error:", error.message);
+
     return {
       success: false,
-      message: "Error al crear el cliente.",
-      error: err.message,
+      error: error.message,
+      username,
     };
   }
+}
+
+// Obtiene los datos del cliente y sus endpoints a los que tiene acceso.
+export async function findApiClientTree(filters = {}) {
+  const { username, status, email, enabled } = filters;
+
+  const now = new Date();
+
+  // ---------------------------
+  // 1. Construcción de filtros dinámicos
+  // ---------------------------
+  const whereClient = {
+    // Fechas válidas
+    startAt: { [Op.lte]: now },
+    [Op.or]: [{ endAt: { [Op.gte]: now } }, { endAt: null }],
+  };
+
+  if (username) whereClient.username = username;
+  if (status) whereClient.status = status;
+  if (email) whereClient.email = email;
+
+  const whereKey = {
+    // Fechas válidas
+    startAt: { [Op.lte]: now },
+    [Op.or]: [{ endAt: { [Op.gte]: now } }, { endAt: null }],
+  };
+
+  if (enabled !== undefined) whereKey.enabled = enabled;
+
+  // ---------------------------
+  // 2. Query con JOIN en árbol
+  // ---------------------------
+  const result = await ApiClient.findAll({
+    where: whereClient,
+    attributes: {
+      exclude: ["password"],
+    },
+    include: [
+      {
+        model: ApiKey,
+        required: false,
+        where: whereKey,
+        attributes: ["idkey", "enabled", "startAt", "endAt", "description"],
+        include: [
+          {
+            model: ApiKeyEndpoint,
+            required: false,
+            attributes: ["idendpoint"],
+          },
+        ],
+      },
+    ],
+    order: [
+      ["username", "ASC"],
+      [ApiKey, "startAt", "ASC"],
+    ],
+  });
+
+  return result;
 }
