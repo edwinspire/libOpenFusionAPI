@@ -91,9 +91,10 @@ export const getHandlerDoc = async (handler) => {
 
       // fs.readFileSync() → BLOQUEA el event loop
       // Leer contenido como string
-      const jsDoc = fs.readFileSync(mdPath, "utf8");
+      //const jsDoc = fs.readFileSync(mdPath, "utf8");
+      const markdown = await fs.readFile(mdPath, "utf8");
 
-      doc.markdown = jsDoc;
+      doc.markdown = markdown;
       //console.log(jsDoc);
     } catch (error) {
       console.error(error);
