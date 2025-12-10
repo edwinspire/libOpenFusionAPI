@@ -848,3 +848,4 @@ export const CreateOpenFusionAPIToken = () => {
   ); // Valido por un año
   process.env.USER_OPENFUSIONAPI_TOKEN = token;
 };
+

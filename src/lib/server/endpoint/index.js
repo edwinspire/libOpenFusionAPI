@@ -3,62 +3,22 @@ import {
   get_url_params,
   url_key,
   internal_url_endpoint,
-} from "./utils_path.js";
-import { getApplicationTreeByFilters } from "../db/app.js";
+} from "../utils_path.js";
+import { getApplicationTreeByFilters } from "../../db/app.js";
 import * as z from "zod";
-import { getServer, jsonSchemaToZod } from "../server/mcp/server.js";
+import { getServer, jsonSchemaToZod } from "../mcp/server.js";
 import {
   md5,
   getIPFromRequest,
   createFunction,
   URLAutoEnvironment,
-} from "./utils.js";
-import { createLog, getLogLevelByStatusCode } from "../db/log.js";
-import { getMongoDBHandlerParams } from "../handler/mongoDB.js";
-import Ajv from "ajv";
+} from "../utils.js";
+import { safeInjectVars, getLogLevelForStatus } from "./utils.js";
+import { createLog, getLogLevelByStatusCode } from "../../db/log.js";
+import { getMongoDBHandlerParams } from "../../handler/mongoDB.js";
+import { HierarchicalCache } from "./HierarchicalCache.js";
+import Ajv from "ajv"; 
 const ajv = new Ajv();
-
-//const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
-class CacheExpirationQueue {
-  constructor() {
-    this.heap = [];
-    this.timer = null;
-  }
-
-  add(expireAt, callback) {
-    this.heap.push({ expireAt, callback });
-    this.heap.sort((a, b) => a.expireAt - b.expireAt); // simple heap
-    this._resetTimer();
-  }
-
-  _resetTimer() {
-    if (this.timer) clearTimeout(this.timer);
-
-    if (this.heap.length === 0) return;
-
-    const next = this.heap[0];
-    const delay = Math.max(0, next.expireAt - Date.now());
-
-    this.timer = setTimeout(() => {
-      const item = this.heap.shift();
-      item.callback();
-      this._resetTimer();
-    }, delay);
-  }
-}
-
-function getLogLevelForStatus(status) {
-  if (status >= 100 && status <= 199) return "info";
-  if (status >= 200 && status <= 299) return "success";
-  if (status >= 300 && status <= 399) return "redirect";
-  if (status >= 400 && status <= 499) return "client_error";
-  if (status >= 500 && status <= 599) return "server_error";
-  return "unknown";
-}
-
-function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 
 export default class Endpoint extends EventEmitter {
   internal_endpoint = {};
@@ -66,7 +26,18 @@ export default class Endpoint extends EventEmitter {
 
   constructor() {
     super();
-    this.cacheQueue = new CacheExpirationQueue();
+    this.cache = new HierarchicalCache({
+      tickMs: 500,
+      wheelSize: 120,
+    });
+
+    this.cache.on("added", (info) => {
+      console.log("Añadido:", info);
+    });
+
+    this.cache.on("expired", (info) => {
+      console.log("Expirado:", info);
+    });
   }
 
   pushLog(log) {
@@ -260,7 +231,15 @@ export default class Endpoint extends EventEmitter {
         }
 
         // Verifica si no existe ya datos en cache para este request
-        if (!this.getCache(url_key, hash_request)) {
+        let cache_stored = this.getCache({
+          app: ep?.handler?.params?.app,
+          resource: ep?.handler?.params?.resource,
+          environment: ep?.handler?.params?.environment,
+          method: request.method,
+          hash: hash_request,
+        });
+        
+        if (!cache_stored) {
           const size = Buffer.byteLength(
             JSON.stringify(reply_lastResponse),
             "utf8"
@@ -273,6 +252,7 @@ export default class Endpoint extends EventEmitter {
 
           let cache_time = (ep?.handler?.params?.cache_time ?? 1) * 1000;
 
+          /*
           this.emit("cache_set", {
             app: ep?.handler?.params?.app,
             idendpoint: ep?.handler?.params?.idendpoint,
@@ -281,8 +261,20 @@ export default class Endpoint extends EventEmitter {
 
             url: request.url,
           });
+          */
 
-          this.cacheQueue.add(Date.now() + cache_time, () => {
+          this.cache.add({
+            app: ep?.handler?.params?.app,
+            resource: ep?.handler?.params?.resource,
+            environment: ep?.handler?.params?.environment,
+            method: request.method,
+            hash: hash_request,
+            timeout: cache_time,
+            payload: reply_lastResponse,
+          });
+
+          /*
+          this.cache.add(Date.now() + cache_time, () => {
             delete this.internal_endpoint?.[url_key]?.responses?.[hash_request];
 
             this.emit("cache_released", {
@@ -292,6 +284,7 @@ export default class Endpoint extends EventEmitter {
               cache_size: this.getCacheSizeEndpoint(url_key),
             });
           });
+*/
         }
       }
     } else {
@@ -548,79 +541,81 @@ export default class Endpoint extends EventEmitter {
             return endpointData.environment == item.environment;
           });
           if (props.length > 0) {
-            if (endpointData.handler == "JS") {
+            if (
+              endpointData.handler == "JS" &&
+              returnHandler.params.code &&
+              returnHandler.params.code.length > 0
+            ) {
               // Para estos casos lo que se hace es agregar las variables al inicio del código como constantes minimizando el uso de memoria
-              for (let i = 0; i < props.length; i++) {
-                const prop = props[i];
 
-                const code = String(returnHandler.params.code ?? "");
+              const code = String(returnHandler.params.code ?? "");
 
-                if (code.includes(prop.name)) {
-                  switch (typeof prop.value) {
-                    case "string":
-                      returnHandler.params.code = String(
-                        `const ${prop.name} = ${JSON.stringify(
-                          prop.value
-                        )};\n ${returnHandler.params.code}`
-                      );
-                      break;
-                    case "number":
-                      returnHandler.params.code = String(
-                        `const ${prop.name} = ${prop.value};\n ${returnHandler.params.code}`
-                      );
+              // Filtrar variables usadas y validar nombres
+              const usedProps = props.filter((prop) => {
+                // Validar que tenga nombre y que aparezca en el código
+                if (
+                  !prop.name ||
+                  typeof prop.name !== "string" ||
+                  !prop.name.startsWith("$_VAR")
+                ) {
+                  console.warn(
+                    "Variable sin nombre válido: " + prop.name,
+                    prop
+                  );
+                  return false;
+                }
 
-                      break;
+                // Validar que el nombre sea un identificador JS válido
+                if (
+                  !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(
+                    prop.name.replace(/^\$/, "")
+                  )
+                ) {
+                  console.warn("Nombre de variable inválido:", prop.name);
+                  return false;
+                }
 
-                    case "object":
-                      returnHandler.params.code = String(
-                        `const ${prop.name} = ${JSON.stringify(
-                          prop.value
-                        )};\n ${returnHandler.params.code}`
-                      );
+                return code.includes(prop.name);
+              });
 
-                      break;
-                    default:
-                      console.log(prop);
-                      break;
+              if (usedProps.length === 0) {
+                return; // No hay variables que inyectar
+              }
+
+              // Generar declaraciones
+              const declarations = usedProps
+                .map((prop) => {
+                  try {
+                    const value = JSON.stringify(prop.value);
+                    return `const ${prop.name} = ${value};`;
+                  } catch (error) {
+                    console.error(`Error serializando ${prop.name}:`, error);
+                    return `const ${prop.name} = undefined; // Error: ${error.message}`;
                   }
-                }
-              }
-            } else {
+                })
+                .join("\n");
+
+              // Inyectar con separación clara
+              returnHandler.params.code = `// Variables inyectadas automáticamente\n${declarations}\n\n// Código original\n${code}`;
+              console.log("Cambiado");
+            } else if (
+              endpointData.handler !== "FUNCTION" &&
+              returnHandler.params.code &&
+              returnHandler.params.code.length > 0
+            ) {
               // Para estos casos lo que se hace es remplazar las variables directamente en el código
+              let app_vars = {};
               for (let i = 0; i < props.length; i++) {
                 const prop = props[i];
-                const re = new RegExp(`\\b${escapeRegExp(prop.name)}\\b`, "g");
-
-                switch (typeof prop.value) {
-                  case "string":
-                    returnHandler.params.code =
-                      returnHandler.params.code.replace(re, prop.value);
-                    break;
-                  case "number":
-                    returnHandler.params.code =
-                      returnHandler.params.code.replace(re, prop.value);
-                    break;
-
-                  case "object":
-                    // Este para los casos en que en el código hayan guardado la variable de aplicación con comillas
-                    const reo = new RegExp(
-                      `\\b${escapeRegExp(`"${prop.name}"`)}\\b`,
-                      "g"
-                    );
-                    const value_str = JSON.stringify(prop.value);
-
-                    returnHandler.params.code =
-                      returnHandler.params.code.replace(reo, value_str);
-                    // Este bloque reemplaza las variables que no estén entre comillas
-                    returnHandler.params.code =
-                      returnHandler.params.code.replace(re, value_str);
-
-                    break;
-                  default:
-                    console.log(prop);
-                    break;
-                }
+                app_vars[prop.name] = prop.value;
               }
+
+              returnHandler.params.code = safeInjectVars(
+                returnHandler.params.code,
+                app_vars // object with key/value
+              );
+
+              console.log("Se han reemplazado");
             }
           }
         }

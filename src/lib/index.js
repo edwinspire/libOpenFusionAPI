@@ -12,7 +12,7 @@ import fastifyStatic from "@fastify/static";
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import Endpoint from "./server/endpoint.js";
+import Endpoint from "./server/endpoint/index.js";
 import { TelegramBot } from "./server/telegram/telegram.js";
 
 import { TasksInterval } from "./timer/tasks.js";
@@ -546,10 +546,13 @@ export default class ServerAPI extends EventEmitter {
         reply.openfusionapi.lastResponse.hash_request = hash_request;
         request.openfusionapi.hash_request = hash_request;
 
-        let data_cache = this.endpoints.getCache(
-          handlerEndpoint.params.url_key,
-          hash_request
-        );
+        let data_cache = this.endpoints.cache.get({
+          app: handlerEndpoint.params.app,
+          resource: handlerEndpoint.params.resource,
+          environment: handlerEndpoint.params.environment,
+          method: request.method,
+          hash: hash_request,
+        });
 
         if (data_cache) {
           // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'

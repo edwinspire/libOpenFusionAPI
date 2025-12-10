@@ -26,7 +26,7 @@ export const customFunction = async ($_REQUEST_, $_REPLY_, method, $_SERVER_DATA
 
     // Ejecutar función con timeout seguro
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 60_000);
+    const timer = setTimeout(() => controller.abort(), 1000 * 60 * 5); // 5 minutos maximo
 
     let fnresult;
     try {

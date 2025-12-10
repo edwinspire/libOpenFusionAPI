@@ -8,7 +8,7 @@ import { sqlHana } from "./sqlHana.js";
 import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
 import { mongodbFunction } from "./mongoDB.js";
 import { mcpFunction } from "./mcpFunction.js";
-import fs from "fs";
+import fs from 'fs/promises';
 import path from "path";
 import { fileURLToPath } from "url";
 
