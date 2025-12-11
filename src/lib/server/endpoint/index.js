@@ -8,7 +8,6 @@ import { getApplicationTreeByFilters } from "../../db/app.js";
 import * as z from "zod";
 import { getServer, jsonSchemaToZod } from "../mcp/server.js";
 import {
-  md5,
   getIPFromRequest,
   createFunction,
   URLAutoEnvironment,
@@ -16,8 +15,9 @@ import {
 import { safeInjectVars, getLogLevelForStatus } from "./utils.js";
 import { createLog, getLogLevelByStatusCode } from "../../db/log.js";
 import { getMongoDBHandlerParams } from "../../handler/mongoDB.js";
-import { HierarchicalCache } from "./HierarchicalCache.js";
-import Ajv from "ajv"; 
+import { TimedCache } from "./TimedCache.js";
+import hash from "object-hash";
+import Ajv from "ajv";
 const ajv = new Ajv();
 
 export default class Endpoint extends EventEmitter {
@@ -26,10 +26,7 @@ export default class Endpoint extends EventEmitter {
 
   constructor() {
     super();
-    this.cache = new HierarchicalCache({
-      tickMs: 500,
-      wheelSize: 120,
-    });
+    this.cache = new TimedCache();
 
     this.cache.on("added", (info) => {
       console.log("Añadido:", info);
@@ -183,11 +180,18 @@ export default class Endpoint extends EventEmitter {
   }
 
   hash_request(request, endpoint_key) {
-    return md5({
-      body: request.body,
-      query: request.query,
-      url_key: endpoint_key,
-    });
+    return hash(
+      {
+        body: request.body,
+        query: request.query,
+        url_key: endpoint_key,
+      },
+      {
+        algorithm: "sha256",
+        respectType: true,
+        unorderedObjects: false,
+      }
+    );
   }
 
   setCache(url_key, request, reply) {
@@ -200,7 +204,7 @@ export default class Endpoint extends EventEmitter {
     let ep = this.internal_endpoint[url_key];
 
     if (ep) {
-      this.addCountStatus(url_key, reply?.statusCode);
+      //this.addCountStatus(url_key, reply?.statusCode);
 
       this.emit("request_completed", {
         idendpoint: ep.handler?.params?.idendpoint,
@@ -217,74 +221,51 @@ export default class Endpoint extends EventEmitter {
 
       let hash_request = request.openfusionapi.hash_request;
 
-      let reply_lastResponse =
-        reply?.openfusionapi?.lastResponse?.data ?? undefined;
-
       if (
         reply.statusCode != 500 &&
         reply_lastResponse &&
         ep?.handler?.params?.cache_time > 0
       ) {
-        // Revisa si la propiedad responses existe
-        if (!this.internal_endpoint[url_key].responses) {
-          this.internal_endpoint[url_key].responses = {};
-        }
-
         // Verifica si no existe ya datos en cache para este request
-        let cache_stored = this.getCache({
+        let cache_stored = this.cache.get({
           app: ep?.handler?.params?.app,
           resource: ep?.handler?.params?.resource,
-          environment: ep?.handler?.params?.environment,
+          env: ep?.handler?.params?.environment,
           method: request.method,
           hash: hash_request,
         });
-        
-        if (!cache_stored) {
-          const size = Buffer.byteLength(
-            JSON.stringify(reply_lastResponse),
-            "utf8"
-          );
 
-          this.internal_endpoint[url_key].responses[hash_request] = {
-            data: reply_lastResponse,
-            size,
+        if (!cache_stored) {
+          let payload_cache = {
+            data: reply?.openfusionapi?.lastResponse?.data ?? undefined,
+            responseTime: reply?.openfusionapi?.lastResponse?.responseTime,
           };
 
-          let cache_time = (ep?.handler?.params?.cache_time ?? 1) * 1000;
-
-          /*
-          this.emit("cache_set", {
-            app: ep?.handler?.params?.app,
-            idendpoint: ep?.handler?.params?.idendpoint,
-            idapp: ep?.handler?.params?.idapp,
-            cache_size: this.getCacheSizeEndpoint(url_key),
-
-            url: request.url,
-          });
-          */
+          const contentLength = reply.getHeader("content-length");
+          let sizeKB = 0;
+          if (contentLength) {
+            sizeKB = Number(contentLength) / 1024;
+            request.log.info({
+              route: request.routerPath,
+              method: request.method,
+              sizeKB: sizeKB.toFixed(4),
+            });
+          } else {
+            sizeKB = Buffer.byteLength(
+              JSON.stringify(reply_lastResponse),
+              "utf8"
+            ).toFixed(4);
+          }
 
           this.cache.add({
             app: ep?.handler?.params?.app,
             resource: ep?.handler?.params?.resource,
-            environment: ep?.handler?.params?.environment,
+            env: ep?.handler?.params?.environment,
             method: request.method,
             hash: hash_request,
-            timeout: cache_time,
-            payload: reply_lastResponse,
+            timeout: ep?.handler?.params?.cache_time ?? 1,
+            payload: payload_cache,
           });
-
-          /*
-          this.cache.add(Date.now() + cache_time, () => {
-            delete this.internal_endpoint?.[url_key]?.responses?.[hash_request];
-
-            this.emit("cache_released", {
-              app: ep?.handler?.params?.app,
-              idendpoint: ep?.handler?.params?.idendpoint,
-              idapp: ep?.handler?.params?.idapp,
-              cache_size: this.getCacheSizeEndpoint(url_key),
-            });
-          });
-*/
         }
       }
     } else {
@@ -432,6 +413,8 @@ export default class Endpoint extends EventEmitter {
         delete this.internal_endpoint[ep_list[index]];
       }
     }
+    // Tambien eliminamos la cache asociada
+    this.cache.delete({ app: app_name });
   }
 
   deleteEndpointByidEndpoint(idendpoint) {
@@ -441,6 +424,7 @@ export default class Endpoint extends EventEmitter {
       for (let index = 0; index < ep_list.length; index++) {
         let ep = this.internal_endpoint[ep_list[index]];
         if (ep && ep.handler.params.idendpoint == idendpoint) {
+          /*
           this.emit("cache_released", {
             app: ep?.handler?.params?.app,
             idendpoint: ep?.handler?.params?.idendpoint,
@@ -448,7 +432,13 @@ export default class Endpoint extends EventEmitter {
             cache_size: 0,
             count_status_code: ep?.CountStatusCode,
           });
-
+          */
+          this.cache.delete({
+            app: ep?.handler?.params?.app,
+            resource: ep?.handler?.params?.resource,
+            env: ep?.handler?.params?.environment,
+            method: ep?.handler?.params?.method,
+          });
           delete this.internal_endpoint[ep_list[index]];
 
           break;
@@ -468,12 +458,20 @@ export default class Endpoint extends EventEmitter {
           ep.handler.params.idapp == idapp &&
           ep.handler.params.environment == env
         ) {
+          /*
           this.emit("cache_released", {
             app: ep?.handler?.params?.app,
             idendpoint: ep?.handler?.params?.idendpoint,
             idapp: ep?.handler?.params?.idapp,
             cache_size: 0,
             count_status_code: ep?.CountStatusCode,
+          });
+          */
+          this.cache.delete({
+            app: ep?.handler?.params?.app,
+            resource: ep?.handler?.params?.resource,
+            env: ep?.handler?.params?.environment,
+            method: ep?.handler?.params?.method,
           });
 
           delete this.internal_endpoint[ep_list[index]];

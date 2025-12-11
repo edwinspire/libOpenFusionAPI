@@ -120,17 +120,20 @@ export default class ServerAPI extends EventEmitter {
       //      this.websocketClientEndpoint.send({ payload: data });
     });
 
-    this.endpoints.on("cache_set", (data) => {
+    this.endpoints.cache.on("added", (data) => {
       this._emitEndpointEvent("cache_set", data);
     });
 
-    this.endpoints.on("cache_released", (data) => {
+    this.endpoints.cache.on("expired", (data) => {
       this._emitEndpointEvent("cache_released", data);
     });
 
+    /*
+    // Esto se lo debe mover a el hook onRequest
     this.endpoints.on("request_completed", (data) => {
       this._emitEndpointEvent("request_completed", data);
     });
+    */
 
     this.SERVER_DATE_START;
 
@@ -299,8 +302,11 @@ export default class ServerAPI extends EventEmitter {
         this.endpoints.saveLog(request, reply);
 
         if (handler_param?.idendpoint) {
+          // Solo aqui debe guardar en cache la respuesta
           this.endpoints.setCache(handler_param?.url_key, request, reply);
         }
+
+        this._emitEndpointEvent("request_completed", handler_param);
       }
     });
 
@@ -546,22 +552,22 @@ export default class ServerAPI extends EventEmitter {
         reply.openfusionapi.lastResponse.hash_request = hash_request;
         request.openfusionapi.hash_request = hash_request;
 
-        let data_cache = this.endpoints.cache.get({
+        let data_cache = this.endpoints.cache.getPayload({
           app: handlerEndpoint.params.app,
           resource: handlerEndpoint.params.resource,
-          environment: handlerEndpoint.params.environment,
+          env: handlerEndpoint.params.environment,
           method: request.method,
           hash: hash_request,
         });
 
-        if (data_cache) {
+        if (data_cache && data_cache.data) {
           // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'
           reply.header("X-Cache", "HIT");
 
-          reply.openfusionapi.lastResponse[hash_request] = data_cache;
+          reply.openfusionapi.lastResponse[hash_request] = data_cache.data;
 
           // Envia los datos que están en cache
-          reply.code(200).send(data_cache);
+          reply.code(200).send(data_cache.data);
         } else {
           // Agregar el header 'X-Cache: MISS' si se obtiene un nuevo resultado
           reply.header("X-Cache", "MISS");
