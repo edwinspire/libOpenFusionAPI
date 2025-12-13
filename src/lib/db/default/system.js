@@ -14,10 +14,82 @@ export const system_app = {
   description: "App System",
   createdAt: "2025-11-21T22:04:52.650Z",
   updatedAt: "2025-11-22T00:11:41.979Z",
-  vrs: [
-    
-  ],
+  vrs: [],
   endpoints: [
+    {
+      ctrl: {
+        users: [],
+        log: {},
+      },
+      cors: {},
+      mcp: {},
+      json_schema: {
+        in: {
+          enabled: false,
+          schema: {},
+        },
+        out: {},
+      },
+      headers_test: {},
+      data_test: {
+        query: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        body: {
+          selection: 0,
+          json: {
+            code: {},
+          },
+          xml: {
+            code: "",
+          },
+          text: {
+            value: "",
+          },
+          form: {},
+        },
+        headers: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+          },
+        ],
+        auth: {
+          basic: {
+            username: "",
+            password: "",
+          },
+          bearer: {
+            token: "",
+          },
+          selection: 0,
+        },
+      },
+      idendpoint: "34870b00-beb1-45d3-ada6-c164fc22cd7a",
+      rowkey: 0,
+      enabled: true,
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      environment: "prd",
+      resource: "/log/app/summary",
+      method: "GET",
+      handler: "FUNCTION",
+      access: 2,
+      description: "Get summary by idapp from logs",
+      cost: 0.000001,
+      keywords: "",
+      code: "fnGetLogSummaryByAppStatusCode",
+      cache_time: 0,
+      createdAt: "2025-11-21T22:04:52.726Z",
+      updatedAt: "2025-11-22T00:11:42.112Z",
+    },
+
     {
       ctrl: {
         users: [],
@@ -2127,7 +2199,7 @@ export const system_app = {
       cost: 0.000001,
       keywords: "",
       code: "fnGetLogs",
-      cache_time: 5,
+      cache_time: 0,
       createdAt: "2025-11-21T22:04:52.722Z",
       updatedAt: "2025-11-22T00:11:42.101Z",
     },

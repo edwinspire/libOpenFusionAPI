@@ -11,7 +11,7 @@ import { URLAutoEnvironment } from "../server/utils.js";
 
 const fetchOFAPI = new URLAutoEnvironment("no_env");
 const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
-const interval = 5000;
+const interval = 10000;
 
 function pushLog(log) {
   return new Promise(async (resolve) => {

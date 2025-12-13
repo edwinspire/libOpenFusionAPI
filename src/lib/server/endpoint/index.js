@@ -5,8 +5,8 @@ import {
   internal_url_endpoint,
 } from "../utils_path.js";
 import { getApplicationTreeByFilters } from "../../db/app.js";
-import * as z from "zod";
-import { getServer, jsonSchemaToZod } from "../mcp/server.js";
+//import * as z from "zod";
+
 import {
   getIPFromRequest,
   createFunction,
@@ -16,6 +16,8 @@ import { safeInjectVars, getLogLevelForStatus } from "./utils.js";
 import { createLog, getLogLevelByStatusCode } from "../../db/log.js";
 import { getMongoDBHandlerParams } from "../../handler/mongoDB.js";
 import { TimedCache } from "./TimedCache.js";
+import { CreateMCPHandler } from "./handlerBuild/mcp.js";
+
 import hash from "object-hash";
 import Ajv from "ajv";
 const ajv = new Ajv();
@@ -27,14 +29,6 @@ export default class Endpoint extends EventEmitter {
   constructor() {
     super();
     this.cache = new TimedCache();
-
-    this.cache.on("added", (info) => {
-      console.log("Añadido:", info);
-    });
-
-    this.cache.on("expired", (info) => {
-      console.log("Expirado:", info);
-    });
   }
 
   pushLog(log) {
@@ -114,18 +108,6 @@ export default class Endpoint extends EventEmitter {
     }
   }
 
-  getCacheSizeEndpoint(url_key) {
-    const responses = this.internal_endpoint[url_key]?.responses;
-    if (!responses) return 0;
-
-    let total = 0;
-    for (const item of Object.values(responses)) {
-      total += item.size;
-    }
-
-    return (total / 1024).toFixed(3);
-  }
-
   getInternalAppMetrics(app_name) {
     let r = { data: undefined, code: 204 };
     try {
@@ -140,7 +122,12 @@ export default class Endpoint extends EventEmitter {
         // Calcula el tamaño de la respuesta
         return {
           idendpoint: this.internal_endpoint[key]?.handler?.params?.idendpoint,
-          cache_size: this.getCacheSizeEndpoint(key),
+          cache_size: this.cache.getCacheSizeEndpoint({
+            app: app_name,
+            resource: this.internal_endpoint[key]?.handler?.params?.resource,
+            env: this.internal_endpoint[key]?.handler?.params?.environment,
+            method: this.internal_endpoint[key]?.handler?.params?.method,
+          }),
           statusCode: this.internal_endpoint[key].CountStatusCode,
         };
       });
@@ -164,10 +151,15 @@ export default class Endpoint extends EventEmitter {
       });
 
       let sizeList = filteredKeys.map((key) => {
-        // Calcula el tamaño de la respuesta
+        // Obtiene el tamaño de cache de cada endpoint qu corresponden a la app pasada como parámetro
         return {
           idendpoint: this.internal_endpoint[key]?.handler?.params?.idendpoint,
-          size: this.getCacheSizeEndpoint(key),
+          size: this.cache.getCacheSizeEndpoint({
+            app: app_name,
+            resource: this.internal_endpoint[key]?.handler?.params?.resource,
+            env: this.internal_endpoint[key]?.handler?.params?.environment,
+            method: this.internal_endpoint[key]?.handler?.params?.method,
+          }),
         };
       });
 
@@ -204,22 +196,8 @@ export default class Endpoint extends EventEmitter {
     let ep = this.internal_endpoint[url_key];
 
     if (ep) {
-      //this.addCountStatus(url_key, reply?.statusCode);
-
-      this.emit("request_completed", {
-        idendpoint: ep.handler?.params?.idendpoint,
-        idapp: ep.handler?.params?.idapp,
-        url: request.url,
-        method: request.method,
-        app: ep.handler?.params?.app,
-        environment: ep.handler?.params?.environment,
-
-        responseTime: reply?.openfusionapi?.lastResponse?.responseTime,
-        statusCode: reply.statusCode,
-        count_status_code: ep?.CountStatusCode,
-      });
-
-      let hash_request = request.openfusionapi.hash_request;
+      const hash_request = request.openfusionapi.hash_request;
+      const reply_lastResponse = reply?.openfusionapi?.lastResponse;
 
       if (
         reply.statusCode != 500 &&
@@ -236,26 +214,23 @@ export default class Endpoint extends EventEmitter {
         });
 
         if (!cache_stored) {
-          let payload_cache = {
-            data: reply?.openfusionapi?.lastResponse?.data ?? undefined,
-            responseTime: reply?.openfusionapi?.lastResponse?.responseTime,
-          };
-
           const contentLength = reply.getHeader("content-length");
           let sizeKB = 0;
           if (contentLength) {
             sizeKB = Number(contentLength) / 1024;
-            request.log.info({
-              route: request.routerPath,
-              method: request.method,
-              sizeKB: sizeKB.toFixed(4),
-            });
           } else {
-            sizeKB = Buffer.byteLength(
-              JSON.stringify(reply_lastResponse),
-              "utf8"
-            ).toFixed(4);
+            sizeKB =
+              Buffer.byteLength(JSON.stringify(reply_lastResponse), "utf8") /
+              1024;
           }
+
+          let payload_cache = {
+            data: reply?.openfusionapi?.lastResponse?.data ?? undefined,
+            responseTime: reply?.openfusionapi?.lastResponse?.responseTime,
+            size: sizeKB > 0 ? Math.round(sizeKB * 10000) / 10000 : 0,
+            idendpoint: ep?.handler?.params?.idendpoint,
+            idapp: ep?.handler?.params?.idapp,
+          };
 
           this.cache.add({
             app: ep?.handler?.params?.app,
@@ -326,10 +301,13 @@ export default class Endpoint extends EventEmitter {
 
     let data_log = {
       timestamp: new Date(),
+      idapp: handler_param?.idapp ?? "68a44349-b035-466f-a1c6-f90f3f2813bb", // Es un id por defecto temporal
       idendpoint:
-        handler_param?.idendpoint ?? "00000000000000000000000000000000",
-      level: getLogLevelByStatusCode(reply.statusCode),
+        handler_param?.idendpoint ?? "68a44349-b035-466f-a1c6-f90f3f2813bb", // Es un id por defecto temporal
+      //level: getLogLevelByStatusCode(reply.statusCode),
       method: request.method,
+      cost_by_kb: handler_param?.cost_by_kb ?? 0,
+      cost_by_request: handler_param?.cost_by_request ?? 0,
       status_code: reply.statusCode,
       user_agent: undefined,
       client: undefined,
@@ -355,7 +333,7 @@ export default class Endpoint extends EventEmitter {
         data_log.res_headers = reply.getHeaders();
 
         data_log.user_agent = request.headers["user-agent"];
-        data_log.client = getIPFromRequest(request);
+        //        data_log.client = getIPFromRequest(request);
         break;
       case 3:
         data_log.req_headers = request.headers;
@@ -363,12 +341,13 @@ export default class Endpoint extends EventEmitter {
         data_log.query = request.query;
         data_log.body = request.body;
         data_log.user_agent = request.headers["user-agent"];
-        data_log.client = getIPFromRequest(request);
+        //data_log.client = getIPFromRequest(request);
         data_log.params = handler_param;
         data_log.response_data =
           reply?.openfusionapi?.lastResponse?.data ?? undefined;
         break;
     }
+    data_log.client = getIPFromRequest(request);
     return data_log;
   }
 
@@ -424,15 +403,6 @@ export default class Endpoint extends EventEmitter {
       for (let index = 0; index < ep_list.length; index++) {
         let ep = this.internal_endpoint[ep_list[index]];
         if (ep && ep.handler.params.idendpoint == idendpoint) {
-          /*
-          this.emit("cache_released", {
-            app: ep?.handler?.params?.app,
-            idendpoint: ep?.handler?.params?.idendpoint,
-            idapp: ep?.handler?.params?.idapp,
-            cache_size: 0,
-            count_status_code: ep?.CountStatusCode,
-          });
-          */
           this.cache.delete({
             app: ep?.handler?.params?.app,
             resource: ep?.handler?.params?.resource,
@@ -458,15 +428,6 @@ export default class Endpoint extends EventEmitter {
           ep.handler.params.idapp == idapp &&
           ep.handler.params.environment == env
         ) {
-          /*
-          this.emit("cache_released", {
-            app: ep?.handler?.params?.app,
-            idendpoint: ep?.handler?.params?.idendpoint,
-            idapp: ep?.handler?.params?.idapp,
-            cache_size: 0,
-            count_status_code: ep?.CountStatusCode,
-          });
-          */
           this.cache.delete({
             app: ep?.handler?.params?.app,
             resource: ep?.handler?.params?.resource,
@@ -629,103 +590,10 @@ export default class Endpoint extends EventEmitter {
 
         // Para que los datos del server vayan a cache
         if (returnHandler.params.handler == "MCP") {
-          let app = await getApplicationTreeByFilters({
-            app: returnHandler.params.app,
-            enabled: true,
-            endpoint: {
-              enabled: true,
-              environment: returnHandler.params.environment,
-            },
-          });
-
-          returnHandler.params.server_mcp = (headers) => {
-            const server = getServer();
-
-            // TODO: Es posible que se pueda mejorar esta parte del código para que no sea necesario ejecutarlo en cada llamada.
-            let mcp_endpoint_tools = app.endpoints.filter((endpoint) => {
-              return (
-                endpoint.method != "WS" &&
-                endpoint.handler != "MCP" &&
-                endpoint?.mcp?.enabled
-              );
-            });
-
-            for (let index2 = 0; index2 < mcp_endpoint_tools.length; index2++) {
-              const endpoint = mcp_endpoint_tools[index2];
-
-              let url_internal = internal_url_endpoint(
-                app.app,
-                endpoint.resource,
-                endpoint.environment,
-                false
-              );
-
-              let zod_inputSchema = z
-                .any()
-                .describe("Data to send to the endpoint.");
-
-              if (
-                endpoint?.json_schema?.in?.enabled &&
-                endpoint?.json_schema?.in?.schema
-              ) {
-                // Convertir
-                zod_inputSchema = jsonSchemaToZod(
-                  endpoint.json_schema.in.schema
-                );
-              }
-
-              server.registerTool(
-                endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
-                  ? endpoint?.mcp?.name
-                  : `${url_internal}[${endpoint.method}]`,
-                {
-                  title:
-                    endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
-                      ? endpoint?.mcp?.title
-                      : endpoint.description,
-                  description: `${
-                    endpoint.access == 0 ? "Public" : "Private"
-                  }  ${
-                    endpoint?.mcp?.description &&
-                    endpoint?.mcp?.description.length > 0
-                      ? endpoint?.mcp?.description
-                      : endpoint.description
-                  }`,
-
-                  inputSchema: zod_inputSchema,
-                },
-
-                async (data) => {
-                  let auto_env = new URLAutoEnvironment();
-                  let uF = auto_env.create(url_internal, false);
-
-                  let request_endpoint = await uF[
-                    endpoint.method.toUpperCase()
-                  ]({
-                    data: data,
-                    headers: headers,
-                  });
-                  const mimeType = request_endpoint.headers.get("content-type");
-                  let data_out = undefined;
-
-                  // TODO: los datos de salida siempre deben ser como texto aunque sea un objeto json.
-                  data_out = await request_endpoint.text();
-
-                  return {
-                    content: [
-                      {
-                        type: "text",
-                        mimeType: mimeType,
-                        text: data_out,
-                      },
-                    ],
-                  };
-                }
-              );
-            }
-
-            return server;
-          };
+          returnHandler.params.server_mcp = await CreateMCPHandler(
+            returnHandler.params.app,
+            returnHandler.params.environment
+          );
         }
 
         if (returnHandler.params.handler == "MONGODB") {

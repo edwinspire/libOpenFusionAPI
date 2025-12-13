@@ -575,12 +575,12 @@ export const Endpoint = dbsequelize.define(
       defaultValue: "",
     },
     cost_by_request: {
-      type: DataTypes.DECIMAL(18, 6),
+      type: DataTypes.DECIMAL(10, 6),
       allowNull: false,
       defaultValue: 0.000001,
     },
     cost_by_kb: {
-      type: DataTypes.DECIMAL(18, 6),
+      type: DataTypes.DECIMAL(10, 6),
       allowNull: false,
       defaultValue: 0.00001,
     },
@@ -741,27 +741,34 @@ export const Endpoint = dbsequelize.define(
 export const LogEntry = dbsequelize.define(
   ModelNames.LogEntry,
   {
+    // 1. Añadimos la columna 'id' como clave primaria auto-incremental
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      allowNull: false,
+      unique: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
     timestamp: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
       comment: "Registration date",
     },
+    idapp: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: "idapp uuid",
+    },
     idendpoint: {
       type: DataTypes.UUID,
       allowNull: true,
-      defaultValue: "00000000000000000000000000000000",
+      comment: "idendpoint uuid",
     },
     url: {
       type: DataTypes.TEXT,
       allowNull: true,
       comment: "url request",
-    },
-    level: {
-      type: DataTypes.SMALLINT,
-      allowNull: false,
-      defaultValue: 0,
-      comment: "Level log",
     },
     method: {
       type: DataTypes.STRING(15),
@@ -773,6 +780,18 @@ export const LogEntry = dbsequelize.define(
       allowNull: true,
       defaultValue: 0,
       comment: "Response Status Code",
+    },
+    cost_by_kb: {
+      type: DataTypes.DECIMAL(10, 6),
+      allowNull: true,
+      defaultValue: 0,
+      comment: "Cost per KB",
+    },
+    cost_by_request: {
+      type: DataTypes.DECIMAL(10, 6),
+      allowNull: true,
+      defaultValue: 0,
+      comment: "Cost per KB",
     },
     user_agent: {
       type: DataTypes.TEXT,
@@ -840,7 +859,7 @@ export const LogEntry = dbsequelize.define(
       },
     },
     response_time: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: -1,
       comment: "",
@@ -868,16 +887,7 @@ export const LogEntry = dbsequelize.define(
     paranoid: false, // Evita el soft delete
     comment: "Tabla de logs de la aplicación",
     hooks: {
-      afterCreate: async (/** @type {any} */ instance, options) => {
-        //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
-        /*
-        await HooksDB({
-          instance: instance,
-          table: ModelNames.LogEntry,
-          action: "afterCreate",
-        });
-        */
-      },
+      afterCreate: async (/** @type {any} */ instance, options) => {},
       beforeValidate: (instance) => {
         if (instance.req_headers) {
           //  instance.req_headers = JSON_TYPE_Adapter(instance, "req_headers");
@@ -900,16 +910,20 @@ export const LogEntry = dbsequelize.define(
       },
     },
     indexes: [
+      // 1. Búsquedas rápidas por Aplicación + Tiempo (para ver logs recientes de una app)
       {
-        fields: ["idendpoint"],
-        name: "idx_logentry_idendpoint", // Nombre del índice
-        unique: false, // Índice no único
+        name: "idx_logs_idapp_timestamp",
+        fields: ["idapp", "timestamp"],
       },
-      // ÍNDICE COMPUESTO PARA TIMESTAMP Y IDENDPOINT
+      // 2. Búsquedas rápidas por Endpoint + Tiempo (para ver rendimiento de un endpoint)
       {
-        fields: ["timestamp", "idendpoint"], // Orden importante: timestamp primero
-        name: "idx_logentry_timestamp_idendpoint", // Nombre único
-        unique: false,
+        name: "idx_logs_idendpoint_timestamp",
+        fields: ["idendpoint", "timestamp"],
+      },
+      // 3. Opcional: Solo por timestamp si haces limpiezas (DELETE antiguos)
+      {
+        name: "idx_logs_timestamp",
+        fields: ["timestamp"],
       },
     ],
   }
@@ -1156,8 +1170,6 @@ export const SystemUserProfile = dbsequelize.define(
   { timestamps: true, freezeTableName: true }
 );
 
-
-
 ////////////////////////////////////////////////////
 export const ApiClient = dbsequelize.define(
   ModelNames.ApiClient,
@@ -1222,7 +1234,6 @@ export const ApiClient = dbsequelize.define(
   }
 );
 
-
 export const ApiKey = dbsequelize.define(
   ModelNames.ApiKey,
   {
@@ -1238,8 +1249,8 @@ export const ApiKey = dbsequelize.define(
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
-    endAt: { type: DataTypes.DATE }, 
-    description: { type: DataTypes.STRING(150) }, 
+    endAt: { type: DataTypes.DATE },
+    description: { type: DataTypes.STRING(150) },
   },
   {
     timestamps: true,
@@ -1251,11 +1262,10 @@ export const ApiKey = dbsequelize.define(
           oneYear.setFullYear(oneYear.getFullYear() + 1);
           instance.endAt = oneYear;
         }
-      }
-    }
+      },
+    },
   }
 );
-
 
 // ApiKeyEndpoint - Si Se elimina un idkey en el modelo ApiKey tambien debe eliminarse en cascada de este modelo, lo mismo con el campo idendpoint.
 export const ApiKeyEndpoint = dbsequelize.define(
@@ -1272,12 +1282,12 @@ ApiClient → ApiKey (1:N)
 Un cliente puede tener varias API Keys.
 */
 ApiClient.hasMany(ApiKey, {
-  foreignKey: 'idclient',
-  onDelete: 'CASCADE',
+  foreignKey: "idclient",
+  onDelete: "CASCADE",
 });
 
 ApiKey.belongsTo(ApiClient, {
-  foreignKey: 'idclient',
+  foreignKey: "idclient",
 });
 
 /*
@@ -1285,12 +1295,12 @@ ApiKey → ApiKeyEndpoint (1:N)
 Una API Key puede estar autorizada para varios endpoints.
 */
 ApiKey.hasMany(ApiKeyEndpoint, {
-  foreignKey: 'idkey',
-  onDelete: 'CASCADE',
+  foreignKey: "idkey",
+  onDelete: "CASCADE",
 });
 
 ApiKeyEndpoint.belongsTo(ApiKey, {
-  foreignKey: 'idkey',
+  foreignKey: "idkey",
 });
 
 /*
@@ -1298,18 +1308,13 @@ Endpoint → ApiKeyEndpoint (1:N)
 (Suponiendo que el modelo Endpoint existe y tiene idendpoint como PK)
 */
 Endpoint.hasMany(ApiKeyEndpoint, {
-  foreignKey: 'idendpoint',
-  onDelete: 'CASCADE',
+  foreignKey: "idendpoint",
+  onDelete: "CASCADE",
 });
 
 ApiKeyEndpoint.belongsTo(Endpoint, {
-  foreignKey: 'idendpoint',
+  foreignKey: "idendpoint",
 });
-
-
-
-
-
 
 //////////////////////////////////////////////////////
 // ✅ Relación: Una Application tiene muchas variables

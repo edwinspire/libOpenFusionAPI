@@ -128,13 +128,6 @@ export default class ServerAPI extends EventEmitter {
       this._emitEndpointEvent("cache_released", data);
     });
 
-    /*
-    // Esto se lo debe mover a el hook onRequest
-    this.endpoints.on("request_completed", (data) => {
-      this._emitEndpointEvent("request_completed", data);
-    });
-    */
-
     this.SERVER_DATE_START;
 
     this.websocketClientEndpoint = new OpenFusionWebsocketClient(
@@ -143,8 +136,6 @@ export default class ServerAPI extends EventEmitter {
     );
 
     this.telegram = new TelegramBot();
-    //this._fnLocalNames;
-    //this._cacheURLResponse = new Map();
 
     this.TasksInterval = new TasksInterval();
 
@@ -305,7 +296,7 @@ export default class ServerAPI extends EventEmitter {
           // Solo aqui debe guardar en cache la respuesta
           this.endpoints.setCache(handler_param?.url_key, request, reply);
         }
-
+        handler_param.statusCode = reply.statusCode;
         this._emitEndpointEvent("request_completed", handler_param);
       }
     });
@@ -364,7 +355,6 @@ export default class ServerAPI extends EventEmitter {
                         error: validate_channel_subscribe.error,
                       })
                     );
-                    //return;
                   } else {
                     connection.socket.openfusionapi.channel =
                       msgObj.payload.channel;
@@ -415,25 +405,6 @@ export default class ServerAPI extends EventEmitter {
                       // Envia el mensaje a los clientes conectados en el mismo endpoint y canal, funciona modo broadcast
                       // TODO: Ver la forma de que se puede enviar el mensaje solo a un cliente en especifico, puede ser que se cree un canal con un id especifico para comunicacion entre dos clientes, como una sala privada
                       client_ws.send(JSON.stringify(msgObj.payload));
-
-                      // No se habilita este envio ya que se gerenó un bucle infinito que terminó matando el servidor
-                      /*
-                      this._emitEndpointEvent("request_start", {
-                        idendpoint:
-                          client_ws.openfusionapi.handler.params.idendpoint,
-                        idapp: client_ws?.openfusionapi?.handler?.params?.idapp,
-                        url: client_ws?.openfusionapi?.handler?.params?.url_key,
-                        method: "WS",
-                        app: client_ws?.openfusionapi?.handler?.params?.app,
-                        environment:
-                          client_ws?.openfusionapi?.handler?.params
-                            ?.environment,
-                        endpoint:
-                          client_ws?.openfusionapi?.handler?.params?.url_key,
-                        //responseTime: timeTaken,
-                        //statusCode: reply.statusCode,
-                      });
-                      */
                     }
                   } catch (error) {
                     // Devuelve un mensaje al cliente que originó el mensaje
@@ -474,28 +445,13 @@ export default class ServerAPI extends EventEmitter {
           );
           connection.socket.close();
         }
-
-        // message.toString() === 'hi from client'
-        // console.log(this.fastify.websocketServer.clients);
-        //connection.socket.send("hi from server: " + message.toString());
       });
     });
 
-    /*
-    this.fastify.get("/server/version", async (request, reply) => {
-      // Aquí puedes manejar las peticiones GET a /server/version
-      reply.send({ version: version, ddbb: dbAPIs.getDialect() });
-    });
-    */
-
     // Declare a route
     this.fastify.all(struct_api_path, async (request, reply) => {
-      // await this._preValidation(request, reply);
-
       let handlerEndpoint = request.openfusionapi.handler;
       request.openfusionapi.ip_request = getIPFromRequest(request);
-
-      // Aqui se debería obtener el md5 del la solicitud
 
       if (!reply.openfusionapi) {
         reply.openfusionapi = {};
@@ -542,8 +498,6 @@ export default class ServerAPI extends EventEmitter {
         handlerEndpoint.params.cache_time &&
         handlerEndpoint.params.cache_time > 0
       ) {
-        //        console.log("----- CACHE ------");
-
         let hash_request = this.endpoints.hash_request(
           request,
           handlerEndpoint.params.url_key
@@ -635,7 +589,10 @@ export default class ServerAPI extends EventEmitter {
 
     setInterval(async () => {
       if (this.fastify.websocketServer.clients.size > 1) {
-        //  this._emitEndpointEvent("system_information", await getSystemInfoDynamic());
+        this._emitEndpointEvent(
+          "system_information",
+          await getSystemInfoDynamic()
+        );
 
         for (const client_ws of this.fastify.websocketServer.clients) {
           //  console.log("Procesando:", valor);
@@ -657,27 +614,11 @@ export default class ServerAPI extends EventEmitter {
           console.log("Continuando con el siguiente valor...");
         }
       }
-      //console.log('----', this.fastify.websocketServer.clients);
-      /*
-      this.fastify.websocketServer.clients.find((client_ws)=>{
-//client_ws.openfusionapi.channel
-console.log('----');
-      });
-      */
     }, 3000);
   }
   _check_auth_Bearer(handler, data_aut) {
     // En este metodo se debe validar de que clase de usuario es, si es del sistema o si es usuario externo
     let check = false;
-    /*
-      data_aut.Bearer &&
-      data_aut.Bearer.data &&
-      data_aut.Bearer.data.enabled &&
-      data_aut.Bearer.data.ctrl &&
-      handler.params
-        ? true
-        : false;
-*/
 
     if (data_aut?.Bearer?.data?.api && handler.params) {
       check = true; // De momento usuarios de API tiene acceso libre

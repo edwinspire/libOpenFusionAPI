@@ -333,10 +333,11 @@ export const getLogs = async (options = {}) => {
     const queryOptions = {
       where: whereConditions,
       attributes: [
+        "id",
         "timestamp",
+        "idapp",
         "idendpoint",
         "url",
-        "level",
         "method",
         "status_code",
         "user_agent",
@@ -388,7 +389,7 @@ export const getLogs = async (options = {}) => {
     };
     */
 
-//    console.log(`✅ Consulta ejecutada exitosamente: ${logs.length}`);
+    //    console.log(`✅ Consulta ejecutada exitosamente: ${logs.length}`);
     let response = [];
 
     if (logs.length > 0) {
@@ -593,11 +594,11 @@ export const getLogsRecordsPerMinute = async (options) => {
     // 3. Convertir el resultado a un objeto Date de JavaScript
     const startDate = tiempoAtras.toJSDate();
 
- // Filtro por App o idendpoint
+    // Filtro por App o idendpoint
     let endpointFilter;
     if (idapp) {
       // === FILTROS DE ENDPONTS (NUEVA FUNCIONALIDAD) ===
-     let endpoints = await getEndpointByIdApp(idapp);
+      let endpoints = await getEndpointByIdApp(idapp);
 
       let idendpoints = endpoints.map((ep) => {
         return ep.idendpoint;
@@ -642,7 +643,12 @@ export const getLogsRecordsPerMinute = async (options) => {
       raw: true, // Obtenemos resultados crudos para manipular fechas
     });
     */
-   const rawResults = await getCountsByMinute(sequelize, startDate, endDate, endpointFilter);
+    const rawResults = await getCountsByMinute(
+      sequelize,
+      startDate,
+      endDate,
+      endpointFilter
+    );
 
     /*
     // === GENERAR TODOS LOS MINUTOS EN EL RANGO (24 HORAS) ===
@@ -706,28 +712,44 @@ export const getLogsRecordsPerMinute = async (options) => {
   }
 };
 
-
-
 // === CONSULTA PARA OBTENER CONTEOS POR MINUTO ===
-async function getCountsByMinute(sequelize, startDate, endDate, endpointFilter) {
+async function getCountsByMinute(
+  sequelize,
+  startDate,
+  endDate,
+  endpointFilter
+) {
   // Función para generar el truncado de fecha según el tipo de BD
   const getTruncatedMinuteColumn = () => {
     const dialect = sequelize.getDialect(); // Accedemos al dialecto desde el modelo
-    
+
     switch (dialect) {
-      case 'postgres':
+      case "postgres":
         return sequelize.fn("DATE_TRUNC", "minute", sequelize.col("timestamp"));
-      case 'mysql':
-        return sequelize.fn("DATE_FORMAT", sequelize.col("timestamp"), "%Y-%m-%d %H:%i:00");
-      case 'mssql':
+      case "mysql":
         return sequelize.fn(
-          "DATEADD", 
-          "minute", 
-          sequelize.fn("DATEDIFF", "minute", sequelize.literal("0"), sequelize.col("timestamp")), 
+          "DATE_FORMAT",
+          sequelize.col("timestamp"),
+          "%Y-%m-%d %H:%i:00"
+        );
+      case "mssql":
+        return sequelize.fn(
+          "DATEADD",
+          "minute",
+          sequelize.fn(
+            "DATEDIFF",
+            "minute",
+            sequelize.literal("0"),
+            sequelize.col("timestamp")
+          ),
           sequelize.literal("0")
         );
-      case 'sqlite':
-        return sequelize.fn("STRFTIME", "%Y-%m-%d %H:%M:00", sequelize.col("timestamp"));
+      case "sqlite":
+        return sequelize.fn(
+          "STRFTIME",
+          "%Y-%m-%d %H:%M:00",
+          sequelize.col("timestamp")
+        );
       default:
         // Fallback para otros dialectos o error
         throw new Error(`Dialecto no soportado: ${dialect}`);
@@ -755,4 +777,37 @@ async function getCountsByMinute(sequelize, startDate, endDate, endpointFilter) 
   });
 
   return rawResults;
+}
+
+/**
+ * Obtiene un resumen de logs agrupados por idendpoint para una aplicación específica.
+ *
+ * @param {string} idapp El UUID de la aplicación a consultar.
+ * @returns {Promise<Array<{ idendpoint: string, totalStatusCode: number, recordCount: number }>>}
+ *          Un array de objetos, cada uno representando un endpoint con el total de status_code y la cantidad de registros.
+ */
+export async function getLogSummaryByAppStatusCode(data) {
+  if (data && data.idapp) {
+    try {
+      const summary = await LogEntry.findAll({
+        attributes: [
+          "idendpoint", // El campo por el que agrupamos
+          "status_code",
+          [dbsequelize.fn("COUNT", dbsequelize.col("id")), "recordCount"], // Cantidad de registros
+        ],
+        where: {
+          idapp: data.idapp, // Filtra por el idapp proporcionado
+        },
+        group: ["idendpoint", "status_code"], // Agrupa los resultados por idendpoint
+        raw: true, // Importante para obtener objetos JSON planos en lugar de instancias del modelo Sequelize
+      });
+
+      return summary;
+    } catch (error) {
+      console.error("Error al obtener el resumen de logs por endpoint:", error);
+      throw error; // Propagar el error para que la lógica superior lo maneje
+    }
+  } else {
+    throw new Error("El parámetro idapp es obligatorio");
+  }
 }

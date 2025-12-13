@@ -48,6 +48,12 @@ export class TimedCache extends EventEmitter {
     const key = this.#buildKey({ app, resource, env, method, hash });
 
     this.#cleanTimeout(key);
+    const endpoint_size = this.getCacheSizeEndpoint({
+      app,
+      resource,
+      env,
+      method,
+    });
 
     this.emit("expired", {
       app,
@@ -55,9 +61,24 @@ export class TimedCache extends EventEmitter {
       env,
       method,
       hash,
-      payload,
+      idendpoint: payload?.idendpoint,
+      idapp: payload?.idapp,
+      size: { payload: payload?.size, endpoint: endpoint_size },
       key,
     });
+
+    /*{
+        app,
+        resource,
+        env,
+        method,
+        hash,
+        idendpoint: payload?.idendpoint,
+        idapp: payload?.idapp,
+        size: {payload: payload?.size, endpoint: endpoint_size},
+        key,
+      }
+        */
   }
 
   // ---------------------------------------------------------------------
@@ -134,14 +155,21 @@ export class TimedCache extends EventEmitter {
       methodNode.set(hash, payload);
 
       const key = this.#buildKey({ app, resource, env, method, hash });
-
+      const endpoint_size = this.getCacheSizeEndpoint({
+        app,
+        resource,
+        env,
+        method,
+      });
       this.emit("added", {
         app,
         resource,
         env,
         method,
         hash,
-        payload,
+        idendpoint: payload?.idendpoint,
+        idapp: payload?.idapp,
+        size: { payload: payload?.size, endpoint: endpoint_size },
         key,
       });
 
@@ -193,7 +221,9 @@ export class TimedCache extends EventEmitter {
    */
   getPayload({ app, resource, env, method, hash }) {
     if (!app || !resource || !env || !method || !hash) {
-      throw new Error("getPayload: application, resource, environment, method, and hash are required");
+      throw new Error(
+        "getPayload: application, resource, environment, method, and hash are required"
+      );
     }
 
     const appNode = this.root.get(app);
@@ -211,6 +241,16 @@ export class TimedCache extends EventEmitter {
     return methodNode.get(hash) ?? null;
   }
 
+  getCacheSizeEndpoint({ app, resource, env, method } = {}) {
+    let data = this.get({ app, resource, env, method });
+    let size = 0;
+    if (data) {
+      for (const item of data.values()) {
+        size += item.size || 0;
+      }
+    }
+    return size > 0 ? Math.round(size * 10000) / 10000 : 0;
+  }
 
   // ---------------------------------------------------------------------
   // LISTAR (normalizado)
