@@ -2,15 +2,12 @@ import { EventEmitter } from "node:events";
 import {
   get_url_params,
   url_key,
-  internal_url_endpoint,
 } from "../utils_path.js";
 import { getApplicationTreeByFilters } from "../../db/app.js";
-//import * as z from "zod";
 
 import {
   getIPFromRequest,
   createFunction,
-  URLAutoEnvironment,
 } from "../utils.js";
 import { safeInjectVars, getLogLevelForStatus } from "./utils.js";
 import { createLog, getLogLevelByStatusCode } from "../../db/log.js";
@@ -537,10 +534,7 @@ export default class Endpoint extends EventEmitter {
                 return code.includes(prop.name);
               });
 
-              if (usedProps.length === 0) {
-                return; // No hay variables que inyectar
-              }
-
+              
               // Generar declaraciones
               const declarations = usedProps
                 .map((prop) => {
