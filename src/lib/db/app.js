@@ -78,7 +78,6 @@ export const getAppFullById = async (
   }
 };
 
-
 export const getAllApps = async () => {
   try {
     //const apps = await Application.findAll({ attributes: ["idapp", "app"] });
@@ -219,6 +218,7 @@ export const restoreAppFromBackup = async (app) => {
     }
   } catch (error) {
     console.error("Error restoring backup app:", error);
+    return error;
   }
 };
 
@@ -324,7 +324,6 @@ function ValidateEndpoint(default_endpoints, system_endpoints) {
         } has modified fields: ${field_diff.join(", ")}`;
         break;
       }
-      
     }
   }
   return result;
@@ -476,7 +475,9 @@ export async function getApplicationTreeByFilters(filters = {}) {
     return appData;
   } catch (error) {
     console.error("Error en getApplicationTreeByFilters:", error);
-    throw new Error("No se pudo obtener la información de la aplicación. getApplicationTreeByFilters");
+    throw new Error(
+      "No se pudo obtener la información de la aplicación. getApplicationTreeByFilters"
+    );
   }
 }
 
