@@ -1,20 +1,14 @@
 import { EventEmitter } from "node:events";
-import {
-  get_url_params,
-  url_key,
-} from "../utils_path.js";
+import { get_url_params, url_key } from "../utils_path.js";
 import { getApplicationTreeByFilters } from "../../db/app.js";
 
-import {
-  getIPFromRequest,
-  createFunction,
-} from "../utils.js";
-import { safeInjectVars, getLogLevelForStatus } from "./utils.js";
+import { getIPFromRequest } from "../utils.js";
+import { getLogLevelForStatus, replaceAllFast } from "./utils.js";
 import { createLog, getLogLevelByStatusCode } from "../../db/log.js";
 import { getMongoDBHandlerParams } from "../../handler/mongoDB.js";
 import { TimedCache } from "./TimedCache.js";
 import { CreateMCPHandler } from "./handlerBuild/mcp.js";
-
+import { createFunctionVM } from "../createFunctionVM.js";
 import hash from "object-hash";
 import Ajv from "ajv";
 const ajv = new Ajv();
@@ -492,86 +486,40 @@ export default class Endpoint extends EventEmitter {
     try {
       if (endpointData.enabled) {
         let props = [];
+        let appvars_obj = {};
+
         if (Array.isArray(app_vars)) {
           props = app_vars.filter((item) => {
             return endpointData.environment == item.environment;
           });
-          if (props.length > 0) {
-            if (
-              endpointData.handler == "JS" &&
-              returnHandler.params.code &&
-              returnHandler.params.code.length > 0
-            ) {
-              // Para estos casos lo que se hace es agregar las variables al inicio del código como constantes minimizando el uso de memoria
 
-              const code = String(returnHandler.params.code ?? "");
-
-              // Filtrar variables usadas y validar nombres
-              const usedProps = props.filter((prop) => {
-                // Validar que tenga nombre y que aparezca en el código
-                if (
-                  !prop.name ||
-                  typeof prop.name !== "string" ||
-                  !prop.name.startsWith("$_VAR")
-                ) {
-                  console.warn(
-                    "Variable sin nombre válido: " + prop.name,
-                    prop
-                  );
-                  return false;
-                }
-
-                // Validar que el nombre sea un identificador JS válido
-                if (
-                  !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(
-                    prop.name.replace(/^\$/, "")
-                  )
-                ) {
-                  console.warn("Nombre de variable inválido:", prop.name);
-                  return false;
-                }
-
-                return code.includes(prop.name);
-              });
-
-              
-              // Generar declaraciones
-              const declarations = usedProps
-                .map((prop) => {
-                  try {
-                    const value = JSON.stringify(prop.value);
-                    return `const ${prop.name} = ${value};`;
-                  } catch (error) {
-                    console.error(`Error serializando ${prop.name}:`, error);
-                    return `const ${prop.name} = undefined; // Error: ${error.message}`;
-                  }
-                })
-                .join("\n");
-
-              // Inyectar con separación clara
-              returnHandler.params.code = `// Variables inyectadas automáticamente\n${declarations}\n\n// Código original\n${code}`;
-              console.log("Cambiado");
-            } else if (
-              endpointData.handler !== "FUNCTION" &&
-              returnHandler.params.code &&
-              returnHandler.params.code.length > 0
-            ) {
-              // Para estos casos lo que se hace es remplazar las variables directamente en el código
-              let app_vars = {};
-              for (let i = 0; i < props.length; i++) {
-                const prop = props[i];
-                app_vars[prop.name] = prop.value;
-              }
-
-              returnHandler.params.code = safeInjectVars(
-                returnHandler.params.code,
-                app_vars // object with key/value
-              );
-
-              console.log("Se han reemplazado");
-            }
+          for (let index = 0; index < props.length; index++) {
+            const element = props[index];
+            appvars_obj[element.name] = element.value;
           }
         }
+
+        if (props.length > 0) {
+          if (
+            endpointData.handler !== "JS" &&
+            endpointData.handler !== "MCP" &&
+            endpointData.handler !== "MONGODB" &&
+            endpointData.handler !== "FUNCTION" &&
+            returnHandler.params.code &&
+            returnHandler.params.code.length > 0
+          ) {
+            // Para estos casos lo que se hace es remplazar las variables directamente en el código
+
+            returnHandler.params.code = replaceAllFast(
+              returnHandler.params.code,
+              props
+            );
+
+            console.log("Se han reemplazado");
+          }
+        }
+
+        /////////////////////////////////////////////////////////////
 
         if (returnHandler?.params?.json_schema?.in?.enabled) {
           try {
@@ -591,17 +539,17 @@ export default class Endpoint extends EventEmitter {
         }
 
         if (returnHandler.params.handler == "MONGODB") {
-          returnHandler.params.jsFn = await createFunction(
+          returnHandler.params.jsFn = await createFunctionVM(
             getMongoDBHandlerParams(returnHandler.params.code).code,
-            app_vars
+            appvars_obj
           );
 
           // Se libera espacio de esta variable ya que no se va a utilizar mas
           returnHandler.params.code = undefined;
         } else if (returnHandler.params.handler == "JS") {
-          returnHandler.params.jsFn = await createFunction(
+          returnHandler.params.jsFn = await createFunctionVM(
             returnHandler.params.code,
-            app_vars
+            appvars_obj
           );
 
           // Se libera espacio de esta variable ya que no se va a utilizar mas

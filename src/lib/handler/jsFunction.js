@@ -1,4 +1,4 @@
-import { functionsVars, createFunction } from "../server/utils.js";
+import { functionsVars } from "../server/utils.js";
 import { setCacheReply } from "./utils.js";
 
 export const jsFunction = async (
@@ -6,14 +6,11 @@ export const jsFunction = async (
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
 ) => {
-  try { 
-
+  try {
     let f;
 
     if (method.jsFn) {
       f = method.jsFn;
-    } else {
-      f = await createFunction(method.code);
     }
 
     /*  
@@ -33,8 +30,8 @@ export const jsFunction = async (
     })();
 */
     let result_fn = await f(
-      await functionsVars($_REQUEST_, response, method.environment)
-    )();
+      functionsVars($_REQUEST_, response, method.environment)
+    );
 
     if (
       response.openfusionapi.lastResponse &&
@@ -51,7 +48,6 @@ export const jsFunction = async (
     }
 
     response.code(200).send(result_fn.data);
-
   } catch (error) {
     console.trace(error);
     setCacheReply(response, error);

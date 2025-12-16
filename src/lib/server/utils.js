@@ -96,16 +96,20 @@ export function getIPFromRequest(req) {
  * @param {string} token
  */
 export function checkToken(token) {
-  try {
-    // Verificar y decodificar el token
-    const decodedToken = tokenVerify(token);
+  if (token) {
+    try {
+      // Verificar y decodificar el token
+      const decodedToken = tokenVerify(token);
 
-    if (decodedToken && decodedToken.data) {
-      return decodedToken.data;
+      if (decodedToken && decodedToken.data) {
+        return decodedToken.data;
+      }
+
+      return false;
+    } catch (error) {
+      return false;
     }
-
-    return false;
-  } catch (error) {
+  } else {
     return false;
   }
 }
@@ -682,7 +686,7 @@ export const xlsx_body_to_json = (request_body) => {
   return result;
 };
 
-export const functionsVars = async (request, reply, environment) => {
+export const functionsVars = (request, reply, environment) => {
   let fnVars = listFunctionsVars(request, reply, environment);
   let fnResult = {};
   let keys = Object.keys(fnVars);
@@ -848,4 +852,3 @@ export const CreateOpenFusionAPIToken = () => {
   ); // Valido por un año
   process.env.USER_OPENFUSIONAPI_TOKEN = token;
 };
-

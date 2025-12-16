@@ -1,5 +1,5 @@
 import { setCacheReply } from "./utils.js";
-import { functionsVars, createFunction } from "../server/utils.js";
+import { functionsVars } from "../server/utils.js";
 import mongoose from "mongoose";
 
 export const getMongoDBHandlerParams = (code) => {
@@ -58,9 +58,7 @@ export const mongodbFunction = async (
 
     if (method.jsFn) {
       f = method.jsFn;
-    } else {
-      f = await createFunction(paramsMongo.js);
-    }
+    } 
 
     let result_fn = await f(
       await functionsVars($_REQUEST_, response, method.environment)

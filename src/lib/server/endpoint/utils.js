@@ -1,46 +1,67 @@
-import { parse } from "acorn";
-import { generate } from "astring";
 
 
-export function safeInjectVars(code, variables) {
-  // 1. Parsear a AST
-  const ast = parse(code, {
-    ecmaVersion: "latest",
-    sourceType: "module",
-  });
-
-  // 2. Recorrer y reemplazar solo Identifiers válidos
-  walkAST(ast, (node) => {
-    if (node.type === "Identifier" && variables.hasOwnProperty(node.name)) {
-      return {
-        type: "Literal",
-        value: variables[node.name],
-      };
-    }
-  });
-
-  // 3. Regenerar el código final
-  return generate(ast);
-}
-
-// Recorrido simple del AST
-function walkAST(node, fn) {
-  const replacement = fn(node);
-  if (replacement) {
-    Object.assign(node, replacement);
+/**
+ * Reemplaza múltiples valores en una cadena usando una lista de objetos.
+ * @param {string} source - Cadena original
+ * @param {Array<{name: string, value: any}>} replacements - Lista de reemplazos
+ * @returns {string} - Cadena con todos los reemplazos aplicados
+ */
+export const replaceAllFast = (source, replacements) => {
+  if (typeof source !== "string") source = String(source);
+  if (!Array.isArray(replacements) || replacements.length === 0) {
+    return source;
   }
 
-  for (const key in node) {
-    const value = node[key];
-    if (value && typeof value === "object") {
-      if (Array.isArray(value)) {
-        value.forEach((v) => v && walkAST(v, fn));
-      } else {
-        walkAST(value, fn);
+  // Preprocesar: crear mapa de reemplazos y ordenar por longitud descendente
+  // Esto evita problemas como reemplazar "aa" antes que "aaa"
+  const map = new Map();
+  const entries = [];
+
+  for (const item of replacements) {
+    if (!item || typeof item.name !== "string" || item.name === "") continue;
+
+    const key = item.name;
+    const value =
+      item.value === undefined || item.value === null ? "" : String(item.value);
+
+    if (!map.has(key)) {
+      map.set(key, value);
+      entries.push({ key, value, len: key.length });
+    }
+  }
+
+  // Si no hay reemplazos válidos, devolver original
+  if (entries.length === 0) return source;
+
+  // Ordenar por longitud descendente (crucial para evitar reemplazos parciales)
+  entries.sort((a, b) => b.len - a.len);
+
+  let result = "";
+  let pos = 0;
+
+  while (pos < source.length) {
+    let matched = false;
+
+    // Buscar el reemplazo más largo posible en la posición actual
+    for (const { key, value, len } of entries) {
+      if (source.startsWith(key, pos)) {
+        result += value;
+        pos += len;
+        matched = true;
+        break;
       }
     }
+
+    // Si no hubo coincidencia, copiar carácter actual
+    if (!matched) {
+      result += source[pos];
+      pos++;
+    }
   }
-}
+
+  return result;
+};
+
 
 export function getLogLevelForStatus(status) {
   if (status >= 100 && status <= 199) return "info";
@@ -51,9 +72,4 @@ export function getLogLevelForStatus(status) {
   return "unknown";
 }
 
-/*
-function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-  */
 

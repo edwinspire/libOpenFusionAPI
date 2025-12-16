@@ -358,7 +358,7 @@ export const demo_app = {
       description: "",
       cost: 0.000001,
       keywords: "",
-      code: "return Number($_REQUEST_.query.a) + Number($_REQUEST_.query.b);",
+      code: "$_RETURN_DATA_ = Number($_REQUEST_.query.a) + Number($_REQUEST_.query.b);",
       cache_time: 30,
       createdAt: "2025-11-29T15:35:55.801Z",
       updatedAt: "2025-11-29T15:35:55.801Z",
