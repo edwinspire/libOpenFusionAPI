@@ -207,9 +207,13 @@ export const restoreAppFromBackup = async (app) => {
         if (Array.isArray(app.endpoints) && app.endpoints.length > 0) {
           // Eliminar los endpoints que no están en la app actual
           let promises_endpoints = app.endpoints.map((ep) => {
+            if (!ep.idapp) {
+              ep.idapp = app.idapp;
+            }
             return upsertEndpoint(ep);
           });
-          await Promise.allSettled(promises_endpoints);
+          let result_endpoints = await Promise.allSettled(promises_endpoints);
+          console.log("result_endpoints ==>>>", result_endpoints);
         }
       }
 

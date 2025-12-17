@@ -4,7 +4,10 @@ export const upsertAppVar = async (
   /** @type {import("sequelize").Optional<any, string>} */ data
 ) => {
   try {
-    const [result] = await AppVars.upsert(data, { returning: true });
+    const [result] = await AppVars.upsert(data, {
+      returning: true,
+      //conflictFields: ["idapp", "name", "environment"],
+    });
     return result;
   } catch (error) {
     console.error("Error retrieving:", error, data);
@@ -24,7 +27,6 @@ export const getAppVarsById = async (
     throw error;
   }
 };
-
 
 // DELETE
 export const deleteAppVar = async (
@@ -56,8 +58,6 @@ export const getAppVarsByIdApp = async (
     throw error;
   }
 };
-
-
 
 export const bulkCreateAppVars = (
   /** @type {readonly import("sequelize").Optional<any, string>[]} */ list_AppVars
