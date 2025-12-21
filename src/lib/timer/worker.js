@@ -1,46 +1,32 @@
 import { parentPort } from "worker_threads";
-import { createLog, createLogEntriesBulk } from "../db/log.js";
+import { createLogEntriesBulk } from "../db/log.js";
+import { LogBuffer } from "./logBuffer.js";
 import {
   getIntervalTaskProcess,
   updateIntervalTaskStatus,
 } from "../db/interval_task.js";
-import PromiseSequence from "@edwinspire/sequential-promises";
-//import uFetch from "@edwinspire/universal-fetch";
+
 import { performance } from "perf_hooks";
 import { URLAutoEnvironment } from "../server/utils.js";
 
 const fetchOFAPI = new URLAutoEnvironment("no_env");
-const QUEUE_LOG_NUM_THREAD = process.env.QUEUE_LOG_NUM_THREAD || 5;
 const interval = 10000;
 
-function pushLog(log) {
-  return new Promise(async (resolve) => {
-    let data;
-    let error;
-
-    try {
-      data = await createLog(log);
-    } catch (error) {
-      error = error;
-    }
-    //    console.log(data, error)
-    resolve({ data: data, error: error });
-  });
-}
-
-const queueLog = new PromiseSequence();
-queueLog.thread(pushLog, QUEUE_LOG_NUM_THREAD, []);
+export const logBuffer = new LogBuffer({
+  flushFn: createLogEntriesBulk,
+  flushIntervalMs: 30000, // cada 30s
+  maxBatchSize: 100, // ajusta según tu DB
+  maxBufferSize: 200, // límite de seguridad
+});
 
 // Escuchar mensajes desde el hilo principal
 parentPort.on("message", (data) => {
-  //console.log("Mensaje recibido en worker:", data);
-
   try {
     const data_json = JSON.parse(data);
 
     switch (data_json.action) {
       case "pushLog":
-        queueLog.push(data_json.data);
+        logBuffer.push(data_json.data);
         break;
 
       default:
@@ -50,9 +36,6 @@ parentPort.on("message", (data) => {
   } catch (error) {
     console.error("Error en worker:", error, data);
   }
-
-  // Puedes procesar el dato recibido y responder
-  //parentPort.postMessage(`Worker recibió: ${data}`);
 });
 
 async function runFetchTask(task) {
@@ -125,7 +108,7 @@ setInterval(() => {
               console.error("Error updating status");
             });
         } else {
-         // console.log("Task in status " + task.status);
+          // console.log("Task in status " + task.status);
         }
       } catch (error) {
         updateIntervalTaskStatus(
@@ -146,5 +129,20 @@ parentPort.on("message", (msg) => {
   if (msg === "stop") {
     //process.exit(0)
     console.log("Worker parentPort STOP");
+  }
+});
+
+process.on("SIGINT", async () => {
+  try {
+    await logBuffer.stop({ flush: true });
+  } finally {
+    process.exit(0);
+  }
+});
+process.on("SIGTERM", async () => {
+  try {
+    await logBuffer.stop({ flush: true });
+  } finally {
+    process.exit(0);
   }
 });

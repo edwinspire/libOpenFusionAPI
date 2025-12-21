@@ -297,8 +297,10 @@ export default class Endpoint extends EventEmitter {
         handler_param?.idendpoint ?? "68a44349-b035-466f-a1c6-f90f3f2813bb", // Es un id por defecto temporal
       //level: getLogLevelByStatusCode(reply.statusCode),
       method: request.method,
-      cost_by_kb: handler_param?.cost_by_kb ?? 0,
       cost_by_request: handler_param?.cost_by_request ?? 0,
+      cost_kb_request: handler_param?.cost_kb_request ?? 0,
+      cost_kb_response: handler_param?.cost_kb_response ?? 0,
+      //cost_total: handler_param?.cost_total ?? 0,
       status_code: reply.statusCode,
       user_agent: undefined,
       client: undefined,
@@ -312,6 +314,19 @@ export default class Endpoint extends EventEmitter {
       message: undefined,
       url: request.url,
     };
+
+    /*
+    data_log.cost_total =
+      data_log.cost_by_request +
+      data_log.cost_kb_request *
+        (request.headers["content-length"]
+          ? Number(request.headers["content-length"]) / 1024
+          : 0) +
+      data_log.cost_kb_response *
+        (reply?.openfusionapi?.lastResponse?.data
+          ? Number(reply?.openfusionapi?.lastResponse?.data.length) / 1024
+          : 0);
+          */
 
     //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
 

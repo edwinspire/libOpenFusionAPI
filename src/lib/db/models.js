@@ -27,6 +27,8 @@ export const ModelNames = {
   WalletMovement: prefixTableName("wallet_movement"),
   ApiKeyEndpoint: prefixTableName("apiKey_endpoint"),
   ApiUsageLog: prefixTableName("api_usageLog"),
+  ClientBalance: prefixTableName("client_balance"),
+  ClientTransactions: prefixTableName("client_transactions"),
 };
 
 const default_json_schema = {
@@ -575,16 +577,29 @@ export const Endpoint = dbsequelize.define(
       defaultValue: "",
     },
     cost_by_request: {
-      type: DataTypes.DECIMAL(10, 6),
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0.000001,
+      defaultValue: 1,
+      comment: "Cost per request (millicents)",
     },
-    cost_by_kb: {
-      type: DataTypes.DECIMAL(10, 6),
+    cost_kb_request: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0.00001,
+      defaultValue: 1,
+      comment: "Cost per KB request (millicents)",
     },
-
+    cost_kb_response: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      comment: "Cost per KB response (millicents)",
+    },
+    cost_total: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      comment: "Cost response (millicents)",
+    },
     keywords: {
       type: DataTypes.TEXT,
       allowNull: false,
@@ -765,6 +780,11 @@ export const LogEntry = dbsequelize.define(
       allowNull: true,
       comment: "idendpoint uuid",
     },
+    idclient: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: "idclient",
+    },
     url: {
       type: DataTypes.TEXT,
       allowNull: true,
@@ -781,17 +801,30 @@ export const LogEntry = dbsequelize.define(
       defaultValue: 0,
       comment: "Response Status Code",
     },
-    cost_by_kb: {
-      type: DataTypes.DECIMAL(10, 6),
-      allowNull: true,
-      defaultValue: 0,
-      comment: "Cost per KB",
-    },
+
     cost_by_request: {
-      type: DataTypes.DECIMAL(10, 6),
-      allowNull: true,
-      defaultValue: 0,
-      comment: "Cost per KB",
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      comment: "Cost per request (millicents)",
+    },
+    cost_kb_request: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      comment: "Cost per KB request (millicents)",
+    },
+    cost_kb_response: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      comment: "Cost per KB response (millicents)",
+    },
+    cost_total: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      comment: "Total cost (millicents)",
     },
     user_agent: {
       type: DataTypes.TEXT,
@@ -926,6 +959,114 @@ export const LogEntry = dbsequelize.define(
         fields: ["timestamp"],
       },
     ],
+  }
+);
+
+export const ClientBalance = dbsequelize.define(
+  ModelNames.ClientBalance,
+  {
+    idclient: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      allowNull: false,
+      comment: "ID del cliente (api) (clave foránea a tabla de clientes)",
+    },
+    balance: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: "Saldo disponible del cliente",
+    },
+    last_transaction_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: "Fecha de la última transacción (para métricas)",
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false,
+    indexes: [
+      {
+        name: "idx_client_balance_idclient",
+        fields: ["idclient"],
+        unique: true,
+      },
+    ],
+    comment: "Saldo actual de cada cliente. Una fila por cliente.",
+    hooks: {
+      beforeUpdate: (instance) => {
+        instance.last_transaction_at = new Date();
+      },
+    },
+  }
+);
+
+export const ClientTransactions = dbsequelize.define(
+  ModelNames.ClientTransactions,
+  {
+    id: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    idclient: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      comment: "Cliente al que pertenece la transacción (api)",
+    },
+    type: {
+      type: DataTypes.ENUM("credit", "debit"),
+      allowNull: false,
+      comment: "'credit' = recarga, 'debit' = consumo",
+    },
+    amount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      comment: "Monto positivo siempre (crédito o débito)",
+      validate: {
+        min: 1, // Evitar transacciones de 0
+      },
+    },
+    balance_after: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Saldo después de esta transacción (para auditoría rápida)",
+    },
+    idlog: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: "Referencia al log que generó el débito (si aplica)",
+    },
+    idendpoint: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: "Endpoint consumido (para reportes)",
+    },
+    description: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment:
+        'Ej: "Recarga manual", "Consumo GET /users", "Ajuste administrativo"',
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false,
+    indexes: [
+      { fields: ["idclient"] },
+      { fields: ["created_at"] },
+      { fields: ["idclient", "created_at"] }, // Ideal para reportes por cliente
+      { fields: ["idlog"] },
+      { fields: ["type"] },
+    ],
+    comment: "Historial completo de movimientos de saldo (créditos y débitos)",
   }
 );
 
@@ -1343,4 +1484,76 @@ Endpoint.hasMany(IntervalTask, { foreignKey: "idendpoint", as: "tasks" });
 IntervalTask.belongsTo(Endpoint, {
   foreignKey: "idendpoint", // campo FK en IntervalTask
   targetKey: "idendpoint", // campo PK en Endpoint
+});
+
+// ----------------------------
+// ClientBalance -> ClientTransactions
+// ----------------------------
+// ClientBalance tiene PK idclient. ClientTransactions tiene idclient.
+// Esto te permite: incluir transacciones al consultar saldo.
+ClientBalance.hasMany(ClientTransactions, {
+  foreignKey: "idclient",
+  sourceKey: "idclient",
+  as: "transactions",
+  constraints: false, // pon true si tienes tabla Client y quieres FK formal
+});
+
+ClientTransactions.belongsTo(ClientBalance, {
+  foreignKey: "idclient",
+  targetKey: "idclient",
+  as: "balance",
+  constraints: false,
+});
+
+// ----------------------------
+// ClientBalance -> LogEntry (opcional pero útil)
+// ----------------------------
+ClientBalance.hasMany(LogEntry, {
+  foreignKey: "idclient",
+  sourceKey: "idclient",
+  as: "logs",
+  constraints: false,
+});
+
+LogEntry.belongsTo(ClientBalance, {
+  foreignKey: "idclient",
+  targetKey: "idclient",
+  as: "clientBalance",
+  constraints: false,
+});
+
+// ----------------------------
+// LogEntry <-> ClientTransactions por idlog (opcional, recomendado)
+// ----------------------------
+// En tu diseño, un log normalmente genera 1 débito (1 transacción).
+// Si en el futuro podrías generar varias transacciones por log, cambia hasOne -> hasMany.
+LogEntry.hasOne(ClientTransactions, {
+  foreignKey: "idlog",
+  sourceKey: "id",
+  as: "billingTransaction",
+  constraints: false,
+});
+
+ClientTransactions.belongsTo(LogEntry, {
+  foreignKey: "idlog",
+  targetKey: "id",
+  as: "log",
+  constraints: false,
+});
+
+// ----------------------------
+// ClientTransactions -> Endpoint (opcional para reportes)
+// ----------------------------
+Endpoint.hasMany(ClientTransactions, {
+  foreignKey: "idendpoint",
+  sourceKey: "idendpoint",
+  as: "transactions",
+  constraints: false,
+});
+
+ClientTransactions.belongsTo(Endpoint, {
+  foreignKey: "idendpoint",
+  targetKey: "idendpoint",
+  as: "endpoint",
+  constraints: false,
 });
