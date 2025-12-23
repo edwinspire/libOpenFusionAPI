@@ -11,6 +11,7 @@ export const sqlHana = async (
     let paramsSQL = JSON.parse(method.code);
     let data_request = {};
 
+    
     if (request.method == "GET") {
       // Obtiene los datos del query
       data_request.params = request.query;

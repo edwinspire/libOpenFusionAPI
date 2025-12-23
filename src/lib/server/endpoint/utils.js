@@ -1,4 +1,5 @@
-
+// Precompílalo una sola vez (mejor rendimiento si llamas muchas veces)
+const RE_QUOTED_VAR = /"\$_VAR_[A-Za-z0-9_]+"/g;
 
 /**
  * Reemplaza múltiples valores en una cadena usando una lista de objetos.
@@ -12,6 +13,8 @@ export const replaceAllFast = (source, replacements) => {
     return source;
   }
 
+  source = cleanVar(source);
+
   // Preprocesar: crear mapa de reemplazos y ordenar por longitud descendente
   // Esto evita problemas como reemplazar "aa" antes que "aaa"
   const map = new Map();
@@ -21,8 +24,15 @@ export const replaceAllFast = (source, replacements) => {
     if (!item || typeof item.name !== "string" || item.name === "") continue;
 
     const key = item.name;
-    const value =
+    let value =
       item.value === undefined || item.value === null ? "" : String(item.value);
+
+    if (
+      (item.type === "json" || item.type === "object") &&
+      typeof item.value === "object"
+    ) {
+      value = JSON.stringify(item.value);
+    }
 
     if (!map.has(key)) {
       map.set(key, value);
@@ -62,7 +72,6 @@ export const replaceAllFast = (source, replacements) => {
   return result;
 };
 
-
 export function getLogLevelForStatus(status) {
   if (status >= 100 && status <= 199) return "info";
   if (status >= 200 && status <= 299) return "success";
@@ -72,4 +81,9 @@ export function getLogLevelForStatus(status) {
   return "unknown";
 }
 
+const cleanVar = (str) => {
+  if (typeof str !== "string") str = String(str);
 
+  // Reemplaza: "$_VAR_X"  -> $_VAR_X
+  return str.replace(RE_QUOTED_VAR, (m) => m.slice(1, -1));
+};
