@@ -72,7 +72,7 @@ clearTimeout(to);
 
       // Compilar script
       const script = new vm.Script(wrappedCode, {
-        filename: "dynamic-function.vm.js",
+        filename: "sandbox.vm.js",
         //        timeout: 60 * 60 * 1000, // evita loops infinitos // Maximo 1 hora // Revisar
       });
 
