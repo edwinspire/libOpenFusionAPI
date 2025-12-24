@@ -630,12 +630,6 @@ export const Endpoint = dbsequelize.define(
       defaultValue: 1,
       comment: "Cost per KB response (millicents)",
     },
-    cost_total: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 1,
-      comment: "Cost response (millicents)",
-    },
     keywords: {
       type: DataTypes.TEXT,
       allowNull: false,
