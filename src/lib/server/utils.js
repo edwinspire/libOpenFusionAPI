@@ -6,7 +6,7 @@ import { Buffer } from "node:buffer";
 import jwt from "jsonwebtoken";
 import { internal_url_post_hooks } from "./utils_path.js"; //
 //import { v4 as uuidv4 } from "uuid";
-import uuid from "uuid";
+import * as uuid from "uuid";
 import uFetch from "@edwinspire/universal-fetch";
 import sequentialPromises from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
@@ -80,7 +80,7 @@ export async function emitHook(data) {
 }
 
 export const getUUID = () => {
-  return uuid.uuidv4();
+  return uuid.v4();
 };
 
 export function getIPFromRequest(req) {
