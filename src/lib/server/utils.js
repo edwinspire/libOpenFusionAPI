@@ -5,21 +5,22 @@ import { Buffer } from "node:buffer";
 import jwt from "jsonwebtoken";
 import { internal_url_post_hooks } from "./utils_path.js"; //
 import { v4 as uuidv4 } from "uuid";
-import $_UFETCH_ from "@edwinspire/universal-fetch";
-import $_SECUENTIAL_PROMISES_ from "@edwinspire/sequential-promises";
+import uFetch from "@edwinspire/universal-fetch";
+import sequentialPromises from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
-import * as LUXON from "luxon";
-import * as SEQUELIZE from "sequelize";
+import * as luxon from "luxon";
+import * as sequelize from "sequelize";
 import Zod from "zod";
-import * as $_PDFJS_ from "pdfjs-dist/legacy/build/pdf.mjs";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import * as XLSX from "xlsx";
-import $_NODEMAILER_ from "nodemailer";
+import nodemailer from "nodemailer";
 import {
-  createImage as $_CREATE_IMAGE_FROM_HTML_,
-  createPDF as $_CREATE_PDF_FROM_HTML,
+  createImage as createImageFromHTML,
+  createPDF as createPDFFromHTML,
 } from "../server/pdf-generator.js";
 
 import { isValidHttpStatusCode } from "../handler/utils.js";
+import { warn } from "node:console";
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
 
 const errors = {
@@ -350,41 +351,30 @@ export const jsException = (message, data, http_statusCode = 500) => {
 export const listFunctionsVars = (request, reply, environment) => {
   const fnUrlae = new URLAutoEnvironment(environment);
   const own_repo = "https://github.com/edwinspire/libOpenFusionAPI";
+
+  const ofapi = {
+    server: reply ? reply?.openfusionapi?.server : undefined,
+    telegram: reply?.openfusionapi?.telegram
+      ? reply.openfusionapi.telegram
+      : undefined,
+    genToken: request && reply ? GenToken : undefined,
+    
+    throw: (message, http_statusCode = 500, data = null) => {
+      let status = isValidHttpStatusCode(http_statusCode)
+        ? http_statusCode
+        : 500;
+      throw { message, data, date: new Date(), statusCode: status };
+    },
+  };
+
   return {
-    $_SERVER_: {
-      fn: reply ? reply?.openfusionapi?.server : undefined,
-      info: "Current Server instance.",
+    ofapi: {
+      fn: ofapi,
+      info: "Utilities and services of OpenFusionAPI.",
       web: own_repo,
-      return: "Server instance.",
+      return: "Any funtions or objects",
     },
-    $_TELEGRAM_: {
-      fn: reply?.openfusionapi?.telegram
-        ? reply.openfusionapi.telegram
-        : undefined,
-      info: "Useful Telegram features.",
-      web: own_repo,
-      methods: [
-        {
-          name: "sendMessage",
-          params: [
-            {
-              name: "data",
-              value: {
-                chatId: "chatId",
-                message: "Message to send",
-                extra: {
-                  message_thread_id: "Message thread id.",
-                  parse_mode: "MarkdownV2",
-                },
-              },
-              required: true,
-            },
-          ],
-          return: "None",
-        },
-      ],
-    },
-    $_XLSX_BODY_TO_JSON_: {
+    request_xlsx_body_to_json: {
       fn: xlsx_body_to_json,
       info: "Converts the body of a request to a JSON object. The body must be a buffer with any Excel files.",
       web: own_repo,
@@ -395,7 +385,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: {},
       info: "Value or object that will be returned by the endpoint.",
       web: own_repo,
-      return: "Any",
+      return: "data and headers",
     },
     $_CUSTOM_HEADERS_: {
       fn: new Map(),
@@ -403,68 +393,32 @@ export const listFunctionsVars = (request, reply, environment) => {
       web: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
       return: "Map object",
     },
-    $_REPLY_: {
+    reply: {
       fn: reply,
       info: "Fastify Reply. Is the object used to send a response to the client.",
       web: "https://fastify.dev/docs/latest/Reference/Reply/#introduction",
     },
-    $_REQUEST_: {
+    request: {
       fn: request,
       info: "Fastify Request. Stores all information about the request",
       web: "https://fastify.dev/docs/latest/Reference/Request/",
     },
-    $_UFETCH_: {
-      fn: request && reply ? $_UFETCH_ : undefined,
+     uFetch: {
+      fn: request && reply ? uFetch : undefined,
       info: "Instance of the uFetch class. More information at universal-fetch",
+      web: own_repo,
+    },
+    uFetchAutoEnv: {
+      fn: request && reply ? fnUrlae : undefined,
+      info: `Create an instance of uFetch. The "auto" method receives the URL as a parameter; if this URL ends in "auto", this function will automatically replace it with the environment in which it is running.`,
       web: "https://github.com/edwinspire/universal-fetch",
     },
-    $_SECUENTIAL_PROMISES_: {
-      fn: request && reply ? $_SECUENTIAL_PROMISES_ : undefined,
+    sequentialPromises: {
+      fn: request && reply ? sequentialPromises : undefined,
       info: "PromiseSequence class. More information at sequential-promises.",
       web: "https://github.com/edwinspire/sequential-promises",
     },
-    $_GEN_TOKEN_: {
-      fn: request && reply ? GenToken : undefined,
-      info: "Generate a Valid Token.",
-      web: own_repo,
-      params: [{ name: "data", value: "Data to JWT" }],
-    },
-    $_GET_INTERNAL_URL_: {
-      fn: request && reply ? getInternalURL : undefined,
-      info: "Create the absolute url that points to the internal path of the server.",
-      web: own_repo,
-      warn: "Discontinued. Replaced by $_FETCH_OFAPI_.",
-      params: [{ name: "relative_path", info: "Relative path" }],
-    },
-    $_FETCH_OFAPI_: {
-      fn: request && reply ? fetchOFAPI : undefined,
-      info: "Build a uFetch intance.",
-      web: own_repo,
-      warn: "Discontinued. Use $_URL_AUTO_ENV_.",
-    },
-    $_URL_AUTO_ENV_: {
-      fn: request && reply ? fnUrlae : undefined,
-      info: 'Automatically change the environment of a relative URL. Replace the original environment prefix with the "auto" prefix to have it replaced by the current environment prefix. Use "create" method',
-      web: own_repo,
-      params: [
-        {
-          name: "url",
-          info: 'Relative url to use with environment prefix "auto".',
-          required: true,
-          value_type: "string",
-          default_value: "",
-        },
-        {
-          name: "auto_env",
-          info: "Apply auto environment.",
-          required: false,
-          value_type: "boolean",
-          default_value: true,
-        },
-      ],
-      return: "uFetch instance.",
-    },
-    $_MONGOOSE_: {
+    mongoose: {
       fn: request && reply ? mongoose : undefined,
       info: " Mongoose provides a straight-forward, schema-based solution to model your MongoDB.",
       web: "https://mongoosejs.com",
@@ -523,19 +477,19 @@ export const listFunctionsVars = (request, reply, environment) => {
       },
       example: `$_EXCEPTION_('A parameter has not been entered', $_REQUEST_.body, 400);`,
     },
-    $_LUXON_: {
-      fn: request && reply ? LUXON : undefined,
+    luxon: {
+      fn: request && reply ? luxon : undefined,
       info: "Friendly wrapper for JavaScript dates and times",
       web: "https://moment.github.io/luxon",
     },
-    $_PDFJS_: {
-      fn: request && reply ? $_PDFJS_ : undefined,
+    pdfjs: {
+      fn: request && reply ? pdfjs : undefined,
       info: "PDF.js is a Portable Document Format (PDF) viewer that is built with HTML5.",
       web: "https://mozilla.github.io/pdf.js/",
     },
 
-    $_CREATE_IMAGE_FROM_HTML_: {
-      fn: request && reply ? $_CREATE_IMAGE_FROM_HTML_ : undefined,
+    createImageFromHTML: {
+      fn: request && reply ? createImageFromHTML : undefined,
       info: "Create a Image from HTML code or URL",
       web: own_repo,
       params: [
@@ -578,8 +532,8 @@ export const listFunctionsVars = (request, reply, environment) => {
       return: "NodeJS.ArrayBufferView",
     },
 
-    $_CREATE_PDF_FROM_HTML: {
-      fn: request && reply ? $_CREATE_PDF_FROM_HTML : undefined,
+    createPDFFromHTML: {
+      fn: request && reply ? createPDFFromHTML : undefined,
       info: "Create a PDF from HTML code or URL",
       web: own_repo,
       params: [
@@ -630,22 +584,22 @@ export const listFunctionsVars = (request, reply, environment) => {
       return: "NodeJS.ArrayBufferView",
     },
 
-    $_SEQUELIZE_: {
-      fn: request && reply ? SEQUELIZE : undefined,
+    sequelize: {
+      fn: request && reply ? sequelize : undefined,
       info: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",
       web: "https://sequelize.org/",
     },
-    $_ZOD_: {
+    z: {
       fn: request && reply ? Zod : undefined,
       info: "Zod is a TypeScript-first schema declaration and validation library. ",
       web: "https://zod.dev/?id=introduction",
     },
-    $_NODEMAILER_: {
-      fn: request && reply ? $_NODEMAILER_ : undefined,
+    nodemailer: {
+      fn: request && reply ? nodemailer : undefined,
       info: "Nodemailer makes sending email from a Node.js application straightforward and secure, without pulling in a single runtime dependency.",
       web: "https://nodemailer.com/",
     },
-    $_XLSX_: {
+    xlsx: {
       fn: request && reply ? XLSX : undefined,
       info: "SheetJS Community Edition offers battle-tested open-source solutions for extracting useful data from almost any complex spreadsheet and generating new spreadsheets that will work with legacy and modern software alike.",
       web: "https://docs.sheetjs.com/docs/",
@@ -739,11 +693,11 @@ export class URLAutoEnvironment {
 
   create(url, auto_environment = true) {
     let new_url = isAbsoluteUrl(url) ? url : this.auto(url, auto_environment);
-    return new $_UFETCH_(new_url);
+    return new uFetch(new_url);
   }
 
-  auto(url, auto_environment = true) {
-    return auto_environment ? this._autoEnvironment(url) : this._direct(url);
+  auto(url) {
+    return this._autoEnvironment(url);
   }
 
   _auto(url, auto_environment = true) {
@@ -769,7 +723,7 @@ export const getInternalURL = (relative_path) => {
 export const fetchOFAPI = (url) => {
   url = isAbsoluteUrl(url) ? url : getInternalURL(url);
 
-  return new $_UFETCH_(url);
+  return new uFetch(url);
 };
 
 const isAbsoluteUrl = (url) => {

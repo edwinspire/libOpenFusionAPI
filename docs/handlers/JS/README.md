@@ -433,10 +433,10 @@ $_SECUENTIAL_PROMISES_.ByBlocks(processBlock, data, numberOfBlocks)
 </details>
 
 <details>
-<summary>🔄 $_URL_AUTO_ENV_</summary>
+<summary>🔄 openfusionapi.uFetchAutoEnvironment</summary>
 
 **Purpose:** Auto environment URL helper. Rewrites relative URLs to match the running environment.  Relative url to use with environment prefix "auto".
-**Signature:** `$_URL_AUTO_ENV_(url: string, auto_env?: boolean)`
+**Signature:** `openfusionapi.uFetchAutoEnvironment(url: string, auto_env?: boolean)`
 
 
 **More information:** https://github.com/edwinspire/libOpenFusionAPI

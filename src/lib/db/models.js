@@ -612,19 +612,19 @@ export const Endpoint = dbsequelize.define(
       allowNull: false,
       defaultValue: "",
     },
-    cost_by_request: {
+    price_by_request: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
       comment: "Cost per request (millicents)",
     },
-    cost_kb_request: {
+    price_kb_request: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
       comment: "Cost per KB request (millicents)",
     },
-    cost_kb_response: {
+    price_kb_response: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
@@ -832,19 +832,19 @@ export const LogEntry = dbsequelize.define(
       comment: "Response Status Code",
     },
 
-    cost_by_request: {
+    price_by_request: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
       comment: "Cost per request (millicents)",
     },
-    cost_kb_request: {
+    price_kb_request: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
       comment: "Cost per KB request (millicents)",
     },
-    cost_kb_response: {
+    price_kb_response: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
