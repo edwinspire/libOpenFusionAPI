@@ -1,10 +1,12 @@
 import { createHmac, createHash, randomUUID } from "crypto";
+import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { Buffer } from "node:buffer";
 import jwt from "jsonwebtoken";
 import { internal_url_post_hooks } from "./utils_path.js"; //
-import { v4 as uuidv4 } from "uuid";
+//import { v4 as uuidv4 } from "uuid";
+import uuid from "uuid";
 import uFetch from "@edwinspire/universal-fetch";
 import sequentialPromises from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
@@ -20,7 +22,7 @@ import {
 } from "../server/pdf-generator.js";
 
 import { isValidHttpStatusCode } from "../handler/utils.js";
-import { warn } from "node:console";
+
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
 
 const errors = {
@@ -78,7 +80,7 @@ export async function emitHook(data) {
 }
 
 export const getUUID = () => {
-  return uuidv4();
+  return uuid.uuidv4();
 };
 
 export function getIPFromRequest(req) {
@@ -370,7 +372,7 @@ export const listFunctionsVars = (request, reply, environment) => {
   return {
     ofapi: {
       fn: ofapi,
-      info: "Utilities and services of OpenFusionAPI.",
+      info: "Utilities and services of OpenFusionAPI. Contains server info, telegram bot, token generator, and exception thrower.",
       web: own_repo,
       return: "Any funtions or objects",
     },
@@ -380,6 +382,11 @@ export const listFunctionsVars = (request, reply, environment) => {
       web: own_repo,
       return:
         "Array of objects with the data of each sheet of each Excel file.",
+    },
+    crypto: {
+      fn: crypto,
+      info: "Node.js crypto module",
+      web: "https://nodejs.org/api/crypto.html",
     },
     $_RETURN_DATA_: {
       fn: {},
@@ -417,6 +424,11 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? sequentialPromises : undefined,
       info: "PromiseSequence class. More information at sequential-promises.",
       web: "https://github.com/edwinspire/sequential-promises",
+    },
+    uuid: {
+      fn: request && reply ? uuid : undefined,
+      info: "UUID package to generate RFC4122 UUIDs.",
+      web: "https://www.npmjs.com/package/uuid",
     },
     mongoose: {
       fn: request && reply ? mongoose : undefined,
@@ -476,6 +488,11 @@ export const listFunctionsVars = (request, reply, environment) => {
         ],
       },
       example: `$_EXCEPTION_('A parameter has not been entered', $_REQUEST_.body, 400);`,
+    },
+     jwt: {
+      fn: request && reply ? jwt : undefined,
+      info: "An implementation of JSON Web Tokens.",
+      web: "https://github.com/auth0/node-jsonwebtoken",
     },
     luxon: {
       fn: request && reply ? luxon : undefined,

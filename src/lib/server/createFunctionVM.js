@@ -42,7 +42,7 @@ clearTimeout(to);
     /**
      * Se retorna una función ejecutable
      */
-    return async (varsValue = {}) => {
+    return async (customVarsAndFunctions = {}) => {
       const defaults = {
         // Valores explícitamente permitidos
         setTimeout,
@@ -62,7 +62,7 @@ clearTimeout(to);
         Promise,
       };
 
-      const sandbox = { ...varsValue, ...defaults, ...app_vars };
+      const sandbox = { ...customVarsAndFunctions, ...defaults, ...app_vars };
 
       // Crear contexto aislado
       const context = vm.createContext(sandbox, {

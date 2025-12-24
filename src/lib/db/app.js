@@ -9,6 +9,70 @@ import { default_apps } from "./default/index.js";
 import { v4 as uuidv4 } from "uuid";
 import { system_app } from "./default/system.js";
 
+function replaceUFETCH(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_UFETCH_/g, "uFetch");
+}
+
+function replaceTELEGRAM(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_TELEGRAM_/g, "ofapi.telegram");
+}
+
+function replaceSERVER(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_SERVER_/g, "ofapi.server");
+}
+
+function replaceREQUEST(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_REQUEST_/g, "request");
+}
+
+function replaceRESPONSE(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_RESPONSE_/g, "reply");
+}
+
+function replaceREPLY(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_REPLY_/g, "reply");
+}
+
+function replaceGET_INTERNAL_URL(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_GET_INTERNAL_URL_/g, "uFetchAutoEnv.auto");
+}
+
+function replace_URL_AUTO_ENV_(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_URL_AUTO_ENV_/g, "uFetchAutoEnv");
+}
+
+function replace_SEQUENTIAL_PROMISES(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_SECUENTIAL_PROMISES_/g, "sequentialPromises");
+}
+
+function replace_GENTOKEN(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_GEN_TOKEN_/g, "ofapi.genToken");
+}
+
+function replace_Old_FUNCTIONS_NAMES(code) {
+  code = replaceUFETCH(code);
+  code = replaceGET_INTERNAL_URL(code);
+  code = replace_SEQUENTIAL_PROMISES(code);
+  code = replaceREQUEST(code);
+  code = replaceRESPONSE(code);
+  code = replaceREPLY(code);
+  code = replace_URL_AUTO_ENV_(code);
+  code = replaceTELEGRAM(code);
+  code = replaceSERVER(code);
+  code = replace_GENTOKEN(code);
+  return code;
+}
+
 export const getAppWithEndpoints = async (
   /** @type {any} */ where,
   /** @type {boolean} */ raw
@@ -170,7 +234,6 @@ export const restoreAppFromBackup = async (app) => {
 
         // Para la version anterior del backup
         // TODO: Esto se debe eliminar despues de la migración
-
         if (app.vars && typeof app.vars === "object") {
           // Hacemos un upsert de las variables de aplicación
           let promises_vars = [];
@@ -210,6 +273,12 @@ export const restoreAppFromBackup = async (app) => {
             if (!ep.idapp) {
               ep.idapp = app.idapp;
             }
+
+            if (ep.handler == "JS" || ep.handler == "MONGODB") {
+              // Este bloque es para compatibilidad con versiones antiguas del backup
+              ep.code = replace_Old_FUNCTIONS_NAMES(ep.code);
+            }
+
             return upsertEndpoint(ep);
           });
           let result_endpoints = await Promise.allSettled(promises_endpoints);
