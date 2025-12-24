@@ -346,6 +346,15 @@ export const Application = dbsequelize.define(
       type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
+      // ✅ Garantiza minúsculas SIEMPRE que se asigne app (create/update/upsert)
+      set(value) {
+        // si viene null/undefined, deja que allowNull:false/validations lo manejen
+        if (value === null || value === undefined) {
+          this.setDataValue("app", value);
+          return;
+        }
+        this.setDataValue("app", String(value).toLowerCase());
+      },
     },
     rowkey: {
       type: DataTypes.SMALLINT,
@@ -548,16 +557,43 @@ export const Endpoint = dbsequelize.define(
       allowNull: false,
       defaultValue: "dev",
       comment: "Environment where it will be available. dev, qa, prd.",
+      // ✅ Garantiza minúsculas SIEMPRE que se asigne environment (create/update/upsert)
+      set(value) {
+        // si viene null/undefined, deja que allowNull:false/validations lo manejen
+        if (value === null || value === undefined) {
+          this.setDataValue("environment", value);
+          return;
+        }
+        this.setDataValue("environment", String(value).toLowerCase());
+      },
     },
 
     resource: {
       type: DataTypes.STRING(300),
       allowNull: false,
+      // ✅ Garantiza minúsculas SIEMPRE que se asigne resource (create/update/upsert)
+      set(value) {
+        // si viene null/undefined, deja que allowNull:false/validations lo manejen
+        if (value === null || value === undefined) {
+          this.setDataValue("resource", value);
+          return;
+        }
+        this.setDataValue("resource", String(value).toLowerCase());
+      },
       comment: "Endpoint path.",
     },
     method: {
       type: DataTypes.STRING(10),
       allowNull: false,
+      // ✅ Garantiza mayusculas SIEMPRE que se asigne method (create/update/upsert)
+      set(value) {
+        // si viene null/undefined, deja que allowNull:false/validations lo manejen
+        if (value === null || value === undefined) {
+          this.setDataValue("method", value);
+          return;
+        }
+        this.setDataValue("method", String(value).toUpperCase());
+      },
       comment: "HTTP Method",
     },
     handler: {

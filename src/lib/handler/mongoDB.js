@@ -80,7 +80,7 @@ export const mongodbFunction = async (
 
     response.code(200).send(result_fn.data);
   } catch (error) {
-    setCacheReply(response, error);
+    //setCacheReply(response, error);
 
     response
       .code(error.statusCode == null ? 500 : error.statusCode)

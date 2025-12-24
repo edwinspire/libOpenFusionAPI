@@ -62,7 +62,7 @@ export const fetchFunction = async (
 
     response.code(resp.status).send(r);
   } catch (error) {
-    setCacheReply(response, error);
+    //setCacheReply(response, error);
     // @ts-ignore
     response.code(500).send(error);
   }

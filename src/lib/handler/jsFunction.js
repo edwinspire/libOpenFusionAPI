@@ -50,7 +50,7 @@ export const jsFunction = async (
     response.code(200).send(result_fn.data);
   } catch (error) {
     console.trace(error);
-    setCacheReply(response, error);
+    //setCacheReply(response, error); Error no se debe cachear
     if (error.message.includes("Error creating function")) {
       error.message = error.message + " - Check your code.";
     }

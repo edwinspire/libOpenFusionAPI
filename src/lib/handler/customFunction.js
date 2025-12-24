@@ -65,7 +65,7 @@ export const customFunction = async ($_REQUEST_, $_REPLY_, method, $_SERVER_DATA
       timestamp: new Date().toISOString(),
     };
 
-    setCacheReply($_REPLY_, safeError);
+    //setCacheReply($_REPLY_, safeError);
     $_REPLY_.code(500).send(safeError);
   }
 };

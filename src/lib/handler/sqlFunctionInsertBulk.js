@@ -98,7 +98,7 @@ export const sqlFunctionInsertBulk = async (
   } catch (error) {
     console.log(error);
 
-    setCacheReply(reply, { error: error });
+   // setCacheReply(reply, { error: error });
     reply.code(500).send(error);
   }
 };

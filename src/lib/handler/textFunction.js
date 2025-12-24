@@ -28,7 +28,7 @@ export const textFunction = async (
       .send(textConfig.payload);
   } catch (error) {
     //    console.log(error);
-    setCacheReply(response, { error: error });
+//    setCacheReply(response, { error: error });
     // @ts-ignore
     response.code(500).send(error);
   }

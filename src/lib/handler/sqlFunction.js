@@ -125,7 +125,7 @@ export const sqlFunction = async (
     }
   } catch (error) {
     //console.log(error);
-    setCacheReply(reply, { error: error });
+   // setCacheReply(reply, { error: error });
 
     if (error.name == "SequelizeDatabaseError") {
       reply.code(500).send({ error: error?.original.message });

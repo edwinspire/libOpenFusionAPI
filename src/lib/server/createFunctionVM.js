@@ -1,6 +1,9 @@
 import vm from "node:vm";
 import { functionsVars } from "./utils.js";
 
+const TIMEOUT_VM_MS = 1 * 60 * 1000; // 1 minute
+const TIMEOUT_SANDBOX_JAVASCRIPT = process.env.TIMEOUT_SANDBOX_JAVASCRIPT && Number(process.env.TIMEOUT_SANDBOX_JAVASCRIPT) > 0 ? Number(process.env.TIMEOUT_SANDBOX_JAVASCRIPT) : TIMEOUT_VM_MS;
+
 /**
  * Crea una función async ejecutable de forma segura usando vm
  */
@@ -15,7 +18,19 @@ export const createFunctionVM = async (
     const wrappedCode = `
       (async () => {
       
+  // El timeout ahora controla el AbortController, no la VM
+  const controller = new AbortController();
+  const signal = controller.signal;
+  
+  // Si el fetch tarda más de 30 segundos, lo cancelamos.
+  let to = setTimeout(() => {
+    console.log('Timeout alcanzado, abortando vm...');
+    controller.abort();
+  }, ${TIMEOUT_SANDBOX_JAVASCRIPT - 1}); 
+
         ${code}
+
+clearTimeout(to);
 
         return {
           data: typeof $_RETURN_DATA_ !== "undefined" ? $_RETURN_DATA_ : null,
@@ -30,6 +45,11 @@ export const createFunctionVM = async (
     return async (varsValue = {}) => {
       const defaults = {
         // Valores explícitamente permitidos
+        setTimeout,
+        clearInterval,
+        clearTimeout,
+        clearInterval,
+        AbortController,
         console,
         Date,
         Math,
@@ -45,16 +65,22 @@ export const createFunctionVM = async (
       const sandbox = { ...varsValue, ...defaults, ...app_vars };
 
       // Crear contexto aislado
-      const context = vm.createContext(sandbox);
+      const context = vm.createContext(sandbox, {
+        name: "sandbox",
+        codeGeneration: { strings: false, wasm: false },
+      });
 
       // Compilar script
       const script = new vm.Script(wrappedCode, {
         filename: "dynamic-function.vm.js",
-        timeout: 60 * 60 * 1000, // evita loops infinitos // Maximo 1 hora // Revisar
+        //        timeout: 60 * 60 * 1000, // evita loops infinitos // Maximo 1 hora // Revisar
       });
 
       // Ejecutar
-      return await script.runInContext(context);
+      return await script.runInContext(context, {
+        timeout: TIMEOUT_SANDBOX_JAVASCRIPT,
+        breakOnSigint: true, // opcional
+      });
     };
   } catch (error) {
     console.error("Error creating secure function:", error);
