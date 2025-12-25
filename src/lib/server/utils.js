@@ -714,7 +714,7 @@ export class URLAutoEnvironment {
   }
 
   auto(url) {
-    return this._autoEnvironment(url);
+    return new uFetch(this._autoEnvironment(url));
   }
 
   _auto(url, auto_environment = true) {
