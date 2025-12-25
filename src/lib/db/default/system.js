@@ -72,6 +72,80 @@ export const system_app = {
           selection: 0,
         },
       },
+      idendpoint: "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
+      rowkey: 0,
+      enabled: true,
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      environment: "prd",
+      resource: "/app/tree/by/filters",
+      method: "GET",
+      handler: "FUNCTION",
+      access: 2,
+      description: "Get apps",
+      cost: 0.000001,
+      keywords: "",
+      code: "fnGetApplicationsTreeByFilters",
+      cache_time: 0,
+      createdAt: "2025-11-21T22:04:52.726Z",
+      updatedAt: "2025-11-22T00:11:42.112Z",
+    },
+
+    {
+      ctrl: {
+        users: [],
+        log: {},
+      },
+      cors: {},
+      mcp: {},
+      json_schema: {
+        in: {
+          enabled: false,
+          schema: {},
+        },
+        out: {},
+      },
+      headers_test: {},
+      data_test: {
+        query: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row:
+              "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+          },
+        ],
+        body: {
+          selection: 0,
+          json: {
+            code: {},
+          },
+          xml: {
+            code: "",
+          },
+          text: {
+            value: "",
+          },
+          form: {},
+        },
+        headers: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+          },
+        ],
+        auth: {
+          basic: {
+            username: "",
+            password: "",
+          },
+          bearer: {
+            token: "",
+          },
+          selection: 0,
+        },
+      },
       idendpoint: "34870b00-beb1-45d3-ada6-c164fc22cd7a",
       rowkey: 0,
       enabled: true,

@@ -7,9 +7,24 @@ import {
   restoreAppFromBackup,
   getAppBackupById,
   checkSystemApp,
+  getApplicationsTreeByFilters,
 } from "../../../../../db/app.js";
 import { generateDocumentation } from "../../../../doc_generator.js";
 import { version } from "../../../../version.js";
+
+export async function fnGetApplicationsTreeByFilters(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    const apps = await getApplicationsTreeByFilters(params.request.query);
+
+    r.data = apps;
+    r.code = 200;
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
 
 export async function fnGetApps(params) {
   let r = { code: 204, data: undefined };
@@ -158,7 +173,6 @@ export async function fnCheckSystemApp(params) {
   return r;
 }
 
-
 export async function fnGetInternalAppMetrics(params) {
   let r = { data: undefined, code: 204 };
   try {
@@ -169,11 +183,8 @@ export async function fnGetInternalAppMetrics(params) {
       params?.request?.query?.appName
     );
   } catch (error) {
-  
-    
     r.data = error;
     r.code = 500;
-  
   }
   return r;
 }

@@ -463,6 +463,107 @@ export function parseAppVar(appvar) {
 }
 
 /**
+ * Obtiene la información completa de las Application con sus AppVars y Endpoints,
+ * filtrando por app, method, environment y resource (opcionales).
+ *
+ * @param {object} filters
+ * @param {string=} filters.app
+ * @param {string=} filters.method
+ * @param {string=} filters.environment
+ * @param {string=} filters.resource
+ * @returns {Promise<object|null>}
+ */
+export async function getApplicationsTreeByFilters(filters = {}) {
+  const { idapp, app, enabled, endpoint } = filters;
+  // method, environment, resource,  handler
+  try {
+    // ===============================
+    // Construcción dinámica del WHERE
+    // ===============================
+    const appWhere = {};
+    const endpointWhere = {};
+
+    if (idapp) {
+      appWhere.idapp = idapp;
+    }
+
+    if (enabled !== null && enabled !== undefined) {
+      appWhere.enabled = enabled;
+    }
+
+    if (app) {
+      appWhere.app = app.toLowerCase(); // Normalizado
+    }
+
+    if (endpoint?.method) {
+      endpointWhere.method = endpoint.method.toUpperCase();
+    }
+
+    if (endpoint?.handler) {
+      endpointWhere.handler = endpoint.handler.toUpperCase();
+    }
+
+    if (endpoint?.environment) {
+      endpointWhere.environment = endpoint.environment;
+    }
+
+    if (endpoint?.resource) {
+      endpointWhere.resource = endpoint.resource;
+    }
+
+    if (endpoint?.enabled !== null && endpoint?.enabled !== undefined) {
+      endpointWhere.enabled = endpoint.enabled;
+    }
+
+    // ========================================================
+    // Consulta con inclusión condicional de filtros en Endpoint
+    // ========================================================
+    const data = await Application.findAll({
+      where: appWhere,
+      include: [
+        {
+          model: AppVars,
+          as: "vrs",
+          required: false,
+        },
+        {
+          model: Endpoint,
+          as: "endpoints",
+          required: Object.keys(endpointWhere).length > 0,
+          where:
+            Object.keys(endpointWhere).length > 0 ? endpointWhere : undefined,
+        },
+      ],
+    });
+
+    if (!data) return {};
+
+    //const appData = data.toJSON();
+    const appData = data.map((item) => {
+      const appItem = item.toJSON();
+      appItem.vrs = appItem.vrs.map((item) => {
+        item.value = parseAppVar(item);
+        return item;
+      });
+      return appItem;
+    });
+
+    /*
+    appData.vrs = appData.vrs.map((item) => {
+      item.value = parseAppVar(item);
+      return item;
+    });
+*/
+    return appData;
+  } catch (error) {
+    console.error("Error en getApplicationTreeByFilters:", error);
+    throw new Error(
+      "No se pudo obtener la información de la aplicación. getApplicationTreeByFilters"
+    );
+  }
+}
+
+/**
  * Obtiene la información completa de Application con sus AppVars y Endpoints,
  * filtrando por app, method, environment y resource (opcionales).
  *
