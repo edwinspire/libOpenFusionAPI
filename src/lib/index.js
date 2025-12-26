@@ -652,9 +652,11 @@ export default class ServerAPI extends EventEmitter {
   async _check_auth(handler, request, reply) {
     // Validar si la API es publica o privada
 
-    let data_aut = getUserPasswordTokenFromRequest(request);
-
+   
     if (handler.params.access > 0) {
+
+      let data_aut = getUserPasswordTokenFromRequest(request);
+
       //
       if (handler.params.app == "system") {
         // Las APIs de system solo se pueden acceder con token de usuario
