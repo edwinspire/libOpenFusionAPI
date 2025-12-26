@@ -24,7 +24,8 @@ import {
 import { isValidHttpStatusCode } from "../handler/utils.js";
 
 const { PORT, PATH_API_HOOKS, JWT_KEY } = process.env;
-
+// Pre-compilamos el Regex fuera para mejorar el rendimiento en llamadas frecuentes
+const ENV_SUFFIX_REGEX = /\/(auto|env)$/;
 const errors = {
   1: { code: 1, message: "You must enter the same password twice" },
   2: { code: 2, message: "Invalid credentials" },
@@ -68,7 +69,7 @@ export const getRequestData = (request) => {
 
 export async function emitHook(data) {
   try {
-    const fnUrlae = new URLAutoEnvironment("prd");
+    const fnUrlae = new URLAutoEnvironment("prd", PORT);
     const uF = fnUrlae.create(internal_url_post_hooks, false);
 
     let r = await uF.POST({ data: data });
@@ -351,7 +352,7 @@ export const jsException = (message, data, http_statusCode = 500) => {
 };
 
 export const listFunctionsVars = (request, reply, environment) => {
-  const fnUrlae = new URLAutoEnvironment(environment);
+  const fnUrlae = new URLAutoEnvironment(environment, PORT);
   const own_repo = "https://github.com/edwinspire/libOpenFusionAPI";
 
   const ofapi = {
@@ -360,7 +361,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       ? reply.openfusionapi.telegram
       : undefined,
     genToken: request && reply ? GenToken : undefined,
-    
+
     throw: (message, http_statusCode = 500, data = null) => {
       let status = isValidHttpStatusCode(http_statusCode)
         ? http_statusCode
@@ -410,7 +411,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       info: "Fastify Request. Stores all information about the request",
       web: "https://fastify.dev/docs/latest/Reference/Request/",
     },
-     uFetch: {
+    uFetch: {
       fn: request && reply ? uFetch : undefined,
       info: "Instance of the uFetch class. More information at universal-fetch",
       web: own_repo,
@@ -489,7 +490,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       },
       example: `$_EXCEPTION_('A parameter has not been entered', $_REQUEST_.body, 400);`,
     },
-     jwt: {
+    jwt: {
       fn: request && reply ? jwt : undefined,
       info: "An implementation of JSON Web Tokens.",
       web: "https://github.com/auth0/node-jsonwebtoken",
@@ -704,31 +705,48 @@ return async()=>{
 };
 
 export class URLAutoEnvironment {
-  constructor(environment) {
+  /**
+   * @param {string} environment - Entorno de destino (ej: 'prd', 'dev')
+   * @param {number|string} port - Puerto para localhost
+   * @param {string} baseUrl - Base opcional (por defecto localhost)
+   */
+  constructor(environment, port = 3000, baseUrl = "http://localhost") {
     this.environment = environment;
+    this.base = `${baseUrl}:${port}`;
   }
 
-  create(url, auto_environment = true) {
-    let new_url = isAbsoluteUrl(url) ? url : this.auto(url, auto_environment);
-    return new uFetch(new_url);
+ 
+  /**
+   * Punto de entrada principal
+   */
+  create(url, shouldApplyAuto = true) {
+    // Si es absoluta, devolvemos uFetch directo
+    if (isAbsoluteUrl(url)) {
+      return new uFetch(url);
+    }
+
+    // Si es relativa, procesamos
+    const finalPath = shouldApplyAuto ? this._applyEnvironment(url) : url;
+    return new uFetch(this._buildFullUrl(finalPath));
   }
 
-  auto(url) {
-    return new uFetch(this._autoEnvironment(url));
+  /**
+   * Construye la URL completa
+   * @private
+   */
+  _buildFullUrl(path) {
+    // Aseguramos que el path empiece con /
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return `${this.base}${normalizedPath}`;
   }
 
-  _auto(url, auto_environment = true) {
-    return this.auto(url, auto_environment);
-  }
-
-  _direct(relative_path) {
-    return `http://localhost:${PORT}${relative_path}`;
-  }
-  _autoEnvironment(relative_path) {
-    // Reemplaza el ultimo segmento por this.environment cuando la ruta termine en auto o env
-    return this._direct(
-      relative_path.replace(/\/(auto|env)$/, `/${this.environment}`)
-    );
+  /**
+   * Aplica la lógica de reemplazo de sufijos
+   * @private
+   */
+  _applyEnvironment(path) {
+    // replace es eficiente aquí, el regex busca solo al final ($)
+    return path.replace(ENV_SUFFIX_REGEX, `/${this.environment}`);
   }
 }
 
@@ -744,11 +762,20 @@ export const fetchOFAPI = (url) => {
 };
 
 const isAbsoluteUrl = (url) => {
-  // Expresión regular para verificar si es una URL absoluta
-  const absoluteUrlPattern = /^(?:[a-zA-Z]+:)?\/\//;
+  // 1. Filtro rápido: Si no tiene ':', no puede ser absoluta (evita el try/catch)
+  if (typeof url !== "string" || !url.includes(":")) return false;
 
-  // Si la URL coincide con el patrón, es absoluta
-  return absoluteUrlPattern.test(url);
+  try {
+    // 2. El constructor URL lanza error si no es válida
+    // new URL() acepta rutas relativas si se le da una base,
+    // pero si solo le pasas un string, valida si parece absoluta.
+    // Para ser 100% seguros de que es absoluta, verificamos el protocolo.
+    const parsed = new URL(url);
+    // ws:, wss:, http:, https:, ftp:, etc.
+    return parsed.protocol.length > 0;
+  } catch (e) {
+    return false;
+  }
 };
 
 export /**

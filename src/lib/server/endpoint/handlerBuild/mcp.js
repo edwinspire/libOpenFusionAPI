@@ -1,8 +1,8 @@
 import { getServer, jsonSchemaToZod } from "../../mcp/server.js";
 import { getApplicationTreeByFilters } from "../../../db/app.js";
 import { internal_url_endpoint } from "../../utils_path.js";
-import { URLAutoEnvironment } from "../../utils.js";
 import * as z from "zod";
+import uFetch from "@edwinspire/universal-fetch";
 
 export const CreateMCPHandler = async (app_name, environment) => {
   let app = await getApplicationTreeByFilters({
@@ -65,8 +65,9 @@ export const CreateMCPHandler = async (app_name, environment) => {
         },
 
         async (data) => {
-          let auto_env = new URLAutoEnvironment();
-          let uF = auto_env.create(url_internal, false);
+          //let auto_env = new URLAutoEnvironment();
+          //let uF = auto_env.create(url_internal, false);
+          let uF = new uFetch(url_internal);
 
           let request_endpoint = await uF[endpoint.method.toUpperCase()]({
             data: data,
