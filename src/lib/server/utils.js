@@ -715,7 +715,6 @@ export class URLAutoEnvironment {
     this.base = `${baseUrl}:${port}`;
   }
 
- 
   /**
    * Punto de entrada principal
    */
@@ -728,6 +727,10 @@ export class URLAutoEnvironment {
     // Si es relativa, procesamos
     const finalPath = shouldApplyAuto ? this._applyEnvironment(url) : url;
     return new uFetch(this._buildFullUrl(finalPath));
+  }
+
+  auto(url) {
+    return this.create(url, true);
   }
 
   /**
