@@ -495,6 +495,10 @@ export async function getApplicationsTreeByFilters(filters = {}) {
       appWhere.app = app.toLowerCase(); // Normalizado
     }
 
+     if (endpoint?.idendpoint) {
+      endpointWhere.idendpoint = endpoint.idendpoint;
+    }
+
     if (endpoint?.method) {
       endpointWhere.method = endpoint.method.toUpperCase();
     }

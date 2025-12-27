@@ -71,6 +71,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { getSystemInfoDynamic } from "./server/systeminformation.js";
+import { url } from "node:inspector";
 
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
@@ -652,9 +653,7 @@ export default class ServerAPI extends EventEmitter {
   async _check_auth(handler, request, reply) {
     // Validar si la API es publica o privada
 
-   
     if (handler.params.access > 0) {
-
       let data_aut = getUserPasswordTokenFromRequest(request);
 
       //
@@ -666,7 +665,10 @@ export default class ServerAPI extends EventEmitter {
         } else {
           reply
             .code(401)
-            .send({ error: "The System API requires a valid Token." });
+            .send({
+              error: "The System API requires a valid Token.",
+              url: request.url,
+            });
         }
       } else {
         //
@@ -683,6 +685,7 @@ export default class ServerAPI extends EventEmitter {
             } else {
               reply.code(401).send({
                 error: "The API requires a valid Username y Password",
+                url: request.url,
               });
             }
 
@@ -699,6 +702,7 @@ export default class ServerAPI extends EventEmitter {
             } else {
               reply.code(401).send({
                 error: "The API requires a Token or Username and Password",
+                url: request.url,
               });
             }
 
@@ -710,7 +714,10 @@ export default class ServerAPI extends EventEmitter {
             } else {
               reply
                 .code(401)
-                .send({ error: "The API requires a valid Token." });
+                .send({
+                  error: "The API requires a valid Token.",
+                  url: request.url,
+                });
             }
             break;
         }
