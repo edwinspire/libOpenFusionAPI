@@ -78,7 +78,7 @@ export const system_app = {
       idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       environment: "prd",
       resource: "/app/tree/by/filters",
-      method: "GET",
+      method: "POST",
       handler: "FUNCTION",
       access: 2,
       description: "Get apps",

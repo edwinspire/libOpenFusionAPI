@@ -15,7 +15,7 @@ import { version } from "../../../../version.js";
 export async function fnGetApplicationsTreeByFilters(params) {
   let r = { code: 204, data: undefined };
   try {
-    const apps = await getApplicationsTreeByFilters(params.request.query);
+    const apps = await getApplicationsTreeByFilters(params.request.body);
 
     r.data = apps;
     r.code = 200;
