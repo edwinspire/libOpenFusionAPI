@@ -80,9 +80,7 @@ async function loadPage({ page, html, url, baseUrl }) {
       waitUntil: "networkidle0",
       url: baseUrl || "http://localhost",
     });
-  }
-
-  if (url) {
+  } else if (url) {
     await page.goto(url, {
       waitUntil: "networkidle0",
       timeout: 60000,
