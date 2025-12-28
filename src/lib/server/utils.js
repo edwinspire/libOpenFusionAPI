@@ -843,6 +843,7 @@ export const CreateOpenFusionAPIToken = () => {
         username: "openfusionapi",
         first_name: "openfusionapi",
         last_name: "openfusionapi",
+        ip: '127.0.0.0',
         enabled: true,
         ctrl: {
           as_admin: true,

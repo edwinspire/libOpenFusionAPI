@@ -77,7 +77,7 @@ export async function createApiClient(data, random_password = true) {
  */
 export async function loginApiClient(username, password) {
   const now = new Date();
-  // TODO: ver la forma de asegurar esta función para evitar creación indiscriminada de usuarios
+  
   // 1. Buscar usuario con filtros
   const client = await ApiClient.findOne({
     where: {
