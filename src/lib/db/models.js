@@ -1357,8 +1357,14 @@ export const ApiClient = dbsequelize.define(
       defaultValue: "initial",
     },
     change_password: { type: DataTypes.BOOLEAN, defaultValue: true },
+    first_name: { type: DataTypes.STRING(200), allowNull: true },
+    last_name: { type: DataTypes.STRING(200), allowNull: true },
     email: { type: DataTypes.STRING(150), allowNull: false },
     document_id: { type: DataTypes.STRING(50), allowNull: true },
+    document_type: {
+      type: DataTypes.ENUM("passport", "unknow", "id_card", "driver_license", "tax_id", "social_security", "other"),
+      defaultValue: "unknow",
+    },    
     phone: { type: DataTypes.STRING(50), allowNull: true },
     startAt: {
       type: DataTypes.DATE,
