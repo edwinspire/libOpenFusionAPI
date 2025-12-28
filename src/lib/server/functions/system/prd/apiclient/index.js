@@ -50,10 +50,10 @@ export async function fnCreateApiClient(params) {
       const req = await uF[SYSTEM_PATHS.SEND_EMAIL.METHOD]({ data: mail });
       const res = await req.json();
 
-      let token = GenToken({ api: u }, 10 * 60); // Valido por 10 minutos
+      let token = GenToken({ api: data.client }, 10 * 60); // Valido por 10 minutos
 
       // TODO: Si falla el envio al correo guardar en log
-      r.data = { client: data.client, sendto: res.accepted, token: token };
+      r.data = { client: data.client, token: token, email: res };
       r.code = 200;
     } else {
       r.data = { error: "Client not saved." };
