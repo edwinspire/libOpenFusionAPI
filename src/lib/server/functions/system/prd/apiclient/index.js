@@ -1,4 +1,7 @@
-import { getUserPasswordTokenFromRequest } from "../../../../utils.js";
+import {
+  getUserPasswordTokenFromRequest,
+  GenToken,
+} from "../../../../utils.js";
 import { GetSystemPaths } from "../../../../utils_path.js";
 import uFetch from "@edwinspire/universal-fetch";
 
@@ -100,7 +103,6 @@ export async function fnLoginApiClient(params) {
     });
 
     if (data.login) {
-
       let aut = `Bearer ${data.token}`;
       params.reply.header("Authorization", aut);
 
