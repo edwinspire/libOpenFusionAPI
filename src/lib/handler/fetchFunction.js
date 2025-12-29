@@ -64,6 +64,7 @@ export const fetchFunction = async (
   } catch (error) {
     //setCacheReply(response, error);
     // @ts-ignore
+    console.trace(error);
     response.code(500).send(error);
   }
 };

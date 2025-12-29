@@ -96,7 +96,7 @@ export const sqlFunctionInsertBulk = async (
       reply.code(400).send(alt_resp);
     }
   } catch (error) {
-    console.log(error);
+    console.trace(error);
 
    // setCacheReply(reply, { error: error });
     reply.code(500).send(error);

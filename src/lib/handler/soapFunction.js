@@ -54,8 +54,8 @@ export const soapFunction = async (
 
     response.code(200).send(soap_response);
   } catch (error) {
-    setCacheReply(response, error);
-    //   console.trace(error);
+//    setCacheReply(response, error);
+      console.trace(error);
     // @ts-ignore
     response.code(500).send(error);
   }

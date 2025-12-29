@@ -27,7 +27,7 @@ export const textFunction = async (
       .header("Content-Disposition", `attachment; filename="${filename}"`)
       .send(textConfig.payload);
   } catch (error) {
-    //    console.log(error);
+    console.trace(error);
 //    setCacheReply(response, { error: error });
     // @ts-ignore
     response.code(500).send(error);

@@ -64,7 +64,7 @@ export const sqlHana = async (
       reply.code(400).send(alt_resp);
     }
   } catch (error) {
-    //    console.trace(error);
+       console.trace(error);
    // setCacheReply(reply, error);
     // @ts-ignore
     reply.code(500).send(error);
