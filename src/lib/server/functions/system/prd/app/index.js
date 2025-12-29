@@ -3,7 +3,6 @@ import {
   getAppById,
   getAppFullById,
   upsertApp,
-  saveAppWithEndpoints,
   restoreAppFromBackup,
   getAppBackupById,
   checkSystemApp,
@@ -118,6 +117,7 @@ export async function fnAppUpsert(params) {
   return r;
 }
 
+/*
 export async function fnSaveApp(params) {
   let r = { data: undefined, code: 204 };
   try {
@@ -129,6 +129,7 @@ export async function fnSaveApp(params) {
   }
   return r;
 }
+*/
 
 export async function fnRestoreAppFromBackup(params) {
   let r = { data: undefined, code: 204 };

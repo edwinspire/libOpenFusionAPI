@@ -33,9 +33,9 @@ export const deleteAppVar = async (
   /** @type {import("sequelize").Identifier | undefined} */ idappvar
 ) => {
   try {
-    const ep = await AppVars.findByPk(idappvar);
-    if (ep) {
-      await ep.destroy();
+    const appv = await AppVars.findByPk(idappvar);
+    if (appv) {
+      await appv.destroy();
       return true; // Deletion successful
     }
     return false; // User not found
