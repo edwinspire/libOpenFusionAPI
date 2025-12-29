@@ -59,6 +59,11 @@ function replace_GENTOKEN(str) {
   return str.replace(/\$_GEN_TOKEN_/g, "ofapi.genToken");
 }
 
+function replace_NODEMAILER(str) {
+  if (typeof str !== "string") str = String(str);
+  return str.replace(/\$_NODEMAILER_/g, "nodemailer");
+}
+
 function replace_Old_FUNCTIONS_NAMES(code) {
   code = replaceUFETCH(code);
   code = replaceGET_INTERNAL_URL(code);
@@ -70,6 +75,7 @@ function replace_Old_FUNCTIONS_NAMES(code) {
   code = replaceTELEGRAM(code);
   code = replaceSERVER(code);
   code = replace_GENTOKEN(code);
+  code = replace_NODEMAILER(code);
   return code;
 }
 
