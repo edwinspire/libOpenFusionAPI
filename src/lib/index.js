@@ -99,7 +99,6 @@ var config = {
 Object.defineProperty(Error.prototype, "toJSON", config);
 const dir_fn = path.join(process.cwd(), PATH_APP_FUNCTIONS || "fn");
 
-
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 // TODO: Poner en el header un ID request para crear una traza desde el origen de los request ya que hay endpoints que son llamados desde el localhost y se hace dificil saber quien originó la primera solicitud.
@@ -232,6 +231,15 @@ export default class ServerAPI extends EventEmitter {
     this._addFunctions();
 
     this.fastify.addHook("preValidation", async (request, reply) => {
+      
+      const user_agent = request.headers["user-agent"];
+
+      if (!user_agent) {
+      // Por seguridad no se permite request sin user-agent
+        reply.code(403).send({ error: "Fail" });
+        return;
+      }
+
       let request_path_params = get_url_params(request.url, request.method);
 
       if (request_path_params && request_path_params.url_key) {
@@ -247,7 +255,7 @@ export default class ServerAPI extends EventEmitter {
             request.openfusionapi = { handler: handlerEndpoint };
             await this._check_auth(handlerEndpoint, request, reply);
           } else {
-            reply.code(410).send({ message: "Endpoint unabled." });
+            reply.code(410).send({ message: "Endpoint unabled.", url: request.url });
           }
         } else {
           reply
