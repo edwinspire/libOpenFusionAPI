@@ -39,16 +39,11 @@ import { runHandler } from "./handler/handler.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
 import { OpenFusionWebsocketClient } from "./server/websocket_client.js";
 import {
-  checkToken,
   getUserPasswordTokenFromRequest,
-  //websocketUnauthorized,
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
-  GenToken,
   CreateOpenFusionAPIToken,
-  //  url_key
-  //  webhookSchema,
 } from "./server/utils.js";
 
 import {
@@ -65,13 +60,11 @@ import {
   default_port,
   internal_url_ws,
   WebSocketValidateFormatChannelName,
-  url_key,
 } from "./server/utils_path.js";
 
 import fs from "fs";
 import path from "path";
 import { getSystemInfoDynamic } from "./server/systeminformation.js";
-import { url } from "node:inspector";
 
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
@@ -106,8 +99,6 @@ var config = {
 Object.defineProperty(Error.prototype, "toJSON", config);
 const dir_fn = path.join(process.cwd(), PATH_APP_FUNCTIONS || "fn");
 
-//------------------------
-const validate_schema_input_hooks = ajv.compile(schema_input_hooks);
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -663,12 +654,10 @@ export default class ServerAPI extends EventEmitter {
         if (this._check_auth_Bearer(handler, data_aut)) {
           request.openfusionapi.user = data_aut.Bearer.data;
         } else {
-          reply
-            .code(401)
-            .send({
-              error: "The System API requires a valid Token.",
-              url: request.url,
-            });
+          reply.code(401).send({
+            error: "The System API requires a valid Token.",
+            url: request.url,
+          });
         }
       } else {
         //
@@ -712,12 +701,10 @@ export default class ServerAPI extends EventEmitter {
             if (this._check_auth_Bearer(handler, data_aut)) {
               request.openfusionapi.user = data_aut.Bearer.data;
             } else {
-              reply
-                .code(401)
-                .send({
-                  error: "The API requires a valid Token.",
-                  url: request.url,
-                });
+              reply.code(401).send({
+                error: "The API requires a valid Token.",
+                url: request.url,
+              });
             }
             break;
         }
@@ -865,7 +852,7 @@ export default class ServerAPI extends EventEmitter {
   }
 
   _appendAppFunction(appname, environment, functionName, fn) {
-    console.log(`::> Add Function ${functionName} on ${environment}`);
+    //console.log(`::> Add Function ${functionName} on ${environment}`);
     if (functionName.startsWith("fn")) {
       // Crea el environment vacío si no existe
       if (!this.endpoints.fnLocal[environment]) {

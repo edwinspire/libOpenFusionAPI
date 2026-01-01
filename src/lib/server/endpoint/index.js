@@ -12,6 +12,7 @@ import { createFunctionVM } from "../createFunctionVM.js";
 import hash from "object-hash";
 import Ajv from "ajv";
 const ajv = new Ajv();
+const default_id_app = "68a44349-b035-466f-a1c6-f90f3f2813bb";
 
 export default class Endpoint extends EventEmitter {
   internal_endpoint = {};
@@ -292,15 +293,12 @@ export default class Endpoint extends EventEmitter {
 
     let data_log = {
       timestamp: new Date(),
-      idapp: handler_param?.idapp ?? "68a44349-b035-466f-a1c6-f90f3f2813bb", // Es un id por defecto temporal
-      idendpoint:
-        handler_param?.idendpoint ?? "68a44349-b035-466f-a1c6-f90f3f2813bb", // Es un id por defecto temporal
-      //level: getLogLevelByStatusCode(reply.statusCode),
+      idapp: handler_param?.idapp ?? default_id_app, // Es un id por defecto temporal
+      idendpoint: handler_param?.idendpoint ?? default_id_app, // Es un id por defecto temporal
       method: request.method,
       price_by_request: handler_param?.price_by_request ?? 0,
       price_kb_request: handler_param?.price_kb_request ?? 0,
       price_kb_response: handler_param?.price_kb_response ?? 0,
-      //cost_total: handler_param?.cost_total ?? 0,
       status_code: reply.statusCode,
       user_agent: undefined,
       client: undefined,
@@ -315,20 +313,8 @@ export default class Endpoint extends EventEmitter {
       url: request.url,
     };
 
-    /*
-    data_log.cost_total =
-      data_log.price_by_request +
-      data_log.price_kb_request *
-        (request.headers["content-length"]
-          ? Number(request.headers["content-length"]) / 1024
-          : 0) +
-      data_log.price_kb_response *
-        (reply?.openfusionapi?.lastResponse?.data
-          ? Number(reply?.openfusionapi?.lastResponse?.data.length) / 1024
-          : 0);
-          */
-
     //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
+    data_log.client = getIPFromRequest(request);
 
     switch (log_level) {
       case 0:
@@ -337,9 +323,7 @@ export default class Endpoint extends EventEmitter {
       case 2:
         data_log.req_headers = request.headers;
         data_log.res_headers = reply.getHeaders();
-
         data_log.user_agent = request.headers["user-agent"];
-        //        data_log.client = getIPFromRequest(request);
         break;
       case 3:
         data_log.req_headers = request.headers;
@@ -347,13 +331,12 @@ export default class Endpoint extends EventEmitter {
         data_log.query = request.query;
         data_log.body = request.body;
         data_log.user_agent = request.headers["user-agent"];
-        //data_log.client = getIPFromRequest(request);
         data_log.params = handler_param;
         data_log.response_data =
           reply?.openfusionapi?.lastResponse?.data ?? undefined;
         break;
     }
-    data_log.client = getIPFromRequest(request);
+
     return data_log;
   }
 

@@ -114,11 +114,11 @@ export const getLogs = async (options = {}) => {
       start_date,
       end_date,
       idendpoint,
-      level,
+//      level,
       method,
       status_code,
       limit = 1000,
-      offset = 0,
+//      offset = 0,
       order = "timestamp",
       orderDirection = "DESC",
       raw = true, // Si quieres objetos planos en lugar de instancias de Sequelize
