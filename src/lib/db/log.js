@@ -365,7 +365,7 @@ export const getLogs = async (options = {}) => {
     }
     */
 
-    return response;
+    return logs;
   } catch (error) {
     console.error("❌ Error en getLogs:", error);
 
