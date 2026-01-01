@@ -211,6 +211,7 @@ export const getLogs = async (options = {}) => {
 
     // === OTROS FILTROS (solo si se proporcionan) ===
 
+    /*
     // Filtro por level
     if (level !== undefined && level !== null) {
       if (!Number.isInteger(level) || level < -32768 || level > 32767) {
@@ -220,6 +221,7 @@ export const getLogs = async (options = {}) => {
       }
       whereConditions.level = level;
     }
+    */
 
     // Filtro por method
     if (method) {
@@ -233,11 +235,11 @@ export const getLogs = async (options = {}) => {
     if (status_code !== undefined && status_code !== null) {
       if (
         !Number.isInteger(status_code) ||
-        status_code < 0 ||
-        status_code > 32767
+        status_code < 100 ||
+        status_code > 599
       ) {
         throw new Error(
-          "status_code debe ser un entero positivo entre 0 y 32767"
+          "status_code debe ser un entero positivo entre 100 y 599"
         );
       }
       whereConditions.status_code = status_code;
@@ -337,6 +339,8 @@ export const getLogs = async (options = {}) => {
     //    console.log(`✅ Consulta ejecutada exitosamente: ${logs.length}`);
     let response = [];
 
+    /*
+    // Añadir idapp a cada log si es necesario - YA NO SE USA PORQUE HAY UN CAMPO idapp EN LogEntry
     if (logs.length > 0) {
       if (!endpoints) {
         endpoints = await getAllEndpoints();
@@ -359,6 +363,7 @@ export const getLogs = async (options = {}) => {
         return log;
       });
     }
+    */
 
     return response;
   } catch (error) {
@@ -416,9 +421,11 @@ export const getLogStats = async (filters = {}) => {
       queryOptions.where.idendpoint = filters.idendpoint;
     }
 
+    /*
     if (filters.level !== undefined) {
       queryOptions.where.level = filters.level;
     }
+    */
 
     const stats = await LogEntry.findAll(queryOptions);
 
