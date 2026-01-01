@@ -234,7 +234,7 @@ export default class ServerAPI extends EventEmitter {
       
       const user_agent = request.headers["user-agent"];
 
-      if (!user_agent) {
+      if (!user_agent || user_agent.length === 0) {
       // Por seguridad no se permite request sin user-agent
         reply.code(403).send({ error: "Fail" });
         return;
