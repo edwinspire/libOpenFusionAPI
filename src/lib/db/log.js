@@ -86,61 +86,6 @@ export const createLogEntriesBulk = async (logDataArray) => {
   }
 };
 
-/*
-// READ
-export const getUserById = async (
-   userId
-) => {
-  try {
-    const user = await LogEntry.findByPk(userId);
-    return user;
-  } catch (error) {
-    console.error("Error retrieving user:", error);
-    throw error;
-  }
-};
-*/
-
-/*
-export const getLogs = async (
-  startDate,
-  endDate,
-  idendpoint = null,
-  level = null,
-  limit = 1000
-) => {
-  try {
-    // Construcción dinámica de los filtros
-    const whereConditions = {
-      timestamp: {
-        [Op.between]: [startDate, endDate], // Rango de fechas
-      },
-    };
-
-    // Agregar filtro por idendpoint si está definido
-    if (idendpoint) {
-      whereConditions.idendpoint = idendpoint;
-    }
-
-    // Agregar filtro por level si está definido
-    if (level !== null) {
-      whereConditions.level = level;
-    }
-
-    // Realizar la consulta con las condiciones generadas
-    const logs = await LogEntry.findAll({
-      where: whereConditions,
-      order: [["timestamp", "DESC"]], // Ordenar por fecha ascendente
-      limit: parseInt(limit, 10) || 100,
-    });
-
-    return logs; // Devolver los resultados
-  } catch (error) {
-    console.error("Error retrieving logs:", error);
-    throw error;
-  }
-};
-*/
 
 /**
  * Función para consultar logs con filtros opcionales
