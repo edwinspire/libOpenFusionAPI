@@ -276,7 +276,7 @@ export default class ServerAPI extends EventEmitter {
       if (request.method !== "OPTIONS") {
         const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
         const timeTaken = Math.round(diff[0] * 1e3 + diff[1] * 1e-6); // Convertimos a milisegundos
-        let handler_param = request?.openfusionapi?.handler?.params;
+        
 
         if (!reply.openfusionapi) {
           reply.openfusionapi = { lastResponse: { responseTime: timeTaken } };
@@ -292,6 +292,8 @@ export default class ServerAPI extends EventEmitter {
 
         this.endpoints.saveLog(request, reply);
 
+        ///////////
+        let handler_param = request?.openfusionapi?.handler?.params || {};
         if (handler_param?.idendpoint) {
           // Solo aqui debe guardar en cache la respuesta
           this.endpoints.setCache(handler_param?.url_key, request, reply);

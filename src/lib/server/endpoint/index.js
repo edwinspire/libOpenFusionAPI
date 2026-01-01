@@ -269,7 +269,7 @@ export default class Endpoint extends EventEmitter {
   }
 
   getDataLog(log_level, request, reply) {
-    let handler_param = request?.openfusionapi?.handler?.params;
+    let handler_param = request?.openfusionapi?.handler?.params || {};
 
     if (handler_param?.data_test) {
       handler_param.data_test = undefined;
