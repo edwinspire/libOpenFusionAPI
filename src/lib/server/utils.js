@@ -16,6 +16,9 @@ import Zod from "zod";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import * as XLSX from "xlsx";
 import nodemailer from "nodemailer";
+import * as xmlCrypto from "xml-crypto";
+import * as xmldom from "xmldom";
+import * as forge from "node-forge";
 import {
   createImage as createImageFromHTML,
   createPDF as createPDFFromHTML,
@@ -376,6 +379,24 @@ export const listFunctionsVars = (request, reply, environment) => {
       info: "Utilities and services of OpenFusionAPI. Contains server info, telegram bot, token generator, and exception thrower.",
       web: own_repo,
       return: "Any funtions or objects",
+    },
+    xmlCrypto: {
+      fn: xmlCrypto,
+      info: "It is a Node.js package that allows working with XML digital signatures, facilitating the signing and verification of XML documents using the XML Signature specification, ideal for applications that handle security and data validation in this format, using private and public keys.",
+      web: "https://github.com/node-saml/xml-crypto",
+      return: "Read documentation",
+    },
+    xmldom: {
+      fn: xmldom,
+      info: "A JavaScript implementation of W3C DOM for Node.js, Rhino and the browser. Fully compatible with W3C DOM level2; and some compatible with level3.",
+      web: "https://github.com/xmldom/xmldom",
+      return: "Read documentation",
+    },
+    forge: {
+      fn: forge,
+      info: "A native implementation of TLS (and various other cryptographic tools) in JavaScript.",
+      web: "https://github.com/digitalbazaar/forge",
+      return: "Read documentation",
     },
     request_xlsx_body_to_json: {
       fn: xlsx_body_to_json,
@@ -843,7 +864,7 @@ export const CreateOpenFusionAPIToken = () => {
         username: "openfusionapi",
         first_name: "openfusionapi",
         last_name: "openfusionapi",
-        ip: '127.0.0.0',
+        ip: "127.0.0.0",
         enabled: true,
         ctrl: {
           as_admin: true,
