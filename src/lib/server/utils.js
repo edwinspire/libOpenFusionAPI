@@ -375,38 +375,38 @@ export const listFunctionsVars = (request, reply, environment) => {
 
   return {
     ofapi: {
-      fn: ofapi,
+      fn: request && reply ? ofapi : undefined,
       info: "Utilities and services of OpenFusionAPI. Contains server info, telegram bot, token generator, and exception thrower.",
       web: own_repo,
       return: "Any funtions or objects",
     },
     xmlCrypto: {
-      fn: xmlCrypto,
+      fn: request && reply ? xmlCrypto : undefined,
       info: "It is a Node.js package that allows working with XML digital signatures, facilitating the signing and verification of XML documents using the XML Signature specification, ideal for applications that handle security and data validation in this format, using private and public keys.",
       web: "https://github.com/node-saml/xml-crypto",
       return: "Read documentation",
     },
     xmldom: {
-      fn: xmldom,
+      fn: request && reply ? xmldom : undefined,
       info: "A JavaScript implementation of W3C DOM for Node.js, Rhino and the browser. Fully compatible with W3C DOM level2; and some compatible with level3.",
       web: "https://github.com/xmldom/xmldom",
       return: "Read documentation",
     },
     forge: {
-      fn: forge,
+      fn: request && reply ? forge : undefined,
       info: "A native implementation of TLS (and various other cryptographic tools) in JavaScript.",
       web: "https://github.com/digitalbazaar/forge",
       return: "Read documentation",
     },
     request_xlsx_body_to_json: {
-      fn: xlsx_body_to_json,
+      fn: request && reply ? xlsx_body_to_json : undefined,
       info: "Converts the body of a request to a JSON object. The body must be a buffer with any Excel files.",
       web: own_repo,
       return:
         "Array of objects with the data of each sheet of each Excel file.",
     },
     crypto: {
-      fn: crypto,
+      fn: request && reply ? crypto : undefined,
       info: "Node.js crypto module",
       web: "https://nodejs.org/api/crypto.html",
     },
@@ -423,12 +423,12 @@ export const listFunctionsVars = (request, reply, environment) => {
       return: "Map object",
     },
     reply: {
-      fn: reply,
+      fn: request && reply ? reply : undefined,
       info: "Fastify Reply. Is the object used to send a response to the client.",
       web: "https://fastify.dev/docs/latest/Reference/Reply/#introduction",
     },
     request: {
-      fn: request,
+      fn: request && reply ? request : undefined,
       info: "Fastify Request. Stores all information about the request",
       web: "https://fastify.dev/docs/latest/Reference/Request/",
     },

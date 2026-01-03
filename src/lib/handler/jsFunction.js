@@ -13,22 +13,6 @@ export const jsFunction = async (
       f = method.jsFn;
     }
 
-    /*  
-    let result_fn = await f({
-      $_REPLY_: response,
-      $_REQUEST_: $_REQUEST_,
-      $_UFETCH_: $_UFETCH_,
-      $_SECUENTIAL_PROMISES_: $_SECUENTIAL_PROMISES_,
-      $_GEN_TOKEN_: GenToken,
-      $_GET_INTERNAL_URL_: getInternalURL,
-      $_FETCH_OFAPI_: fetchOFAPI,
-      $_MONGOOSE_: mongoose,
-      $_EXCEPTION_: jsException,
-      $_LUXON_: LUXON,
-      $_SEQUELIZE_: SEQUELIZE,
-      $_BUILD_INTERNAL_URL: BuildInternalURL
-    })();
-*/
     let result_fn = await f(
       functionsVars($_REQUEST_, response, method.environment)
     );

@@ -75,11 +75,7 @@ export async function fnLogout(req, res) {
     // TODO: ver la forma de hacer un logout correctamente e invalide el token
     res.set("OFAPI_TOKEN", undefined);
 
-    /*
-		res.code(200).json({
-			logout: true
-		});
-		*/
+    
     // @ts-ignore
     r.data = {
       logout: true,

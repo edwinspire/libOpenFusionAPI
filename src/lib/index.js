@@ -46,11 +46,7 @@ import {
   CreateOpenFusionAPIToken,
 } from "./server/utils.js";
 
-import {
-  schema_input_hooks,
-  ajv,
-  validateSchemaMessageWebSocket,
-} from "./server/schemas/index.js";
+import { validateSchemaMessageWebSocket } from "./server/schemas/index.js";
 
 import {
   //key_endpoint_method,
@@ -231,11 +227,10 @@ export default class ServerAPI extends EventEmitter {
     this._addFunctions();
 
     this.fastify.addHook("preValidation", async (request, reply) => {
-      
       const user_agent = request.headers["user-agent"];
 
       if (!request.ws && (!user_agent || user_agent.length === 0)) {
-      // Por seguridad no se permite request sin user-agent
+        // Por seguridad no se permite request sin user-agent
         reply.code(403).send({ error: "Fail" });
         return;
       }
@@ -253,9 +248,12 @@ export default class ServerAPI extends EventEmitter {
 
           if (handlerEndpoint?.params?.enabled) {
             request.openfusionapi = { handler: handlerEndpoint };
+            // TODO:  Aqui deberí validar si las cedenciales son validas antes de consultar a la base de datos. es decir antes de hacer getEndpoint. Analizalo.
             await this._check_auth(handlerEndpoint, request, reply);
           } else {
-            reply.code(410).send({ message: "Endpoint unabled.", url: request.url });
+            reply
+              .code(410)
+              .send({ message: "Endpoint unabled.", url: request.url });
           }
         } else {
           reply
@@ -276,7 +274,6 @@ export default class ServerAPI extends EventEmitter {
       if (request.method !== "OPTIONS") {
         const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
         const timeTaken = Math.round(diff[0] * 1e3 + diff[1] * 1e-6); // Convertimos a milisegundos
-        
 
         if (!reply.openfusionapi) {
           reply.openfusionapi = { lastResponse: { responseTime: timeTaken } };

@@ -30,8 +30,6 @@ export async function fnLogin(params) {
 
     let user = await login(auth_data.Basic.username, auth_data.Basic.password);
 
-    //res.header("OFAPI_TOKEN", '');
-    //params.reply.cookie("OFAPI_TOKEN", "");
     // Establecer una cookie básica
     params.reply.setCookie("OFAPI_TOKEN", "", {
       path: "/", // Ruta para la que es válida la cookie
@@ -43,7 +41,6 @@ export async function fnLogin(params) {
     });
 
     if (user.login) {
-      //res.header("OFAPI_TOKEN", user.token);
 
       let aut = `Bearer ${user.token}`;
       params.reply.header("Authorization", aut);
