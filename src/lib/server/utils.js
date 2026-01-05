@@ -393,7 +393,7 @@ export const listFunctionsVars = (request, reply, environment) => {
       return: "Read documentation",
     },
     forge: {
-      fn: request && reply ? forge : undefined,
+      fn: request && reply ? forge.default : undefined,
       info: "A native implementation of TLS (and various other cryptographic tools) in JavaScript.",
       web: "https://github.com/digitalbazaar/forge",
       return: "Read documentation",
