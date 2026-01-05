@@ -54,8 +54,8 @@ export const soapFunction = async (
 
     response.code(200).send(soap_response);
   } catch (error) {
-//    setCacheReply(response, error);
-      console.trace(error);
+    //    setCacheReply(response, error);
+    console.trace(error);
     // @ts-ignore
     response.code(500).send(error);
   }
@@ -99,7 +99,12 @@ export const SOAPGenericClient = async (
       if (
         key.toLowerCase() !== "content-type" &&
         key.toLowerCase() !== "content-length" &&
-        key.toLowerCase() !== "host"
+        key.toLowerCase() !== "host" &&
+        key.toLowerCase() !== "server" &&
+        key.toLowerCase() !== "referer" &&
+        key.toLowerCase().includes("sec-ch-ua") &&
+        key.toLowerCase().includes("sec-fetch") &&
+        key.toLowerCase().includes("x-forwarded")
       ) {
         client.addHttpHeader(key, value);
       }
@@ -122,7 +127,7 @@ export const SOAPGenericClient = async (
         new soap.BearerSecurity(SOAPParameters.BearerSecurity)
       );
     }
-   
+
     let r;
 
     if (describe) {
@@ -133,7 +138,6 @@ export const SOAPGenericClient = async (
       if (SOAPParameters.endpoint) {
         client.setEndpoint(SOAPParameters.endpoint);
       }
-
 
       if (client[fnName]) {
         let result = await client[fnName](SOAPParameters.RequestArgs);
