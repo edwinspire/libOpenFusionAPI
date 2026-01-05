@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node ./test/index.js",
     "set_version": "node ./set_version.js",
-    "start": "node --max-old-space-size=4096 ./src/server.js"
+    "start": "node --max-old-space-size=4096 ./src/server.js",
+    "reinstall": "rm -rf node_modules package-lock.json && npm install"
   },
   "type": "module",
   "repository": {
