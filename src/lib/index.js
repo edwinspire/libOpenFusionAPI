@@ -180,7 +180,8 @@ export default class ServerAPI extends EventEmitter {
         DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
     });
     await this.fastify.register(multipart, {
-      attachFieldsToBody: "keyValues",
+      //attachFieldsToBody: "keyValues", // Consume memoria porque los archivos se guardan en memoria, los archivos se guardan en un buffer pero se pierde los detalles del archivo.
+      attachFieldsToBody: true, // Se guardan los archivos en memoria pero de forma detallada, puede ser prblema con archivos grandes.
       limits: {
         //fieldNameSize: 100, // Max field name size in bytes
         //fieldSize: 100, // Max field value size in bytes
