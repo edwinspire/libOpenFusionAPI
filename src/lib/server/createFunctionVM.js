@@ -62,7 +62,8 @@ clearTimeout(to);
         Boolean,
         Promise,
         FormData,
-        Blob
+        Blob, 
+        Buffer
       };
 
       const sandbox = { ...customVarsAndFunctions, ...defaults, ...app_vars };
