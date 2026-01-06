@@ -193,35 +193,6 @@ export default class ServerAPI extends EventEmitter {
         //headerPairs: 2000, // Max number of header key=>value pairs
         //parts: 1000, // For multipart forms, the max number of parts (fields + files)
       },
-      /*
-      async onFile(part) {
-        // read buffer completo del archivo
-        const buffer = await part.toBuffer();
-
-        // adjuntar al body un objeto con todo:
-        // filename, mimetype y buffer del archivo
-        this.request.body[part.fieldname] = {
-          filename: part.filename,
-          mimetype: part.mimetype,
-          buffer,
-        };
-      },
-      */
-      async onFile(part) {
-        const buffer = await part.toBuffer();
-/*
-        if (!this.body[part.fieldname]) {
-          this.body[part.fieldname] = [];
-        }
-
-        this.body[part.fieldname].push({
-          filename: part.filename,
-          mimetype: part.mimetype,
-          buffer,
-        });
-*/
-
-      },
     });
 
     this.fastify.register(cookie, {
