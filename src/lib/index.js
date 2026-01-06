@@ -209,7 +209,7 @@ export default class ServerAPI extends EventEmitter {
       */
       async onFile(part) {
         const buffer = await part.toBuffer();
-
+/*
         if (!this.body[part.fieldname]) {
           this.body[part.fieldname] = [];
         }
@@ -219,6 +219,8 @@ export default class ServerAPI extends EventEmitter {
           mimetype: part.mimetype,
           buffer,
         });
+*/
+
       },
     });
 
