@@ -193,6 +193,7 @@ export default class ServerAPI extends EventEmitter {
         //headerPairs: 2000, // Max number of header key=>value pairs
         //parts: 1000, // For multipart forms, the max number of parts (fields + files)
       },
+      /*
       async onFile(part) {
         // read buffer completo del archivo
         const buffer = await part.toBuffer();
@@ -204,6 +205,20 @@ export default class ServerAPI extends EventEmitter {
           mimetype: part.mimetype,
           buffer,
         };
+      },
+      */
+      async onFile(part) {
+        const buffer = await part.toBuffer();
+
+        if (!this.request.body[part.fieldname]) {
+          this.request.body[part.fieldname] = [];
+        }
+
+        this.request.body[part.fieldname].push({
+          filename: part.filename,
+          mimetype: part.mimetype,
+          buffer,
+        });
       },
     });
 
