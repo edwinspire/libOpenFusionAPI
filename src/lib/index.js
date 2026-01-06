@@ -210,11 +210,11 @@ export default class ServerAPI extends EventEmitter {
       async onFile(part) {
         const buffer = await part.toBuffer();
 
-        if (!this.request.body[part.fieldname]) {
-          this.request.body[part.fieldname] = [];
+        if (!this.body[part.fieldname]) {
+          this.body[part.fieldname] = [];
         }
 
-        this.request.body[part.fieldname].push({
+        this.body[part.fieldname].push({
           filename: part.filename,
           mimetype: part.mimetype,
           buffer,
