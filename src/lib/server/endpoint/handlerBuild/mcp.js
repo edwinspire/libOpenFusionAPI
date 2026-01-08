@@ -65,8 +65,6 @@ export const CreateMCPHandler = async (app_name, environment) => {
         },
 
         async (data) => {
-          //let auto_env = new URLAutoEnvironment();
-          //let uF = auto_env.create(url_internal, false);
           let uF = new uFetch(url_internal);
 
           let request_endpoint = await uF[endpoint.method.toUpperCase()]({

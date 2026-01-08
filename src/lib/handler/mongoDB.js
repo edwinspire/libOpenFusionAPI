@@ -1,5 +1,4 @@
-import { setCacheReply } from "./utils.js";
-import { functionsVars } from "../server/utils.js";
+import { functionsVars } from "../server/functionVars.js";
 import mongoose from "mongoose";
 
 export const getMongoDBHandlerParams = (code) => {

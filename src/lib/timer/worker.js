@@ -7,7 +7,7 @@ import {
 } from "../db/interval_task.js";
 
 import { performance } from "perf_hooks";
-import { URLAutoEnvironment } from "../server/utils.js";
+import { URLAutoEnvironment } from "../server/functionVars.js";
 
 const fetchOFAPI = new URLAutoEnvironment("no_env");
 const interval = 10000;

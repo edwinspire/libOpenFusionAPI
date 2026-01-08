@@ -1,5 +1,5 @@
 import vm from "node:vm";
-import { functionsVars } from "./utils.js";
+import { functionsVars } from "./functionVars.js";
 import { Blob } from "node:buffer";
 
 const TIMEOUT_VM_MS = 1 * 60 * 1000; // 1 minute

@@ -1,4 +1,4 @@
-import { listFunctionsVars } from "../../../utils.js";
+import { listFunctionsVars } from "../../../functionVars.js";
 import { version } from "../../../version.js";
 import  dbsequelize  from "../../../../db/sequelize.js";
 
@@ -188,3 +188,4 @@ export async function fnTelegramsendPhoto(params) {
   }
   return r;
 }
+

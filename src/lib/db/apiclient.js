@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import { ApiClient, ApiKey, ApiKeyEndpoint } from "./models.js";
-import { EncryptPwd, GenToken, CreateRandomPassword } from "../server/utils.js";
+import { EncryptPwd, CreateRandomPassword } from "../server/utils.js";
+import {  GenToken } from "../server/functionVars.js";
 import { validatePasswordSecurity } from "./utils.js";
 
 

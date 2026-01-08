@@ -1,5 +1,4 @@
-import { functionsVars } from "../server/utils.js";
-import { setCacheReply } from "./utils.js";
+import { functionsVars } from "../server/functionVars.js";
 
 export const jsFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
