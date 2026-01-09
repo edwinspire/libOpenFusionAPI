@@ -1,6 +1,7 @@
 import vm from "node:vm";
 import { functionsVars } from "./functionVars.js";
 import { Blob } from "node:buffer";
+import fs from "fs";
 
 const TIMEOUT_VM_MS = 1 * 60 * 1000; // 1 minute
 const TIMEOUT_SANDBOX_JAVASCRIPT = process.env.TIMEOUT_SANDBOX_JAVASCRIPT && Number(process.env.TIMEOUT_SANDBOX_JAVASCRIPT) > 0 ? Number(process.env.TIMEOUT_SANDBOX_JAVASCRIPT) : TIMEOUT_VM_MS;
@@ -66,7 +67,8 @@ clearTimeout(to);
         Buffer,
         RegExp,
         parseInt,
-        parseFloat
+        parseFloat,
+        fs
       };
 
       const sandbox = { ...customVarsAndFunctions, ...defaults, ...app_vars };

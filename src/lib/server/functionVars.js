@@ -18,6 +18,7 @@ import {
 import { isValidHttpStatusCode } from "../handler/utils.js";
 import uFetch from "@edwinspire/universal-fetch";
 import jwt from "jsonwebtoken";
+import xmlFormatter from "xml-formatter";
 
 const { PORT, JWT_KEY } = process.env;
 
@@ -185,6 +186,12 @@ export const listFunctionsVars = (request, reply, environment) => {
       info: "It is a Node.js package that allows working with XML digital signatures, facilitating the signing and verification of XML documents using the XML Signature specification, ideal for applications that handle security and data validation in this format, using private and public keys.",
       web: "https://github.com/node-saml/xml-crypto",
       return: "Read documentation",
+    },
+    xmlFormatter: {
+      fn: request && reply ? xmlFormatter : undefined,
+      info: "Read documentationConverts XML into a human readable format (pretty print) while respecting the xml:space attribute. Reciprocally, the xml-formatter package can minify pretty printed XML.",
+      web: "https://github.com/chrisbottin/xml-formatter",
+      return: "",
     },
     xmldom: {
       fn: request && reply ? xmldom : undefined,

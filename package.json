@@ -1,6 +1,6 @@
 {
   "name": "@edwinspire/libopenfusionapi",
-  "version": "1.4.24",
+  "version": "1.4.25",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./test/index.js",
@@ -72,6 +72,7 @@
     "vm": "^0.1.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "xml-crypto": "^6.1.2",
+    "xml-formatter": "^3.6.7",
     "xmldom": "^0.6.0"
   },
   "devDependencies": {
