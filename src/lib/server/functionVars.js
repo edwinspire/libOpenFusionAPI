@@ -19,6 +19,7 @@ import { isValidHttpStatusCode } from "../handler/utils.js";
 import uFetch from "@edwinspire/universal-fetch";
 import jwt from "jsonwebtoken";
 import xmlFormatter from "xml-formatter";
+import xml2js from "xml2js";
 
 const { PORT, JWT_KEY } = process.env;
 
@@ -197,6 +198,12 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? xmldom : undefined,
       info: "A JavaScript implementation of W3C DOM for Node.js, Rhino and the browser. Fully compatible with W3C DOM level2; and some compatible with level3.",
       web: "https://github.com/xmldom/xmldom",
+      return: "Read documentation",
+    },
+    xml2js: {
+      fn: request && reply ? xml2js : undefined,
+      info: "Simple XML to JavaScript object converter. It supports bi-directional conversion.",
+      web: "https://github.com/Leonidas-from-XIV/node-xml2js",
       return: "Read documentation",
     },
     forge: {
