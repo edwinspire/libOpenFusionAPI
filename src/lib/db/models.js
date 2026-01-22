@@ -607,6 +607,12 @@ export const Endpoint = dbsequelize.define(
       comment:
         "Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token, 4 - Local (Uso solo desde localhost)",
     },
+      title: {
+      type: DataTypes.STRING(200),
+      allowNull: false,
+      defaultValue: "",
+      comment: "Short description of the endpoint. 200 characters max.",
+    },
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
