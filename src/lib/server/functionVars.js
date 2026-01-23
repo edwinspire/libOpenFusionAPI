@@ -20,6 +20,7 @@ import uFetch from "@edwinspire/universal-fetch";
 import jwt from "jsonwebtoken";
 import xmlFormatter from "xml-formatter";
 import xml2js from "xml2js";
+import dnsPromises from "dns/promises";
 
 const { PORT, JWT_KEY } = process.env;
 
@@ -199,6 +200,10 @@ export const listFunctionsVars = (request, reply, environment) => {
       info: "A JavaScript implementation of W3C DOM for Node.js, Rhino and the browser. Fully compatible with W3C DOM level2; and some compatible with level3.",
       web: "https://github.com/xmldom/xmldom",
       return: "Read documentation",
+    },
+    dnsPromises: {
+      fn: request && reply ? dnsPromises : undefined,
+      info: "The DNS module enables name resolution functions. It contains methods for performing DNS queries of various types, as well as utility functions for converting between IP addresses in text and binary forms.",
     },
     xml2js: {
       fn: request && reply ? xml2js : undefined,
