@@ -13,7 +13,7 @@ function hashObjectSync(obj) {
  * @param {object} data - Datos a respaldar (objeto plano)
  * @returns {Promise<{ created: boolean, instance: EndpointBackup | null }>}
  */
-export async function createEndpointBackup({idendpoint, data}) {
+export async function createEndpointBackup({ idendpoint, data }) {
   // Validación temprana (evita llamadas innecesarias a BD)
   if (!idendpoint || typeof idendpoint !== "string") {
     throw new Error("idendpoint debe ser un string UUID válido");
@@ -22,7 +22,10 @@ export async function createEndpointBackup({idendpoint, data}) {
   if (!data || typeof data !== "object") {
     throw new Error("data debe ser un objeto válido");
   }
-
+  data.rowkey = 0; // Evita que cambios en rowkey afecten al hash
+  data.createdAt = null; // Evita que cambios en createdAt afecten al hash
+  data.updatedAt = null; // Evita que cambios en updatedAt afecten al hash
+  data.internal_hash_row = null; // Evita que cambios en internal_hash_row afecten al hash
   const hash = hashObjectSync(data);
 
   try {
