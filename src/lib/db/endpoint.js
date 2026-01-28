@@ -1,10 +1,19 @@
 import { Endpoint } from "./models.js";
+import { createEndpointBackup } from "./endpoint_backup.js";
 
 export const upsertEndpoint = async (
-  /** @type {import("sequelize").Optional<any, string>} */ data
+  /** @type {import("sequelize").Optional<any, string>} */ data,
 ) => {
   try {
     const [result, created] = await Endpoint.upsert(data, { returning: true });
+    if (created) {
+      try {
+        await createEndpointBackup({ ...data, idendpoint: result.idendpoint });
+      } catch (error) {
+        console.error("Error creating endpoint backup:", error);
+      }
+    }
+
     return { result, created };
   } catch (error) {
     console.error("Error retrieving:", error, data);
@@ -14,7 +23,7 @@ export const upsertEndpoint = async (
 
 // READ
 export const getEndpointById = async (
-  /** @type {import("sequelize").Identifier | undefined} */ idendpoint
+  /** @type {import("sequelize").Identifier | undefined} */ idendpoint,
 ) => {
   try {
     const endpoint = await Endpoint.findByPk(idendpoint);
@@ -37,7 +46,7 @@ export const getAllEndpoints = async () => {
 
 // DELETE
 export const deleteEndpoint = async (
-  /** @type {import("sequelize").Identifier | undefined} */ idendpoint
+  /** @type {import("sequelize").Identifier | undefined} */ idendpoint,
 ) => {
   try {
     const ep = await Endpoint.findByPk(idendpoint);
@@ -54,7 +63,7 @@ export const deleteEndpoint = async (
 
 // READ
 export const getEndpointByIdApp = async (
-  /** @type {import("sequelize").Identifier | undefined} */ idapp
+  /** @type {import("sequelize").Identifier | undefined} */ idapp,
 ) => {
   try {
     //const endpoints = await Endpoint.findAll({attributes: list_fields, where: { appname: appname } });
@@ -68,7 +77,7 @@ export const getEndpointByIdApp = async (
 
 // READ
 export const getEndpointByApp = async (
-  /** @type {import("sequelize").Identifier | undefined} */ appname
+  /** @type {import("sequelize").Identifier | undefined} */ appname,
 ) => {
   try {
     //const endpoints = await Endpoint.findAll({attributes: list_fields, where: { appname: appname } });
@@ -81,7 +90,7 @@ export const getEndpointByApp = async (
 };
 
 export const bulkCreateEndpoints = (
-  /** @type {readonly import("sequelize").Optional<any, string>[]} */ list_endpoints
+  /** @type {readonly import("sequelize").Optional<any, string>[]} */ list_endpoints,
 ) => {
   // Campos que se utilizarán para verificar duplicados (en este caso, todos excepto 'rowkey' y 'idendpoint')
   //const uniqueFields = ['idapp', 'namespace', 'name', 'version', 'environment', 'method'];

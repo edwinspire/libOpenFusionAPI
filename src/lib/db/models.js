@@ -13,6 +13,7 @@ export const ModelNames = {
   User: prefixTableName("user"),
   Application: prefixTableName("application"),
   Endpoint: prefixTableName("endpoint"),
+  EndpointBackup: prefixTableName("endpoint_backup"),
   IntervalTask: prefixTableName("intervaltask"),
   Method: prefixTableName("method"),
   Handler: prefixTableName("handler"),
@@ -239,7 +240,7 @@ export const User = dbsequelize.define(
         //  instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
       },
     },
-  }
+  },
 );
 
 // Definir el modelo de la tabla 'Method'
@@ -275,7 +276,7 @@ export const Method = dbsequelize.define(
         });
       },
     },
-  }
+  },
 );
 
 // Definir el modelo de la tabla 'Handler'
@@ -327,7 +328,7 @@ export const Handler = dbsequelize.define(
         });
       },
     },
-  }
+  },
 );
 
 // Definir el modelo de la tabla 'App'
@@ -431,7 +432,7 @@ export const Application = dbsequelize.define(
         }
       },
     },
-  }
+  },
 );
 
 // ============================================
@@ -523,7 +524,52 @@ export const AppVars = dbsequelize.define(
         });
       },
     },
-  }
+  },
+);
+
+export const EndpointBackup = dbsequelize.define(
+  ModelNames.EndpointBackup,
+  {
+    idbackup: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    idendpoint: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    hash: {
+      type: DataTypes.CHAR(128), // O STRING(128)
+      allowNull: false,
+      comment: "Hash of the backup data for quick comparison",
+    },
+    data: {
+      type: JSON_TYPE,
+      comment: "Endpoint data backup",
+      get() {
+        return JSON_ADAPTER.getData(this, "data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "data", value);
+      },
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    // ✅ AGREGAR ESTO: Restricción única compuesta
+    indexes: [
+      {
+        unique: true, // ← ¡CRÍTICO!
+        fields: ["idendpoint", "hash"],
+        name: "unique_endpoint_hash",
+      },
+      { fields: ["idendpoint"] }, // Índice adicional para búsquedas
+    ],
+  },
 );
 
 export const Endpoint = dbsequelize.define(
@@ -607,7 +653,7 @@ export const Endpoint = dbsequelize.define(
       comment:
         "Indicates if access is: 0 - Public, 1 - Basic, 2 - Token, 3 - Basic and Token, 4 - Local (Uso solo desde localhost)",
     },
-      title: {
+    title: {
       type: DataTypes.STRING(200),
       allowNull: false,
       defaultValue: "",
@@ -758,7 +804,7 @@ export const Endpoint = dbsequelize.define(
         randomRowKey(instance);
       },
       beforeUpsert: async (
-        /** @type {{ rowkey: number; idendpoint: string}} */ instance
+        /** @type {{ rowkey: number; idendpoint: string}} */ instance,
       ) => {
         randomRowKey(instance);
         ensureUUID(instance, "idendpoint");
@@ -771,7 +817,7 @@ export const Endpoint = dbsequelize.define(
           (!instance.code || instance.code.length < 1)
         ) {
           throw Error(
-            "The handle FUNCTION must be associated with a function; it cannot be empty."
+            "The handle FUNCTION must be associated with a function; it cannot be empty.",
           );
         }
 
@@ -786,7 +832,7 @@ export const Endpoint = dbsequelize.define(
         ensureUUID(instance, "idendpoint");
       },
     },
-  }
+  },
 );
 
 export const LogEntry = dbsequelize.define(
@@ -995,7 +1041,7 @@ export const LogEntry = dbsequelize.define(
         fields: ["timestamp"],
       },
     ],
-  }
+  },
 );
 
 export const ClientBalance = dbsequelize.define(
@@ -1035,7 +1081,7 @@ export const ClientBalance = dbsequelize.define(
         instance.last_transaction_at = new Date();
       },
     },
-  }
+  },
 );
 
 export const ClientTransactions = dbsequelize.define(
@@ -1103,7 +1149,7 @@ export const ClientTransactions = dbsequelize.define(
       { fields: ["type"] },
     ],
     comment: "Historial completo de movimientos de saldo (créditos y débitos)",
-  }
+  },
 );
 
 export const IntervalTask = dbsequelize.define(
@@ -1238,7 +1284,7 @@ export const IntervalTask = dbsequelize.define(
         unique: false, // Índice no único
       },
     ],
-  }
+  },
 );
 
 // Definir el modelo de la tabla 'demo'
@@ -1278,7 +1324,7 @@ export const tblDemo = dbsequelize.define(
         }
       },
     },
-  }
+  },
 );
 
 ///////////
@@ -1312,7 +1358,7 @@ export const UserProfile = dbsequelize.define(
       allowNull: true,
     },
   },
-  { timestamps: true, freezeTableName: true }
+  { timestamps: true, freezeTableName: true },
 );
 
 export const SystemUserProfile = dbsequelize.define(
@@ -1344,7 +1390,7 @@ export const SystemUserProfile = dbsequelize.define(
       defaultValue: true,
     },
   },
-  { timestamps: true, freezeTableName: true }
+  { timestamps: true, freezeTableName: true },
 );
 
 ////////////////////////////////////////////////////
@@ -1368,9 +1414,17 @@ export const ApiClient = dbsequelize.define(
     email: { type: DataTypes.STRING(150), allowNull: false },
     document_id: { type: DataTypes.STRING(50), allowNull: true },
     document_type: {
-      type: DataTypes.ENUM("passport", "unknow", "id_card", "driver_license", "tax_id", "social_security", "other"),
+      type: DataTypes.ENUM(
+        "passport",
+        "unknow",
+        "id_card",
+        "driver_license",
+        "tax_id",
+        "social_security",
+        "other",
+      ),
       defaultValue: "unknow",
-    },    
+    },
     phone: { type: DataTypes.STRING(50), allowNull: true },
     startAt: {
       type: DataTypes.DATE,
@@ -1414,7 +1468,7 @@ export const ApiClient = dbsequelize.define(
         }
       },
     },
-  }
+  },
 );
 
 export const ApiKey = dbsequelize.define(
@@ -1447,7 +1501,7 @@ export const ApiKey = dbsequelize.define(
         }
       },
     },
-  }
+  },
 );
 
 // ApiKeyEndpoint - Si Se elimina un idkey en el modelo ApiKey tambien debe eliminarse en cascada de este modelo, lo mismo con el campo idendpoint.
@@ -1457,7 +1511,7 @@ export const ApiKeyEndpoint = dbsequelize.define(
     idkey: { type: DataTypes.UUID, allowNull: false }, // Es llave foranea del modelo ApiKey
     idendpoint: { type: DataTypes.UUID, allowNull: false }, // Es llave foranea de idendpoint del Modelo Endpoint
   },
-  { timestamps: true, freezeTableName: true }
+  { timestamps: true, freezeTableName: true },
 );
 
 /*

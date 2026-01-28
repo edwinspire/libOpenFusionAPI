@@ -4,6 +4,23 @@ import {
   getEndpointByIdApp,
 } from "../../../../../db/endpoint.js";
 
+import { getEndpointBackupByIdEndpoint } from "../../../../../db/endpoint_backup.js";
+
+export async function fnGetEndpointBackupByIdEndpoint(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await getEndpointBackupByIdEndpoint(
+      params.request.query.idendpoint,
+    );
+    r.code = 200;
+  } catch (error) {
+    console.log(error);
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
 export async function fnEndpointUpsert(params) {
   let r = { code: 200, data: undefined };
   try {
@@ -89,7 +106,7 @@ export async function fnGetCacheSize(params) {
     r.code = 200;
 
     r = params.server_data.endpoint_class.getCacheSize(
-      params?.request?.query?.appName
+      params?.request?.query?.appName,
     );
   } catch (error) {
     r.data = error;
@@ -105,15 +122,11 @@ export async function fnGetResponseCountStatus(params) {
     r.code = 200;
 
     r = params.server_data.endpoint_class.getResponseCountStatusCode(
-      params?.request?.query?.appName
+      params?.request?.query?.appName,
     );
   } catch (error) {
-  
-    
     r.data = error;
     r.code = 500;
-  
   }
   return r;
 }
-

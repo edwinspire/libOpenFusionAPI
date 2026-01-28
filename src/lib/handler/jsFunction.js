@@ -39,6 +39,6 @@ export const jsFunction = async (
     }
     response
       .code(error.statusCode == null ? 500 : error.statusCode)
-      .send(error);
+      .send({error: error.message});
   }
 };

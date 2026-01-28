@@ -514,6 +514,86 @@ export const system_app = {
       createdAt: "2025-11-21T22:04:52.726Z",
       updatedAt: "2025-11-22T00:11:42.112Z",
     },
+
+    {
+      ctrl: {
+        users: [],
+        log: {
+          status_info: 1,
+          status_success: 1,
+          status_redirect: 1,
+          status_client_error: 2,
+          status_server_error: 3,
+        },
+      },
+      cors: {},
+      mcp: {},
+      json_schema: {
+        in: {
+          enabled: false,
+          schema: {},
+        },
+        out: {},
+      },
+      headers_test: {},
+      data_test: {
+        query: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row: "",
+          },
+        ],
+        body: {
+          selection: 0,
+          json: {
+            code: {},
+          },
+          xml: {
+            code: "",
+          },
+          text: {
+            value: "",
+          },
+          form: {},
+        },
+        headers: [
+          {
+            enabled: false,
+            key: "",
+            value: "",
+            internal_hash_row: "",
+          },
+        ],
+        auth: {
+          basic: {
+            username: "",
+            password: "",
+          },
+          bearer: {
+            token: "",
+          },
+          selection: 0,
+        },
+      },
+      idendpoint: "cfdf4ac3-bd98-463e-ae57-d331193ed416",
+      rowkey: 1,
+      enabled: true,
+      idapp: "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      environment: "prd",
+      resource: "/api/app/endpoint/backup",
+      method: "GET",
+      handler: "FUNCTION",
+      access: 2,
+      description: "",
+      cost: 0.000001,
+      keywords: "",
+      code: "fnGetEndpointBackupByIdEndpoint",
+      cache_time: 0,
+      createdAt: "2025-11-21T22:04:52.726Z",
+      updatedAt: "2025-11-22T00:11:42.112Z",
+    },
     {
       ctrl: {
         admin: true,

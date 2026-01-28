@@ -6,7 +6,7 @@ export const fetchFunction = async (
 	  url(url, init): unknown method?: any; headers: any; body: any; query: any; 
 }} */ $_REQUEST_,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
-  /** @type {{ handler?: string; code: any; }} */ method
+  /** @type {{ handler?: string; code: any; }} */ method,
 ) => {
   //console.log(uFetch);
   try {
@@ -65,6 +65,6 @@ export const fetchFunction = async (
     //setCacheReply(response, error);
     // @ts-ignore
     console.trace(error);
-    response.code(500).send(error);
+    response.code(500).send({ error: error.message });
   }
 };
