@@ -9,9 +9,7 @@ import { getEndpointBackupByIdEndpoint } from "../../../../../db/endpoint_backup
 export async function fnGetEndpointBackupByIdEndpoint(params) {
   let r = { code: 200, data: undefined };
   try {
-    r.data = await getEndpointBackupByIdEndpoint(
-      params.request.query.idendpoint,
-    );
+    r.data = await getEndpointBackupByIdEndpoint(params.request.query.idendpoint);
     r.code = 200;
   } catch (error) {
     console.log(error);

@@ -13,7 +13,7 @@ function hashObjectSync(obj) {
  * @param {object} data - Datos a respaldar (objeto plano)
  * @returns {Promise<{ created: boolean, instance: EndpointBackup | null }>}
  */
-export async function createEndpointBackup(idendpoint, data) {
+export async function createEndpointBackup({idendpoint, data}) {
   // Validación temprana (evita llamadas innecesarias a BD)
   if (!idendpoint || typeof idendpoint !== "string") {
     throw new Error("idendpoint debe ser un string UUID válido");
@@ -30,7 +30,7 @@ export async function createEndpointBackup(idendpoint, data) {
       { idendpoint, hash, data },
       {
         logging: false, // Opcional: desactiva logs para mejor rendimiento
-        raw: true, // Opcional: mejora rendimiento en inserciones masivas
+        //raw: true, // Opcional: mejora rendimiento en inserciones masivas
       },
     );
     return { created: true, instance };

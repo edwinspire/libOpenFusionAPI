@@ -665,29 +665,3 @@ export async function getApplicationTreeByFilters(filters = {}) {
   }
 }
 
-export const getAppBackupByIdxxx = async (
-  /** @type {import("sequelize").Identifier} */ idapp,
-  raw = false
-) => {
-  try {
-    const appdata = await Application.findByPk(idapp);
-    let app = {};
-
-    if (appdata) {
-      app = appdata.toJSON();
-
-      // Obtener las varibles de aplicación
-      const vars = await getAppVarsByIdApp(idapp);
-      app.vrs = [...vars];
-
-      // Obtener los endpoints de la aplicación
-      const endpoints = await getEndpointByIdApp(idapp);
-      app.endpoints = [...endpoints];
-    }
-
-    return app || {};
-  } catch (error) {
-    console.error("Error retrieving app:", error);
-    throw error;
-  }
-};

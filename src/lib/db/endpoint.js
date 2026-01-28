@@ -6,13 +6,13 @@ export const upsertEndpoint = async (
 ) => {
   try {
     const [result, created] = await Endpoint.upsert(data, { returning: true });
-    if (created) {
-      try {
-        await createEndpointBackup({ ...data, idendpoint: result.idendpoint });
+    
+    try {
+        await createEndpointBackup({ data: data, idendpoint: result.idendpoint });
       } catch (error) {
         console.error("Error creating endpoint backup:", error);
       }
-    }
+    
 
     return { result, created };
   } catch (error) {

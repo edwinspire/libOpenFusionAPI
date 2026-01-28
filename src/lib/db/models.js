@@ -569,6 +569,17 @@ export const EndpointBackup = dbsequelize.define(
       },
       { fields: ["idendpoint"] }, // Índice adicional para búsquedas
     ],
+    hooks: {
+      beforeValidate: (instance) => {
+        // Si hay que adaptar JSON, se hace aquí
+        console.log("---- beforeValidate EndpointBackup ----");
+/*
+        instance.data = JSON_ADAPTER._isMsSql()
+          ? JSON.stringify(instance.data)
+          : instance.data;
+          */
+      },
+    },
   },
 );
 
