@@ -13,7 +13,7 @@ export const ModelNames = {
   User: prefixTableName("user"),
   Application: prefixTableName("application"),
   Endpoint: prefixTableName("endpoint"),
-  EndpointBackup: prefixTableName("endpoint_backup"),
+  EndpointBackup: prefixTableName("endpoint_bkp"),
   IntervalTask: prefixTableName("intervaltask"),
   Method: prefixTableName("method"),
   Handler: prefixTableName("handler"),
