@@ -9,7 +9,7 @@ import * as xmlCrypto from "xml-crypto";
 import * as xmldom from "xmldom";
 import * as forge from "node-forge";
 import * as uuid from "uuid";
-import Zod from "zod";
+import Zod, { array } from "zod";
 import * as XLSX from "xlsx";
 import {
   createImage as createImageFromHTML,
@@ -107,37 +107,120 @@ export class URLAutoEnvironment {
   }
 }
 
-export const xlsx_body_to_json = (request_body) => {
-  let result = [];
-  //let workbook;
-  // Detectar
-  if (request_body) {
-    for (let name in request_body) {
-      let element = request_body[name];
+export const json_to_xlsx_buffer = (sheets = []) => {
+  //let resultBuffer = null;
+  // Paso 1: Crear un nuevo libro (workbook)
+  const workbook = XLSX.utils.book_new();
 
-      // Detectar si el elemento es un buffer
-      if (Buffer.isBuffer(element)) {
-        //let workbook = XLSX.read(element);
-        let workbook = XLSX.read(element, { type: "buffer" });
+  if (Array.isArray(sheets)) {
+    for (let index = 0; index < sheets.length; index++) {
+      const sheetInfo = sheets[index];
+      const sheetName = sheetInfo.sheet || `Sheet${index + 1}`;
+      const jsonData = sheetInfo.data || [];
+      // Convertir el array de objetos a una hoja de cálculo (worksheet)
+      // - `json_to_sheet` convierte automáticamente los objetos a una hoja.
+      // - Los nombres de las propiedades (a, b) serán los encabezados de las columnas.
+      const worksheet = XLSX.utils.json_to_sheet(jsonData);
 
-        let sheet_names = workbook.SheetNames;
-        let sheets = [];
-        for (let index = 0; index < sheet_names.length; index++) {
-          let sheet_name = sheet_names[index];
-          const worksheet = workbook.Sheets[sheet_name];
-          let out_json = XLSX.utils.sheet_to_json(worksheet, {
-            header: 0,
-            raw: false,
-          });
-          sheets.push({ sheet: sheet_name, data: out_json });
+      // Definir los estilos
+      const headerStyle = {
+        fill: {
+          fgColor: { rgb: "D3D3D3" }, // Fondo gris claro para el encabezado
+        },
+        font: {
+          bold: true,
+        },
+      };
+
+      // Aplicar estilo al encabezado (primera fila)
+      const range = XLSX.utils.decode_range(worksheet["!ref"]);
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (worksheet[cellAddress]) {
+          worksheet[cellAddress].s = headerStyle;
         }
+      }
 
-        result.push({ file: name, sheets: sheets });
+      // Añadir la hoja al libro
+      // - Primer parámetro: la hoja creada
+      // - Segundo parámetro: el nombre de la hoja (aparecerá en la pestaña abajo)
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    }
+  }
+
+  // Obtenemos el Buffer directamente en memoria, sin guardar nada en disco
+  const buffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "buffer",
+    //compression: true,
+  });
+  return {
+    buffer,
+    ContentType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  };
+};
+
+export const xlsx_body_to_json = async (request) => {
+  let result = [];
+
+  const contentType = request.headers["content-type"];
+
+  // Identifica el tipo de dato que llega y extrae los valores
+  if (contentType && contentType.includes("multipart/form-data")) {
+    // Multipart (archivos, streams, etc)
+    for (let name in request.body) {
+      console.log("Processing body field:", name);
+      let element = request.body[name];
+
+      if (Array.isArray(element)) {
+        // Es una lista de archivos con el mismo nombre
+        console.log(`Field ${name} is an array with ${element.length} items.`);
+
+        for (let index = 0; index < element.length; index++) {
+          const file = element[index];
+          if (file && file.type === "file") {
+            let buffer = await file.toBuffer();
+            result.push({
+              filename: file.filename,
+              sheets: xlsx_buffer_to_json(buffer),
+            });
+          }
+        }
+      } else if (element && element.type === "file") {
+        console.log(`Field ${name} is a file of type ${element.mimetype}.`);
+        let buffer = await element.toBuffer();
+        result.push({
+          filename: element.filename,
+          sheets: xlsx_buffer_to_json(buffer),
+        });
       }
     }
   }
 
   return result;
+};
+
+const xlsx_buffer_to_json = (buffer) => {
+  let sheets = [];
+  try {
+    let workbook = XLSX.read(buffer, { type: "buffer" });
+
+    let sheet_names = workbook.SheetNames;
+    for (let index = 0; index < sheet_names.length; index++) {
+      let sheet_name = sheet_names[index];
+      const worksheet = workbook.Sheets[sheet_name];
+      let out_json = XLSX.utils.sheet_to_json(worksheet, {
+        header: 0,
+        raw: false,
+      });
+      sheets.push({ sheet: sheet_name, data: out_json });
+    }
+  } catch (error) {
+    console.error("Error processing XLSX buffer:", error);
+  }
+
+  return sheets;
 };
 
 export const functionsVars = (request, reply, environment) => {
@@ -217,9 +300,15 @@ export const listFunctionsVars = (request, reply, environment) => {
       web: "https://github.com/digitalbazaar/forge",
       return: "Read documentation",
     },
+    json_to_xlsx_buffer: {
+      fn: request && reply ? json_to_xlsx_buffer : undefined,
+      info: "Converts an array of JSON objects to an XLSX buffer. Each object represents a sheet with its data.",
+      web: own_repo,
+      return: "Buffer with the XLSX file content and ContentType",
+    },
     request_xlsx_body_to_json: {
       fn: request && reply ? xlsx_body_to_json : undefined,
-      info: "Converts the body of a request to a JSON object. The body must be a buffer with any Excel files.",
+      info: "Converts the body of a request to a JSON object. It supports multipart/form-data with Excel files.",
       web: own_repo,
       return:
         "Array of objects with the data of each sheet of each Excel file.",
