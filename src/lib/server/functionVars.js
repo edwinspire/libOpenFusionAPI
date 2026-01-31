@@ -21,6 +21,7 @@ import jwt from "jsonwebtoken";
 import xmlFormatter from "xml-formatter";
 import xml2js from "xml2js";
 import dnsPromises from "dns/promises";
+import { type } from "os";
 
 const { PORT, JWT_KEY } = process.env;
 
@@ -107,14 +108,16 @@ export class URLAutoEnvironment {
   }
 }
 
-export const json_to_xlsx_buffer = (sheets = []) => {
+export const json_to_xlsx_buffer = (
+  data = { filename: "file", sheets: [{ sheet: "Sheet1", data: [] }] },
+) => {
   //let resultBuffer = null;
   // Paso 1: Crear un nuevo libro (workbook)
   const workbook = XLSX.utils.book_new();
 
-  if (Array.isArray(sheets)) {
-    for (let index = 0; index < sheets.length; index++) {
-      const sheetInfo = sheets[index];
+  if (Array.isArray(data.sheets)) {
+    for (let index = 0; index < data.sheets.length; index++) {
+      const sheetInfo = data.sheets[index];
       const sheetName = sheetInfo.sheet || `Sheet${index + 1}`;
       const jsonData = sheetInfo.data || [];
       // Convertir el array de objetos a una hoja de cálculo (worksheet)
@@ -152,10 +155,12 @@ export const json_to_xlsx_buffer = (sheets = []) => {
   const buffer = XLSX.write(workbook, {
     bookType: "xlsx",
     type: "buffer",
-    //compression: true,
+    compression: true,
   });
   return {
-    buffer,
+    buffer: Buffer.from(buffer),
+    filename: data.filename || "data.xlsx",
+    contentDisposition: `attachment; filename="${data.filename || "data.xlsx"}"`,
     ContentType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   };
@@ -170,12 +175,12 @@ export const xlsx_body_to_json = async (request) => {
   if (contentType && contentType.includes("multipart/form-data")) {
     // Multipart (archivos, streams, etc)
     for (let name in request.body) {
-      console.log("Processing body field:", name);
+      //console.log("Processing body field:", name);
       let element = request.body[name];
 
       if (Array.isArray(element)) {
         // Es una lista de archivos con el mismo nombre
-        console.log(`Field ${name} is an array with ${element.length} items.`);
+        //console.log(`Field ${name} is an array with ${element.length} items.`);
 
         for (let index = 0; index < element.length; index++) {
           const file = element[index];
@@ -188,7 +193,7 @@ export const xlsx_body_to_json = async (request) => {
           }
         }
       } else if (element && element.type === "file") {
-        console.log(`Field ${name} is a file of type ${element.mimetype}.`);
+        //console.log(`Field ${name} is a file of type ${element.mimetype}.`);
         let buffer = await element.toBuffer();
         result.push({
           filename: element.filename,
@@ -304,6 +309,13 @@ export const listFunctionsVars = (request, reply, environment) => {
       fn: request && reply ? json_to_xlsx_buffer : undefined,
       info: "Converts an array of JSON objects to an XLSX buffer. Each object represents a sheet with its data.",
       web: own_repo,
+      params: [
+        {
+          name: "data",
+          info: "An object with the filename and an array of sheets. Each sheet is an object with a name and data. { filename: 'file', sheets: [{ sheet: Sheet1', data: [] }] }",
+          type: "object",
+        },
+      ],
       return: "Buffer with the XLSX file content and ContentType",
     },
     request_xlsx_body_to_json: {
