@@ -30,6 +30,8 @@ export const ModelNames = {
   ApiUsageLog: prefixTableName("api_usageLog"),
   ClientBalance: prefixTableName("client_balance"),
   ClientTransactions: prefixTableName("client_transactions"),
+  Bot: prefixTableName("bot"),
+  BotBackup: prefixTableName("bot_bkp"),
 };
 
 const default_json_schema = {
@@ -52,7 +54,7 @@ const default_json_schema = {
 };
 
 class JSON_ADAPTER {
-  constructor() {}
+  constructor() { }
 
   static getData(instance, fieldName, defaulValue = {}) {
     let data = instance.getDataValue(fieldName) ?? defaulValue;
@@ -331,6 +333,155 @@ export const Handler = dbsequelize.define(
   },
 );
 
+
+// Bots model
+export const Bot = dbsequelize.define(
+  ModelNames.Bot,
+  {
+    idbot: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      allowNull: false,
+      unique: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    rowkey: {
+      type: DataTypes.SMALLINT,
+      defaultValue: 0,
+    },
+    enabled: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false },
+    token: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    title: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    environment: {
+      type: DataTypes.STRING(4),
+      allowNull: false,
+      defaultValue: "dev",
+      set(value) {
+        if (value === null || value === undefined) {
+          this.setDataValue("environment", value);
+          return;
+        }
+        this.setDataValue("environment", String(value).toLowerCase());
+      },
+    },
+    description: {
+      type: DataTypes.TEXT,
+    },
+    code: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    params: {
+      type: JSON_TYPE,
+      get() {
+        return JSON_ADAPTER.getData(this, "params");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "params", value);
+      },
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ["name", "environment"],
+        name: "unique_bot_name_environment",
+      },
+    ],
+    hooks: {
+      afterBulkCreate: async (intance) => {
+        //
+      },
+      afterUpsert: async (/** @type {any} */ instance) => {
+        //        instance.rowkey = 999;
+
+      },
+      beforeUpdate: (/** @type {any} */ instance) => {
+        randomRowKey(instance);
+      },
+      beforeUpsert: (instance) => {
+        randomRowKey(instance);
+      },
+      beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
+        randomRowKey(instance);
+      },
+      beforeValidate: (instance) => {
+        randomRowKey(instance);
+      },
+      beforeCreate: (instance) => {
+        //        ensureUUID(instance, "idapp");
+      },
+      beforeBulkCreate: (instance) => {
+        //
+      },
+    },
+  },
+);
+
+
+export const BotBackup = dbsequelize.define(
+  ModelNames.BotBackup,
+  {
+    idbackup: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    idbot: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    hash: {
+      type: DataTypes.CHAR(128), // O STRING(128)
+      allowNull: false,
+      comment: "Hash of the backup data for quick comparison",
+    },
+    data: {
+      type: JSON_TYPE,
+      comment: "Bot data backup",
+      get() {
+        return JSON_ADAPTER.getData(this, "data");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "data", value);
+      },
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: true,
+    // ✅ AGREGAR ESTO: Restricción única compuesta
+    indexes: [
+      {
+        unique: true, // ← ¡CRÍTICO!
+        fields: ["idbot", "hash"],
+        name: "unique_bot_hash",
+      },
+      { fields: ["idbot"] }, // Índice adicional para búsquedas
+    ],
+    hooks: {
+      beforeValidate: (instance) => {
+        //
+      },
+    },
+  },
+);
+
 // Definir el modelo de la tabla 'App'
 
 export const Application = dbsequelize.define(
@@ -572,12 +723,12 @@ export const EndpointBackup = dbsequelize.define(
     hooks: {
       beforeValidate: (instance) => {
         // Si hay que adaptar JSON, se hace aquí
-        console.log("---- beforeValidate EndpointBackup ----");
-/*
-        instance.data = JSON_ADAPTER._isMsSql()
-          ? JSON.stringify(instance.data)
-          : instance.data;
-          */
+      //  console.log("---- beforeValidate EndpointBackup ----");
+        /*
+                instance.data = JSON_ADAPTER._isMsSql()
+                  ? JSON.stringify(instance.data)
+                  : instance.data;
+                  */
       },
     },
   },
@@ -1013,7 +1164,7 @@ export const LogEntry = dbsequelize.define(
     paranoid: false, // Evita el soft delete
     comment: "Tabla de logs de la aplicación",
     hooks: {
-      afterCreate: async (/** @type {any} */ instance, options) => {},
+      afterCreate: async (/** @type {any} */ instance, options) => { },
       beforeValidate: (instance) => {
         if (instance.req_headers) {
           //  instance.req_headers = JSON_TYPE_Adapter(instance, "req_headers");

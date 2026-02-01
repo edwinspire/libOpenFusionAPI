@@ -4,6 +4,13 @@
     // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        {
+            "command": "npm start",
+            "name": "Run npm start",
+            "request": "launch",
+            "type": "node-terminal"
+        },
+    
     
         {
             "type": "node",
@@ -12,7 +19,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/test/index.js"
+            "program": "${workspaceFolder} node --max-old-space-size=4096 ./src/server.js"
         }
     ]
 }

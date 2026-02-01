@@ -1,6 +1,6 @@
 {
   "name": "@edwinspire/libopenfusionapi",
-  "version": "1.4.31",
+  "version": "1.5.1",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./test/index.js",
@@ -46,6 +46,7 @@
     "chrome-launcher": "^1.2.1",
     "dotenv": "^16.3.1",
     "fastify": "^4.25.2",
+    "grammy": "^1.39.3",
     "jsonwebtoken": "^9.0.0",
     "luxon": "^3.5.0",
     "mariadb": "^3.2.2",

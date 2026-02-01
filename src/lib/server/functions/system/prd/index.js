@@ -11,6 +11,7 @@ export * from "./apiclient/index.js";
 export * from "./appvars/index.js";
 export * from "./endpoint/index.js";
 export * from "./interval_tasks/index.js";
+export * from "./bots/index.js";
 
 export async function fnListFnVarsHandlerJS(params) {
   let r = { code: 204, data: undefined };
