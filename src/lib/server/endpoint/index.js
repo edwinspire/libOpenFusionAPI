@@ -513,7 +513,7 @@ export default class Endpoint extends EventEmitter {
               props
             );
 
-            console.log("Se han reemplazado");
+    //        console.log("Se han reemplazado");
           }
         }
 

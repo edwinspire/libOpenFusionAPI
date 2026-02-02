@@ -4,36 +4,6 @@ import { getAllBots } from "./lib/db/bot.js";
 
 const OFAPIServer = new server();
 
-// 1. Mock Database
-const DB_BOTS = [
-  {
-    id: "bot_1",
-    token: "1878582988:AAH3Q1j5LzAo8cEBXYtMEEEy4swosLq6SZ8", // This will fail auth in real grammy, which is good for testing
-    // Code that uses 'Bot' (grammY injected) and 'botToken'
-    code: `
-            const bot = new Bot(botToken);
-            bot.command('start', (ctx) => ctx.reply('Hello from Bot 1!'));
-            // grammY uses start() unlike telegraf's launch()
-            // We don't await it here because that would block the script execution line. 
-            // In a real scenario, we might want to just set it up and let the worker wrapper handle life cycle,
-            // but here we just fire it.
-            bot.start(); 
-            console.log('Bot 1 setup complete inside VM');
-            bot; 
-        `,
-  },
-  {
-    id: "bot_2",
-    token: "987654:ZYX-WVU",
-    code: `
-            const bot = new Bot(botToken);
-            bot.on('message', (ctx) => ctx.reply('Bot 2 echo: ' + ctx.message.text));
-            bot.start();
-            console.log('Bot 2 setup complete inside VM');
-            bot;
-        `,
-  },
-];
 
 // 2. Run Usage
 async function main() {
@@ -50,7 +20,7 @@ async function main() {
       try {
         if (element.enabled) {
           console.log("Starting Bot " + element.idbot);
-          await manager.startBot(element.idbot, element.token, element.code);
+          await manager.startBot(element.idbot, element.token, element.code, element.environment);
         } else {
           console.log("Stopping Bot " + element.idbot);
           await manager.stopBot(element.idbot);

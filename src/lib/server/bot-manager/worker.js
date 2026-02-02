@@ -1,24 +1,23 @@
 import { parentPort, workerData } from "node:worker_threads";
 import vm from "node:vm";
 import * as grammyModule from "grammy";
+import { functionsVars } from "../functionVars.js";
 
 let activeBot = null;
 
 parentPort.on("message", async (message) => {
   try {
     if (message.type === "START") {
-      const { token, code, botId } = message.payload;
+      const { token, code, botId, environment } = message.payload;
       console.log(`[Worker ${botId}] Starting...`);
 
-      // 1. Create a Sandbox (The "World" for the bot)
-      // We expose "Bot" (from grammY) and standard console/timers
-      const sandbox = {
+      const defaults = {
+        // Valores explícitamente permitidos
         grammy: grammyModule,
         setTimeout,
-        setInterval,
+        clearInterval,
         clearTimeout,
         clearInterval,
-        setTimeout,
         AbortController,
         console,
         Date,
@@ -39,16 +38,20 @@ parentPort.on("message", async (message) => {
         $BOT_TOKEN: token, // The bot code can access 'botToken' variable
       };
 
+      const sandbox = { ...defaults, ...functionsVars(true, true, environment) };
+
       // 2. Create Context
       vm.createContext(sandbox);
 
       // 3. Wrap the user code.
       // We wrap their code to extract the 'bot' instance if they define it globally
       const wrappedCode = `
-                ${code}
+               
 // Instantiate the bot.
-                const $BOT = new grammy.Bot($BOT_TOKEN);
+const $ENVIRONMENT = "${environment}";
+const $BOT = new grammy.Bot($BOT_TOKEN);
 
+${code}
             `;
 
       // 4. Run Execution

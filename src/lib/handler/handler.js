@@ -8,6 +8,7 @@ import { sqlHana } from "./sqlHana.js";
 import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
 import { mongodbFunction } from "./mongoDB.js";
 import { mcpFunction } from "./mcpFunction.js";
+import { botTelegramFunction } from "./botTelegramFunction.js";
 import fs from 'fs/promises';
 import path from "path";
 import { fileURLToPath } from "url";
@@ -69,6 +70,12 @@ export const Handlers = {
   MCP: {
     label: "MCP",
     fn: mcpFunction,
+    description:
+      "Proporciona funcionalidades de procesamiento de múltiples canales.",
+  },
+   TELEGRAM_BOT: {
+    label: "Telegram Bot",
+    fn: botTelegramFunction,
     description:
       "Proporciona funcionalidades de procesamiento de múltiples canales.",
   },

@@ -15,8 +15,9 @@ export class BotManager {
      * @param {string} botId - Unique ID for the bot
      * @param {string} token - Telegram Bot Token
      * @param {string} code - The Javascript code string to execute
+     * @param {string} environment - The environment to run the bot in (e.g. 'dev', 'prd')
      */
-    startBot(botId, token, code) {
+    startBot(botId, token, code, environment = 'dev') {
         return new Promise((resolve, reject) => {
             if (this.activeBots.has(botId)) {
                 return reject(new Error(`Bot ${botId} is already running`));
@@ -50,7 +51,7 @@ export class BotManager {
             // Send payload to worker
             worker.postMessage({
                 type: 'START',
-                payload: { botId, token, code }
+                payload: { botId, token, code, environment }
             });
 
             this.activeBots.set(botId, worker);

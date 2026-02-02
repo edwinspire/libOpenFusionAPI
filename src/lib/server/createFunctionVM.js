@@ -1,5 +1,4 @@
-import vm from "node:vm";
-import { functionsVars } from "./functionVars.js";
+import vm from "node:vm"; 
 import { Blob } from "node:buffer";
 import fs from "fs";
 
@@ -98,32 +97,4 @@ clearTimeout(to);
     };
   }
 };
-
-export const createFunction_old = async (
-  /** @type {string} */ code,
-  /** @type {string} */ app_vars
-) => {
-  let app_vars_string = "";
-  // TODO: la variable app_vars no se la debería usar ya que al crear el codigo de la función ya se reemplaza el nombre de la variable por el valor que se la ha asignado.
-  let fn = new Function("$_VARS_", "throw new Error('No code to execute');");
-
-  try {
-    let vars = Object.keys(await functionsVars()).join(", ");
-
-    let codefunction = `
-return async()=>{
-  ${app_vars_string}  
-  let {${vars}} = $_VARS_;
-  
-  ${code}
-  return {data: $_RETURN_DATA_, headers: $_CUSTOM_HEADERS_};  
-}
-`;
-
-    fn = new Function("$_VARS_", codefunction);
-  } catch (error) {
-    fn = new Function("", "throw new Error('Error creating function');");
-  }
-
-  return fn;
-};
+ 

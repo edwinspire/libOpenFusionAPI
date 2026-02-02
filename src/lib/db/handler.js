@@ -15,7 +15,7 @@ export const getAllHandlers = async () => {
 
 export const defaultHandlers = () => {
   try {
-  //  console.log(" defaultHandlers >>>>>> ");
+    //  console.log(" defaultHandlers >>>>>> ");
 
     let handlers = [
       {
@@ -38,6 +38,13 @@ export const defaultHandlers = () => {
         description: "Run basic Javascript code.",
         icon_class: "fa-brands fa-js",
         color_class: "success",
+      },
+      {
+        id: "TELEGRAM_BOT",
+        text: `TELEGRAM BOT`,
+        description: "Create a Telegram bot.",
+        icon_class: "fa-solid fa-robot",
+        color_class: "secondary",
       },
       {
         id: "SOAP",
