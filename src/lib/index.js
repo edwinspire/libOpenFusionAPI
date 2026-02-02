@@ -15,6 +15,8 @@ import { dirname } from "path";
 import Endpoint from "./server/endpoint/index.js";
 import { TelegramBot } from "./server/telegram/telegram.js";
 
+import { BotManager } from "./server/bot-manager/manager.js";
+import { getAllBots } from "./db/bot.js";
 import { TasksInterval } from "./timer/tasks.js";
 //import { version } from "./server/version.js";
 
@@ -615,6 +617,33 @@ export default class ServerAPI extends EventEmitter {
         }
       }
     }, 3000);
+
+
+  const manager = new BotManager();
+
+  console.log("--- Starting System (grammY edition) ---");
+
+  setInterval(async () => {
+    const bots = await getAllBots();
+    console.log("bots", bots);
+
+    for (let index = 0; index < bots.length; index++) {
+      const element = bots[index];
+      try {
+        if (element.enabled) {
+          console.log("Starting Bot " + element.idbot);
+          await manager.startBot(element.idbot, element.token, element.code, element.environment);
+        } else {
+          console.log("Stopping Bot " + element.idbot);
+          await manager.stopBot(element.idbot);
+        }
+      } catch (error) {
+        console.error("Error managing bot " + element.idbot, error);
+      }
+    }
+  }, 10000);
+
+
   }
   _check_auth_Bearer(handler, data_aut) {
     // En este metodo se debe validar de que clase de usuario es, si es del sistema o si es usuario externo

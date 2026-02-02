@@ -1,10 +1,10 @@
 import server from "./lib/index.js";
-import { BotManager } from "./lib/server/bot-manager/manager.js";
-import { getAllBots } from "./lib/db/bot.js";
+//import { BotManager } from "./lib/server/bot-manager/manager.js";
+//import { getAllBots } from "./lib/db/bot.js";
 
 const OFAPIServer = new server();
 
-
+/*
 // 2. Run Usage
 async function main() {
   const manager = new BotManager();
@@ -59,3 +59,4 @@ async function main() {
 }
 
 main().catch(console.error);
+*/
