@@ -21,7 +21,7 @@ import { TasksInterval } from "./timer/tasks.js";
 //import { version } from "./server/version.js";
 
 import dbAPIs from "./db/sequelize.js";
-import { defaultApps } from "./db/app.js";
+import { defaultApps, getApplicationsTreeByFilters } from "./db/app.js";
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
 import { defaultHandlers } from "./db/handler.js";
@@ -40,6 +40,7 @@ import {
 import { runHandler } from "./handler/handler.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
 import { OpenFusionWebsocketClient } from "./server/websocket_client.js";
+
 import {
   getUserPasswordTokenFromRequest,
   getIPFromRequest,
@@ -397,12 +398,12 @@ export default class ServerAPI extends EventEmitter {
                   try {
                     if (
                       client_ws.openfusionapi.handler.params.idendpoint ==
-                        connection.socket.openfusionapi.handler.params
-                          .idendpoint &&
+                      connection.socket.openfusionapi.handler.params
+                        .idendpoint &&
                       client_ws.openfusionapi.idclient !=
-                        connection.socket.openfusionapi.idclient &&
+                      connection.socket.openfusionapi.idclient &&
                       connection.socket.openfusionapi.channel ==
-                        client_ws.openfusionapi.channel
+                      client_ws.openfusionapi.channel
                     ) {
                       // Envia el mensaje a los clientes conectados en el mismo endpoint y canal, funciona modo broadcast
                       // TODO: Ver la forma de que se puede enviar el mensaje solo a un cliente en especifico, puede ser que se cree un canal con un id especifico para comunicacion entre dos clientes, como una sala privada
@@ -619,29 +620,36 @@ export default class ServerAPI extends EventEmitter {
     }, 3000);
 
 
-  const manager = new BotManager();
+    const manager = new BotManager();
 
-  console.log("--- Starting System (grammY edition) ---");
+    console.log("--- Starting System (grammY edition) ---");
 
-  setInterval(async () => {
-    const bots = await getAllBots();
-    //console.log("bots", bots);
+    setInterval(async () => {
+      const apps = await getApplicationsTreeByFilters({ endpoint: { handler: 'TELEGRAM_BOT' } });
+      //console.log("bots", bots);
 
-    for (let index = 0; index < bots.length; index++) {
-      const element = bots[index];
-      try {
-        if (element.enabled) {
-          console.log("Starting Bot " + element.idbot);
-          await manager.startBot(element.idbot, element.token, element.code, element.environment);
-        } else {
-          console.log("Stopping Bot " + element.idbot);
-          await manager.stopBot(element.idbot);
+      for (let index = 0; index < apps.length; index++) {
+        const app = apps[index];
+  
+        if(app.endpoints){
+          for (let index = 0; index < app.endpoints.length; index++) {
+            const element = app.endpoints[index];
+            try {
+          if (element.enabled && app.enabled) {
+            console.log("Starting Bot " + element.idbot);
+            await manager.startBot(element.idbot, element.token, element.code, element.environment);
+          } else {
+            console.log("Stopping Bot " + element.idbot);
+            await manager.stopBot(element.idbot);
+          }
+        } catch (error) {
+          console.error("Error managing bot " + element.idbot, error);
+        } 
+          }
         }
-      } catch (error) {
-        console.error("Error managing bot " + element.idbot, error);
+       
       }
-    }
-  }, 10000);
+    }, 10000);
 
 
   }

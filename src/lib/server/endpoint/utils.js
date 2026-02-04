@@ -87,3 +87,29 @@ const cleanVar = (str) => {
   // Reemplaza: "$_VAR_X"  -> $_VAR_X
   return str.replace(RE_QUOTED_VAR, (m) => m.slice(1, -1));
 };
+
+
+export const getAppVarsObject = (app_vars) => {
+
+  let appvars_obj = {};
+
+  if (Array.isArray(app_vars)) {
+
+    for (let index = 0; index < app_vars.length; index++) {
+      const element = app_vars[index];
+      if (element.type == "json" || element.type == "object" || element.type == "js") {
+        appvars_obj[element.environment][element.name] = JSON.parse(element.value);
+      } else if (element.type == "number") {
+        appvars_obj[element.environment][element.name] = Number(element.value);
+      } else if (element.type == "boolean") {
+        appvars_obj[element.environment][element.name] = Boolean(element.value);
+      } else if (element.type == "string") {
+        appvars_obj[element.environment][element.name] = String(element.value);
+      } else {
+        appvars_obj[element.environment][element.name] = element.value;
+      }
+    }
+  }
+
+  return appvars_obj;
+}

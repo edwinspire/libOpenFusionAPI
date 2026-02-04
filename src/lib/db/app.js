@@ -274,7 +274,7 @@ export const restoreAppFromBackup = async (app) => {
         }
 
         if (Array.isArray(app.endpoints) && app.endpoints.length > 0) {
-          
+
           let promises_endpoints = app.endpoints.map((ep) => {
             if (!ep.idapp) {
               ep.idapp = app.idapp;
@@ -398,9 +398,8 @@ function ValidateEndpoint(default_endpoints, system_endpoints) {
       result.valid = field_diff.length == 0;
       if (!result.valid) {
         result.diff = { endpoint: element };
-        result.message = `Endpoint ${
-          element.idendpoint
-        } has modified fields: ${field_diff.join(", ")}`;
+        result.message = `Endpoint ${element.idendpoint
+          } has modified fields: ${field_diff.join(", ")}`;
         break;
       }
     }
@@ -458,6 +457,12 @@ export function parseAppVar(appvar) {
             ? appvar.value
             : JSON.parse(appvar.value);
         break;
+      case "js":
+        v =
+          typeof appvar.value === "object"
+            ? appvar.value
+            : JSON.parse(appvar.value);
+        break;
       default:
         v = JSON.stringify(appvar.value);
         break;
@@ -501,7 +506,7 @@ export async function getApplicationsTreeByFilters(filters = {}) {
       appWhere.app = app.toLowerCase(); // Normalizado
     }
 
-     if (endpoint?.idendpoint) {
+    if (endpoint?.idendpoint) {
       endpointWhere.idendpoint = endpoint.idendpoint;
     }
 
