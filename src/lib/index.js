@@ -46,7 +46,7 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
-  CreateOpenFusionAPIToken,
+  CreateOpenFusionAPIToken, getAppVarsObject
 } from "./server/utils.js";
 
 import { validateSchemaMessageWebSocket } from "./server/schemas/index.js";
@@ -630,24 +630,31 @@ export default class ServerAPI extends EventEmitter {
 
       for (let index = 0; index < apps.length; index++) {
         const app = apps[index];
-  
-        if(app.endpoints){
+
+        if (app.endpoints && app.endpoints.length > 0) {
+
+          let appvars_obj = {};
+
+          if (app.enabled) {
+            appvars_obj = getAppVarsObject(app.vrs);
+          }
+
           for (let index = 0; index < app.endpoints.length; index++) {
             const element = app.endpoints[index];
             try {
-          if (element.enabled && app.enabled) {
-            console.log("Starting Bot " + element.idbot);
-            await manager.startBot(element.idbot, element.token, element.code, element.environment);
-          } else {
-            console.log("Stopping Bot " + element.idbot);
-            await manager.stopBot(element.idbot);
-          }
-        } catch (error) {
-          console.error("Error managing bot " + element.idbot, error);
-        } 
+              if (element.enabled && app.enabled) {
+                console.log("Starting Bot " + element.idendpoint);
+                await manager.startBot(element.idendpoint, element.custom_data.token, element.code, element.environment, appvars_obj[element.environment]);
+              } else {
+                console.log("Stopping Bot " + element.idendpoint);
+                await manager.stopBot(element.idendpoint);
+              }
+            } catch (error) {
+              console.error("Error managing bot " + element.idbot, error);
+            }
           }
         }
-       
+
       }
     }, 10000);
 

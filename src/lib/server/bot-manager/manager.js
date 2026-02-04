@@ -18,11 +18,12 @@ export class BotManager {
    * @param {string} token - Telegram Bot Token
    * @param {string} code - The Javascript code string to execute
    * @param {string} environment - The environment to run the bot in (e.g. 'dev', 'prd')
+   * @param {Object} app_env_vars - The appvars object to run the bot in (e.g. 'dev', 'prd')
    */
-  startBot(botId, token, code, environment = "dev") {
+  startBot(botId, token, code, environment, app_env_vars) {
     return new Promise(async (resolve, reject) => {
 
-      if(!(botId && token && code && token.length > 0 && code.length > 0)){
+      if (!(botId && token && code && token.length > 0 && code.length > 0)) {
         reject(new Error("Bot data is invalid"));
       }
 
@@ -106,7 +107,7 @@ export class BotManager {
       // Send payload to worker
       worker.postMessage({
         type: "START",
-        payload: { botId, token, code, environment },
+        payload: { botId, token, code, environment, app_env_vars },
       });
 
       this.activeBots.set(botId, { worker, codeHash });

@@ -457,3 +457,24 @@ export const CreateOpenFusionAPIToken = () => {
   ); // Valido por un año
   process.env.USER_OPENFUSIONAPI_TOKEN = token;
 };
+
+/**
+ * @param {Array<{environment: string, name: string, value: any}>} app_vars
+ */
+export const getAppVarsObject = (app_vars) => {
+
+  let appvars_obj = {};
+
+  if (Array.isArray(app_vars)) {
+
+    for (let index = 0; index < app_vars.length; index++) {
+      const element = app_vars[index];
+      if (!appvars_obj[element.environment]) {
+        appvars_obj[element.environment] = {};
+      }
+      appvars_obj[element.environment][element.name] = element.value;
+    }
+  }
+
+  return appvars_obj;
+}

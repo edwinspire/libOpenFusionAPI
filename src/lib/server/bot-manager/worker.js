@@ -8,7 +8,7 @@ let activeBot = null;
 parentPort.on("message", async (message) => {
   try {
     if (message.type === "START") {
-      const { token, code, botId, environment } = message.payload;
+      const { token, code, botId, environment, app_env_vars } = message.payload;
       console.log(`[Worker ${botId}] Starting...`);
 
       const defaults = {
@@ -38,7 +38,7 @@ parentPort.on("message", async (message) => {
         $BOT_TOKEN: token, // The bot code can access 'botToken' variable
       };
 
-      const sandbox = { ...defaults, ...functionsVars(true, true, environment) };
+      const sandbox = { ...defaults, ...functionsVars(true, true, environment), ...app_env_vars };
 
       // 2. Create Context
       vm.createContext(sandbox);
