@@ -625,7 +625,7 @@ export default class ServerAPI extends EventEmitter {
 
   setInterval(async () => {
     const bots = await getAllBots();
-    console.log("bots", bots);
+    //console.log("bots", bots);
 
     for (let index = 0; index < bots.length; index++) {
       const element = bots[index];

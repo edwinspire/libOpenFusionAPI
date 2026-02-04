@@ -48,7 +48,6 @@ parentPort.on("message", async (message) => {
       const wrappedCode = `
                
 // Instantiate the bot.
-const $ENVIRONMENT = "${environment}";
 const $BOT = new grammy.Bot($BOT_TOKEN);
 
 ${code}
@@ -57,20 +56,40 @@ ${code}
       // 4. Run Execution
       try {
         const script = new vm.Script(wrappedCode);
-        // Execute code. The result of the last expression is returned.
-        const potentialBot = script.runInContext(sandbox, { timeout: 30000 }); // 5s timeout for initialization
+        // Execute code.
+        script.runInContext(sandbox, { timeout: 10000 }); // 10s timeout
+/*
+Nota importante: Este tiempo límite aplica solo a la carga inicial del código (definir variables, crear la instancia del bot). No limita cuánto tiempo puede estar el bot encendido y funcionando (eso es indefinido).
+*/
+        // Recover the bot instance from the sandbox
+        const potentialBot = sandbox.$BOT;
 
-        if (
-          potentialBot &&
-          (typeof potentialBot.stop === "function" ||
-            typeof potentialBot.start === "function")
-        ) {
+        if (potentialBot && typeof potentialBot.start === "function") {
           activeBot = potentialBot;
+
+          // Handle bot errors to prevent crash
+          activeBot.catch((err) => {
+            console.error(`[Worker ${botId}] Bot Error (caught):`, err);
+            // We could notify manager here if needed, but for now we keep running
+          });
+
+          // Start the bot without handling signals (manager handles that)
+          activeBot.start({
+            onStart: () => {
+              console.log(`[Worker ${botId}] Bot started!`);
+            },
+            allowed_updates: ["message", "callback_query"], // Optional: specific updates
+            drop_pending_updates: true,
+            handleSignals: false
+          });
+
+          parentPort.postMessage({ type: "STARTED", botId });
+        } else {
+          throw new Error("Code did not define a valid $BOT instance.");
         }
 
-        parentPort.postMessage({ type: "STARTED", botId });
       } catch (err) {
-        console.error(`[Worker ${botId}] Execution Error:`, err);
+        console.error(`[Worker ${botId}] Execution/Startup Error:`, err);
         parentPort.postMessage({ type: "ERROR", botId, error: err.message });
       }
     } else if (message.type === "STOP") {
