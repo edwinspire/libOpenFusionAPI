@@ -54,7 +54,7 @@ const default_json_schema = {
 };
 
 class JSON_ADAPTER {
-  constructor() {}
+  constructor() { }
 
   static getData(instance, fieldName, defaulValue = {}) {
     let data = instance.getDataValue(fieldName) ?? defaulValue;
@@ -627,7 +627,7 @@ export const Endpoint = dbsequelize.define(
         this.setDataValue("environment", String(value).toLowerCase());
       },
     },
-
+    timeout: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 30, comment: 'Maximum time the endpoint has to complete its execution' },
     resource: {
       type: DataTypes.STRING(300),
       allowNull: false,
@@ -1016,7 +1016,7 @@ export const LogEntry = dbsequelize.define(
     paranoid: false, // Evita el soft delete
     comment: "Tabla de logs de la aplicación",
     hooks: {
-      afterCreate: async (/** @type {any} */ instance, options) => {},
+      afterCreate: async (/** @type {any} */ instance, options) => { },
       beforeValidate: (instance) => {
         if (instance.req_headers) {
           //  instance.req_headers = JSON_TYPE_Adapter(instance, "req_headers");

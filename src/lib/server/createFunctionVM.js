@@ -10,7 +10,8 @@ const TIMEOUT_SANDBOX_JAVASCRIPT = process.env.TIMEOUT_SANDBOX_JAVASCRIPT && Num
  */
 export const createFunctionVM = async (
   /** @type {string} */ code,
-  /** @type {object} */ app_vars
+  /** @type {object} */ app_vars,
+  timeoutVM = TIMEOUT_VM_MS
 ) => {
   try {
     /**
@@ -27,7 +28,7 @@ export const createFunctionVM = async (
   let to = setTimeout(() => {
     console.log('Timeout alcanzado, abortando vm...');
     controller.abort();
-  }, ${TIMEOUT_SANDBOX_JAVASCRIPT - 1}); 
+  }, ${timeoutVM - 1}); 
 
         ${code}
 
@@ -86,7 +87,7 @@ clearTimeout(to);
 
       // Ejecutar
       return await script.runInContext(context, {
-        timeout: TIMEOUT_SANDBOX_JAVASCRIPT,
+        timeout: 30*1000,
         breakOnSigint: true, // opcional
       });
     };

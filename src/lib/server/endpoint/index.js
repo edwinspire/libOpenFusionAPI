@@ -539,7 +539,8 @@ export default class Endpoint extends EventEmitter {
         if (returnHandler.params.handler == "MONGODB") {
           returnHandler.params.jsFn = await createFunctionVM(
             getMongoDBHandlerParams(returnHandler.params.code).code,
-            appvars_obj
+            appvars_obj,
+            returnHandler.params.timeout
           );
 
           // Se libera espacio de esta variable ya que no se va a utilizar mas
@@ -547,7 +548,8 @@ export default class Endpoint extends EventEmitter {
         } else if (returnHandler.params.handler == "JS") {
           returnHandler.params.jsFn = await createFunctionVM(
             returnHandler.params.code,
-            appvars_obj
+            appvars_obj,
+            returnHandler.params.timeout
           );
 
           // Se libera espacio de esta variable ya que no se va a utilizar mas
