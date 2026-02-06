@@ -9,17 +9,23 @@ export const mcpFunction = async (
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
 ) => {
   try {
-    const server = request.openfusionapi.handler.params.server_mcp(
-      request.headers
-    );
+    const serverFactory = request.openfusionapi?.handler?.params?.server_mcp;
+
+    if (typeof serverFactory !== "function") {
+      throw new Error(
+        "MCP Server factory (server_mcp) is not properly defined in handler params."
+      );
+    }
+
+    const server = serverFactory(request.headers);
 
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
     reply.raw.on("close", () => {
       console.log("Request closed");
-      transport.close();
-      server.close();
+      transport?.close?.();
+      server?.close?.();
     });
     await server.connect(transport);
     await transport.handleRequest(request, reply.raw, request.body);
