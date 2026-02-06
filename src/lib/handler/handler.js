@@ -124,6 +124,7 @@ export async function runHandler(request, response, method, server_data) {
       response
         .code(404)
         .send({ error: `Handler '${method.handler}' no es válido` });
+        return;
     }
 
     await handler.fn(request, response, method, server_data);

@@ -1,6 +1,6 @@
 // @ts-ignore
 import uFetch from "@edwinspire/universal-fetch";
-import { setCacheReply } from "./utils.js";
+
 export const fetchFunction = async (
   /** @type {{
 	  url(url, init): unknown method?: any; headers: any; body: any; query: any; 
