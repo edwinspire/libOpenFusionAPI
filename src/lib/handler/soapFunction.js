@@ -2,7 +2,6 @@ import soap from "soap";
 import Ajv from "ajv";
 import { schema_input_genericSOAP } from "./json_schemas.js";
 import { mergeObjects } from "../server/utils.js";
-import { setCacheReply } from "./utils.js";
 //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const ajv = new Ajv();
@@ -44,10 +43,12 @@ export const soapFunction = async (
 
     let soap_response = await SOAPGenericClient(dataRequest);
 
-    if (
-      response.openfusionapi.lastResponse &&
-      response.openfusionapi.lastResponse.hash_request
-    ) {
+    if (soap_response.error && Array.isArray(soap_response.error)) {
+      response.code(400).send(soap_response);
+      return;
+    }
+
+    if (response.openfusionapi?.lastResponse?.hash_request) {
       // @ts-ignore
       response.openfusionapi.lastResponse.data = soap_response;
     }
