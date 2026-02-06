@@ -6,7 +6,13 @@ export const textFunction = async (
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
-    let textConfig = JSON.parse(method.code);
+    let textConfig;
+    try {
+      textConfig = JSON.parse(method.code);
+    } catch (e) {
+      response.code(400).send({ error: "Invalid JSON in input code" });
+      return;
+    }
 
     let mimeType = "text/plain";
 
@@ -19,6 +25,11 @@ export const textFunction = async (
 
     let filename = Date.now() + "." + getExtensionFromMimeType(mimeType);
 
+    if (textConfig.payload === undefined) {
+      response.code(400).send({ error: "No payload provided" });
+      return;
+    }
+
     setCacheReply(response, textConfig.payload);
 
     response
@@ -28,7 +39,7 @@ export const textFunction = async (
       .send(textConfig.payload);
   } catch (error) {
     console.trace(error);
-//    setCacheReply(response, { error: error });
+    //    setCacheReply(response, { error: error });
     // @ts-ignore
     response.code(500).send(error);
   }
