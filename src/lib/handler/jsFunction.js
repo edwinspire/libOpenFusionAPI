@@ -6,20 +6,17 @@ export const jsFunction = async (
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
 ) => {
   try {
-    let f;
-
-    if (method.jsFn) {
-      f = method.jsFn;
+    if (!method.jsFn) {
+      throw new Error("Function 'jsFn' is not defined in the method configuration.");
     }
+
+    let f = method.jsFn;
 
     let result_fn = await f(
       functionsVars($_REQUEST_, response, method.environment)
     );
 
-    if (
-      response.openfusionapi.lastResponse &&
-      response.openfusionapi.lastResponse.hash_request
-    ) {
+    if (response.openfusionapi?.lastResponse?.hash_request) {
       response.openfusionapi.lastResponse.data = result_fn.data;
     }
 
@@ -39,6 +36,6 @@ export const jsFunction = async (
     }
     response
       .code(error.statusCode == null ? 500 : error.statusCode)
-      .send({error: error.message});
+      .send({ error: error.message });
   }
 };
