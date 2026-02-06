@@ -12,6 +12,64 @@ import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
 */
 
+const soapClients = new Map();
+const MAX_CLIENTS = 50;
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+
+/**
+ * Obtiene un cliente SOAP del caché o crea uno nuevo.
+ * Implementa LRU (Least Recently Used) y TTL (Time To Live).
+ */
+const getSoapClient = async (wsdl, options) => {
+  const cacheKey = JSON.stringify({ wsdl, options });
+  const now = Date.now();
+
+  // 1. Verificar Caché
+  if (soapClients.has(cacheKey)) {
+    const entry = soapClients.get(cacheKey);
+
+    // Verificar TTL
+    if (now - entry.created > CACHE_TTL) {
+      console.log(`SOAP Client expired: ${wsdl}`);
+      soapClients.delete(cacheKey);
+    } else {
+      // Actualizar uso (LRU) y retornar
+      entry.lastUsed = now;
+      return entry.client;
+    }
+  }
+
+  // 2. Limpieza LRU si está lleno
+  if (soapClients.size >= MAX_CLIENTS) {
+    let oldestKey = null;
+    let oldestTime = Infinity;
+
+    for (const [key, entry] of soapClients.entries()) {
+      if (entry.lastUsed < oldestTime) {
+        oldestTime = entry.lastUsed;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey) {
+      soapClients.delete(oldestKey);
+    }
+  }
+
+  // 3. Crear nuevo cliente
+  console.log(`Creating new SOAP Client: ${wsdl}`);
+  const client = await soap.createClientAsync(wsdl, options || {});
+
+  // 4. Guardar en caché
+  soapClients.set(cacheKey, {
+    client,
+    created: now,
+    lastUsed: now,
+  });
+
+  return client;
+};
+
 export const soapFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
@@ -89,9 +147,9 @@ export const SOAPGenericClient = async (
   }
 
   if (describe || validate_schema_input_genericSOAP(SOAPParameters)) {
-    let client = await soap.createClientAsync(
+    let client = await getSoapClient(
       SOAPParameters.wsdl,
-      SOAPParameters.options ? SOAPParameters.options : {}
+      SOAPParameters.options
     );
 
     // Pasar todos los headers del Request al cliente SOAP
