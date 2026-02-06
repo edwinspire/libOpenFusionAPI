@@ -10,10 +10,7 @@ export const fetchFunction = async (
 ) => {
   //console.log(uFetch);
   try {
-    let req_headers = { ...$_REQUEST_.headers };
-    delete req_headers["content-length"];
-    delete req_headers["host"];
-    delete req_headers["connection"];
+    // Removed unused req_headers block
 
     /** ------------------------------
      *  SANITIZAR HEADERS
@@ -36,6 +33,7 @@ export const fetchFunction = async (
       response
         .code(500)
         .send({ error: `The destination URL ${method.code} is invalid.` });
+      return;
     }
 
     let init = {
@@ -46,10 +44,28 @@ export const fetchFunction = async (
     };
 
     const FData = new uFetch();
-    // @ts-ignore
-    let resp = await FData[$_REQUEST_.method.toUpperCase()](init);
+    const httpMethod = $_REQUEST_.method.toUpperCase();
 
-    let r = await resp.json();
+    // @ts-ignore
+    if (typeof FData[httpMethod] !== "function") {
+      response.code(405).send({ error: `Method ${httpMethod} not allowed/supported` });
+      return;
+    }
+
+    // @ts-ignore
+    let resp = await FData[httpMethod](init);
+
+    let r;
+    const contentType = resp.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        r = await resp.json();
+      } catch (e) {
+        r = await resp.text(); // Fallback to text if JSON parse fails
+      }
+    } else {
+      r = await resp.text();
+    }
 
     // @ts-ignore
     if (
