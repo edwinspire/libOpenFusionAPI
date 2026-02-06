@@ -3,6 +3,63 @@ import { mergeObjects } from "../server/utils.js";
 import { setCacheReply } from "./utils.js";
 import { parseQualifiedName } from "../db/utils.js";
 
+const connections = new Map();
+const MAX_CONNECTIONS = 50;
+
+/**
+ * Gestiona el ciclo de vida de las conexiones para evitar fugas de memoria.
+ * Implementa una estrategia LRU (Least Recently Used).
+ */
+const getConnection = async (configHash, paramsSQL) => {
+  // 1. Si existe, actualizamos timestamp y retornamos
+  if (connections.has(configHash)) {
+    const connData = connections.get(configHash);
+    connData.lastUsed = Date.now();
+    return connData.sequelize;
+  }
+
+  // 2. Si no existe, verificamos límite
+  if (connections.size >= MAX_CONNECTIONS) {
+    // Buscar la conexión más antigua (LRU)
+    let oldestHash = null;
+    let oldestTime = Infinity;
+
+    for (const [hash, data] of connections.entries()) {
+      if (data.lastUsed < oldestTime) {
+        oldestTime = data.lastUsed;
+        oldestHash = hash;
+      }
+    }
+
+    if (oldestHash) {
+      console.log(`Closing idle connection: ${oldestHash}`);
+      const oldConn = connections.get(oldestHash);
+      try {
+        await oldConn.sequelize.close();
+      } catch (err) {
+        console.error("Error closing idle connection:", err);
+      }
+      connections.delete(oldestHash);
+    }
+  }
+
+  // 3. Crear nueva conexión
+  const sequelize = new Sequelize(
+    paramsSQL.config.database,
+    paramsSQL.config.username,
+    paramsSQL.config.password,
+    paramsSQL.config.options
+  );
+
+  // 4. Guardar en mapa
+  connections.set(configHash, {
+    sequelize: sequelize,
+    lastUsed: Date.now(),
+  });
+
+  return sequelize;
+};
+
 export const sqlFunctionInsertBulk = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ reply,
@@ -10,7 +67,13 @@ export const sqlFunctionInsertBulk = async (
 ) => {
   try {
     //    console.log('CODE: ', method.code);
-    let paramsSQL = JSON.parse(method.code);
+    let paramsSQL;
+    try {
+      paramsSQL = JSON.parse(method.code);
+    } catch (e) {
+      reply.code(400).send({ error: "Invalid JSON in method code" });
+      return;
+    }
     let data_request = {};
     let query_type = QueryTypes.INSERT;
 
@@ -36,30 +99,32 @@ export const sqlFunctionInsertBulk = async (
         paramsSQL.config = mergeObjects(paramsSQL.config, connection_json);
       }
 
+      try {
+        let { database, schema, table } = parseQualifiedName(
+          paramsSQL.table_name
+        );
+
+        if (database) paramsSQL.config.database = database;
+        if (schema) paramsSQL.config.schema = schema;
+        if (table) paramsSQL.table_name = table;
+      } catch (error) {
+        // console.error("Error al analizar el nombre calificado:", error);
+      }
+
       if (paramsSQL.config.database) {
         //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
-
-        try {
-          let { database, schema, table } = parseQualifiedName(
-            paramsSQL.table_name
-          );
-
-          paramsSQL.config.database = database;
-          paramsSQL.config.schema = schema;
-          paramsSQL.table_name = table;
-        } catch (error) {
-          console.error("Error al analizar el nombre calificado:", error);
-        }
 
         if (paramsSQL.table_name && paramsSQL.table_name.length > 0) {
           // Verificar las configuraciones minimas
           if (paramsSQL && paramsSQL.config.options) {
-            const sequelize = new Sequelize(
-              paramsSQL.config.database,
-              paramsSQL.config.username,
-              paramsSQL.config.password,
-              paramsSQL.config.options
-            );
+            const configHash = JSON.stringify({
+              db: paramsSQL.config.database,
+              user: paramsSQL.config.username,
+              host: paramsSQL.config.options?.host,
+              port: paramsSQL.config.options?.port,
+            });
+
+            const sequelize = await getConnection(configHash, paramsSQL);
 
             let result_query = await bulkInsertWithTransaction(
               sequelize,
@@ -98,8 +163,12 @@ export const sqlFunctionInsertBulk = async (
   } catch (error) {
     console.trace(error);
 
-   // setCacheReply(reply, { error: error });
-    reply.code(500).send(error);
+    // setCacheReply(reply, { error: error });
+    if (error.name === "SequelizeDatabaseError") {
+      reply.code(500).send({ error: "Internal Database Error" });
+    } else {
+      reply.code(500).send({ error: "Internal Server Error" });
+    }
   }
 };
 
@@ -145,61 +214,9 @@ async function bulkInsertWithTransaction(
 }
 
 
-function bulkInsert(sequelize, tableName, data) {
-  //console.log('bulkInsert >>>>>>>>>>>> ', sequelize, tableName, data);
-
-  return new Promise(async (resolve, reject) => {
-    if (!data || !Array.isArray(data) || data.length < 1) {
-      console.log("No data to insert.");
-      return reject({ error: "No data to insert." }); // Resolviendo con 0 registros insertados
-    }
-
-    const columns = Object.keys(data[0]);
-    let insertedCount = 0;
-
-    let transaction;
-
-    try {
-      transaction = await sequelize.transaction();
-
-      for (const row of data) {
-        //const values = columns.map((col) => row[col]).join(", ");
-        const columns_bind = columns.map((col) => `$${col}`).join(", ");
-
-        const query = `
-          INSERT INTO ${tableName} (${columns.join(", ")})
-          VALUES (${columns_bind});
-        `;
-        const result = await sequelize.query(query, {
-          bind: row,
-          transaction,
-          type: QueryTypes.INSERT,
-          raw: true,
-        });
-
-        if (result) {
-          insertedCount++;
-        }
-      }
-
-      await transaction.commit();
-      //      console.log("Bulk insert completed successfully.");
-      resolve({ inserted: insertedCount }); // Resolviendo con la cantidad de registros insertados
-    } catch (error) {
-      if (transaction) {
-        console.error("Error during bulk insert:", error);
-        try {
-          await transaction.rollback();
-        } catch (error) {
-          reject(error);
-        }
-      }
-
-      if (error.parent) {
-        reject(error.parent); // Rechazando la promesa en caso de error
-      } else {
-        reject(error); // Rechazando la promesa en caso de error
-      }
-    }
-  });
-}
+/*
+TODO:
+Manual Verification
+Load Test: Verify that calling the bulk insert endpoint multiple times does not increase the number of active DB connections indefinitely.
+Error Handling: Send invalid JSON to code or connection parameters and verify 400 Bad Request response.
+*/

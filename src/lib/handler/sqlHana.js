@@ -2,16 +2,96 @@ import { mergeObjects } from "../server/utils.js";
 import { setCacheReply } from "./utils.js";
 import hana from "@sap/hana-client";
 
+const connections = new Map();
+const MAX_CONNECTIONS = 50;
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+/**
+ * Obtiene un pool de conexiones HANA del caché o crea uno nuevo.
+ * Implementa LRU (Least Recently Used) y TTL.
+ */
+const getConnection = async (configHash, paramsSQL) => {
+  const now = Date.now();
+
+  // 1. Verificar Caché
+  if (connections.has(configHash)) {
+    const entry = connections.get(configHash);
+
+    // Verificar TTL
+    if (now - entry.created > CACHE_TTL) {
+      console.log(`HANA Pool expired: ${configHash}`);
+      try {
+        entry.pool.disconnect();
+      } catch (e) {
+        console.error("Error disconnecting expired pool", e);
+      }
+      connections.delete(configHash);
+    } else {
+      // Actualizar uso y retornar
+      entry.lastUsed = now;
+      return entry.pool;
+    }
+  }
+
+  // 2. Limpieza LRU si está lleno
+  if (connections.size >= MAX_CONNECTIONS) {
+    let oldestHash = null;
+    let oldestTime = Infinity;
+
+    for (const [hash, entry] of connections.entries()) {
+      if (entry.lastUsed < oldestTime) {
+        oldestTime = entry.lastUsed;
+        oldestHash = hash;
+      }
+    }
+
+    if (oldestHash) {
+      console.log(`Closing idle HANA pool: ${oldestHash}`);
+      const oldEntry = connections.get(oldestHash);
+      try {
+        oldEntry.pool.disconnect();
+      } catch (err) {
+        console.error("Error closing idle HANA pool:", err);
+      }
+      connections.delete(oldestHash);
+    }
+  }
+
+  // 3. Crear nuevo Pool
+  // @ts-ignore
+  const pool = hana.createPool(paramsSQL.config, {
+    max: 10,
+    min: 0,
+    maxIdleTime: 20000, // 20 segundos idle
+    checkInterval: 5000,
+  });
+
+  // 4. Guardar en caché
+  connections.set(configHash, {
+    pool,
+    created: now,
+    lastUsed: now,
+  });
+
+  return pool;
+};
+
 export const sqlHana = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ reply,
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
-    let paramsSQL = JSON.parse(method.code);
+    let paramsSQL;
+    try {
+      paramsSQL = JSON.parse(method.code);
+    } catch (e) {
+      reply.code(400).send({ error: "Invalid JSON in method code" });
+      return;
+    }
     let data_request = {};
 
-    
+
     if (request.method == "GET") {
       // Obtiene los datos del query
       data_request.params = request.query;
@@ -23,10 +103,16 @@ export const sqlHana = async (
     if (data_request) {
       // Obtiene los parametros de conexión
       if (data_request.connection) {
-        let connection_json =
-          typeof data_request.connection == "object"
-            ? data_request.connection
-            : JSON.parse(data_request.connection);
+        let connection_json;
+        try {
+          connection_json =
+            typeof data_request.connection == "object"
+              ? data_request.connection
+              : JSON.parse(data_request.connection);
+        } catch (e) {
+          reply.code(400).send({ error: "Invalid JSON in connection params" });
+          return;
+        }
 
         paramsSQL.config = mergeObjects(paramsSQL.conexion, connection_json);
       }
@@ -34,8 +120,11 @@ export const sqlHana = async (
       //      console.log(paramsSQL);
 
       if (paramsSQL.config) {
+        const configHash = JSON.stringify(paramsSQL.config);
+        const pool = await getConnection(configHash, paramsSQL);
+
         let result = await executeQuery(
-          paramsSQL.config,
+          pool,
           paramsSQL.query,
           data_request.params,
           paramsSQL.options
@@ -64,122 +153,121 @@ export const sqlHana = async (
       reply.code(400).send(alt_resp);
     }
   } catch (error) {
-       console.trace(error);
-   // setCacheReply(reply, error);
+    console.trace(error);
+    // setCacheReply(reply, error);
     // @ts-ignore
-    reply.code(500).send(error);
+    // @ts-ignore
+    reply.code(500).send({ error: "Internal Server Error" });
   }
 };
 
-function executeQuery(conection, command, params_bind, options) {
+function executeQuery(pool, command, params_bind, options) {
   return new Promise((resolve, reject) => {
-    const conn = hana.createConnection();
+    // 1. Parsing Single-Pass para robustez (ignora quotes)
+    let new_command = "";
+    let params = [];
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let i = 0;
 
-    let place_holder = extractPlaceholders(command);
-    let checkBind = checkPlaceHoldersBind(params_bind, place_holder);
+    try {
+      while (i < command.length) {
+        const char = command[i];
 
-    //console.log(checkBind);
+        // Manejo de comillas
+        if (char === "'" && !inDoubleQuote) {
+          inSingleQuote = !inSingleQuote;
+          new_command += char;
+          i++;
+          continue;
+        }
+        if (char === '"' && !inSingleQuote) {
+          inDoubleQuote = !inDoubleQuote;
+          new_command += char;
+          i++;
+          continue;
+        }
 
-    /*
-  var options = {
-      nestTables: TRUE
-    };
+        // Detección de Placeholders fuera de comillas
+        if (
+          !inSingleQuote &&
+          !inDoubleQuote &&
+          (char === "$" || char === ":")
+        ) {
+          // Extraer nombre del placeholder
+          let j = i + 1;
+          while (j < command.length && /[a-zA-Z0-9_]/.test(command[j])) {
+            j++;
+          }
+          const placeholder = command.slice(i, j);
+          const bindName = placeholder.replace(/[:$]/g, "");
 
- */
-    if (checkBind.valid) {
-      let params = [];
-      let new_command = command;
+          if (j > i + 1) {
+            // Placeholder válido encontrado
+            // Verificar existencia en bind params
+            if (
+              params_bind &&
+              Object.prototype.hasOwnProperty.call(params_bind, bindName)
+            ) {
+              const value = params_bind[bindName];
 
-      for (let index = 0; index < place_holder.length; index++) {
-        const element = place_holder[index];
-        const element_bind_name = element.replace(":", "").replace("$", "");
-        if (element.startsWith("$")) {
-          new_command = new_command.replace(element, "?");
-          params.push(params_bind[element_bind_name]);
-        } else {
-          // Hace un bind a una lista
+              if (Array.isArray(value)) {
+                // Expansión de Arrays: IN (?) -> IN (?,?,?)
+                if (value.length === 0) {
+                  throw new Error(
+                    `Empty array provided for parameter ${placeholder}`
+                  );
+                }
+                const placeholders = value.map(() => "?").join(", ");
+                new_command += placeholders;
+                params.push(...value);
+              } else {
+                // Valor simple
+                new_command += "?";
+                params.push(value);
+              }
+            } else {
+              throw new Error(`Missing parameter value for ${placeholder}`);
+            }
 
-          if (Array.isArray(params_bind[element_bind_name])) {
-            let varsplaceholders = params_bind[element_bind_name]
-              .map(() => "?")
-              .join(", "); // Crea un string "?, ?, ?"
-            new_command = new_command.replace(element, varsplaceholders);
-            params.push(...params_bind[element_bind_name]);
-          } else {
-            throw { error: `${element_bind_name} is not array.` };
+            i = j; // Saltar placeholder
+            continue;
           }
         }
+
+        // Caracter normal
+        new_command += char;
+        i++;
+      }
+    } catch (err) {
+      return reject(err);
+    }
+
+    // 2. Ejecución con Pool
+    const conn = pool.getConnection(); // Obtener conexión del pool
+
+
+    pool.getConnection((err, connection) => {
+      if (err) {
+        return reject(err);
       }
 
-      conn.connect(conection, (err) => {
+      connection.exec(new_command, params, options, (err, result) => {
+        connection.close(); // Liberar conexión al pool
         if (err) {
           reject(err);
         } else {
-          conn.exec(new_command, params, options, (err, result) => {
-            conn.disconnect(); // Asegura desconexión de la base de datos
-            if (err) {
-              reject(err);
-            } else {
-              resolve(result); // Devuelve el resultado
-            }
-          });
+          resolve(result);
         }
       });
-    } else {
-      reject({ error: checkBind });
-    }
+    });
   });
 }
 
-function checkPlaceHoldersBind(data_bind, place_holders) {
-  let bind_lost_names = { valid: false, parameters: [], error: undefined };
+/*
 
-  if (typeof data_bind == "object") {
-    if (Array.isArray(place_holders)) {
-      for (let index = 0; index < place_holders.length; index++) {
-        const element = place_holders[index].replace(":", "").replace("$", "");
-        if (!data_bind[element]) {
-          bind_lost_names.parameters.push(element);
-        }
-      }
-      bind_lost_names.valid = bind_lost_names.parameters.length == 0;
-      if (!bind_lost_names.valid) {
-        bind_lost_names.error = "There are missing parameters.";
-      }
-    } else {
-      bind_lost_names.error = "place_holder is not array";
-    }
-  } else {
-    bind_lost_names.error = "bind not is object";
-  }
-  return bind_lost_names;
-}
+Manual Verification
+Multiple Requests: Verify process handle count stays stable.
+Complex Query: Verify $param used multiple times works correctly.
 
-function extractPlaceholders(query) {
-  const placeholders = [];
-  let inSingleQuote = false;
-  let inDoubleQuote = false;
-
-  for (let i = 0; i < query.length; i++) {
-    const char = query[i];
-
-    // Alternar estado si encontramos comillas
-    if (char === "'" && !inDoubleQuote) {
-      inSingleQuote = !inSingleQuote;
-    } else if (char === '"' && !inSingleQuote) {
-      inDoubleQuote = !inDoubleQuote;
-    }
-
-    // Si encontramos un placeholder fuera de comillas, lo extraemos
-    if (!inSingleQuote && !inDoubleQuote && (char === '$' || char === ':')) {
-      let j = i + 1;
-      while (j < query.length && /[a-zA-Z0-9_]/.test(query[j])) {
-        j++;
-      }
-      placeholders.push(query.slice(i, j));
-      i = j - 1; // Avanzar el índice al final del placeholder
-    }
-  }
-
-  return placeholders;
-}
+*/
