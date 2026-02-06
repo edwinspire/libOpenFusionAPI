@@ -22,9 +22,9 @@ export const getMongoDBHandlerParams = (code) => {
     };
   }
 
-  if (!paramsMongo.config?.options) {
+  if (!paramsMongo.config.options) {
     // Opciones adicionales de configuración
-    paramsMongo.options = {
+    paramsMongo.config.options = {
       useNewUrlParser: true,
       // useUnifiedTopology: true,
       // useCreateIndex: true,
@@ -35,42 +35,62 @@ export const getMongoDBHandlerParams = (code) => {
   return paramsMongo;
 };
 
+
+let currentConfigHash = "";
+
 export const mongodbFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
   /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
 ) => {
   try {
-    let f;
+    if (!method.jsFn) {
+      throw new Error("Function 'jsFn' is not defined in the method configuration.");
+    }
 
     let paramsMongo = getMongoDBHandlerParams(method.code);
 
-    await mongoose.connect(
-      `mongodb://${paramsMongo.config.host}:${paramsMongo.config.port}`,
-      {
-        dbName: paramsMongo.config.dbName,
-        user: paramsMongo.config.user || undefined,
-        pass: paramsMongo.config.pass || undefined,
-        ...paramsMongo.config.options,
-      }
-    );
+    const newConfigHash = JSON.stringify({
+      host: paramsMongo.config.host,
+      port: paramsMongo.config.port,
+      dbName: paramsMongo.config.dbName,
+      user: paramsMongo.config.user,
+    });
 
-    if (method.jsFn) {
-      f = method.jsFn;
-    } 
+    if (mongoose.connection.readyState === 1) {
+      if (currentConfigHash !== newConfigHash) {
+        console.log("Switching MongoDB connection...");
+        await mongoose.disconnect();
+      }
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(
+        `mongodb://${paramsMongo.config.host}:${paramsMongo.config.port}`,
+        {
+          dbName: paramsMongo.config.dbName,
+          user: paramsMongo.config.user || undefined,
+          pass: paramsMongo.config.pass || undefined,
+          ...paramsMongo.config.options, // Esto ahora tomará las opciones por defecto si config.options estaba vacío
+        }
+      );
+      currentConfigHash = newConfigHash;
+    }
+
+    let f = method.jsFn;
 
     let result_fn = await f(
-      await functionsVars($_REQUEST_, response, method.environment)
-    )();
+      functionsVars($_REQUEST_, response, method.environment)
+    );
 
     if (
       response.openfusionapi.lastResponse &&
-      response.openfusionapi.lastResponse.hash_request
+      response.openfusionapi?.lastResponse?.hash_request
     ) {
       response.openfusionapi.lastResponse.data = result_fn.data;
     }
 
-     if (result_fn.headers && result_fn.headers.size > 0) {
+    if (result_fn.headers && result_fn.headers.size > 0) {
       for (const [key, value] of result_fn.headers) {
         //console.log(`${key}: ${value}`);
         response.header(key, value);
@@ -80,7 +100,7 @@ export const mongodbFunction = async (
     response.code(200).send(result_fn.data);
   } catch (error) {
     //setCacheReply(response, error);
-console.trace(error);
+    console.trace(error);
     response
       .code(error.statusCode == null ? 500 : error.statusCode)
       .send(error);
