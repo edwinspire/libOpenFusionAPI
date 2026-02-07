@@ -74,10 +74,10 @@ function makeString(schema) {
 
   if (schema.format) {
     switch (schema.format) {
-      case "email": out = out.email(); break;
-      case "uuid": out = out.uuid(); break;
-      case "uri": out = out.url(); break;
-      case "date-time": out = out.datetime(); break;
+      case "email": out = z.email(); break;
+      case "uuid": out = z.uuid(); break;
+      case "uri": out = z.url(); break;
+      case "date-time": out = z.datetime(); break;
     }
   }
 

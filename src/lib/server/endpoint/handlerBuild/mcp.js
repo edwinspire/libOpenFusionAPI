@@ -36,30 +36,37 @@ export const CreateMCPHandler = async (app_name, environment) => {
         false
       );
 
-      let zod_inputSchema = z.any().describe("Data to send to the endpoint.");
+      let toolName = url_internal.replace(/[^a-zA-Z0-9]/g, "_");
+      toolName = `${toolName}_${endpoint.method}`;
+
+      let zod_inputSchema = z.object({}).describe("Data to send to the endpoint.");
 
       if (
         endpoint?.json_schema?.in?.enabled &&
         endpoint?.json_schema?.in?.schema
       ) {
         // Convertir
-        zod_inputSchema = jsonSchemaToZod(endpoint.json_schema.in.schema);
+        const zodSchema = jsonSchemaToZod(endpoint.json_schema.in.schema);
+        if (zodSchema instanceof z.ZodObject) {
+          zod_inputSchema = zodSchema;
+        } else {
+          zod_inputSchema = z.object({ value: zodSchema });
+        }
       }
 
       server.registerTool(
         endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
           ? endpoint?.mcp?.name
-          : `${url_internal}[${endpoint.method}]`,
+          : toolName,
         {
           title:
             endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
               ? endpoint?.mcp?.title
               : endpoint.description,
-          description: `${endpoint.access == 0 ? "Public" : "Private"}  ${
-            endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
-              ? endpoint?.mcp?.description
-              : endpoint.description
-          }`,
+          description: `${endpoint.access == 0 ? "Public" : "Private"}  ${endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
+            ? endpoint?.mcp?.description
+            : endpoint.description
+            }`,
 
           inputSchema: zod_inputSchema,
         },

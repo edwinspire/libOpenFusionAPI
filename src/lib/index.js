@@ -74,6 +74,11 @@ const {
   TELEGRAM_SERVER_MSG_THREAD_ID,
   MAX_FILE_SIZE_UPLOAD, // Default 100 MB
 } = process.env;
+
+if (!JWT_KEY) {
+  console.warn("WARNING: JWT_KEY is not defined. Cookies and Tokens may not be secure.");
+}
+
 const PORT = process.env.PORT || default_port;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -136,7 +141,38 @@ export default class ServerAPI extends EventEmitter {
         DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
     });
 
+    // Map<String, Set<WebSocket>>
+    // Key: `${idendpoint}::${channel}`
+    this.wsSubscribers = new Map();
+
     this._build();
+  }
+
+  _getWsKey(idendpoint, channel) {
+    return `${idendpoint}::${channel}`;
+  }
+
+  _addWsSubscriber(socket, idendpoint, channel) {
+    const key = this._getWsKey(idendpoint, channel);
+    if (!this.wsSubscribers.has(key)) {
+      this.wsSubscribers.set(key, new Set());
+    }
+    this.wsSubscribers.get(key).add(socket);
+  }
+
+  _removeWsSubscriber(socket) {
+    if (socket.openfusionapi && socket.openfusionapi.channel && socket.openfusionapi.handler) {
+      const idendpoint = socket.openfusionapi.handler.params.idendpoint;
+      const channel = socket.openfusionapi.channel;
+      const key = this._getWsKey(idendpoint, channel);
+      if (this.wsSubscribers.has(key)) {
+        const set = this.wsSubscribers.get(key);
+        set.delete(socket);
+        if (set.size === 0) {
+          this.wsSubscribers.delete(key);
+        }
+      }
+    }
   }
 
   async checkwebHookDB(request) {
@@ -322,6 +358,7 @@ export default class ServerAPI extends EventEmitter {
       });
       connection.socket.on("close", (message) => {
         //console.log("Cierra");
+        this._removeWsSubscriber(connection.socket);
       });
 
       connection.socket.on("message", (message) => {
@@ -362,6 +399,8 @@ export default class ServerAPI extends EventEmitter {
                     connection.socket.openfusionapi.channel =
                       msgObj.payload.channel;
                     connection.socket.openfusionapi.idclient = getUUID();
+                    this._addWsSubscriber(connection.socket, connection.socket.openfusionapi.handler.params.idendpoint, msgObj.payload.channel);
+
                     connection.socket.send(
                       JSON.stringify({
                         subscribed: true,
@@ -393,29 +432,26 @@ export default class ServerAPI extends EventEmitter {
                 // Broadcast
                 // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
                 // TODO: Revisar un mecanismo para limitar que un cliente puede enviar mensajes y esté limitado solo a leer mensajes
-                this.fastify.websocketServer.clients.forEach((client_ws) => {
-                  // console.log("Envia mensaje a los clientes conectados");
-                  try {
-                    if (
-                      client_ws.openfusionapi.handler.params.idendpoint ==
-                      connection.socket.openfusionapi.handler.params
-                        .idendpoint &&
-                      client_ws.openfusionapi.idclient !=
-                      connection.socket.openfusionapi.idclient &&
-                      connection.socket.openfusionapi.channel ==
-                      client_ws.openfusionapi.channel
-                    ) {
-                      // Envia el mensaje a los clientes conectados en el mismo endpoint y canal, funciona modo broadcast
-                      // TODO: Ver la forma de que se puede enviar el mensaje solo a un cliente en especifico, puede ser que se cree un canal con un id especifico para comunicacion entre dos clientes, como una sala privada
-                      client_ws.send(JSON.stringify(msgObj.payload));
+                // Broadcast Optimization
+                const idendpoint = connection.socket.openfusionapi.handler.params.idendpoint;
+                const channel = connection.socket.openfusionapi.channel;
+                const key = this._getWsKey(idendpoint, channel);
+
+                if (this.wsSubscribers.has(key)) {
+                  const subscribers = this.wsSubscribers.get(key);
+                  subscribers.forEach((client_ws) => {
+                    try {
+                      if (
+                        client_ws.readyState === 1 && // OPEN
+                        client_ws.openfusionapi.idclient != connection.socket.openfusionapi.idclient
+                      ) {
+                        client_ws.send(JSON.stringify(msgObj.payload));
+                      }
+                    } catch (error) {
+                      connection.socket.send(JSON.stringify({ error: error.message }));
                     }
-                  } catch (error) {
-                    // Devuelve un mensaje al cliente que originó el mensaje
-                    connection.socket.send(
-                      JSON.stringify({ error: error.message })
-                    );
-                  }
-                });
+                  });
+                }
               } else {
                 connection.socket.send(
                   JSON.stringify({ error: "Invalid client. Bye." })
@@ -687,7 +723,7 @@ export default class ServerAPI extends EventEmitter {
     if (user.login) {
       // Simulamos un Bearer para usar el mismo método
       data_aut.Bearer.data = user;
-      return this._check_auth_Bearer(handler, data_aut) ? data_user : null;
+      return this._check_auth_Bearer(handler, data_aut) ? user : null;
     } else {
       return false;
     }
@@ -721,7 +757,7 @@ export default class ServerAPI extends EventEmitter {
             if (data_aut.Basic.username && data_aut.Basic.password) {
               let checkbasic = await this._check_auth_Basic(handler, data_aut);
               if (checkbasic) {
-                request.openfusionapi.user = data_aut.Bearer.checkbasic;
+                request.openfusionapi.user = checkbasic;
               }
             } else {
               reply.code(401).send({
@@ -738,7 +774,7 @@ export default class ServerAPI extends EventEmitter {
             } else if (data_aut.Basic.username && data_aut.Basic.password) {
               let checkbasic = await this._check_auth_Basic(handler, data_aut);
               if (checkbasic) {
-                request.openfusionapi.user = data_aut.Bearer.checkbasic;
+                request.openfusionapi.user = checkbasic;
               }
             } else {
               reply.code(401).send({

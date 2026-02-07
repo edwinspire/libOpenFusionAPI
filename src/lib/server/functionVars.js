@@ -16,6 +16,7 @@ import {
   createPDF as createPDFFromHTML,
 } from "../server/pdf-generator.js";
 import { isValidHttpStatusCode } from "../handler/utils.js";
+import { default_port } from "./utils_path.js";
 import uFetch from "@edwinspire/universal-fetch";
 import jwt from "jsonwebtoken";
 import xmlFormatter from "xml-formatter";
@@ -25,6 +26,9 @@ import { type } from "os";
 
 const { PORT, JWT_KEY } = process.env;
 
+if (!process.env.JWT_KEY) {
+  console.warn("WARNING: JWT_KEY is not defined. Using insecure fallback key.");
+}
 export const JWTKEY = JWT_KEY ?? 'oy8632rcv"$/8';
 
 /**
@@ -48,7 +52,7 @@ export class URLAutoEnvironment {
    * @param {number|string} port - Puerto para localhost
    * @param {string} baseUrl - Base opcional (por defecto localhost)
    */
-  constructor(environment, port = 3000, baseUrl = "http://localhost") {
+  constructor(environment, port = default_port, baseUrl = "http://localhost") {
     this.environment = environment;
     this.base = `${baseUrl}:${port}`;
   }
@@ -103,67 +107,80 @@ export class URLAutoEnvironment {
    * @private
    */
   _applyEnvironment(path) {
-    // replace es eficiente aquí, el regex busca solo al final ($)
-    return path.replace(ENV_SUFFIX_REGEX, `/${this.environment}`);
+    // Reemplaza /auto o /env permitiendo query strings o hash al final
+    // Ejemplo: /api/auto?q=1 -> /api/prd?q=1
+    return path.replace(/\/(auto|env)(\?|#|$)/, `/${this.environment}$2`);
   }
 }
 
 export const json_to_xlsx_buffer = (
   data = { filename: "file", sheets: [{ sheet: "Sheet1", data: [] }] },
 ) => {
-  //let resultBuffer = null;
-  // Paso 1: Crear un nuevo libro (workbook)
-  const workbook = XLSX.utils.book_new();
+  try {
+    //let resultBuffer = null;
+    // Paso 1: Crear un nuevo libro (workbook)
+    const workbook = XLSX.utils.book_new();
 
-  if (Array.isArray(data.sheets)) {
-    for (let index = 0; index < data.sheets.length; index++) {
-      const sheetInfo = data.sheets[index];
-      const sheetName = sheetInfo.sheet || `Sheet${index + 1}`;
-      const jsonData = sheetInfo.data || [];
-      // Convertir el array de objetos a una hoja de cálculo (worksheet)
-      // - `json_to_sheet` convierte automáticamente los objetos a una hoja.
-      // - Los nombres de las propiedades (a, b) serán los encabezados de las columnas.
-      const worksheet = XLSX.utils.json_to_sheet(jsonData);
+    if (Array.isArray(data.sheets)) {
+      for (let index = 0; index < data.sheets.length; index++) {
+        const sheetInfo = data.sheets[index];
+        const sheetName = sheetInfo.sheet || `Sheet${index + 1}`;
+        const jsonData = sheetInfo.data || [];
+        // Convertir el array de objetos a una hoja de cálculo (worksheet)
+        // - `json_to_sheet` convierte automáticamente los objetos a una hoja.
+        // - Los nombres de las propiedades (a, b) serán los encabezados de las columnas.
+        const worksheet = XLSX.utils.json_to_sheet(jsonData);
 
-      // Definir los estilos
-      const headerStyle = {
-        fill: {
-          fgColor: { rgb: "D3D3D3" }, // Fondo gris claro para el encabezado
-        },
-        font: {
-          bold: true,
-        },
-      };
+        // Definir los estilos
+        const headerStyle = {
+          fill: {
+            fgColor: { rgb: "D3D3D3" }, // Fondo gris claro para el encabezado
+          },
+          font: {
+            bold: true,
+          },
+        };
 
-      // Aplicar estilo al encabezado (primera fila)
-      const range = XLSX.utils.decode_range(worksheet["!ref"]);
-      for (let col = range.s.c; col <= range.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-        if (worksheet[cellAddress]) {
-          worksheet[cellAddress].s = headerStyle;
+        // Aplicar estilo al encabezado (primera fila)
+        if (worksheet["!ref"]) {
+          const range = XLSX.utils.decode_range(worksheet["!ref"]);
+          for (let col = range.s.c; col <= range.e.c; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+            if (worksheet[cellAddress]) {
+              worksheet[cellAddress].s = headerStyle;
+            }
+          }
         }
+
+        // Añadir la hoja al libro
+        // - Primer parámetro: la hoja creada
+        // - Segundo parámetro: el nombre de la hoja (aparecerá en la pestaña abajo)
+        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
       }
-
-      // Añadir la hoja al libro
-      // - Primer parámetro: la hoja creada
-      // - Segundo parámetro: el nombre de la hoja (aparecerá en la pestaña abajo)
-      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
     }
-  }
 
-  // Obtenemos el Buffer directamente en memoria, sin guardar nada en disco
-  const buffer = XLSX.write(workbook, {
-    bookType: "xlsx",
-    type: "buffer",
-    compression: true,
-  });
-  return {
-    buffer: Buffer.from(buffer),
-    filename: data.filename || "data.xlsx",
-    contentDisposition: `attachment; filename="${data.filename || "data.xlsx"}"`,
-    ContentType:
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  };
+    // Obtenemos el Buffer directamente en memoria, sin guardar nada en disco
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+      compression: true,
+    });
+    return {
+      buffer: Buffer.from(buffer),
+      filename: data.filename || "data.xlsx",
+      contentDisposition: `attachment; filename="${data.filename || "data.xlsx"}"`,
+      ContentType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    };
+  } catch (error) {
+    console.error("Error generating XLSX:", error);
+    // Return empty buffer or handle as needed, for now just returning error structure or similar might be better but 
+    // strictly, the caller expects a buffer object. Let's return a safe failure object or rethrow.
+    // Given the context (likely used in an API response), returning specific error might be handled by caller if they check properties.
+    // But to be safe and consistent with previous behavior (which crashed), let's swallow and return null or throw. 
+    // The previous code crashed. Rethrowing with a clearer message is better.
+    throw new Error("Failed to generate XLSX: " + error.message);
+  }
 };
 
 export const xlsx_body_to_json = async (request) => {
