@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import sequentialPromises from "@edwinspire/sequential-promises";
+import PromiseSequence from "@edwinspire/sequential-promises";
 import mongoose from "mongoose";
 import * as luxon from "luxon";
 import * as sequelize from "sequelize";
@@ -279,55 +279,118 @@ export const listFunctionsVars = (request, reply, environment) => {
   };
 
   return {
-    openai: {
+    OpenAI: {
       fn: request && reply ? OpenAI : undefined,
-      info: "This library provides convenient access to the OpenAI REST API from TypeScript or JavaScript.",
+      description: "This library provides convenient access to the OpenAI REST API from TypeScript or JavaScript.",
       web: "https://github.com/openai/openai-node",
-      return: "Any funtions or objects",
+      return: "Any functions or objects",
+      example: `
+const client = new OpenAI({
+  apiKey: process.env['OPENAI_API_KEY'], // This is the default and can be omitted
+});
+
+const completion = await client.chat.completions.create({
+  model: 'gpt-5.2',
+  messages: [
+    { role: 'developer', content: 'Talk like a pirate.' },
+    { role: 'user', content: 'Are semicolons optional in JavaScript?' },
+  ],
+});
+
+console.log(completion.choices[0].message.content);
+$_RETURN_DATA_ = completion;
+      `,
     },
     ofapi: {
       fn: request && reply ? ofapi : undefined,
-      info: "Utilities and services of OpenFusionAPI. Contains server info, token generator, and exception thrower.",
+      description: "Utilities and services of OpenFusionAPI. Contains server info, token generator, and exception thrower.",
       web: own_repo,
       return: "Any funtions or objects",
     },
     xmlCrypto: {
       fn: request && reply ? xmlCrypto : undefined,
-      info: "It is a Node.js package that allows working with XML digital signatures, facilitating the signing and verification of XML documents using the XML Signature specification, ideal for applications that handle security and data validation in this format, using private and public keys.",
+      description: "It is a Node.js package that allows working with XML digital signatures, facilitating the signing and verification of XML documents using the XML Signature specification, ideal for applications that handle security and data validation in this format, using private and public keys.",
       web: "https://github.com/node-saml/xml-crypto",
       return: "Read documentation",
+      example: `
+const xml = fs.readFileSync('my-xml-doc.xml');
+const sig = new xmlCrypto.SignedXml();
+
+sig.addReference(
+  '//*[local-name(.)="Invoice"]',
+  ['http://www.w3.org/2000/09/xmldsig#enveloped-signature'],
+  'http://www.w3.org/2001/10/xml-exc-c14n#'
+);
+
+sig.loadXml(xml);
+
+const key = fs.readFileSync('my-key.pem');
+sig.signingKey = key;
+
+sig.computeSignature();
+
+const signedXml = sig.getSignedXml();
+$_RETURN_DATA_ = signedXml;
+      `,
     },
     xmlFormatter: {
       fn: request && reply ? xmlFormatter : undefined,
-      info: "Read documentationConverts XML into a human readable format (pretty print) while respecting the xml:space attribute. Reciprocally, the xml-formatter package can minify pretty printed XML.",
+      description: "Read documentationConverts XML into a human readable format (pretty print) while respecting the xml:space attribute. Reciprocally, the xml-formatter package can minify pretty printed XML.",
       web: "https://github.com/chrisbottin/xml-formatter",
       return: "",
+      example: `
+const xml = '<root><child>Hello</child></root>';
+const formattedXml = xmlFormatter.format(xml);
+$_RETURN_DATA_ = formattedXml;
+      `,
     },
     xmldom: {
       fn: request && reply ? xmldom : undefined,
-      info: "A JavaScript implementation of W3C DOM for Node.js, Rhino and the browser. Fully compatible with W3C DOM level2; and some compatible with level3.",
+      description: "A JavaScript implementation of W3C DOM for Node.js, Rhino and the browser. Fully compatible with W3C DOM level2; and some compatible with level3.",
       web: "https://github.com/xmldom/xmldom",
       return: "Read documentation",
+      example: `
+const parser = new xmldom.DOMParser();
+const doc = parser.parseFromString('<root><child>Hello</child></root>', 'text/xml');
+$_RETURN_DATA_ = doc;
+      `,
     },
     dnsPromises: {
       fn: request && reply ? dnsPromises : undefined,
-      info: "The DNS module enables name resolution functions. It contains methods for performing DNS queries of various types, as well as utility functions for converting between IP addresses in text and binary forms.",
+      description: "The DNS module enables name resolution functions. It contains methods for performing DNS queries of various types, as well as utility functions for converting between IP addresses in text and binary forms.",
+      web: "https://nodejs.org/api/dns.html",
+      return: "Read documentation",
+      example: `
+const addresses = await dnsPromises.resolve4('example.com');
+$_RETURN_DATA_ = addresses;
+      `,
     },
     xml2js: {
       fn: request && reply ? xml2js : undefined,
-      info: "Simple XML to JavaScript object converter. It supports bi-directional conversion.",
+      description: "Simple XML to JavaScript object converter. It supports bi-directional conversion.",
       web: "https://github.com/Leonidas-from-XIV/node-xml2js",
       return: "Read documentation",
+      example: `
+const parser = new xml2js.Parser();
+const result = await parser.parseStringPromise('<root><child>Hello</child></root>');
+$_RETURN_DATA_ = result;
+      `,
     },
     forge: {
       fn: request && reply ? forge.default : undefined,
-      info: "A native implementation of TLS (and various other cryptographic tools) in JavaScript.",
+      description: "A native implementation of TLS (and various other cryptographic tools) in JavaScript.",
       web: "https://github.com/digitalbazaar/forge",
       return: "Read documentation",
+      example: `
+const pki = forge.pki;
+const keys = pki.rsa.generateKeyPair(2048);
+const pem = pki.encryptRsaPrivateKey(keys.privateKey, 'password');
+$_RETURN_DATA_ = pem;
+      `,
     },
     json_to_xlsx_buffer: {
       fn: request && reply ? json_to_xlsx_buffer : undefined,
-      info: "Converts an array of JSON objects to an XLSX buffer. Each object represents a sheet with its data.",
+      description: "Converts an array of JSON objects to an XLSX buffer. Each object represents a sheet with its data.",
       web: own_repo,
       params: [
         {
@@ -337,251 +400,490 @@ export const listFunctionsVars = (request, reply, environment) => {
         },
       ],
       return: "Buffer with the XLSX file content and ContentType",
+      example: `
+const data = {
+  filename: 'file',
+  sheets: [
+    {
+      sheet: 'Sheet1',
+      data: [
+        { name: 'John', age: 30 },
+        { name: 'Jane', age: 25 },
+      ],
+    },
+  ],
+};
+
+$_CUSTOM_HEADERS_.set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+$_CUSTOM_HEADERS_.set(
+  "Content-Disposition",
+  'attachment; filename="file.xlsx"',
+);
+
+const buffer = json_to_xlsx_buffer(data);
+$_RETURN_DATA_ = buffer;
+      `,
     },
     request_xlsx_body_to_json: {
       fn: request && reply ? xlsx_body_to_json : undefined,
-      info: "Converts the body of a request to a JSON object. It supports multipart/form-data with Excel files.",
+      description: "Converts the body of a request to a JSON object. It supports multipart/form-data with Excel files.",
       web: own_repo,
-      return:
-        "Array of objects with the data of each sheet of each Excel file.",
+      return: "Array of objects with the data of each sheet of each Excel file.",
+      example: `
+      const data = await request_xlsx_body_to_json(request);
+      $_RETURN_DATA_ = data;
+      `
     },
     crypto: {
       fn: request && reply ? crypto : undefined,
-      info: "Node.js crypto module",
+      description: "Node.js crypto module",
       web: "https://nodejs.org/api/crypto.html",
+      return: "Read documentation",
+      example: `
+const hash = crypto.createHash('sha256');
+hash.update('hello world');
+const hex = hash.digest('hex');
+$_RETURN_DATA_ = hex;
+      `,
     },
     $_RETURN_DATA_: {
       fn: {},
-      info: "Value or object that will be returned by the endpoint.",
+      description: "Value or object that will be returned by the endpoint.",
       web: own_repo,
-      return: "data and headers",
+      return: "Any values",
+      example: `
+$_RETURN_DATA_ = { name: 'John', age: 30 };
+      `,
     },
     $_CUSTOM_HEADERS_: {
       fn: new Map(),
-      info: "Custom headers to send in the reply.",
+      description: "Custom headers to send in the reply.",
       web: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
-      return: "Map object",
+      return: "Map object with custom headers",
+      example: `
+$_CUSTOM_HEADERS_.set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+$_CUSTOM_HEADERS_.set(
+  "Content-Disposition",
+  'attachment; filename="file.xlsx"',
+);
+      `,
     },
     reply: {
       fn: request && reply ? reply : undefined,
-      info: "Fastify Reply. Is the object used to send a response to the client.",
+      description: "Fastify Reply. Is the object used to send a response to the client.",
       web: "https://fastify.dev/docs/latest/Reference/Reply/#introduction",
+      return: "Fastify Reply object",
+      example: `
+reply.code(200).send({ name: 'John', age: 30 });
+      `,
     },
     request: {
       fn: request && reply ? request : undefined,
-      info: "Fastify Request. Stores all information about the request",
+      description: "Fastify Request. Stores all information about the request",
       web: "https://fastify.dev/docs/latest/Reference/Request/",
+      return: "Fastify Request object",
+      example: `
+const data = request.body;
+$_RETURN_DATA_ = data;
+      `,
     },
     uFetch: {
       fn: request && reply ? uFetch : undefined,
-      info: "Instance of the uFetch class. More information at universal-fetch",
+      description: "Instance of the uFetch class. More information at universal-fetch",
       web: own_repo,
+      return: "uFetch instance",
+      example: `
+const req1  = await uFetch('https://jsonplaceholder.typicode.com/todos/1');
+const resp = await req1.json();
+$_RETURN_DATA_ = resp;
+      `,
     },
     uFetchAutoEnv: {
       fn: request && reply ? fnUrlae : undefined,
-      info: `Create an instance of uFetch. The "auto" method receives the URL as a parameter; if this URL ends in "auto", this function will automatically replace it with the environment in which it is running.`,
+      description: `Create an instance of uFetch. The "auto" method receives the URL as a parameter; if this URL ends in "auto", this function will automatically replace it with the environment in which it is running.`,
       web: "https://github.com/edwinspire/universal-fetch",
+      example: `
+const uF = uFetchAutoEnv.auto('https://jsonplaceholder.typicode.com/todos/auto', true);
+const req1  = await uF.GET();
+const resp = await req1.json();
+$_RETURN_DATA_ = resp;
+      `,
     },
-    sequentialPromises: {
-      fn: request && reply ? sequentialPromises : undefined,
-      info: "PromiseSequence class. More information at sequential-promises.",
+    PromiseSequence: {
+      fn: request && reply ? PromiseSequence : undefined,
+      description: "PromiseSequence class. More information at sequential-promises.",
       web: "https://github.com/edwinspire/sequential-promises",
+      example: `
+
+// Función de ejemplo que simula una tarea costosa
+function processBlock(block) {
+
+  return new Promise((resolve) => {
+
+    setTimeout(() => {
+
+      console.log('Block: ', block);
+      resolve({ data: block * 2 });
+    }, 2500
+    + (Math.floor(Math.random() * 1000) + 1)
+    );
+  });
+}
+
+// Lista de datos que queremos procesar
+const data = Array.from({ length: 20 }, (_, i) => i + 1); // Genera una matriz de números del 1 al 20
+
+// Número de bloques en los que deseamos dividir los datos
+const numeroItems = 10;
+
+let result = await PromiseSequence.ByItems(processBlock, numeroItems, data);
+$_RETURN_DATA_ = result;
+      `,
     },
     uuid: {
       fn: request && reply ? uuid : undefined,
-      info: "UUID package to generate RFC4122 UUIDs.",
+      description: "UUID package to generate RFC4122 UUIDs.",
       web: "https://www.npmjs.com/package/uuid",
+      example: `
+const result_uuid = uuid.v4();
+$_RETURN_DATA_ = result_uuid;
+      `,
     },
     mongoose: {
       fn: request && reply ? mongoose : undefined,
-      info: " Mongoose provides a straight-forward, schema-based solution to model your MongoDB.",
+      description: " Mongoose provides a straight-forward, schema-based solution to model your MongoDB.",
       web: "https://mongoosejs.com",
+      example: `
+mongoose.connect('mongodb://127.0.0.1:27017/test');
+
+const Cat = mongoose.model('Cat', { name: String });
+
+const kitty = new Cat({ name: 'Zildjian' });
+kitty.save().then(() => console.log('meow'));
+      `,
     },
     $_EXCEPTION_: {
       fn: request && reply ? jsException : undefined,
-      info: "It interrupts the program flow and throws an exception",
+      description: "Interrupts the program flow and throws an exception with a specific message and status code.",
       web: own_repo,
       params: [
         {
           name: "message",
-          info: "The message that will be shown to the user.",
+          description: "The error message to display.",
           required: true,
-          value_type: "string",
-          default_value: "",
+          type: "string",
+          default: "",
         },
         {
           name: "data",
-          info: "An object of additional data to be sent to the user",
+          description: "Additional context data for the error.",
           required: false,
-          value_type: "any",
-          default_value: "",
+          type: "any",
+          default: null,
         },
         {
           name: "statusCode",
-          info: "HTTP Status Code with which the request will be responded to.",
+          description: "HTTP Status Code for the response.",
           required: false,
-          value_type: "int",
-          default_value: 500,
+          type: "integer",
+          default: 500,
         },
       ],
       return: {
-        value_type: "void",
-        info: "throw - Stops the execution of the program and returns a oject.",
+        type: "void",
+        description: "Throws an exception object that stops execution.",
         object: [
           {
             name: "message",
-            info: "The message that will be shown to the user.",
-            value_type: "string",
+            description: "The error message.",
+            type: "string",
           },
           {
             name: "data",
-            info: "An object of additional data to be sent to the user",
-            required: false,
-            value_type: "any",
-            default_value: "",
+            description: "Context data.",
+            type: "any",
           },
           {
             name: "statusCode",
-            info: "HTTP Status Code with which the request will be responded to.",
-            required: false,
-            value_type: "",
-            default_value: 500,
+            description: "HTTP Status Code.",
+            type: "integer",
           },
         ],
       },
-      example: `$_EXCEPTION_('A parameter has not been entered', $_REQUEST_.body, 400);`,
+      example: `// simple usage
+$_EXCEPTION_("Invalid input parameter");
+
+// with data and status code
+$_EXCEPTION_("User not found", { userId: 123 }, 404);`,
     },
     jwt: {
       fn: request && reply ? jwt : undefined,
-      info: "An implementation of JSON Web Tokens.",
+      description: "An implementation of JSON Web Tokens.",
       web: "https://github.com/auth0/node-jsonwebtoken",
+      example: `
+      const token = jwt.sign({ foo: 'bar' }, 'shhhhh');
+      $_RETURN_DATA_ = token;
+      `
     },
     luxon: {
       fn: request && reply ? luxon : undefined,
-      info: "Friendly wrapper for JavaScript dates and times",
+      description: "Friendly wrapper for JavaScript dates and times",
       web: "https://moment.github.io/luxon",
+      example: `
+      const dt = luxon.DateTime.now();
+      $_RETURN_DATA_ = dt;
+      `
     },
     pdfjs: {
       fn: request && reply ? pdfjs : undefined,
-      info: "PDF.js is a Portable Document Format (PDF) viewer that is built with HTML5.",
+      description: "PDF.js is a Portable Document Format (PDF) viewer that is built with HTML5.",
       web: "https://mozilla.github.io/pdf.js/",
+      example: `
+      
+      `
     },
 
     createImageFromHTML: {
       fn: request && reply ? createImageFromHTML : undefined,
-      info: "Create a Image from HTML code or URL",
+      description: "Create a Image from HTML code or URL",
       web: own_repo,
       params: [
         {
           name: "html",
-          info: "String HTML",
+          description: "String HTML",
           required: false,
           value_type: "string",
           default_value: "",
         },
         {
           name: "url",
-          info: "URL resource",
+          description: "URL resource",
           required: false,
           value_type: "string",
           default_value: "",
         },
         {
           name: "type",
-          info: "Output type",
+          description: "Output type",
           required: false,
           value_type: "string",
           default_value: "png",
         },
         {
           name: "quality",
-          info: "quality",
+          description: "quality",
           required: false,
           value_type: "integer",
           default_value: 90,
         },
         {
           name: "fullPage",
-          info: "fullPage",
+          description: "fullPage",
           required: false,
-          value_type: "boolean",
+          type: "boolean",
           default_value: true,
         },
       ],
       return: "NodeJS.ArrayBufferView",
+      example: `
+
+      $_CUSTOM_HEADERS_.set("Content-Type", "image/png");
+$_CUSTOM_HEADERS_.set(
+  "Content-Disposition",
+  'attachment; filename="file.png"',
+);
+
+      const image = await createImageFromHTML("https://example.com/image.html");
+      $_RETURN_DATA_ = image;
+      `,
     },
 
     createPDFFromHTML: {
       fn: request && reply ? createPDFFromHTML : undefined,
-      info: "Create a PDF from HTML code or URL",
+      description: "Generates a PDF document from an HTML string or a URL.",
       web: own_repo,
       params: [
         {
           name: "html",
-          info: "String HTML",
+          description: "Raw HTML content to render.",
           required: false,
-          value_type: "string",
-          default_value: "",
+          type: "string",
+          default: "",
         },
         {
           name: "url",
-          info: "URL resource",
+          description: "URL of the page to convert to PDF.",
           required: false,
-          value_type: "string",
-          default_value: "",
+          type: "string",
+          default: "",
         },
         {
           name: "format",
-          info: "Output format",
+          description: "Paper format (e.g., 'A4', 'Letter').",
           required: false,
-          value_type: "string",
-          default_value: "A4",
+          type: "string",
+          default: "A4",
         },
         {
           name: "landscape",
-          info: "landscape",
+          description: "Whether to print in landscape mode.",
           required: false,
-          value_type: "boolean",
-          default_value: false,
+          type: "boolean",
+          default: false,
         },
         {
           name: "margin",
-          info: "margin on milimeters",
+          description: "Page margins (e.g., '10mm').",
           required: false,
-          value_type: "string",
-          default_value: "10mm",
+          type: "string",
+          default: "10mm",
         },
         {
           name: "printBackground",
-          info: "print Background",
+          description: "Whether to print background graphics.",
           required: false,
-          value_type: "boolean",
-          default_value: true,
+          type: "boolean",
+          default: true,
         },
       ],
-
       return: "NodeJS.ArrayBufferView",
+      example: `
+      $_CUSTOM_HEADERS_.set("Content-Type", "application/pdf");
+$_CUSTOM_HEADERS_.set(
+  "Content-Disposition",
+  'attachment; filename="file.pdf"',
+);
+      const pdf = await createPDFFromHTML("https://example.com/mypage.html");
+      $_
+      $_RETURN_DATA_ = pdf;
+      `,
     },
 
     sequelize: {
       fn: request && reply ? sequelize : undefined,
-      info: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",
+      description: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",
       web: "https://sequelize.org/",
+      example: `
+// Crear conexión a SQLite en memoria
+const seq = new sequelize.Sequelize({
+  dialect: "sqlite",
+  storage: ":memory:",
+  logging: false,
+});
+
+  try {
+    // Probar conexión
+    await seq.authenticate();
+    console.log("Conectado a SQLite en memoria.");
+
+    // (Opcional) Crear tabla y datos de ejemplo
+    await seq.query(``
+      CREATE TABLE users (
+        iduser INTEGER PRIMARY KEY,
+        name TEXT,
+        email TEXT
+      );
+    ``);
+
+    await seq.query(``
+      INSERT INTO users (iduser, name, email) VALUES
+      (1, 'Juan', 'juan@mail.com'),
+      (2, 'Ana', 'ana@mail.com');
+    ``);
+
+    // Query con parámetro
+    const sql = ``SELECT * FROM users WHERE iduser = $iduser``;
+
+    const result = await seq.query(sql, {
+      bind: { iduser: 1 },
+      type: QueryTypes.SELECT,
+    });
+
+    //console.log("Resultado:", result);
+
+    $_RETURN_DATA_ = result;
+
+  } catch (error) {
+    console.error("Error:", error);
+  } finally {
+    await seq.close();
+  }
+
+      `
     },
     z: {
       fn: request && reply ? Zod : undefined,
-      info: "Zod is a TypeScript-first schema declaration and validation library. ",
+      description: "Zod is a TypeScript-first schema declaration and validation library. ",
       web: "https://zod.dev/?id=introduction",
+      example: `
+      const schema = z.object({
+        name: z.string(),
+        age: z.number(),
+      });
+      const data = { name: "John", age: 30 };
+      const result = schema.parse(data);
+      $_RETURN_DATA_ = result;
+      `
     },
     nodemailer: {
       fn: request && reply ? nodemailer : undefined,
-      info: "Nodemailer makes sending email from a Node.js application straightforward and secure, without pulling in a single runtime dependency.",
+      description: "Nodemailer makes sending email from a Node.js application straightforward and secure, without pulling in a single runtime dependency.",
       web: "https://nodemailer.com/",
+      example: `
+      const transporter = nodemailer.createTransport({
+        host: 'smtp.example.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: 'username',
+          pass: 'password'
+        }
+      });
+      const mailOptions = {
+        from: 'sender@example.com',
+        to: 'recipient@example.com',
+        subject: 'Test Email',
+        text: 'This is a test email sent using Nodemailer.'
+      };
+      const info = await transporter.sendMail(mailOptions);
+      $_RETURN_DATA_ = info;
+      `
     },
     xlsx: {
       fn: request && reply ? XLSX : undefined,
-      info: "SheetJS Community Edition offers battle-tested open-source solutions for extracting useful data from almost any complex spreadsheet and generating new spreadsheets that will work with legacy and modern software alike.",
+      description: "SheetJS Community Edition offers battle-tested open-source solutions for extracting useful data from almost any complex spreadsheet and generating new spreadsheets that will work with legacy and modern software alike.",
       web: "https://docs.sheetjs.com/docs/",
+      example: `
+  /* fetch JSON data and parse */
+  const url = "https://docs.sheetjs.com/executive.json";
+  const raw_data = await (await fetch(url)).json();
+
+  /* filter for the Presidents */
+  const prez = raw_data.filter(row => row.terms.some(term => term.type === "prez"));
+
+  /* sort by first presidential term */
+  prez.forEach(row => row.start = row.terms.find(term => term.type === "prez").start);
+  prez.sort((l,r) => l.start.localeCompare(r.start));
+
+  /* flatten objects */
+  const rows = prez.map(row => ({
+    name: row.name.first + " " + row.name.last,
+    birthday: row.bio.birthday
+  }));
+
+  /* generate worksheet and workbook */
+  const worksheet = xlsx.utils.json_to_sheet(rows);
+  const workbook = xlsx.utils.book_new();
+  xlsx.utils.book_append_sheet(workbook, worksheet, "Dates");
+
+  /* fix headers */
+  xlsx.utils.sheet_add_aoa(worksheet, [["Name", "Birthday"]], { origin: "A1" });
+
+  /* calculate column width */
+  const max_width = rows.reduce((w, r) => Math.max(w, r.name.length), 10);
+  worksheet["!cols"] = [ { wch: max_width } ];
+
+      `
     },
   };
 };
