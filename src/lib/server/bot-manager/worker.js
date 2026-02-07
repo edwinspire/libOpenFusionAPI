@@ -51,6 +51,9 @@ parentPort.on("message", async (message) => {
 const $BOT = new grammy.Bot($BOT_TOKEN);
 
 ${code}
+
+
+
             `;
 
       // 4. Run Execution

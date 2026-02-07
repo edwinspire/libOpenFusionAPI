@@ -9,7 +9,7 @@ import * as xmlCrypto from "xml-crypto";
 import * as xmldom from "xmldom";
 import * as forge from "node-forge";
 import * as uuid from "uuid";
-import Zod, { array } from "zod";
+import Zod from "zod";
 import * as XLSX from "xlsx";
 import {
   createImage as createImageFromHTML,
@@ -22,7 +22,7 @@ import jwt from "jsonwebtoken";
 import xmlFormatter from "xml-formatter";
 import xml2js from "xml2js";
 import dnsPromises from "dns/promises";
-import { type } from "os";
+import OpenAI from "openai";
 
 const { PORT, JWT_KEY } = process.env;
 
@@ -279,6 +279,12 @@ export const listFunctionsVars = (request, reply, environment) => {
   };
 
   return {
+    openai: {
+      fn: request && reply ? OpenAI : undefined,
+      info: "This library provides convenient access to the OpenAI REST API from TypeScript or JavaScript.",
+      web: "https://github.com/openai/openai-node",
+      return: "Any funtions or objects",
+    },
     ofapi: {
       fn: request && reply ? ofapi : undefined,
       info: "Utilities and services of OpenFusionAPI. Contains server info, token generator, and exception thrower.",
