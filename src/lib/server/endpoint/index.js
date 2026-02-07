@@ -17,25 +17,20 @@ const default_id_app = "68a44349-b035-466f-a1c6-f90f3f2813bb";
 export default class Endpoint extends EventEmitter {
   internal_endpoint = {};
   fnLocal = {};
+  loadingPromises = new Map();
 
   constructor() {
     super();
     this.cache = new TimedCache();
   }
 
-  pushLog(log) {
-    return new Promise(async (resolve) => {
-      let data;
-      let error;
-
-      try {
-        data = await createLog(log);
-      } catch (err) {
-        error = err;
-      }
-
-      resolve({ data: data, error: error });
-    });
+  async pushLog(log) {
+    try {
+      const data = await createLog(log);
+      return { data: data, error: undefined };
+    } catch (err) {
+      return { data: undefined, error: err };
+    }
   }
 
   getFnNames() {
@@ -62,13 +57,29 @@ export default class Endpoint extends EventEmitter {
   }
 
   async getEndpoint(request_path_params) {
-    // Revisa si existe el endpoint
-    if (!this.internal_endpoint[request_path_params.url_key]) {
-      // Si no lo tiene cargado lo obtiene de la base de datos
-      await this._loadEndpointsByAPPToCache(request_path_params);
+    const { url_key } = request_path_params;
+
+    // Fast path: already cached
+    if (this.internal_endpoint[url_key]) {
+      return this.internal_endpoint[url_key];
     }
 
-    return this.internal_endpoint[request_path_params.url_key];
+    // Protection against Thundering Herd: Promise Caching
+    if (this.loadingPromises.has(url_key)) {
+      // If currently loading, wait for the existing promise
+      await this.loadingPromises.get(url_key);
+    } else {
+      // Start loading and cache the promise
+      const loadPromise = this._loadEndpointsByAPPToCache(request_path_params);
+      this.loadingPromises.set(url_key, loadPromise);
+      try {
+        await loadPromise;
+      } finally {
+        this.loadingPromises.delete(url_key);
+      }
+    }
+
+    return this.internal_endpoint[url_key];
   }
 
   getCache(endpoint_key, hash_request) {
@@ -211,9 +222,18 @@ export default class Endpoint extends EventEmitter {
           if (contentLength) {
             sizeKB = Number(contentLength) / 1024;
           } else {
-            sizeKB =
-              Buffer.byteLength(JSON.stringify(reply_lastResponse), "utf8") /
-              1024;
+            const lastRespData = reply_lastResponse?.data;
+            if (Buffer.isBuffer(lastRespData)) {
+              sizeKB = lastRespData.length / 1024;
+            } else if (typeof lastRespData === 'string') {
+              sizeKB = Buffer.byteLength(lastRespData) / 1024;
+            } else {
+              try {
+                sizeKB = Buffer.byteLength(JSON.stringify(reply_lastResponse), "utf8") / 1024;
+              } catch (e) {
+                sizeKB = 0; // Fallback if stringify fails
+              }
+            }
           }
 
           let payload_cache = {
@@ -271,26 +291,6 @@ export default class Endpoint extends EventEmitter {
   getDataLog(log_level, request, reply) {
     let handler_param = request?.openfusionapi?.handler?.params || {};
 
-    if (handler_param?.data_test) {
-      handler_param.data_test = undefined;
-    }
-
-    if (handler_param?.headers_test) {
-      handler_param.headers_test = undefined;
-    }
-
-    if (handler_param?.description) {
-      handler_param.description = undefined;
-    }
-
-    if (handler_param?.rowkey) {
-      handler_param.rowkey = undefined;
-    }
-
-    if (handler_param?.ctrl) {
-      handler_param.ctrl = undefined;
-    }
-
     let data_log = {
       timestamp: new Date(),
       idapp: handler_param?.idapp ?? default_id_app, // Es un id por defecto temporal
@@ -331,7 +331,12 @@ export default class Endpoint extends EventEmitter {
         data_log.query = request.query;
         data_log.body = request.body;
         data_log.user_agent = request.headers["user-agent"];
-        data_log.params = handler_param;
+
+        // Safe param cloning
+        // eslint-disable-next-line no-unused-vars
+        const { data_test, headers_test, description, rowkey, ctrl, ...safeParams } = handler_param;
+        data_log.params = safeParams;
+
         data_log.response_data =
           reply?.openfusionapi?.lastResponse?.data ?? undefined;
         break;
@@ -473,6 +478,7 @@ export default class Endpoint extends EventEmitter {
       }
     } catch (error) {
       console.trace(error);
+      throw error; // Re-throw to inform caller that load failed
     }
   }
 
@@ -513,7 +519,7 @@ export default class Endpoint extends EventEmitter {
               props
             );
 
-    //        console.log("Se han reemplazado");
+            //        console.log("Se han reemplazado");
           }
         }
 
@@ -558,28 +564,28 @@ export default class Endpoint extends EventEmitter {
           if (
             this.fnLocal[returnHandler.params.environment] &&
             this.fnLocal[returnHandler.params.environment][
-              returnHandler.params.app
+            returnHandler.params.app
             ] &&
             this.fnLocal[returnHandler.params.environment][
-              returnHandler.params.app
+            returnHandler.params.app
             ][returnHandler.params.code]
           ) {
             // Busca en la lista de funciones de entorno para asignarla
             returnHandler.params.Fn =
               this.fnLocal[returnHandler.params.environment][
-                returnHandler.params.app
+              returnHandler.params.app
               ][returnHandler.params.code];
           } else if (
             this.fnLocal[returnHandler.params.environment] &&
             this.fnLocal[returnHandler.params.environment]["public"] &&
             this.fnLocal[returnHandler.params.environment]["public"][
-              returnHandler.params.code
+            returnHandler.params.code
             ]
           ) {
             // Si no existe la función dentro de la app, busca en la lista de la aplicaión publica
             returnHandler.params.Fn =
               this.fnLocal[returnHandler.params.environment]["public"][
-                returnHandler.params.code
+              returnHandler.params.code
               ];
           }
 
