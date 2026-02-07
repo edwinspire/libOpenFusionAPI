@@ -777,22 +777,12 @@ const seq = new sequelize.Sequelize({
     console.log("Conectado a SQLite en memoria.");
 
     // (Opcional) Crear tabla y datos de ejemplo
-    await seq.query(``
-      CREATE TABLE users (
-        iduser INTEGER PRIMARY KEY,
-        name TEXT,
-        email TEXT
-      );
-    ``);
+    await seq.query("CREATE TABLE users (iduser INTEGER PRIMARY KEY, name TEXT, email TEXT);");
 
-    await seq.query(``
-      INSERT INTO users (iduser, name, email) VALUES
-      (1, 'Juan', 'juan@mail.com'),
-      (2, 'Ana', 'ana@mail.com');
-    ``);
+    await seq.query("INSERT INTO users (iduser, name, email) VALUES (1, 'Juan', 'juan@mail.com'), (2, 'Ana', 'ana@mail.com');");
 
     // Query con parámetro
-    const sql = ``SELECT * FROM users WHERE iduser = $iduser``;
+    const sql = "SELECT * FROM users WHERE iduser = $iduser";
 
     const result = await seq.query(sql, {
       bind: { iduser: 1 },
