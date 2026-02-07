@@ -268,9 +268,6 @@ export const listFunctionsVars = (request, reply, environment) => {
 
   const ofapi = {
     server: reply ? reply?.openfusionapi?.server : undefined,
-    telegram: reply?.openfusionapi?.telegram
-      ? reply.openfusionapi.telegram
-      : undefined,
     genToken: request && reply ? GenToken : undefined,
 
     throw: (message, http_statusCode = 500, data = null) => {
@@ -284,7 +281,7 @@ export const listFunctionsVars = (request, reply, environment) => {
   return {
     ofapi: {
       fn: request && reply ? ofapi : undefined,
-      info: "Utilities and services of OpenFusionAPI. Contains server info, telegram bot, token generator, and exception thrower.",
+      info: "Utilities and services of OpenFusionAPI. Contains server info, token generator, and exception thrower.",
       web: own_repo,
       return: "Any funtions or objects",
     },

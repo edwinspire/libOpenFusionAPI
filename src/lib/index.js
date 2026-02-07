@@ -13,12 +13,10 @@ import fastifyStatic from "@fastify/static";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import Endpoint from "./server/endpoint/index.js";
-import { TelegramBot } from "./server/telegram/telegram.js";
 
 import { BotManager } from "./server/bot-manager/manager.js";
 import { getAllBots } from "./db/bot.js";
 import { TasksInterval } from "./timer/tasks.js";
-//import { version } from "./server/version.js";
 
 import dbAPIs from "./db/sequelize.js";
 import { defaultApps, getApplicationsTreeByFilters } from "./db/app.js";
@@ -70,8 +68,6 @@ const {
   PATH_APP_FUNCTIONS,
   JWT_KEY,
   HOST,
-  TELEGRAM_SERVER_CHATID,
-  TELEGRAM_SERVER_MSG_THREAD_ID,
   MAX_FILE_SIZE_UPLOAD, // Default 100 MB
 } = process.env;
 
@@ -129,8 +125,6 @@ export default class ServerAPI extends EventEmitter {
       internal_url_ws(urlSystemPath.Websocket.EventServer),
       {}
     );
-
-    this.telegram = new TelegramBot();
 
     this.TasksInterval = new TasksInterval();
 
@@ -497,7 +491,6 @@ export default class ServerAPI extends EventEmitter {
       }
 
       if (handlerEndpoint.params.handler == "JS") {
-        reply.openfusionapi.telegram = this.telegram;
         reply.openfusionapi.server = this;
       }
 
@@ -513,9 +506,7 @@ export default class ServerAPI extends EventEmitter {
         handlerEndpoint.params.app &&
         handlerEndpoint.params.app == "system"
       ) {
-        //server_data.telegram = this.telegram;
         if (handlerEndpoint.params.handler == "FUNCTION") {
-          reply.openfusionapi.telegram = this.telegram;
           server_data.endpoint_class = this.endpoints;
         }
       }
@@ -585,8 +576,6 @@ export default class ServerAPI extends EventEmitter {
       HOST
     );
 
-    this.telegram.launch();
-
     await this.fastify.listen({ port: PORT, host: host });
 
     this._runOnReady();
@@ -609,22 +598,6 @@ export default class ServerAPI extends EventEmitter {
     });
 
     this.TasksInterval.run();
-    if (TELEGRAM_SERVER_CHATID) {
-      try {
-        let data = {
-          chatId: TELEGRAM_SERVER_CHATID,
-          message: "*OPEN FUSION API*\nThe server has started",
-          extra: {
-            message_thread_id: TELEGRAM_SERVER_MSG_THREAD_ID,
-            parse_mode: "MarkdownV2",
-          },
-        };
-
-        await this.telegram.sendMessage(data.chatId, data.message, data.extra);
-      } catch (error) {
-        console.error(error);
-      }
-    }
 
     setInterval(async () => {
       if (this.fastify.websocketServer.clients.size > 1) {

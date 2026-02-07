@@ -1,10 +1,6 @@
 export const demo_app = {
   vars: {},
-  params: {
-    telegram: {
-      idgroup: "",
-    },
-  },
+  params: {},
   idapp: "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
   app: "demo",
   rowkey: 3,
