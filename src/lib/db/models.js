@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import { emitHook, validateAppName } from "../server/utils.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
-const JSON_TYPE = ["mssql", "sqlite"].includes(dbsequelize.getDialect())
+const IS_MSSQL = ["mssql", "sqlite"].includes(dbsequelize.getDialect());
+const JSON_TYPE = IS_MSSQL
   ? DataTypes.TEXT
   : DataTypes.JSON;
 
@@ -56,8 +57,8 @@ const default_json_schema = {
 class JSON_ADAPTER {
   constructor() { }
 
-  static getData(instance, fieldName, defaulValue = {}) {
-    let data = instance.getDataValue(fieldName) ?? defaulValue;
+  static getData(instance, fieldName, defaultValue = {}) {
+    let data = instance.getDataValue(fieldName) ?? defaultValue;
 
     if (JSON_ADAPTER._isMsSql() && JSON_ADAPTER._isString(data)) {
       try {
@@ -70,8 +71,8 @@ class JSON_ADAPTER {
     return data;
   }
 
-  static setData(instance, fieldName, value, defaulValue = {}) {
-    const data = value ?? defaulValue;
+  static setData(instance, fieldName, value, defaultValue = {}) {
+    const data = value ?? defaultValue;
 
     const new_data =
       JSON_ADAPTER._isMsSql() && !JSON_ADAPTER._isString(data)
@@ -81,7 +82,7 @@ class JSON_ADAPTER {
   }
 
   static _isMsSql() {
-    return ["mssql", "sqlite"].includes(dbsequelize.getDialect());
+    return IS_MSSQL;
   }
 
   static _isString(data) {
@@ -130,7 +131,7 @@ async function HooksDB(data) {
       data: instance,
     };
   } catch (error) {
-    confirm.log("Error en HooksDB:", error);
+    console.log("Error en HooksDB:", error);
   }
 
   return await emitHook(dataHook);
@@ -393,7 +394,7 @@ export const Application = dbsequelize.define(
     timestamps: true,
     indexes: [],
     hooks: {
-      afterBulkCreate: async (intance) => {
+      afterBulkCreate: async (instance) => {
         //
       },
       afterUpsert: async (/** @type {any} */ instance) => {
@@ -406,19 +407,13 @@ export const Application = dbsequelize.define(
           action: "afterUpsert",
         });
       },
-      beforeUpdate: (/** @type {any} */ instance) => {
-        randomRowKey(instance);
-      },
       beforeUpsert: (instance) => {
         if (instance.app && !validateAppName(instance.app)) {
           throw new Error("The application name cannot be empty.");
         }
-        ensureUUID(instance, "idapp");
-        randomRowKey(instance);
       },
       beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
-        ensureUUID(instance, "idapp");
-        randomRowKey(instance);
+        //
       },
       beforeValidate: (instance) => {
         ensureUUID(instance, "idapp");
@@ -427,7 +422,7 @@ export const Application = dbsequelize.define(
         instance.app = instance.app.toLowerCase();
       },
       beforeCreate: (instance) => {
-        ensureUUID(instance, "idapp");
+        //
       },
       beforeBulkCreate: (instance) => {
         if (instance && Array.isArray(instance)) {
@@ -574,13 +569,7 @@ export const EndpointBackup = dbsequelize.define(
     ],
     hooks: {
       beforeValidate: (instance) => {
-        // Si hay que adaptar JSON, se hace aquí
-        //  console.log("---- beforeValidate EndpointBackup ----");
-        /*
-                instance.data = JSON_ADAPTER._isMsSql()
-                  ? JSON.stringify(instance.data)
-                  : instance.data;
-                  */
+        //
       },
     },
   },
@@ -814,14 +803,10 @@ export const Endpoint = dbsequelize.define(
           action: "afterUpsert",
         });
       },
-      beforeUpdate: (/** @type {any} */ instance) => {
-        randomRowKey(instance);
-      },
       beforeUpsert: async (
         /** @type {{ rowkey: number; idendpoint: string}} */ instance,
       ) => {
-        randomRowKey(instance);
-        ensureUUID(instance, "idendpoint");
+        //
       },
       beforeValidate: (instance) => {
         randomRowKey(instance);
@@ -843,7 +828,7 @@ export const Endpoint = dbsequelize.define(
         randomRowKey(instance);
       },
       beforeCreate: (instance) => {
-        ensureUUID(instance, "idendpoint");
+        //
       },
     },
   },
@@ -1025,24 +1010,7 @@ export const LogEntry = dbsequelize.define(
     hooks: {
       afterCreate: async (/** @type {any} */ instance, options) => { },
       beforeValidate: (instance) => {
-        if (instance.req_headers) {
-          //  instance.req_headers = JSON_TYPE_Adapter(instance, "req_headers");
-        }
-        if (instance.res_headers) {
-          // instance.res_headers = JSON_TYPE_Adapter(instance, "res_headers");
-        }
-        if (instance.query) {
-          //  instance.query = JSON_TYPE_Adapter(instance, "query");
-        }
-        if (instance.body) {
-          // instance.body = JSON_TYPE_Adapter(instance, "body");
-        }
-        if (instance.params) {
-          // instance.params = JSON_TYPE_Adapter(instance, "params");
-        }
-        if (instance.response_data) {
-          // instance.response_data = JSON_TYPE_Adapter(instance, "response_data");
-        }
+        //
       },
     },
     indexes: [
@@ -1290,9 +1258,6 @@ export const IntervalTask = dbsequelize.define(
     paranoid: false, // Evita el soft delete
     comment: "App Intervals",
     hooks: {
-      beforeValidate: (instance) => {
-        //
-      },
       afterUpsert: async (/** @type {any} */ instance, options) => {
         //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
 
@@ -1345,9 +1310,7 @@ export const tblDemo = dbsequelize.define(
     indexes: [],
     hooks: {
       beforeValidate: (instance) => {
-        if (instance.json_data) {
-          //   instance.json_data = JSON_TYPE_Adapter(instance, "json_data");
-        }
+        //
       },
     },
   },
@@ -1442,14 +1405,14 @@ export const ApiClient = dbsequelize.define(
     document_type: {
       type: DataTypes.ENUM(
         "passport",
-        "unknow",
+        "unknown",
         "id_card",
         "driver_license",
         "tax_id",
         "social_security",
         "other",
       ),
-      defaultValue: "unknow",
+      defaultValue: "unknown",
     },
     phone: { type: DataTypes.STRING(50), allowNull: true },
     startAt: {
