@@ -50,7 +50,7 @@ const ENV_SUFFIX_REGEX = /\/(auto|env)$/;
  * Clase para manejar URLs con entornos auto y env
  */
 export class URLAutoEnvironment {
-  
+
   constructor({ environment, port = default_port, baseUrl = "http://localhost", headers = new Headers() }) {
     this.environment = environment;
     this.base = `${baseUrl}:${port}`;
@@ -279,7 +279,7 @@ export const listFunctionsVars = (request, reply, environment) => {
   let headers = new Headers();
 
   if (request) {
-    let trace_id = request.headers["ofapi-trace-id"];
+    let trace_id = request.headers?.["ofapi-trace-id"];
     if (trace_id) {
       headers.append("ofapi-trace-id", trace_id);
     }

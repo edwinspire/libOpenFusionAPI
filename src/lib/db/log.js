@@ -101,6 +101,7 @@ export const createLogEntriesBulk = async (logDataArray) => {
  * @param {number} options.offset - Offset para paginación
  * @param {string} options.order - Campo para ordenar (default: 'timestamp')
  * @param {string} options.orderDirection - Dirección del orden (ASC/DESC, default: 'DESC')
+ * @param {boolean} options.trace_id - Indica si se desea obtener el trace_id 
  * @returns {Promise<{data: Array, total: number, meta: Object}>}
  */
 export const getLogs = async (options = {}) => {
@@ -114,17 +115,18 @@ export const getLogs = async (options = {}) => {
       start_date,
       end_date,
       idendpoint,
-//      level,
+      //      level,
       method,
       status_code,
       limit = 1000,
-//      offset = 0,
+      //      offset = 0,
       order = "timestamp",
       orderDirection = "DESC",
+      trace_id,
       raw = true, // Si quieres objetos planos en lugar de instancias de Sequelize
     } = options;
 
-    let endpoints;
+    //
 
     // === VALIDACIONES ===
 
@@ -223,6 +225,10 @@ export const getLogs = async (options = {}) => {
     }
     */
 
+    if (trace_id) {
+      whereConditions.trace_id = trace_id;
+    }
+
     // Filtro por method
     if (method) {
       if (typeof method !== "string" || method.trim().length === 0) {
@@ -246,33 +252,14 @@ export const getLogs = async (options = {}) => {
     }
 
     // Filtro por App o idendpoint
-    let endpointFilter;
     if (idapp) {
-      // === FILTROS DE ENDPONTS (NUEVA FUNCIONALIDAD) ===
-      endpoints = await getEndpointByIdApp(idapp);
-
-      let idendpoints = endpoints.map((ep) => {
-        return ep.idendpoint;
-      });
-
-      // Prioridad: idendpoints > idendpoint
-      if (idendpoints && idendpoints.length > 0) {
-        // Usar el array de endpoints
-        endpointFilter = {
-          [Op.in]: idendpoints,
-        };
-      }
+      whereConditions.idapp = idapp;
     } else if (idendpoint) {
+      // Usar el endpoint individual
       if (typeof idendpoint !== "string" || idendpoint.length === 0) {
         throw new Error("idendpoint debe ser una cadena de texto válida");
       }
-      // Usar el endpoint individual
-      endpointFilter = idendpoint;
-    }
-
-    // Aplicar filtro de endpoints si existe
-    if (endpointFilter) {
-      whereConditions.idendpoint = endpointFilter;
+      whereConditions.idendpoint = idendpoint;
     }
 
     // === CONFIGURACIÓN DE LA CONSULTA ===
@@ -305,65 +292,7 @@ export const getLogs = async (options = {}) => {
     // Ejecutar consulta principal
     const logs = await LogEntry.findAll(queryOptions);
 
-    /*
-    // Obtener conteo total para metadata (solo si se necesita)
-    const totalCount = await LogEntry.count({
-      where: whereConditions
-    });
-    */
 
-    /*
-    // === PREPARAR RESPUESTA ===
-    
-    const response = {
-      success: true,
-      data: logs,
-      meta: {
-        total: totalCount,
-        returned: logs.length,
-        limit: queryOptions.limit,
-        offset: queryOptions.offset,
-        hasMore: (queryOptions.offset + queryOptions.limit) < totalCount,
-        filters_applied: Object.keys(whereConditions).length,
-        order: `${order} ${orderDirection}`,
-        query_timestamp: new Date().toISOString()
-      },
-      pagination: {
-        page: Math.floor(queryOptions.offset / queryOptions.limit) + 1,
-        pages: Math.ceil(totalCount / queryOptions.limit),
-        per_page: queryOptions.limit
-      }
-    };
-    */
-
-    //    console.log(`✅ Consulta ejecutada exitosamente: ${logs.length}`);
-    let response = [];
-
-    /*
-    // Añadir idapp a cada log si es necesario - YA NO SE USA PORQUE HAY UN CAMPO idapp EN LogEntry
-    if (logs.length > 0) {
-      if (!endpoints) {
-        endpoints = await getAllEndpoints();
-      }
-
-      const obj_endpoints = {};
-
-      for (let index = 0; index < endpoints.length; index++) {
-        const element = endpoints[index];
-        obj_endpoints[element.idendpoint] = element.idapp;
-      }
-
-      response = logs.map((log) => {
-        if (idapp) {
-          log.idapp = idapp;
-        } else {
-          //
-          log.idapp = obj_endpoints[log.idendpoint];
-        }
-        return log;
-      });
-    }
-    */
 
     return logs;
   } catch (error) {
@@ -549,110 +478,31 @@ export const getLogsRecordsPerMinute = async (options) => {
     // Filtro por App o idendpoint
     let endpointFilter;
     if (idapp) {
-      // === FILTROS DE ENDPONTS (NUEVA FUNCIONALIDAD) ===
-      let endpoints = await getEndpointByIdApp(idapp);
-
-      let idendpoints = endpoints.map((ep) => {
-        return ep.idendpoint;
-      });
-
-      // Prioridad: idendpoints > idendpoint
-      if (idendpoints && idendpoints.length > 0) {
-        // Usar el array de endpoints
-        endpointFilter = {
-          [Op.in]: idendpoints,
-        };
-      }
-    } else if (idendpoint) {
-      if (typeof idendpoint !== "string" || idendpoint.length === 0) {
-        throw new Error("idendpoint debe ser una cadena de texto válida");
-      }
-      // Usar el endpoint individual
-      endpointFilter = idendpoint;
+      endpointFilter = { idapp }; // Esto no funcionara directamente aqui porque getCountsByMinute usa Logic compleja
+      // Revertimos a lógica simplificada si getCountsByMinute no soporta idapp directo aún
+      // PERO getCountsByMinute recibe endpointFilter y lo usa en el WHERE.
+      // Si pasamos {idapp: idapp} como endpointFilter, fallará porque idendpoint espera un UUID o array.
+      // REVISAR: getCountsByMinute usa: { idendpoint: endpointFilter }
+      // Por lo tanto, SI necesitamos obtener los endpoints, O modificar getCountsByMinute.
+      // Modificaremos getCountsByMinute para ser más flexible.
     }
 
-    // === CONSULTA PARA OBTENER CONTEOS POR MINUTO ===
-    // Usamos DATE_TRUNC de PostgreSQL para agrupar por minuto
-    /*
-    const rawResults = await LogEntry.findAll({
-      where: {
-        [Op.and]: [
-          { timestamp: { [Op.between]: [startDate, endDate] } },
-          { idendpoint: endpointFilter },
-        ],
-      },
-      attributes: [
-        // Extraemos el inicio del minuto (YYYY-MM-DD HH:MM:00)
-        [
-          sequelize.fn("DATE_TRUNC", "minute", sequelize.col("timestamp")),
-          "minute",
-        ],
-        "idendpoint",
-        [sequelize.fn("COUNT", "*"), "count"],
-      ],
-      group: ["minute", "idendpoint"], // Agrupamos por minuto e idendpoint
-      order: [["minute", "ASC"]],
-      raw: true, // Obtenemos resultados crudos para manipular fechas
-    });
-    */
+    // Recalcular endpointFilter correctamente:
+    // Si queremos filtrar por app, la logica anterior de obtener todos los endpoints era valida para esta funcion especifica
+    // porque getCountsByMinute agrupa por idendpoint.
+    // Si filtramos solo por idapp en Logs, perderemos la agrupacion por idendpoint si no estan en el resultado.
+    // PERO, la query agrupa por idendpoint.
+
+    // Solucion: Si hay idapp, pasamos un filtro especial a getCountsByMinute
+
     const rawResults = await getCountsByMinute(
       sequelize,
       startDate,
       endDate,
-      endpointFilter
+      idapp ? null : endpointFilter, // Si hay idapp, endpointFilter es null por ahora (lo manejaremos adentro)
+      idapp
     );
 
-    /*
-    // === GENERAR TODOS LOS MINUTOS EN EL RANGO (24 HORAS) ===
-    // Crearemos un array con cada minuto entre startDate y endDate
-    const allMinutes = [];
-    let currentMinute = new Date(startDate);
-
-    while (currentMinute <= endDate) {
-      // Clonamos la fecha para evitar mutación
-      const minuteTimestamp = new Date(currentMinute);
-      allMinutes.push(minuteTimestamp);
-
-      // Avanzamos 1 minuto
-      currentMinute.setMinutes(currentMinute.getMinutes() + 1);
-    }
-
-    // === MAPPING DE RESULTADOS A UN OBJETO ===
-    // Convertimos los resultados en un mapa para buscar fácilmente
-    const resultsMap = {};
-    rawResults.forEach((row) => {
-      // La columna 'minute' viene como string (ej: "2023-10-15 14:30:00")
-      const minuteDate = new Date(row.minute);
-      const key = minuteDate.toISOString(); // Usamos ISO para clave única
-      resultsMap[key] = parseInt(row.count, 10);
-    });
-
-    // === CONSTRUIR EL RESULTADO FINAL (INCLUYE MINUTOS CON CERO) ===
-    const finalResult = allMinutes.map((minute) => {
-      const key = minute.toISOString();
-      const count = resultsMap[key] || 0; // Si no existe, usamos 0
-
-      return {
-        timestamp: minute.toISOString(), // Formato: "2023-10-15T14:30:00.000Z"
-        idendpoint: idendpoint,
-        count: count,
-      };
-    });
-
-    return {
-      success: true,
-      data: finalResult,
-      meta: {
-        hours: last_hours,
-        total_minutes: allMinutes.length,
-        filtered_by: {
-          idendpoint: idendpoint,
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
-        },
-      },
-    };
-    */
     return rawResults;
   } catch (error) {
     console.error("❌ Error obteniendo registros por minuto:", error);
@@ -669,7 +519,8 @@ async function getCountsByMinute(
   sequelize,
   startDate,
   endDate,
-  endpointFilter
+  endpointFilter,
+  idapp // Nuevo parametro opcional
 ) {
   // Función para generar el truncado de fecha según el tipo de BD
   const getTruncatedMinuteColumn = () => {
@@ -714,7 +565,8 @@ async function getCountsByMinute(
     where: {
       [Op.and]: [
         { timestamp: { [Op.between]: [startDate, endDate] } },
-        { idendpoint: endpointFilter },
+        endpointFilter ? { idendpoint: endpointFilter } : {},
+        idapp ? { idapp: idapp } : {},
       ],
     },
     attributes: [
