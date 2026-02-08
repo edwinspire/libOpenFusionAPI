@@ -860,6 +860,13 @@ export const LogEntry = dbsequelize.define(
       unique: true,
       defaultValue: DataTypes.UUIDV4,
     },
+    trace_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      unique: false,
+      defaultValue: DataTypes.UUIDV4,
+      comment: "Trace ID of the request",
+    },
     timestamp: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -1053,6 +1060,11 @@ export const LogEntry = dbsequelize.define(
       {
         name: "idx_logs_timestamp",
         fields: ["timestamp"],
+      },
+      // 4. Opcional: Solo por trace_id para seguimiento de peticiones
+      {
+        name: "idx_logs_trace_id",
+        fields: ["trace_id"],
       },
     ],
   },

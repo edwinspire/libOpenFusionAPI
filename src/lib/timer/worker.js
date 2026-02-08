@@ -9,12 +9,12 @@ import {
 import { performance } from "perf_hooks";
 import { URLAutoEnvironment } from "../server/functionVars.js";
 
-const fetchOFAPI = new URLAutoEnvironment("no_env");
+const fetchOFAPI = new URLAutoEnvironment({ environment: "no_env" });
 const interval = 10000;
 
 export const logBuffer = new LogBuffer({
   flushFn: createLogEntriesBulk,
-  flushIntervalMs: 30000, // cada 30s
+  flushIntervalMs: 10000, // cada 10s
   maxBatchSize: 100, // ajusta según tu DB
   maxBufferSize: 200, // límite de seguridad
 });

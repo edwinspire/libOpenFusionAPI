@@ -58,7 +58,7 @@ export const getRequestData = (request) => {
 
 export async function emitHook(data) {
   try {
-    const fnUrlae = new URLAutoEnvironment("prd", PORT);
+    const fnUrlae = new URLAutoEnvironment({ environment: "prd", port: PORT });
     const uF = fnUrlae.create(internal_url_post_hooks, false);
 
     let r = await uF.POST({ data: data });

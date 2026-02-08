@@ -46,15 +46,15 @@ export const jsException = (message, data, http_statusCode = 500) => {
 
 const ENV_SUFFIX_REGEX = /\/(auto|env)$/;
 
+/**
+ * Clase para manejar URLs con entornos auto y env
+ */
 export class URLAutoEnvironment {
-  /**
-   * @param {string} environment - Entorno de destino (ej: 'prd', 'dev')
-   * @param {number|string} port - Puerto para localhost
-   * @param {string} baseUrl - Base opcional (por defecto localhost)
-   */
-  constructor(environment, port = default_port, baseUrl = "http://localhost") {
+  
+  constructor({ environment, port = default_port, baseUrl = "http://localhost", headers = new Headers() }) {
     this.environment = environment;
     this.base = `${baseUrl}:${port}`;
+    this.headers = headers;
   }
 
   isAbsoluteUrl = (url) => {
@@ -78,14 +78,26 @@ export class URLAutoEnvironment {
    * Punto de entrada principal
    */
   create(url, shouldApplyAuto = true) {
+    let uF;
     // Si es absoluta, devolvemos uFetch directo
     if (this.isAbsoluteUrl(url)) {
-      return new uFetch(url);
+      uF = new uFetch(url);
     }
 
-    // Si es relativa, procesamos
-    const finalPath = shouldApplyAuto ? this._applyEnvironment(url) : url;
-    return new uFetch(this._buildFullUrl(finalPath));
+    if (!uF) {
+      // Si es relativa, procesamos
+      const finalPath = shouldApplyAuto ? this._applyEnvironment(url) : url;
+      uF = new uFetch(this._buildFullUrl(finalPath));
+    }
+
+    if (this.headers) {
+
+      for (const key of this.headers.keys()) {
+        uF.addHeader(key, this.headers.get(key));
+      }
+    }
+
+    return uF;
   }
 
   auto(url) {
@@ -263,7 +275,18 @@ export const functionsVars = (request, reply, environment) => {
 };
 
 export const listFunctionsVars = (request, reply, environment) => {
-  const fnUrlae = new URLAutoEnvironment(environment, PORT);
+
+  let headers = new Headers();
+
+  if (request) {
+    let trace_id = request.headers["ofapi-trace-id"];
+    if (trace_id) {
+      headers.append("ofapi-trace-id", trace_id);
+    }
+  }
+
+  const fnUrlae = new URLAutoEnvironment({ environment, port: PORT, headers });
+
   const own_repo = "https://github.com/edwinspire/libOpenFusionAPI";
 
   const ofapi = {

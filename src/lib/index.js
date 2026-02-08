@@ -271,6 +271,14 @@ export default class ServerAPI extends EventEmitter {
 
       let request_path_params = get_url_params(request.url, request.method);
 
+      if (!request.headers["ofapi-trace-id"]) {
+        let trace_id = getUUID();
+        request.headers["ofapi-trace-id"] = trace_id;
+        reply.header("ofapi-trace-id", trace_id);
+      } else {
+        reply.header("ofapi-trace-id", request.headers["ofapi-trace-id"]);
+      }
+
       if (request_path_params && request_path_params.url_key) {
         let cache_endpoint = await this.endpoints.getEndpoint(
           request_path_params

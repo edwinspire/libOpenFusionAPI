@@ -291,7 +291,12 @@ export default class Endpoint extends EventEmitter {
   getDataLog(log_level, request, reply) {
     let handler_param = request?.openfusionapi?.handler?.params || {};
 
+    if (handler_param?.idendpoint == '68a44349-b035-466f-a1c6-f90f3f2813bb') {
+      return undefined;
+    }
+
     let data_log = {
+      trace_id: request.headers["ofapi-trace-id"],
       timestamp: new Date(),
       idapp: handler_param?.idapp ?? default_id_app, // Es un id por defecto temporal
       idendpoint: handler_param?.idendpoint ?? default_id_app, // Es un id por defecto temporal
