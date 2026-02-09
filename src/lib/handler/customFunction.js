@@ -1,5 +1,5 @@
 import { schema_return_customFunction } from "./json_schemas.js";
-import { setCacheReply } from "./utils.js";
+import { setCacheReply, replyException } from "./utils.js";
 
 import Ajv from "ajv";
 const ajv = new Ajv({ removeAdditional: true, allErrors: true });
@@ -67,14 +67,7 @@ export const customFunction = async (
     setCacheReply($_REPLY_, fnresult.data);
     $_REPLY_.code(fnresult.code || 200).send(fnresult.data);
   } catch (err) {
-    console.trace(err);
+    replyException($_REQUEST_, $_REPLY_, error);
 
-    const safeError = {
-      error: err?.message || "Internal error",
-      timestamp: new Date().toISOString(),
-    };
-
-    //setCacheReply($_REPLY_, safeError);
-    $_REPLY_.code(500).send(safeError);
   }
 };

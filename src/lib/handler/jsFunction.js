@@ -1,4 +1,5 @@
 import { functionsVars } from "../server/functionVars.js";
+import { replyException } from "./utils.js";
 
 export const jsFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
@@ -29,13 +30,8 @@ export const jsFunction = async (
 
     response.code(200).send(result_fn.data);
   } catch (error) {
-    console.trace(error);
-    //setCacheReply(response, error); Error no se debe cachear
-    if (error.message.includes("Error creating function")) {
-      error.message = error.message + " - Check your code.";
-    }
-    response
-      .code(error.statusCode == null ? 500 : error.statusCode)
-      .send({ error: error.message });
+    replyException($_REQUEST_, response, error);
   }
+
+
 };

@@ -1,5 +1,6 @@
 // @ts-ignore
 import uFetch from "@edwinspire/universal-fetch";
+import { replyException } from "./utils.js";
 
 export const fetchFunction = async (
   /** @type {{
@@ -113,9 +114,6 @@ export const fetchFunction = async (
 
     response.code(resp.status).send(r);
   } catch (error) {
-    //setCacheReply(response, error);
-    // @ts-ignore
-    console.trace(error);
-    response.code(500).send({ error: error.message });
+    replyException($_REQUEST_, response, error);
   }
 };

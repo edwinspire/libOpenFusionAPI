@@ -2,6 +2,7 @@ import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
 import { setCacheReply } from "./utils.js";
 import { parseQualifiedName } from "../db/utils.js";
+import { replyException } from "./utils.js";
 
 const connections = new Map();
 const MAX_CONNECTIONS = 50;
@@ -161,14 +162,7 @@ export const sqlFunctionInsertBulk = async (
       reply.code(400).send(alt_resp);
     }
   } catch (error) {
-    console.trace(error);
-
-    // setCacheReply(reply, { error: error });
-    if (error.name === "SequelizeDatabaseError") {
-      reply.code(500).send({ error: "Internal Database Error" });
-    } else {
-      reply.code(500).send({ error: "Internal Server Error" });
-    }
+    replyException($_REQUEST_, reply, error);
   }
 };
 

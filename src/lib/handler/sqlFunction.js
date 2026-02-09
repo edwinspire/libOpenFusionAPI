@@ -1,6 +1,6 @@
 import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
-import { setCacheReply } from "./utils.js";
+import { setCacheReply, replyException } from "./utils.js";
 
 const connections = new Map();
 const MAX_CONNECTIONS = 50;
@@ -186,14 +186,6 @@ export const sqlFunction = async (
     }
 
   } catch (error) {
-    //console.log(error);
-    console.trace(error);
-    // setCacheReply(reply, { error: error });
-
-    if (error.name == "SequelizeDatabaseError") {
-      reply.code(500).send({ error: "Internal Database Error" });
-    } else {
-      reply.code(500).send({ error: "Internal Server Error" });
-    }
+    replyException($_REQUEST_, response, error);
   }
 };

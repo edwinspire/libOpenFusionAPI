@@ -30,4 +30,18 @@ export const isValidHttpStatusCode = (code) => {
   return validRanges.some(([min, max]) => code >= min && code <= max);
 };
 
+export const replyException = (request, reply, error) => {
+  console.trace(error);
+  let trace_id = request?.headers?.["ofapi-trace-id"] || "";
+
+  if (reply.openfusionapi?.lastResponse) {
+    reply.openfusionapi.lastResponse.exception = error;
+  }
+
+  reply
+    .code(error.statusCode == null ? 500 : error.statusCode)
+    .send({ error: error.message, trace_id });
+  return;
+};
+
 

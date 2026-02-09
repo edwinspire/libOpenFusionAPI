@@ -12,6 +12,7 @@ import { botTelegramFunction } from "./botTelegramFunction.js";
 import fs from 'fs/promises';
 import path from "path";
 import { fileURLToPath } from "url";
+import { replyException } from "./utils.js";
 
 // Obtiene la ruta del archivo actual (__filename)
 const __filename = fileURLToPath(import.meta.url);
@@ -73,7 +74,7 @@ export const Handlers = {
     description:
       "Proporciona funcionalidades de procesamiento de múltiples canales.",
   },
-   TELEGRAM_BOT: {
+  TELEGRAM_BOT: {
     label: "Telegram Bot",
     fn: botTelegramFunction,
     description:
@@ -124,15 +125,11 @@ export async function runHandler(request, response, method, server_data) {
       response
         .code(404)
         .send({ error: `Handler '${method.handler}' no es válido` });
-        return;
+      return;
     }
 
     await handler.fn(request, response, method, server_data);
   } catch (err) {
-    console.error(err);
-    response.code(500).send({
-      error: `Error to execute Handler: '${method.handler}'`,
-      message: err.message,
-    });
+    replyException(request, response, err);
   }
 }
