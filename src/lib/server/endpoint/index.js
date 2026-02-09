@@ -12,7 +12,7 @@ import { createFunctionVM } from "../createFunctionVM.js";
 import hash from "object-hash";
 import Ajv from "ajv";
 const ajv = new Ajv();
-const default_id_app = "68a44349-b035-466f-a1c6-f90f3f2813bb";
+const default_id_app = "62a03367-e2d5-459c-b236-b6878f546142";
 
 export default class Endpoint extends EventEmitter {
   internal_endpoint = {};
@@ -291,9 +291,11 @@ export default class Endpoint extends EventEmitter {
   getDataLog(log_level, request, reply) {
     let handler_param = request?.openfusionapi?.handler?.params || {};
 
+    /*
     if (handler_param?.idendpoint == '68a44349-b035-466f-a1c6-f90f3f2813bb') {
       return undefined;
     }
+    */
 
     let data_log = {
       trace_id: request.headers["ofapi-trace-id"],
@@ -314,7 +316,7 @@ export default class Endpoint extends EventEmitter {
       params: undefined,
       response_time: reply?.openfusionapi?.lastResponse?.responseTime,
       response_data: undefined,
-      message: undefined,
+      message: reply?.openfusionapi?.lastResponse?.exception,
       url: request.url,
     };
 

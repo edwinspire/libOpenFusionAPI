@@ -1,5 +1,6 @@
 import { functionsVars } from "../server/functionVars.js";
 import mongoose from "mongoose";
+import { replyException } from "./utils.js";
 
 export const getMongoDBHandlerParams = (code) => {
   let paramsMongo = {};
@@ -99,10 +100,6 @@ export const mongodbFunction = async (
 
     response.code(200).send(result_fn.data);
   } catch (error) {
-    //setCacheReply(response, error);
-    console.trace(error);
-    response
-      .code(error.statusCode == null ? 500 : error.statusCode)
-      .send(error);
+    replyException($_REQUEST_, response, error);
   }
 };

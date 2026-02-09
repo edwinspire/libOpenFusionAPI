@@ -997,9 +997,15 @@ export const LogEntry = dbsequelize.define(
       },
     },
     message: {
-      type: DataTypes.TEXT,
+      type: JSON_TYPE,
       allowNull: true,
-      comment: "Message log",
+      get() {
+        return JSON_ADAPTER.getData(this, "message");
+      },
+      set(value) {
+        JSON_ADAPTER.setData(this, "message", value);
+      },
+      comment: "JSON Message log",
     },
   },
   {

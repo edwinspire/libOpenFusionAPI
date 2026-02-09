@@ -1,4 +1,4 @@
-import { setCacheReply } from "./utils.js";
+import { setCacheReply, replyException } from "./utils.js";
 
 export const textFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
@@ -38,10 +38,7 @@ export const textFunction = async (
       .header("Content-Disposition", `attachment; filename="${filename}"`)
       .send(textConfig.payload);
   } catch (error) {
-    console.trace(error);
-    //    setCacheReply(response, { error: error });
-    // @ts-ignore
-    response.code(500).send(error);
+    replyException(request, response, error);
   }
 };
 

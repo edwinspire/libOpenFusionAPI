@@ -2,6 +2,7 @@ import soap from "soap";
 import Ajv from "ajv";
 import { schema_input_genericSOAP } from "./json_schemas.js";
 import { mergeObjects } from "../server/utils.js";
+import { replyException } from "./utils.js";
 //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const ajv = new Ajv();
@@ -113,10 +114,7 @@ export const soapFunction = async (
 
     response.code(200).send(soap_response);
   } catch (error) {
-    //    setCacheReply(response, error);
-    console.trace(error);
-    // @ts-ignore
-    response.code(500).send(error);
+    replyException($_REQUEST_, response, error);
   }
 
   ////

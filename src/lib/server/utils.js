@@ -57,6 +57,8 @@ export const getRequestData = (request) => {
 };
 
 export async function emitHook(data) {
+  
+  /*
   try {
     const fnUrlae = new URLAutoEnvironment({ environment: "prd", port: PORT });
     const uF = fnUrlae.create(internal_url_post_hooks, false);
@@ -67,6 +69,9 @@ export async function emitHook(data) {
     console.error(error);
     return { error: "Error validating webhook data", data: error };
   }
+  */
+  // TODO: Se desactiva la emisión de hooks por ahora
+  return {};
 }
 
 export const getUUID = () => {

@@ -1,5 +1,5 @@
 import { mergeObjects } from "../server/utils.js";
-import { setCacheReply } from "./utils.js";
+import { setCacheReply, replyException } from "./utils.js";
 import hana from "@sap/hana-client";
 
 const connections = new Map();
@@ -153,11 +153,7 @@ export const sqlHana = async (
       reply.code(400).send(alt_resp);
     }
   } catch (error) {
-    console.trace(error);
-    // setCacheReply(reply, error);
-    // @ts-ignore
-    // @ts-ignore
-    reply.code(500).send({ error: "Internal Server Error" });
+    replyException(request, reply, error);
   }
 };
 
