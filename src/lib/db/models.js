@@ -1040,7 +1040,7 @@ export const LogEntry = dbsequelize.define(
         name: "idx_logs_trace_id",
         fields: ["trace_id"],
       },
-    ],
+    ],  
   },
 );
 
