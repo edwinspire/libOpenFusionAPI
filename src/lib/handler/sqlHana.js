@@ -21,7 +21,7 @@ const getConnection = async (configHash, paramsSQL) => {
     if (now - entry.created > CACHE_TTL) {
       console.log(`HANA Pool expired: ${configHash}`);
       try {
-        entry.pool.disconnect();
+        entry.pool.clear();
       } catch (e) {
         console.error("Error disconnecting expired pool", e);
       }
@@ -49,7 +49,7 @@ const getConnection = async (configHash, paramsSQL) => {
       console.log(`Closing idle HANA pool: ${oldestHash}`);
       const oldEntry = connections.get(oldestHash);
       try {
-        oldEntry.pool.disconnect();
+        oldEntry.pool.clear();
       } catch (err) {
         console.error("Error closing idle HANA pool:", err);
       }
@@ -101,12 +101,12 @@ export const sqlHana = async (
     }
 
     if (data_request) {
-      // Obtiene los parametros de conexión
+      // 104: Securely merge connection parameters
       if (data_request.connection) {
         let connection_json;
         try {
           connection_json =
-            typeof data_request.connection == "object"
+            typeof data_request.connection === "object"
               ? data_request.connection
               : JSON.parse(data_request.connection);
         } catch (e) {
@@ -114,7 +114,34 @@ export const sqlHana = async (
           return;
         }
 
-        paramsSQL.config = mergeObjects(paramsSQL.conexion, connection_json);
+        // SECURITY: Only allow specific overrides (uid, pwd)
+        // Prevent clients from changing the host/port or other critical configs
+        const ALLOWED_OVERRIDES = ["uid", "pwd", "user", "password"];
+        const safe_connection_params = {};
+
+        for (const key of Object.keys(connection_json)) {
+          if (ALLOWED_OVERRIDES.includes(key)) {
+            safe_connection_params[key] = connection_json[key];
+          }
+        }
+
+        paramsSQL.config = mergeObjects(paramsSQL.conexion, safe_connection_params);
+      }
+
+      // Ensure base config exists if no override was provided
+      if (!paramsSQL.config && paramsSQL.conexion) {
+        paramsSQL.config = { ...paramsSQL.conexion };
+      }
+
+      // Initialize defaults if needed (e.g., encryption)
+      if (paramsSQL.config) {
+        if (paramsSQL.config.encrypt === undefined) {
+          paramsSQL.config.encrypt = true;
+        }
+        // Common for internal IP usage to skip cert validation
+        if (paramsSQL.config.sslValidateCertificate === undefined) {
+          paramsSQL.config.sslValidateCertificate = false;
+        }
       }
 
       //      console.log(paramsSQL);
@@ -240,7 +267,7 @@ function executeQuery(pool, command, params_bind, options) {
     }
 
     // 2. Ejecución con Pool
-    const conn = pool.getConnection(); // Obtener conexión del pool
+
 
 
     pool.getConnection((err, connection) => {

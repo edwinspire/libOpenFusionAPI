@@ -118,6 +118,11 @@ export const sqlFunctionInsertBulk = async (
         if (paramsSQL.table_name && paramsSQL.table_name.length > 0) {
           // Verificar las configuraciones minimas
           if (paramsSQL && paramsSQL.config.options) {
+            // Desactiva el log por defecto si no está definido explícitamente
+            if (paramsSQL.config.options.logging === undefined) {
+              paramsSQL.config.options.logging = false;
+            }
+
             const configHash = JSON.stringify({
               db: paramsSQL.config.database,
               user: paramsSQL.config.username,
