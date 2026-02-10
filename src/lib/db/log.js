@@ -115,11 +115,11 @@ export const getLogs = async (options = {}) => {
       start_date,
       end_date,
       idendpoint,
-      //      level,
+      log_level,
       method,
       status_code,
       limit = 1000,
-      //      offset = 0,
+      offset = 0,
       order = "timestamp",
       orderDirection = "DESC",
       trace_id,
@@ -139,12 +139,10 @@ export const getLogs = async (options = {}) => {
       throw new Error("El límite debe ser mayor a 0");
     }
 
-    /*
     // Validar offset
     if (offset < 0) {
       throw new Error('El offset no puede ser negativo');
     }
-    */
 
     // Validar dirección de orden
     const validOrderDirections = ["ASC", "DESC"];
@@ -213,17 +211,15 @@ export const getLogs = async (options = {}) => {
 
     // === OTROS FILTROS (solo si se proporcionan) ===
 
-    /*
-    // Filtro por level
-    if (level !== undefined && level !== null) {
-      if (!Number.isInteger(level) || level < -32768 || level > 32767) {
+    // Filtro por log_level
+    if (log_level !== undefined && log_level !== null) {
+      if (!Number.isInteger(log_level) || log_level < 1 || log_level > 3) {
         throw new Error(
-          "level debe ser un entero entre -32768 y 32767 (SMALLINT)"
+          "log_level debe ser un entero entre 1 y 3 (SMALLINT)"
         );
       }
-      whereConditions.level = level;
+      whereConditions.log_level = log_level;
     }
-    */
 
     if (trace_id) {
       whereConditions.trace_id = trace_id;
@@ -271,9 +267,11 @@ export const getLogs = async (options = {}) => {
         "timestamp",
         "idapp",
         "idendpoint",
+        "trace_id",
         "url",
         "method",
         "status_code",
+        "log_level",
         "user_agent",
         "client",
         "req_headers",
@@ -281,10 +279,11 @@ export const getLogs = async (options = {}) => {
         "response_time",
         "response_data",
         "message",
+        
       ],
       order: [[order, orderDirection.toUpperCase()]],
       limit: parseInt(limit),
-      // offset: parseInt(offset),
+      offset: parseInt(offset),
       raw: raw, // Devolver objetos planos si se solicita
     };
 

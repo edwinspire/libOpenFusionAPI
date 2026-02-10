@@ -889,6 +889,13 @@ export const LogEntry = dbsequelize.define(
       defaultValue: 0,
       comment: "Response Status Code",
     },
+    // Niveles de log: 1 (Basic), 2 (Normal), 3 (Full)
+    log_level: {
+      type: DataTypes.SMALLINT,
+      allowNull: true,
+      defaultValue: 1,
+      comment: "Log Level: 1=Basic, 2=Normal, 3=Full",
+    },
 
     price_by_request: {
       type: DataTypes.INTEGER,
@@ -1040,7 +1047,12 @@ export const LogEntry = dbsequelize.define(
         name: "idx_logs_trace_id",
         fields: ["trace_id"],
       },
-    ],  
+      // 5. Index for status_code (error analysis)
+      {
+        name: "idx_logs_status_code",
+        fields: ["status_code"],
+      },
+    ],
   },
 );
 

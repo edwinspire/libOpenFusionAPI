@@ -291,12 +291,6 @@ export default class Endpoint extends EventEmitter {
   getDataLog(log_level, request, reply) {
     let handler_param = request?.openfusionapi?.handler?.params || {};
 
-    /*
-    if (handler_param?.idendpoint == '68a44349-b035-466f-a1c6-f90f3f2813bb') {
-      return undefined;
-    }
-    */
-
     let data_log = {
       trace_id: request.headers["ofapi-trace-id"],
       timestamp: new Date(),
@@ -318,38 +312,83 @@ export default class Endpoint extends EventEmitter {
       response_data: undefined,
       message: reply?.openfusionapi?.lastResponse?.exception,
       url: request.url,
+      log_level: log_level, // Added log_level to the log entry
     };
 
     //  level =>  0: Disabled, 1 : basic, 2 : Normal, 3 : Full
     data_log.client = getIPFromRequest(request);
 
-    switch (log_level) {
-      case 0:
-        data_log = undefined;
-        break;
-      case 2:
-        data_log.req_headers = request.headers;
-        data_log.res_headers = reply.getHeaders();
-        data_log.user_agent = request.headers["user-agent"];
-        break;
-      case 3:
-        data_log.req_headers = request.headers;
-        data_log.res_headers = reply.getHeaders();
+    // Common logic for levels > 0
+    if (log_level > 0) {
+      if (log_level >= 2) {
+        // Level 2 (Normal): Basic + query, params (sanitized), body (truncated)
         data_log.query = request.query;
-        data_log.body = request.body;
         data_log.user_agent = request.headers["user-agent"];
 
         // Safe param cloning
         // eslint-disable-next-line no-unused-vars
-        const { data_test, headers_test, description, rowkey, ctrl, ...safeParams } = handler_param;
+        const {
+          data_test,
+          headers_test,
+          description,
+          rowkey,
+          ctrl,
+          ...safeParams
+        } = handler_param;
         data_log.params = safeParams;
 
-        data_log.response_data =
-          reply?.openfusionapi?.lastResponse?.data ?? undefined;
-        break;
+        // Truncate body if it's too large (e.g., > 10KB)
+        data_log.body = this.truncateData(request.body);
+      }
+
+      if (log_level >= 3) {
+        // Level 3 (Full): Normal + headers, response_data (truncated)
+        data_log.req_headers = request.headers;
+        data_log.res_headers = reply.getHeaders();
+        data_log.response_data = this.truncateData(
+          reply?.openfusionapi?.lastResponse?.data
+        );
+      }
+    } else {
+      // Level 0: Disabled
+      return undefined;
     }
 
     return data_log;
+  }
+
+  truncateData(data, maxLength = 10240) {
+    if (!data) return undefined;
+
+    try {
+      if (typeof data === 'string') {
+        if (data.length > maxLength) {
+          return data.substring(0, maxLength) + '...[TRUNCATED]';
+        }
+        return data;
+      }
+
+      if (Buffer.isBuffer(data)) {
+        if (data.length > maxLength) {
+          return '[BUFFER TOO LARGE...TRUNCATED]';
+        }
+        // Depending on requirements, we might not want to log raw buffers even if small
+        return '[BUFFER]';
+      }
+
+      if (typeof data === 'object') {
+        const str = JSON.stringify(data);
+        if (str.length > maxLength) {
+          // Safer approach for large objects:
+          return { _truncated: true, message: "Data too large to log" };
+        }
+        return data;
+      }
+    } catch (e) {
+      return '[ERROR TRUNCATING DATA]';
+    }
+
+    return data;
   }
 
   saveLog(request, reply) {
