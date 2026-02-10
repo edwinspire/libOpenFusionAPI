@@ -667,7 +667,7 @@ export default class ServerAPI extends EventEmitter {
                 await manager.stopBot(element.idendpoint);
               }
             } catch (error) {
-              console.error("Error managing bot " + element.idbot, error);
+              console.error("Error managing bot " + element.idbot);
             }
           }
         }
