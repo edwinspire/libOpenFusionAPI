@@ -44,7 +44,8 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
-  CreateOpenFusionAPIToken, getAppVarsObject
+  CreateOpenFusionAPIToken,
+  getAppVarsObject,
 } from "./server/utils.js";
 
 import { validateSchemaMessageWebSocket } from "./server/schemas/index.js";
@@ -72,7 +73,9 @@ const {
 } = process.env;
 
 if (!JWT_KEY) {
-  console.warn("WARNING: JWT_KEY is not defined. Cookies and Tokens may not be secure.");
+  console.warn(
+    "WARNING: JWT_KEY is not defined. Cookies and Tokens may not be secure.",
+  );
 }
 
 const PORT = process.env.PORT || default_port;
@@ -123,7 +126,7 @@ export default class ServerAPI extends EventEmitter {
 
     this.websocketClientEndpoint = new OpenFusionWebsocketClient(
       internal_url_ws(urlSystemPath.Websocket.EventServer),
-      {}
+      {},
     );
 
     this.TasksInterval = new TasksInterval();
@@ -155,7 +158,11 @@ export default class ServerAPI extends EventEmitter {
   }
 
   _removeWsSubscriber(socket) {
-    if (socket.openfusionapi && socket.openfusionapi.channel && socket.openfusionapi.handler) {
+    if (
+      socket.openfusionapi &&
+      socket.openfusionapi.channel &&
+      socket.openfusionapi.handler
+    ) {
       const idendpoint = socket.openfusionapi.handler.params.idendpoint;
       const channel = socket.openfusionapi.channel;
       const key = this._getWsKey(idendpoint, channel);
@@ -192,7 +199,7 @@ export default class ServerAPI extends EventEmitter {
       // Cuando se modifica / borra una variable de aplicación
       this.endpoints.deleteEndpointsByIdApp(
         request?.body?.data?.idapp,
-        request?.body?.data?.environment
+        request?.body?.data?.environment,
       );
     } else if (
       request?.body?.model == prefixTableName("endpoint") &&
@@ -201,7 +208,7 @@ export default class ServerAPI extends EventEmitter {
       // Cuando hay cambios en un endpoint
       this.endpoints.deleteEndpointByidEndpoint(
         request?.body?.data?.idendpoint,
-        request?.body?.data?.environment
+        request?.body?.data?.environment,
       );
     }
   }
@@ -280,9 +287,8 @@ export default class ServerAPI extends EventEmitter {
       }
 
       if (request_path_params && request_path_params.url_key) {
-        let cache_endpoint = await this.endpoints.getEndpoint(
-          request_path_params
-        );
+        let cache_endpoint =
+          await this.endpoints.getEndpoint(request_path_params);
 
         //
         if (cache_endpoint && cache_endpoint.handler) {
@@ -376,7 +382,7 @@ export default class ServerAPI extends EventEmitter {
         try {
           msgObj = JSON.parse(msgString);
           let validate_channel = WebSocketValidateFormatChannelName(
-            msgObj.channel
+            msgObj.channel,
           );
           if (validate_channel.valid) {
             let isValid = validateSchemaMessageWebSocket(msgObj);
@@ -395,20 +401,24 @@ export default class ServerAPI extends EventEmitter {
                         subscribed: false,
                         channel: msgObj.payload.channel,
                         error: validate_channel_subscribe.error,
-                      })
+                      }),
                     );
                   } else {
                     connection.socket.openfusionapi.channel =
                       msgObj.payload.channel;
                     connection.socket.openfusionapi.idclient = getUUID();
-                    this._addWsSubscriber(connection.socket, connection.socket.openfusionapi.handler.params.idendpoint, msgObj.payload.channel);
+                    this._addWsSubscriber(
+                      connection.socket,
+                      connection.socket.openfusionapi.handler.params.idendpoint,
+                      msgObj.payload.channel,
+                    );
 
                     connection.socket.send(
                       JSON.stringify({
                         subscribed: true,
                         channel: msgObj.payload.channel,
                         message: `Subscribed to channel ${msgObj.payload.channel}`,
-                      })
+                      }),
                     );
                   }
                 } else {
@@ -417,7 +427,7 @@ export default class ServerAPI extends EventEmitter {
                       subscribed: false,
                       channel: msgObj.payload.channel,
                       message: `Channel name is required to subscribe`,
-                    })
+                    }),
                   );
                 }
               } else if (
@@ -428,14 +438,15 @@ export default class ServerAPI extends EventEmitter {
                   JSON.stringify({
                     channel: "/pong",
                     payload: {},
-                  })
+                  }),
                 );
               } else if (connection.socket.openfusionapi.idclient) {
                 // Broadcast
                 // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
                 // TODO: Revisar un mecanismo para limitar que un cliente puede enviar mensajes y esté limitado solo a leer mensajes
                 // Broadcast Optimization
-                const idendpoint = connection.socket.openfusionapi.handler.params.idendpoint;
+                const idendpoint =
+                  connection.socket.openfusionapi.handler.params.idendpoint;
                 const channel = connection.socket.openfusionapi.channel;
                 const key = this._getWsKey(idendpoint, channel);
 
@@ -445,18 +456,21 @@ export default class ServerAPI extends EventEmitter {
                     try {
                       if (
                         client_ws.readyState === 1 && // OPEN
-                        client_ws.openfusionapi.idclient != connection.socket.openfusionapi.idclient
+                        client_ws.openfusionapi.idclient !=
+                          connection.socket.openfusionapi.idclient
                       ) {
                         client_ws.send(JSON.stringify(msgObj.payload));
                       }
                     } catch (error) {
-                      connection.socket.send(JSON.stringify({ error: error.message }));
+                      connection.socket.send(
+                        JSON.stringify({ error: error.message }),
+                      );
                     }
                   });
                 }
               } else {
                 connection.socket.send(
-                  JSON.stringify({ error: "Invalid client. Bye." })
+                  JSON.stringify({ error: "Invalid client. Bye." }),
                 );
                 connection.socket.close();
               }
@@ -466,7 +480,7 @@ export default class ServerAPI extends EventEmitter {
               connection.socket.send(
                 JSON.stringify({
                   error: validateSchemaMessageWebSocket.errors,
-                })
+                }),
               );
               connection.socket.close();
             }
@@ -476,13 +490,13 @@ export default class ServerAPI extends EventEmitter {
               JSON.stringify({
                 error: "Invalid channel name format",
                 message: msgString,
-              })
+              }),
             );
             connection.socket.close();
           }
         } catch (error) {
           connection.socket.send(
-            JSON.stringify({ error: error.message, message: msgString })
+            JSON.stringify({ error: error.message, message: msgString }),
           );
           connection.socket.close();
         }
@@ -538,7 +552,7 @@ export default class ServerAPI extends EventEmitter {
       ) {
         let hash_request = this.endpoints.hash_request(
           request,
-          handlerEndpoint.params.url_key
+          handlerEndpoint.params.url_key,
         );
 
         reply.openfusionapi.lastResponse.hash_request = hash_request;
@@ -581,7 +595,7 @@ export default class ServerAPI extends EventEmitter {
       PORT,
       PATH_APP_FUNCTIONS,
       JWT_KEY,
-      HOST
+      HOST,
     );
 
     await this.fastify.listen({ port: PORT, host: host });
@@ -611,7 +625,7 @@ export default class ServerAPI extends EventEmitter {
       if (this.fastify.websocketServer.clients.size > 1) {
         this._emitEndpointEvent(
           "system_information",
-          await getSystemInfoDynamic()
+          await getSystemInfoDynamic(),
         );
 
         for (const client_ws of this.fastify.websocketServer.clients) {
@@ -620,13 +634,13 @@ export default class ServerAPI extends EventEmitter {
           if (
             client_ws.openfusionapi?.channel == "/server/events" &&
             client_ws?.openfusionapi?.handler?.params?.url_key?.startsWith(
-              urlSystemPath.Websocket.EventServer
+              urlSystemPath.Websocket.EventServer,
             )
           ) {
             //   console.log("---");
             this._emitEndpointEvent(
               "system_information",
-              await getSystemInfoDynamic()
+              await getSystemInfoDynamic(),
             );
             return;
           }
@@ -636,46 +650,53 @@ export default class ServerAPI extends EventEmitter {
       }
     }, 3000);
 
-
     const manager = new BotManager();
 
     console.log("--- Starting System (grammY edition) ---");
 
     setInterval(async () => {
-      const apps = await getApplicationsTreeByFilters({ endpoint: { handler: 'TELEGRAM_BOT' } });
-      //console.log("bots", bots);
+      try {
+        const apps = await getApplicationsTreeByFilters({
+          endpoint: { handler: "TELEGRAM_BOT" },
+        });
+        //console.log("bots", bots);
 
-      for (let index = 0; index < apps.length; index++) {
-        const app = apps[index];
+        for (let index = 0; index < apps.length; index++) {
+          const app = apps[index];
 
-        if (app.endpoints && app.endpoints.length > 0) {
+          if (app.endpoints && app.endpoints.length > 0) {
+            let appvars_obj = {};
 
-          let appvars_obj = {};
+            if (app.enabled) {
+              appvars_obj = getAppVarsObject(app.vrs);
+            }
 
-          if (app.enabled) {
-            appvars_obj = getAppVarsObject(app.vrs);
-          }
-
-          for (let index = 0; index < app.endpoints.length; index++) {
-            const element = app.endpoints[index];
-            try {
-              if (element.enabled && app.enabled) {
-                console.log("Starting Bot " + element.idendpoint);
-                await manager.startBot(element.idendpoint, element.custom_data.token, element.code, element.environment, appvars_obj[element.environment]);
-              } else {
-                console.log("Stopping Bot " + element.idendpoint);
-                await manager.stopBot(element.idendpoint);
+            for (let index = 0; index < app.endpoints.length; index++) {
+              const element = app.endpoints[index];
+              try {
+                if (element.enabled && app.enabled) {
+                  console.log("Starting Bot " + element.idendpoint);
+                  await manager.startBot(
+                    element.idendpoint,
+                    element.custom_data.token,
+                    element.code,
+                    element.environment,
+                    appvars_obj[element.environment],
+                  );
+                } else {
+                  console.log("Stopping Bot " + element.idendpoint);
+                  await manager.stopBot(element.idendpoint);
+                }
+              } catch (error) {
+                console.error("Error managing bot " + element.idbot);
               }
-            } catch (error) {
-              console.error("Error managing bot " + element.idbot);
             }
           }
         }
-
+      } catch (error) {
+        console.error("Error in bot management loop:", error);
       }
     }, 10000);
-
-
   }
   _check_auth_Bearer(handler, data_aut) {
     // En este metodo se debe validar de que clase de usuario es, si es del sistema o si es usuario externo
@@ -852,7 +873,7 @@ export default class ServerAPI extends EventEmitter {
               } else {
                 console.log("Ruta creada exitosamente.");
               }
-            }
+            },
           );
         } else {
           console.log("La ruta ya existe.");
@@ -876,7 +897,7 @@ export default class ServerAPI extends EventEmitter {
       this._appendFunctionsFiles(
         data_js.file,
         data_js.data.appName,
-        data_js.data.environment
+        data_js.data.environment,
       );
     });
   }
@@ -911,7 +932,7 @@ export default class ServerAPI extends EventEmitter {
             _app_name,
             environment,
             fname.replace(".js", ""),
-            taskModule.default
+            taskModule.default,
           );
         }
       }
