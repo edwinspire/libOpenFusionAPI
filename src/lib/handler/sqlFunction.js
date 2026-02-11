@@ -91,14 +91,16 @@ export const sqlFunction = async (
     if (data_request) {
       // Obtiene los parametros de conexión
       let connection_json;
-      try {
-        connection_json =
-          typeof data_request.connection == "object"
-            ? data_request.connection
-            : JSON.parse(data_request.connection);
-      } catch (e) {
-        reply.code(400).send({ error: "Invalid JSON in connection params" });
-        return;
+      if (data_request?.connection) {
+        try {
+          connection_json =
+            typeof data_request.connection == "object"
+              ? data_request.connection
+              : JSON.parse(data_request.connection);
+        } catch (e) {
+          reply.code(400).send({ error: "Invalid JSON in connection params" });
+          return;
+        }
       }
 
       paramsSQL.config = mergeObjects(paramsSQL.config, connection_json);
