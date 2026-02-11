@@ -91,11 +91,9 @@ export const sqlHana = async (
     }
     let data_request = {};
 
-
     if (request.method == "GET") {
-      // Obtiene los datos del query
-      data_request.params = request.query;
-      //      console.log(data_request.params);
+      // Compatibilidad: los query params del GET funcionan como bind
+      data_request.bind = request.query;
     } else if (request.method == "POST") {
       data_request = request.body || {}; // Se agrega un valor por default
     }
@@ -150,10 +148,52 @@ export const sqlHana = async (
         const configHash = JSON.stringify(paramsSQL.config);
         const pool = await getConnection(configHash, paramsSQL);
 
+        // Obtener parámetros de bind o replacements (ambos válidos)
+        let bind_json = undefined;
+
+        // Prioridad: replacements > bind > params (retrocompatibilidad)
+        if (data_request.replacements) {
+          bind_json = data_request.replacements;
+        } else if (data_request.bind) {
+          try {
+            bind_json = typeof data_request.bind === "object"
+              ? data_request.bind
+              : JSON.parse(data_request.bind);
+          } catch (e) {
+            reply.code(400).send({ error: "Invalid JSON in bind params" });
+            return;
+          }
+        } else if (data_request.params) {
+          try {
+            bind_json = typeof data_request.params === "object"
+              ? data_request.params
+              : JSON.parse(data_request.params);
+          } catch (e) {
+            reply.code(400).send({ error: "Invalid JSON in params" });
+            return;
+          }
+        }
+
+        // Estandarizar keys: limpiar prefijos (:, $, @)
+        let clean_params = undefined;
+        if (bind_json) {
+          if (Array.isArray(bind_json)) {
+            clean_params = bind_json;
+          } else {
+            clean_params = {};
+            for (let param in bind_json) {
+              const key = param.replace(/^[:$@]/, '');
+              const valor = bind_json[param];
+              clean_params[key] = (typeof valor === "object" && valor !== null)
+                ? JSON.stringify(valor) : valor;
+            }
+          }
+        }
+
         let result = await executeQuery(
           pool,
           paramsSQL.query,
-          data_request.params,
+          clean_params,
           paramsSQL.options
         );
 

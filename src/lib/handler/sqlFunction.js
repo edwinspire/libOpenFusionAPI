@@ -126,16 +126,31 @@ export const sqlFunction = async (
       }
     }
 
-    for (let param in bind_json) {
-      const valor = bind_json[param];
-      if (typeof valor === "object" && valor !== null) {
-        data_bind[param] = JSON.stringify(valor);
+    // Procesar y estandarizar los parámetros del bind
+    if (bind_json) {
+      if (Array.isArray(bind_json)) {
+        data_bind = bind_json;
       } else {
-        data_bind[param] = valor;
+        for (let param in bind_json) {
+          // Limpiar prefijos (:, $, @) para estandarizar las keys
+          const key = param.replace(/^[:$@]/, '');
+          const valor = bind_json[param];
+          data_bind[key] = (typeof valor === "object" && valor !== null)
+            ? JSON.stringify(valor) : valor;
+        }
       }
     }
 
-    // console.warn(bind_json, data_bind);
+    // Auto-detectar si la query usa :key (replacements) o $key (bind)
+    // Según docs Sequelize: replacements usa ":" y bind usa "$"
+    if (paramsSQL.query && !replacements && !Array.isArray(data_bind)
+      && Object.keys(data_bind).length > 0) {
+      const hasColonParams = /:[a-zA-Z_][a-zA-Z0-9_]*/.test(paramsSQL.query);
+      if (hasColonParams) {
+        replacements = data_bind;
+        data_bind = {};
+      }
+    }
 
     if (paramsSQL.config.database) {
       //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
@@ -153,22 +168,16 @@ export const sqlFunction = async (
 
         let result_query = undefined;
 
-        if (replacements) {
-          result_query = await sequelize.query(paramsSQL.query, {
-            replacements: replacements,
+        const queryOptions = { type: query_type, logging: false };
 
-            type: query_type,
-            //           logging: console.log, // Imprime el SQL en consola
-            logging: false, // Imprime el SQL en consola
-          });
-        } else {
-          result_query = await sequelize.query(paramsSQL.query, {
-            bind: bind_json,
-            type: query_type,
-            //         logging: console.log, // Imprime el SQL en consola
-            logging: false, // Imprime el SQL en consola
-          });
+        if (replacements) {
+          queryOptions.replacements = replacements;
+        } else if (data_bind && (Array.isArray(data_bind)
+          ? data_bind.length > 0 : Object.keys(data_bind).length > 0)) {
+          queryOptions.bind = data_bind;
         }
+
+        result_query = await sequelize.query(paramsSQL.query, queryOptions);
 
         //  console.log('-------------> ', result_query.toSQL())
 
