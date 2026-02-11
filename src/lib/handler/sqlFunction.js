@@ -188,6 +188,6 @@ export const sqlFunction = async (
     }
 
   } catch (error) {
-    replyException($_REQUEST_, response, error);
+    replyException(request, reply, error);
   }
 };
