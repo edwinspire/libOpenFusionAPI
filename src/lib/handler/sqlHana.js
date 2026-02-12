@@ -175,6 +175,8 @@ export const sqlHana = async (
         }
 
         // Estandarizar keys: limpiar prefijos (:, $, @)
+        // NOTA: No se hace JSON.stringify de arrays porque executeQuery los necesita
+        // para expandir IN(:param) a IN(?, ?, ...)
         let clean_params = undefined;
         if (bind_json) {
           if (Array.isArray(bind_json)) {
@@ -184,8 +186,14 @@ export const sqlHana = async (
             for (let param in bind_json) {
               const key = param.replace(/^[:$@]/, '');
               const valor = bind_json[param];
-              clean_params[key] = (typeof valor === "object" && valor !== null)
-                ? JSON.stringify(valor) : valor;
+              if (Array.isArray(valor)) {
+                // Preservar arrays para expansión IN(?, ?, ...)
+                clean_params[key] = valor;
+              } else if (typeof valor === "object" && valor !== null) {
+                clean_params[key] = JSON.stringify(valor);
+              } else {
+                clean_params[key] = valor;
+              }
             }
           }
         }
