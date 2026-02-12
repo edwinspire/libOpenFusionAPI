@@ -1,9 +1,9 @@
-import vm from "node:vm"; 
+import vm from "node:vm";
 import { Blob } from "node:buffer";
 import fs from "fs";
 
 const TIMEOUT_VM_MS = 1 * 60 * 1000; // 1 minute
-const TIMEOUT_SANDBOX_JAVASCRIPT = process.env.TIMEOUT_SANDBOX_JAVASCRIPT && Number(process.env.TIMEOUT_SANDBOX_JAVASCRIPT) > 0 ? Number(process.env.TIMEOUT_SANDBOX_JAVASCRIPT) : TIMEOUT_VM_MS;
+//const TIMEOUT_SANDBOX_JAVASCRIPT = process.env.TIMEOUT_SANDBOX_JAVASCRIPT && Number(process.env.TIMEOUT_SANDBOX_JAVASCRIPT) > 0 ? Number(process.env.TIMEOUT_SANDBOX_JAVASCRIPT) : TIMEOUT_VM_MS;
 
 /**
  * Crea una función async ejecutable de forma segura usando vm
@@ -24,11 +24,11 @@ export const createFunctionVM = async (
   const controller = new AbortController();
   const signal = controller.signal;
   
-  // Si el fetch tarda más de 30 segundos, lo cancelamos.
+   // Si el código tarda más del timeout permitido (timeoutVM + 1s), abortamos.
   let to = setTimeout(() => {
     console.log('Timeout alcanzado, abortando vm...');
     controller.abort();
-  }, ${timeoutVM - 1}); 
+  }, ${timeoutVM + 1000}); 
 
         ${code}
 
@@ -48,7 +48,6 @@ clearTimeout(to);
       const defaults = {
         // Valores explícitamente permitidos
         setTimeout,
-        clearInterval,
         clearTimeout,
         clearInterval,
         AbortController,
@@ -63,7 +62,7 @@ clearTimeout(to);
         Boolean,
         Promise,
         FormData,
-        Blob, 
+        Blob,
         Buffer,
         RegExp,
         parseInt,
@@ -87,7 +86,7 @@ clearTimeout(to);
 
       // Ejecutar
       return await script.runInContext(context, {
-        timeout: 30*1000,
+        timeout: timeoutVM + 5000,
         breakOnSigint: true, // opcional
       });
     };
@@ -98,4 +97,3 @@ clearTimeout(to);
     };
   }
 };
- 
