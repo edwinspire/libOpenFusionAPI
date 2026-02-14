@@ -17,6 +17,7 @@ export const customFunction = async (
       const msg = `URL: ${$_REQUEST_.url} - Function '${method.code}' not found.`;
       console.error(msg);
       $_REPLY_.code(500).send({ error: msg });
+      return;
     }
 
     // Obtener datos seguros del request
@@ -61,13 +62,14 @@ export const customFunction = async (
       //     setCacheReply($_REPLY_, { errors });
       console.error("Response validation errors:", errors);
       $_REPLY_.code(500).send(errors);
+      return;
     }
 
     // Respuesta válida
     setCacheReply($_REPLY_, fnresult.data);
     $_REPLY_.code(fnresult.code || 200).send(fnresult.data);
   } catch (err) {
-    replyException($_REQUEST_, $_REPLY_, error);
+    replyException($_REQUEST_, $_REPLY_, err);
 
   }
 };
