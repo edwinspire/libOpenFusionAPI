@@ -74,12 +74,19 @@ const getSoapClient = async (wsdl, options) => {
 export const soapFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
-  /** @type {{ handler?: string; code: any; }} */ method
+  /** @type {{ handler?: string; code: any; }} */ endpoint
 ) => {
   try {
     // console.log(">>>>>>>>>>>>> method.code -----> ", method.code);
+    let SOAPParameters;
 
-    let SOAPParameters = JSON.parse(method.code);
+    if (endpoint?.custom_data?.wsdl) {
+      // Toma el wsdl del custom_data, que es cuando el usuario ingresa los parametros manualmente
+      SOAPParameters = endpoint?.custom_data;
+    } else {
+      // Toma el wsdl del code, que es cuando el usuario usa una variable de aplicación
+      SOAPParameters = JSON.parse(endpoint.code);
+    }
 
     //    console.log(SOAPParameters);
     let dataRequest = {};

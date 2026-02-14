@@ -117,18 +117,18 @@ export const getHandlerDoc = async (handler) => {
 /* ============================================================
    EJECUTAR HANDLER
    ============================================================ */
-export async function runHandler(request, response, method, server_data) {
+export async function runHandler(request, response, endpoint, server_data) {
   try {
-    const handler = Handlers[method.handler];
+    const handler = Handlers[endpoint.handler];
 
     if (!handler || !handler.fn) {
       response
         .code(404)
-        .send({ error: `Handler '${method.handler}' no es válido` });
+        .send({ error: `Handler '${endpoint.handler}' no es válido` });
       return;
     }
 
-    await handler.fn(request, response, method, server_data);
+    await handler.fn(request, response, endpoint, server_data);
   } catch (err) {
     replyException(request, response, err);
   }

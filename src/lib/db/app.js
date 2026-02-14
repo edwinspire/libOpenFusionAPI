@@ -8,6 +8,7 @@ import { getAppVarsByIdApp, upsertAppVar } from "./appvars.js";
 import { default_apps } from "./default/index.js";
 import { v4 as uuidv4 } from "uuid";
 import { system_app } from "./default/system.js";
+import { EOF } from "node:dns";
 
 function replaceUFETCH(str) {
   if (typeof str !== "string") str = String(str);
@@ -283,6 +284,14 @@ export const restoreAppFromBackup = async (app) => {
             if (ep.handler == "JS" || ep.handler == "MONGODB") {
               // Este bloque es para compatibilidad con versiones antiguas del backup
               ep.code = replace_Old_FUNCTIONS_NAMES(ep.code);
+            } else if (ep.handler == "SOAP") {
+              try {
+                // Este bloque permite subir un backup de un endpoint SOAP de una version anterior
+                ep.custom_data = JSON.parse(ep.code);
+              } catch (error) {
+                // Deja como está porque se debe estar usando una variable de aplicación
+                console.error("Error parsing SOAP code:", error);
+              }
             }
 
             return upsertEndpoint(ep);
