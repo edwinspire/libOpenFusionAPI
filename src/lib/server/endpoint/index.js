@@ -11,6 +11,7 @@ import { CreateMCPHandler } from "./handlerBuild/mcp.js";
 import { createFunctionVM } from "../createFunctionVM.js";
 import hash from "object-hash";
 import Ajv from "ajv";
+import { type } from "node:os";
 const ajv = new Ajv();
 const default_id_app = "62a03367-e2d5-459c-b236-b6878f546142";
 
@@ -566,6 +567,13 @@ export default class Endpoint extends EventEmitter {
             );
 
             //        console.log("Se han reemplazado");
+          } 
+          
+          if (typeof returnHandler?.params?.custom_data === 'string' && (endpointData.handler == "SQL" || endpointData.handler == "HANA" || endpointData.handler == "MONGODB")) {
+            returnHandler.params.custom_data = JSON.parse(replaceAllFast(
+              returnHandler.params.custom_data,
+              props
+            ));
           }
         }
 

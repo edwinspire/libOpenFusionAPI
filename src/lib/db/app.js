@@ -292,6 +292,16 @@ export const restoreAppFromBackup = async (app) => {
                 // Deja como está porque se debe estar usando una variable de aplicación
                 console.error("Error parsing SOAP code:", error);
               }
+            }else if(ep.handler == "SQL" || ep.handler == "HANA"){
+              try {
+                // Este bloque permite subir un backup de un endpoint SQL de una version anterior
+                let params = JSON.parse(ep.code);
+                ep.code = params.query;
+                ep.custom_data = params.config;
+              } catch (error) {
+                // Deja como está porque se debe estar usando una variable de aplicación
+                console.error("Error parsing SQL code:", error);
+              }
             }
 
             return upsertEndpoint(ep);

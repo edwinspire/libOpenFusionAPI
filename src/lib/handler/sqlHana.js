@@ -82,13 +82,17 @@ export const sqlHana = async (
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
-    let paramsSQL;
+    let paramsSQL = { query: method.code, config: typeof method.custom_data === 'string' ? JSON.parse(method.custom_data) : method.custom_data };
+
+    /*
     try {
       paramsSQL = JSON.parse(method.code);
     } catch (e) {
       reply.code(400).send({ error: "Invalid JSON in method code" });
       return;
     }
+    */
+
     let data_request = {};
 
     if (request.method == "GET") {
@@ -100,13 +104,13 @@ export const sqlHana = async (
 
     if (data_request) {
       // 104: Securely merge connection parameters
-      if (data_request.connection) {
+      if (data_request.config) {
         let connection_json;
         try {
           connection_json =
-            typeof data_request.connection === "object"
-              ? data_request.connection
-              : JSON.parse(data_request.connection);
+            typeof data_request.config === "object"
+              ? data_request.config
+              : JSON.parse(data_request.config);
         } catch (e) {
           reply.code(400).send({ error: "Invalid JSON in connection params" });
           return;
@@ -123,13 +127,9 @@ export const sqlHana = async (
           }
         }
 
-        paramsSQL.config = mergeObjects(paramsSQL.conexion, safe_connection_params);
+        paramsSQL.config = mergeObjects(paramsSQL.config, safe_connection_params);
       }
 
-      // Ensure base config exists if no override was provided
-      if (!paramsSQL.config && paramsSQL.conexion) {
-        paramsSQL.config = { ...paramsSQL.conexion };
-      }
 
       // Initialize defaults if needed (e.g., encryption)
       if (paramsSQL.config) {
