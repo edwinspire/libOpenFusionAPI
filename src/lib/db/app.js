@@ -302,6 +302,16 @@ export const restoreAppFromBackup = async (app) => {
                 // Deja como está porque se debe estar usando una variable de aplicación
                 console.error("Error parsing SQL code:", error);
               }
+            }else if(ep.handler == "TEXT"){
+              try {
+                // Este bloque permite subir un backup de un endpoint TEXT de una version anterior
+                let params = JSON.parse(ep.code);
+                ep.code = params.payload;
+                ep.custom_data = {mimeType: params.mimeType};
+              } catch (error) {
+                // Deja como está porque se debe estar usando una variable de aplicación
+                console.error("Error parsing TEXT code:", error);
+              }
             }
 
             return upsertEndpoint(ep);

@@ -3,9 +3,14 @@ import { setCacheReply, replyException } from "./utils.js";
 export const textFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
-  /** @type {{ handler?: string; code: any; }} */ method
+  /** @type {{ handler?: string; code: any; }} */ endpoint
 ) => {
   try {
+
+  const textConfig = typeof endpoint.custom_data === "string"
+      ? JSON.parse(endpoint.custom_data)
+      : endpoint.custom_data;
+    /*
     let textConfig;
     try {
       textConfig = JSON.parse(method.code);
@@ -13,6 +18,7 @@ export const textFunction = async (
       response.code(400).send({ error: "Invalid JSON in input code" });
       return;
     }
+    */
 
     let mimeType = "text/plain";
 
@@ -25,18 +31,18 @@ export const textFunction = async (
 
     let filename = Date.now() + "." + getExtensionFromMimeType(mimeType);
 
-    if (textConfig.payload === undefined) {
+    if (!endpoint.code) {
       response.code(400).send({ error: "No payload provided" });
       return;
     }
 
-    setCacheReply(response, textConfig.payload);
+    setCacheReply(response, endpoint.code);
 
     response
       .code(200)
       .type(mimeType)
       .header("Content-Disposition", `attachment; filename="${filename}"`)
-      .send(textConfig.payload);
+      .send(endpoint.code);
   } catch (error) {
     replyException(request, response, error);
   }
