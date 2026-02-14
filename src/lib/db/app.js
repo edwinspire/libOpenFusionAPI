@@ -284,7 +284,7 @@ export const restoreAppFromBackup = async (app) => {
             if (ep.handler == "JS" || ep.handler == "MONGODB") {
               // Este bloque es para compatibilidad con versiones antiguas del backup
               ep.code = replace_Old_FUNCTIONS_NAMES(ep.code);
-            } else if (ep.handler == "SOAP") {
+            } else if (ep.handler == "SOAP" || ep.handler == "SQL_BULK_I") {
               try {
                 // Este bloque permite subir un backup de un endpoint SOAP de una version anterior
                 ep.custom_data = JSON.parse(ep.code);

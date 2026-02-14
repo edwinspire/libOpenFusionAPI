@@ -4,13 +4,13 @@ import { replyException } from "./utils.js";
 
 // TODO: No probado completamente, revisar antes de producción
 
-export const getMongoDBHandlerParams = (custom_data) => {
+export const getMongoDBParams = (custom_data) => {
   let paramsMongo;
   try {
     paramsMongo = typeof custom_data === 'string' ? JSON.parse(custom_data) : custom_data;
   } catch (error) {
     console.error(
-      "getMongoDBHandlerParams: Error al parsear el código JSON: " + custom_data
+      "getMongoDBParams: Error al parsear el código JSON: " + custom_data
     );
   }
 
@@ -104,7 +104,7 @@ export const mongodbFunction = async (
       throw new Error("Function 'jsFn' is not defined in the method configuration.");
     }
 
-    let paramsMongo = getMongoDBHandlerParams(method.custom_data);
+    let paramsMongo = getMongoDBParams(method.custom_data);
     const conn = await getOrCreateConnection(paramsMongo);
 
     let fnVars = functionsVars($_REQUEST_, response, method.environment);

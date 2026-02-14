@@ -1,8 +1,7 @@
 import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
-import { setCacheReply } from "./utils.js";
 import { parseQualifiedName } from "../db/utils.js";
-import { replyException } from "./utils.js";
+import { setCacheReply, replyException } from "./utils.js";
 
 const connections = new Map();
 const MAX_CONNECTIONS = 50;
@@ -67,107 +66,99 @@ export const sqlFunctionInsertBulk = async (
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
-    //    console.log('CODE: ', method.code);
-    let paramsSQL;
-    try {
-      paramsSQL = JSON.parse(method.code);
-    } catch (e) {
-      reply.code(400).send({ error: "Invalid JSON in method code" });
+    // Parsear custom_data con validación null-safe
+    const customData = typeof method.custom_data === "string"
+      ? JSON.parse(method.custom_data)
+      : method.custom_data;
+
+    if (!customData) {
+      reply.code(400).send({ error: "custom_data configuration is required" });
       return;
     }
-    let data_request = {};
+
+    let paramsSQL = { query: method.code, config: customData };
+
+    // query_type viene de custom_data (no de code, que es la query SQL)
     let query_type = QueryTypes.INSERT;
-
-    if (paramsSQL.query_type && QueryTypes[paramsSQL.query_type]) {
-      query_type = QueryTypes[paramsSQL.query_type];
+    if (paramsSQL.config.query_type && QueryTypes[paramsSQL.config.query_type]) {
+      query_type = QueryTypes[paramsSQL.config.query_type];
     }
 
-    if (request.method == "GET") {
-      // Obtiene los datos del query
-      data_request.data = request.query;
-    } else if (request.method == "POST") {
-      data_request = request.body || {}; // Se agrega un valor por default
+    // Solo POST tiene sentido para bulk insert
+    if (request.method !== "POST") {
+      reply.code(405).send({ error: "Only POST method is allowed for bulk insert" });
+      return;
     }
 
-    if (data_request) {
-      // Obtiene los parametros de conexión
-      if (data_request.connection) {
-        let connection_json =
-          typeof data_request.connection == "object"
-            ? data_request.connection
-            : JSON.parse(data_request.connection);
+    let data_request = request.body || {};
 
-        paramsSQL.config = mergeObjects(paramsSQL.config, connection_json);
-      }
-
+    // Merge de parámetros de conexión del request (override)
+    if (data_request.config) {
       try {
-        let { database, schema, table } = parseQualifiedName(
-          paramsSQL.table_name
-        );
-
-        if (database) paramsSQL.config.database = database;
-        if (schema) paramsSQL.config.schema = schema;
-        if (table) paramsSQL.table_name = table;
-      } catch (error) {
-        // console.error("Error al analizar el nombre calificado:", error);
+        let connection_json =
+          typeof data_request.config === "object"
+            ? data_request.config
+            : JSON.parse(data_request.config);
+        paramsSQL.config = mergeObjects(paramsSQL.config, connection_json);
+      } catch (e) {
+        reply.code(400).send({ error: "Invalid JSON in config params" });
+        return;
       }
-
-      if (paramsSQL.config.database) {
-        //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
-
-        if (paramsSQL.table_name && paramsSQL.table_name.length > 0) {
-          // Verificar las configuraciones minimas
-          if (paramsSQL && paramsSQL.config.options) {
-            // Desactiva el log por defecto si no está definido explícitamente
-            if (paramsSQL.config.options.logging === undefined) {
-              paramsSQL.config.options.logging = false;
-            }
-
-            const configHash = JSON.stringify({
-              db: paramsSQL.config.database,
-              user: paramsSQL.config.username,
-              host: paramsSQL.config.options?.host,
-              port: paramsSQL.config.options?.port,
-            });
-
-            const sequelize = await getConnection(configHash, paramsSQL);
-
-            let result_query = await bulkInsertWithTransaction(
-              sequelize,
-              paramsSQL.config.schema,
-              paramsSQL.table_name,
-              data_request.data,
-              paramsSQL.ignoreDuplicates
-            );
-
-            //  console.log('-------------> ', result_query.toSQL())
-
-            setCacheReply(reply, result_query);
-            reply.code(200).send(result_query);
-          } else {
-            let alt_resp = { error: "Params configuration is not complete" };
-            setCacheReply(reply, alt_resp);
-
-            reply.code(400).send(alt_resp);
-          }
-        } else {
-          let alt_resp = { error: "Table name is required" };
-          setCacheReply(reply, alt_resp);
-          reply.code(400).send(alt_resp);
-        }
-      } else {
-        let alt_resp = { error: "Database is required" };
-        setCacheReply(reply, alt_resp);
-
-        reply.code(400).send(alt_resp);
-      }
-    } else {
-      let alt_resp = { error: "Not data" };
-      setCacheReply(reply, alt_resp);
-      reply.code(400).send(alt_resp);
     }
+
+    // Parsear nombre calificado de tabla
+    try {
+      let { database, schema, table } = parseQualifiedName(paramsSQL.table_name);
+      if (database) paramsSQL.config.database = database;
+      if (schema) paramsSQL.config.schema = schema;
+      if (table) paramsSQL.table_name = table;
+    } catch (error) {
+      // Nombre no calificado, continuar con lo que hay
+    }
+
+    // Validaciones con early return
+    if (!paramsSQL.config.database) {
+      reply.code(400).send({ error: "Database is required" });
+      return;
+    }
+
+    if (!paramsSQL.table_name || paramsSQL.table_name.length === 0) {
+      reply.code(400).send({ error: "Table name is required" });
+      return;
+    }
+
+    if (!paramsSQL.config.options) {
+      reply.code(400).send({ error: "Params configuration is not complete" });
+      return;
+    }
+
+    // Desactiva el log por defecto si no está definido explícitamente
+    if (paramsSQL.config.options.logging === undefined) {
+      paramsSQL.config.options.logging = false;
+    }
+
+    const configHash = JSON.stringify({
+      db: paramsSQL.config.database,
+      user: paramsSQL.config.username,
+      host: paramsSQL.config.options?.host,
+      port: paramsSQL.config.options?.port,
+      dialect: paramsSQL.config.options?.dialect,
+    });
+
+    const sequelize = await getConnection(configHash, paramsSQL);
+
+    let result_query = await bulkInsertWithTransaction(
+      sequelize,
+      paramsSQL.config.schema,
+      paramsSQL.table_name,
+      data_request.data,
+      paramsSQL.ignoreDuplicates
+    );
+
+    setCacheReply(reply, result_query);
+    reply.code(200).send(result_query);
   } catch (error) {
-    replyException($_REQUEST_, reply, error);
+    replyException(request, reply, error);
   }
 };
 
@@ -178,44 +169,26 @@ async function bulkInsertWithTransaction(
   rows,
   ignoreDuplicates
 ) {
-  // Obtiene el queryInterface
   const queryInterface = sequelize.getQueryInterface();
-
-  // Inicia la transacción
   const transaction = await sequelize.transaction();
 
   let opts = {
     transaction,
-    //updateOnDuplicate: updateOnDuplicate,
     ignoreDuplicates: ignoreDuplicates,
   };
 
-  //console.log("Bulk insert options:", opts);
-
   try {
-    // Ejecuta el bulkInsert dentro de la transacción
     let result = await queryInterface.bulkInsert(
       { schema: schema, tableName: tableName },
       rows,
       opts
     );
 
-    // Si todo salió bien, hace commit
     await transaction.commit();
-    console.log(`✅ Bulk insert exitoso en ${tableName}`);
-    return { inserted: result }; // Devuelve la cantidad de registros insertados
+    return { inserted: result };
   } catch (error) {
-    // Si algo falla, hace rollback
     await transaction.rollback();
-    console.error(`❌ Error en bulk insert:`, error);
+    console.error(`❌ Error en bulk insert (${tableName}):`, error.message);
     throw error;
   }
 }
-
-
-/*
-TODO:
-Manual Verification
-Load Test: Verify that calling the bulk insert endpoint multiple times does not increase the number of active DB connections indefinitely.
-Error Handling: Send invalid JSON to code or connection parameters and verify 400 Bad Request response.
-*/

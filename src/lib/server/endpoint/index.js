@@ -569,7 +569,7 @@ export default class Endpoint extends EventEmitter {
             //        console.log("Se han reemplazado");
           } 
           
-          if (typeof returnHandler?.params?.custom_data === 'string' && (endpointData.handler == "SQL" || endpointData.handler == "HANA" || endpointData.handler == "MONGODB")) {
+          if (typeof returnHandler?.params?.custom_data === 'string' && (endpointData.handler == "SQL" || endpointData.handler == "HANA" || endpointData.handler == "MONGODB" || endpointData.handler == "SQL_BULK_I")) {
             returnHandler.params.custom_data = JSON.parse(replaceAllFast(
               returnHandler.params.custom_data,
               props
@@ -598,7 +598,7 @@ export default class Endpoint extends EventEmitter {
 
         if (returnHandler.params.handler == "MONGODB") {
           returnHandler.params.jsFn = await createFunctionVM(
-            getMongoDBHandlerParams(returnHandler.params.code).code,
+            returnHandler.params.code,
             appvars_obj,
             returnHandler.params.timeout
           );
