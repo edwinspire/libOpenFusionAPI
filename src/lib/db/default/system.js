@@ -5,7 +5,7 @@ export const system_app = {
   },
   "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
   "app": "system",
-  "rowkey": 688,
+  "rowkey": 546,
   "iduser": null,
   "enabled": true,
   "description": "App System",
@@ -77,7 +77,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff4",
-      "rowkey": 30,
+      "rowkey": 67,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -161,7 +161,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff3",
-      "rowkey": 788,
+      "rowkey": 686,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -192,7 +192,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
-      "rowkey": 917,
+      "rowkey": 485,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -276,7 +276,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff1",
-      "rowkey": 343,
+      "rowkey": 374,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -298,16 +298,68 @@ export const system_app = {
     },
     {
       "ctrl": {
-        "admin": true
+        "admin": true,
+        "users": [],
+        "log": {}
       },
       "cors": {},
-      "mcp": {},
-      "json_schema": {},
+      "mcp": {
+        "enabled": true,
+        "name": "apps_list",
+        "title": "List Apps",
+        "description": "It retrieves the list of all applications, with their application variables for each one and their respective endpoints."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
       "custom_data": {},
       "headers_test": {},
-      "data_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "iqg87g0if",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f6160",
-      "rowkey": 636,
+      "rowkey": 793,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -338,7 +390,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
-      "rowkey": 916,
+      "rowkey": 896,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -422,7 +474,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf02",
-      "rowkey": 144,
+      "rowkey": 454,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -506,7 +558,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf01",
-      "rowkey": 673,
+      "rowkey": 120,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -613,7 +665,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
-      "rowkey": 214,
+      "rowkey": 835,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -685,7 +737,7 @@ export const system_app = {
         }
       },
       "idendpoint": "13f94d7d-6612-4c30-8202-286cbbe3da3e",
-      "rowkey": 312,
+      "rowkey": 479,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -778,7 +830,7 @@ export const system_app = {
         }
       },
       "idendpoint": "25ca7819-8823-4835-87c5-04b792bc594d",
-      "rowkey": 154,
+      "rowkey": 189,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -809,7 +861,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908194",
-      "rowkey": 646,
+      "rowkey": 698,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -840,7 +892,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
-      "rowkey": 998,
+      "rowkey": 561,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -871,7 +923,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
-      "rowkey": 550,
+      "rowkey": 81,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -902,7 +954,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 860,
+      "rowkey": 231,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -933,7 +985,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 244,
+      "rowkey": 333,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -964,7 +1016,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ee",
-      "rowkey": 373,
+      "rowkey": 517,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1050,7 +1102,7 @@ export const system_app = {
         }
       },
       "idendpoint": "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
-      "rowkey": 398,
+      "rowkey": 349,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1127,7 +1179,7 @@ export const system_app = {
         }
       },
       "idendpoint": "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
-      "rowkey": 826,
+      "rowkey": 647,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1158,7 +1210,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
-      "rowkey": 851,
+      "rowkey": 93,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1189,7 +1241,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "20354d7a-e4fe-47af-8ff6-187bca92f3f9",
-      "rowkey": 527,
+      "rowkey": 16,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1220,7 +1272,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 395,
+      "rowkey": 810,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1318,7 +1370,7 @@ export const system_app = {
         }
       },
       "idendpoint": "51316993-907c-4fd0-859f-7d2a0bc90dd3",
-      "rowkey": 596,
+      "rowkey": 561,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1347,7 +1399,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3ead2170-283d-4c6a-abc1-eddd217b6d01",
-      "rowkey": 544,
+      "rowkey": 998,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1376,7 +1428,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "047845ac-5367-48ed-9465-8e36ba6c7bae",
-      "rowkey": 389,
+      "rowkey": 975,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1486,7 +1538,7 @@ export const system_app = {
         }
       },
       "idendpoint": "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
-      "rowkey": 141,
+      "rowkey": 389,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1630,7 +1682,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cff35b3a-7ca0-4ef8-882d-d39815d55616",
-      "rowkey": 604,
+      "rowkey": 563,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1716,7 +1768,7 @@ export const system_app = {
         }
       },
       "idendpoint": "bcf0e362-a454-4e47-85a0-772c4ddd3538",
-      "rowkey": 275,
+      "rowkey": 653,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1802,7 +1854,7 @@ export const system_app = {
         }
       },
       "idendpoint": "0b48cd44-09fe-40e7-b0a7-59fe01e054cc",
-      "rowkey": 91,
+      "rowkey": 210,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1871,7 +1923,7 @@ export const system_app = {
         }
       },
       "idendpoint": "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
-      "rowkey": 421,
+      "rowkey": 562,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1940,7 +1992,7 @@ export const system_app = {
         }
       },
       "idendpoint": "e753e2db-ca20-4607-82b7-34b70e435a0c",
-      "rowkey": 153,
+      "rowkey": 839,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2009,7 +2061,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34987a43-63e4-4926-824b-5254155b5c80",
-      "rowkey": 803,
+      "rowkey": 665,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2086,7 +2138,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34870b00-beb1-45d3-ada6-c164fc22cd7a",
-      "rowkey": 495,
+      "rowkey": 13,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2105,6 +2157,101 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "vbe7fffrs",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "787a8ec2-b0d7-44ae-9214-2254f9d9d086",
+      "rowkey": 531,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/mcp/server",
+      "method": "POST",
+      "handler": "MCP",
+      "access": 0,
+      "title": "OpenFusionAPI MCP",
+      "description": "OpenFusionAPI MCP Server.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "mcp,server,OpenFusionAPI",
+      "code": "",
+      "cache_time": 10,
+      "createdAt": "2026-02-17T14:03:38.449Z",
+      "updatedAt": "2026-02-17T14:03:38.449Z"
     },
     {
       "ctrl": {},
@@ -2147,7 +2294,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
-      "rowkey": 300,
+      "rowkey": 290,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2178,7 +2325,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "12fb738c-7d1f-4eba-afb4-508a9fa9d06a",
-      "rowkey": 115,
+      "rowkey": 81,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2262,7 +2409,7 @@ export const system_app = {
         }
       },
       "idendpoint": "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
-      "rowkey": 980,
+      "rowkey": 921,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2293,7 +2440,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2fa0",
-      "rowkey": 604,
+      "rowkey": 412,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2324,7 +2471,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2faf",
-      "rowkey": 529,
+      "rowkey": 89,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2355,7 +2502,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "17c211d6-8c81-4274-b5c4-604126454ab0",
-      "rowkey": 367,
+      "rowkey": 407,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2403,7 +2550,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d3de358-681d-4b61-98dc-c1663db0c02c",
-      "rowkey": 348,
+      "rowkey": 752,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2497,7 +2644,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
-      "rowkey": 604,
+      "rowkey": 974,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2561,7 +2708,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "18731c87-9d59-44b6-8871-ecaa493008e5",
-      "rowkey": 106,
+      "rowkey": 381,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2654,7 +2801,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
-      "rowkey": 402,
+      "rowkey": 408,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2676,30 +2823,113 @@ export const system_app = {
     },
     {
       "ctrl": {
-        "admin": true
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
       },
       "cors": {},
-      "mcp": {},
-      "json_schema": {},
+      "mcp": {
+        "enabled": true,
+        "name": "user_login",
+        "title": "User Login",
+        "description": "Login for user access.."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "Login",
+            "description": "Schema para validar credenciales de login",
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string",
+                "description": "Nombre de usuario"
+              },
+              "password": {
+                "type": "string",
+                "description": "Contraseña del usuario"
+              }
+            },
+            "required": [
+              "username",
+              "password"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
       "custom_data": {},
       "headers_test": {},
-      "data_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "hl2so8w0j",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
       "idendpoint": "871cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 524,
+      "rowkey": 621,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
       "resource": "/system/login",
-      "method": "GET",
+      "method": "POST",
       "handler": "FUNCTION",
       "access": 0,
-      "title": "",
-      "description": "",
+      "title": "System Login",
+      "description": "User Login.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "",
+      "keywords": "login",
       "code": "fnLogin",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.723Z",
@@ -2716,7 +2946,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "131cca3e-f835-4414-89ca-5ddbbec5ab89",
-      "rowkey": 907,
+      "rowkey": 81,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2747,7 +2977,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
-      "rowkey": 369,
+      "rowkey": 176,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2778,7 +3008,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 586,
+      "rowkey": 857,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2809,7 +3039,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908193",
-      "rowkey": 863,
+      "rowkey": 302,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2838,7 +3068,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
-      "rowkey": 707,
+      "rowkey": 967,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2869,7 +3099,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
-      "rowkey": 709,
+      "rowkey": 671,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2955,7 +3185,7 @@ export const system_app = {
         }
       },
       "idendpoint": "a0130d77-b779-4dea-a87f-6841520ffade",
-      "rowkey": 698,
+      "rowkey": 68,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",

@@ -5,7 +5,7 @@ import { getApplicationTreeByFilters } from "../../db/app.js";
 import { getIPFromRequest } from "../utils.js";
 import { getLogLevelForStatus, replaceAllFast } from "./utils.js";
 import { createLog, getLogLevelByStatusCode } from "../../db/log.js";
-import { getMongoDBHandlerParams } from "../../handler/mongoDB.js";
+import { getMongoDBParams } from "../../handler/mongoDB.js";
 import { TimedCache } from "./TimedCache.js";
 import { CreateMCPHandler } from "./handlerBuild/mcp.js";
 import { createFunctionVM } from "../createFunctionVM.js";
@@ -567,8 +567,8 @@ export default class Endpoint extends EventEmitter {
             );
 
             //        console.log("Se han reemplazado");
-          } 
-          
+          }
+
           if (typeof returnHandler?.params?.custom_data === 'string' && (endpointData.handler == "SQL" || endpointData.handler == "HANA" || endpointData.handler == "MONGODB" || endpointData.handler == "SQL_BULK_I")) {
             returnHandler.params.custom_data = JSON.parse(replaceAllFast(
               returnHandler.params.custom_data,

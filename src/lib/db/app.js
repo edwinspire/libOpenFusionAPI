@@ -284,7 +284,7 @@ export const restoreAppFromBackup = async (app) => {
             if (ep.handler == "JS" || ep.handler == "MONGODB") {
               // Este bloque es para compatibilidad con versiones antiguas del backup
               ep.code = replace_Old_FUNCTIONS_NAMES(ep.code);
-            } else if (ep.handler == "SOAP" || ep.handler == "SQL_BULK_I") {
+            } else if (ep.handler == "SOAP") {
               try {
                 // Este bloque permite subir un backup de un endpoint SOAP de una version anterior
                 ep.custom_data = JSON.parse(ep.code);
@@ -311,6 +311,16 @@ export const restoreAppFromBackup = async (app) => {
               } catch (error) {
                 // Deja como está porque se debe estar usando una variable de aplicación
                 console.error("Error parsing TEXT code:", error);
+              }
+            }else if(ep.handler == "SQL_BULK_I"){
+              try {
+                // Este bloque permite subir un backup de un endpoint SQL de una version anterior
+                let params = JSON.parse(ep.code);
+                ep.code = params.table_name;
+                ep.custom_data = params.config;
+              } catch (error) {
+                // Deja como está porque se debe estar usando una variable de aplicación
+                console.error("Error parsing SQL code:", error);
               }
             }
 

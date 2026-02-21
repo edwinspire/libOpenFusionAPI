@@ -74,4 +74,11 @@ The handler dynamically internalizes calls. When an AI invokes a tool:
 
 ---
 
+## MCP Inspector
+Use to test the MCP server
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
 © 2025 – OpenFusionAPI · Created and maintained by **edwinspire**

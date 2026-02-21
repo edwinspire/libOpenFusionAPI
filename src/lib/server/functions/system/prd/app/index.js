@@ -43,11 +43,11 @@ export async function fnGetAppById(params) {
   let r = { code: 200, data: undefined };
   try {
     let raw =
-      !params.request.query.raw || params.request.query.raw == "false"
+      !params?.request?.query?.raw || params?.request?.query?.raw == "false"
         ? false
         : true;
 
-    r.data = await getAppFullById(params.request.query.idapp, raw);
+    r.data = await getAppFullById(params?.request?.query?.idapp, raw);
     r.code = 200;
   } catch (error) {
     console.log(error);

@@ -76,7 +76,7 @@ export const sqlFunctionInsertBulk = async (
       return;
     }
 
-    let paramsSQL = { query: method.code, config: customData };
+    let paramsSQL = { table_name: method.code, config: customData };
 
     // query_type viene de custom_data (no de code, que es la query SQL)
     let query_type = QueryTypes.INSERT;
