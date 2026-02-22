@@ -38,9 +38,17 @@ export const replyException = (request, reply, error) => {
     reply.openfusionapi.lastResponse.exception = error;
   }
 
-  reply
-    .code(error.statusCode == null ? 500 : error.statusCode)
-    .send({ error: error.message, trace_id });
+  const statusCode =
+    typeof error === "object" && error?.statusCode != null
+      ? error.statusCode
+      : 500;
+
+  const message =
+    typeof error === "string"
+      ? error
+      : error?.message || "Internal Server Error";
+
+  reply.code(statusCode).send({ error: message, trace_id });
   return;
 };
 

@@ -1,8 +1,9 @@
 import { Op } from "sequelize";
-import { ApiClient, ApiKey, ApiKeyEndpoint } from "./models.js";
+import { ApiClient, ApiKey, Application } from "./models.js";
 import { EncryptPwd, CreateRandomPassword } from "../server/utils.js";
-import {  GenToken } from "../server/functionVars.js";
+import { GenToken } from "../server/functionVars.js";
 import { validatePasswordSecurity } from "./utils.js";
+import dbsequelize from "./sequelize.js";
 
 
 export const AuthorizedEnpointsClient = [];
@@ -10,10 +11,6 @@ export const AuthorizedEnpointsClient = [];
 // Agregar este método estático al modelo ApiClient (después de define)
 export const ApiClientfindByIdOrUsername = async (filters = {}) => {
   const { idclient, username } = filters;
-  // Validación: al menos uno de los parámetros debe estar presente
-  if (!idclient && !username) {
-    throw new Error('Debe proporcionar al menos "idclient" o "username"');
-  }
 
   const where = {};
 
@@ -21,21 +18,19 @@ export const ApiClientfindByIdOrUsername = async (filters = {}) => {
     // Si se pasan ambos, usar OR (busca por cualquiera de los dos)
     where[Op.or] = [{ idclient }, { username }];
   } else if (idclient) {
-    // Solo idclient
     where.idclient = idclient;
-  } else {
-    // Solo username
+  } else if (username) {
     where.username = username;
   }
+  // Si no se pasa ningún filtro, where queda vacío y se devuelve toda la tabla
 
-  // Buscar el registro (incluye timestamps por defecto del modelo)
-  const registro = await ApiClient.findOne({
+  const registros = await ApiClient.findAll({
     where,
-    // Opcional: incluir campos relacionados si los tienes
-    // include: [ /* otros modelos */ ]
+    attributes: { exclude: ["password"] },
+    order: [["username", "ASC"]],
   });
 
-  return registro;
+  return registros;
 };
 
 /**
@@ -78,15 +73,15 @@ export async function createApiClient(data, random_password = true) {
  */
 export async function loginApiClient(username, password) {
   const now = new Date();
-  
+
   // 1. Buscar usuario con filtros
   const client = await ApiClient.findOne({
     where: {
       username,
       password: EncryptPwd(password),
       status: ["active", "initial"],
-      // startAt: { [Op.lte]: now },
-      //   [Op.or]: [{ endAt: null }, { endAt: { [Op.gte]: now } }],
+      startAt: { [Op.lte]: now },
+      [Op.or]: [{ endAt: null }, { endAt: { [Op.gte]: now } }],
     },
     attributes: {
       exclude: ["password"],
@@ -98,7 +93,7 @@ export async function loginApiClient(username, password) {
     const validity = 60 * 60; // Una hora
     // Aqui se asigan los endpoints a los que el cliente tiene acceso (Son definidos desde el sistema y son fijos)
     u.Authorized = AuthorizedEnpointsClient;
-    let token = GenToken({ api: u }, validity); // Valido por una hora
+    let token = GenToken({ apiclient: u }, validity); // Valido por una hora
     let refresh_token = GenToken(
       {
         api: {
@@ -112,7 +107,6 @@ export async function loginApiClient(username, password) {
     ); // Valido por una hora
 
     await client.update({ last_login: new Date() });
-    await client.save();
 
     return {
       login: true,
@@ -162,7 +156,7 @@ export async function updateAPIClientPassword({
         username,
         status: ["active", "initial"],
         startAt: { [Op.lte]: new Date() },
-        endAt: { [Op.gte]: new Date() },
+        [Op.or]: [{ endAt: null }, { endAt: { [Op.gte]: new Date() } }],
       },
       transaction,
     });
@@ -183,19 +177,14 @@ export async function updateAPIClientPassword({
     const hashedNewPassword = EncryptPwd(newPassword);
 
     // 5. Actualizar contraseña
-    const [affectedRows] = await User.update(
+    await user.update(
       {
         password: hashedNewPassword,
       },
       {
-        where: { username },
         transaction,
       }
     );
-
-    if (affectedRows === 0) {
-      throw new Error("The password could not be updated.");
-    }
 
     // 6. Confirmar transacción
     await transaction.commit();
@@ -220,7 +209,7 @@ export async function updateAPIClientPassword({
   }
 }
 
-// Obtiene los datos del cliente y sus endpoints a los que tiene acceso.
+// Obtiene los datos del cliente y los apikey asociados.
 export async function findApiClientTree(filters = {}) {
   const { username, status, email, enabled } = filters;
 
@@ -261,13 +250,6 @@ export async function findApiClientTree(filters = {}) {
         required: false,
         where: whereKey,
         attributes: ["idkey", "enabled", "startAt", "endAt", "description"],
-        include: [
-          {
-            model: ApiKeyEndpoint,
-            required: false,
-            attributes: ["idendpoint"],
-          },
-        ],
       },
     ],
     order: [
@@ -278,3 +260,31 @@ export async function findApiClientTree(filters = {}) {
 
   return result;
 }
+
+
+export const defaultApiClient = async () => {
+  try {
+    // Verificar si el usuario "apiuser" ya existe
+    const existingUser = await ApiClient.findOne({
+      where: { username: "apiuser" },
+    });
+
+    if (!existingUser) {
+      // El usuario "apiuser" no existe, se realiza la inserción
+      await ApiClient.create({
+        username: "apiuser",
+        password: EncryptPwd("apiuser"),
+        first_name: "api",
+        last_name: "user",
+        email: "apiuser@example.com",
+        ctrl: {},
+      });
+    }
+
+    return true;
+    //console.log(' defaultUser >>>>>> ', super_role);
+  } catch (error) {
+    console.error("Example error:", error);
+    return false;
+  }
+};

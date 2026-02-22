@@ -1,12 +1,3 @@
-export const schema_return_customFunction = {
-  type: "object",
-  properties: {
-    code: { type: "number" },
-    data: { type: ["object", "array", 'boolean'] },
-  },
-  required: ["code", "data"],
-};
-
 export const schema_input_genericSOAP = {
   type: "object",
   properties: {

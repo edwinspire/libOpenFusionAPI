@@ -40,21 +40,10 @@ const getSoapClient = async (wsdl, options) => {
     }
   }
 
-  // 2. Limpieza LRU si está lleno
+  // 2. Limpieza LRU si está lleno — Map preserva orden de inserción, el primero es el más antiguo
   if (soapClients.size >= MAX_CLIENTS) {
-    let oldestKey = null;
-    let oldestTime = Infinity;
-
-    for (const [key, entry] of soapClients.entries()) {
-      if (entry.lastUsed < oldestTime) {
-        oldestTime = entry.lastUsed;
-        oldestKey = key;
-      }
-    }
-
-    if (oldestKey) {
-      soapClients.delete(oldestKey);
-    }
+    const oldestKey = soapClients.keys().next().value;
+    if (oldestKey) soapClients.delete(oldestKey);
   }
 
   // 3. Crear nuevo cliente
@@ -71,6 +60,17 @@ const getSoapClient = async (wsdl, options) => {
   return client;
 };
 
+// Limpieza periódica de entradas expiradas para no acumular WSDLs distintos sin uso
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of soapClients.entries()) {
+    if (now - entry.created > CACHE_TTL) {
+      console.log(`SOAP Client TTL cleanup: ${key.substring(0, 60)}...`);
+      soapClients.delete(key);
+    }
+  }
+}, CACHE_TTL);
+
 export const soapFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
   /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
@@ -85,7 +85,11 @@ export const soapFunction = async (
       SOAPParameters = endpoint?.custom_data;
     } else {
       // Toma el wsdl del code, que es cuando el usuario usa una variable de aplicación
-      SOAPParameters = JSON.parse(endpoint.code);
+      try {
+        SOAPParameters = JSON.parse(endpoint.code);
+      } catch {
+        throw new Error("SOAP endpoint configuration is invalid JSON. Check the 'code' field.");
+      }
     }
 
     //    console.log(SOAPParameters);
@@ -157,18 +161,18 @@ export const SOAPGenericClient = async (
       SOAPParameters.options
     );
 
-    // Pasar todos los headers del Request al cliente SOAP
+    // Pasar todos los headers del Request al cliente SOAP, excluyendo los que causan conflicto
     for (const [key, value] of Object.entries(SOAPParameters.HTTPHeaders)) {
-      // Evitamos headers que puedan causar conflicto
+      const k = key.toLowerCase();
       if (
-        key.toLowerCase() !== "content-type" &&
-        key.toLowerCase() !== "content-length" &&
-        key.toLowerCase() !== "host" &&
-        key.toLowerCase() !== "server" &&
-        key.toLowerCase() !== "referer" &&
-        key.toLowerCase().includes("sec-ch-ua") &&
-        key.toLowerCase().includes("sec-fetch") &&
-        key.toLowerCase().includes("x-forwarded")
+        k !== "content-type" &&
+        k !== "content-length" &&
+        k !== "host" &&
+        k !== "server" &&
+        k !== "referer" &&
+        !k.includes("sec-ch-ua") &&
+        !k.includes("sec-fetch") &&
+        !k.includes("x-forwarded")
       ) {
         client.addHttpHeader(key, value);
       }
@@ -204,9 +208,8 @@ export const SOAPGenericClient = async (
       }
 
       if (client[fnName]) {
-        let result = await client[fnName](SOAPParameters.RequestArgs);
-        let r1 = await result;
-        r = r1[0];
+        const [r1] = await client[fnName](SOAPParameters.RequestArgs);
+        r = r1;
       } else {
         throw new Error(fnName + " not exists.");
       }

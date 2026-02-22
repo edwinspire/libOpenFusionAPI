@@ -5,6 +5,8 @@ import { emitHook, validateAppName } from "../server/utils.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
 const IS_MSSQL = ["mssql", "sqlite"].includes(dbsequelize.getDialect());
+const uuidRegex =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const JSON_TYPE = IS_MSSQL
   ? DataTypes.TEXT
   : DataTypes.JSON;
@@ -27,7 +29,6 @@ export const ModelNames = {
   ApiKey: prefixTableName("api_key"),
   ClientWallet: prefixTableName("client_wallet"),
   WalletMovement: prefixTableName("wallet_movement"),
-  ApiKeyEndpoint: prefixTableName("apiKey_endpoint"),
   ApiUsageLog: prefixTableName("api_usageLog"),
   ClientBalance: prefixTableName("client_balance"),
   ClientTransactions: prefixTableName("client_transactions"),
@@ -64,7 +65,8 @@ class JSON_ADAPTER {
       try {
         data = JSON.parse(data);
       } catch (error) {
-        data = JSON.stringify(data);
+        // If it's not valid JSON, return as is or return default if empty
+        return data || defaultValue;
       }
     }
 
@@ -86,13 +88,30 @@ class JSON_ADAPTER {
   }
 
   static _isString(data) {
-    //console.log(typeof data);
     return typeof data === "string";
   }
   static _isObject(data) {
-    //console.log(typeof data);
     return typeof data === "object";
   }
+}
+
+/**
+ * Helper to define a JSON field with consistent getter/setter logic
+ * @param {string} fieldName 
+ * @param {object} options 
+ */
+function jsonField(fieldName, options = {}) {
+  const { comment = "", defaultValue = {} } = options;
+  return {
+    type: JSON_TYPE,
+    comment,
+    get() {
+      return JSON_ADAPTER.getData(this, fieldName, defaultValue);
+    },
+    set(value) {
+      JSON_ADAPTER.setData(this, fieldName, value, defaultValue);
+    },
+  };
 }
 
 function ensureUUID(instance, field) {
@@ -186,26 +205,8 @@ export const User = dbsequelize.define(
       defaultValue: "9999-12-31",
       comment: "End of validity date of the user.",
     },
-    ctrl: {
-      type: JSON_TYPE,
-      comment: "Attributes that can be used for access control",
-      get() {
-        return JSON_ADAPTER.getData(this, "ctrl");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "ctrl", value);
-      },
-    },
-    custom_data: {
-      type: JSON_TYPE,
-      comment: "User custom data",
-      get() {
-        return JSON_ADAPTER.getData(this, "custom_data");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "custom_data", value);
-      },
-    },
+    ctrl: jsonField("ctrl", { comment: "Attributes that can be used for access control" }),
+    custom_data: jsonField("custom_data", { comment: "User custom data" }),
     exp_time: {
       type: DataTypes.BIGINT,
       defaultValue: 3600,
@@ -228,19 +229,13 @@ export const User = dbsequelize.define(
     hooks: {
       afterUpsert: async (instance) => {
         await HooksDB({
-          instance: instance,
+          instance,
           table: ModelNames.User,
           action: "afterUpsert",
         });
       },
-      beforeUpdate: (/** @type {any} */ user) => {
-        user.rowkey = Math.floor(Math.random() * 1000);
-      },
-      beforeValidate: (instance) => {
-        //  instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
-      },
-      beforeUpsert: (instance) => {
-        //  instance.ctrl = JSON_TYPE_Adapter(instance, "ctrl");
+      beforeUpdate: (instance) => {
+        randomRowKey(instance);
       },
     },
   },
@@ -273,7 +268,7 @@ export const Method = dbsequelize.define(
     hooks: {
       afterUpsert: async (instance) => {
         await HooksDB({
-          instance: instance,
+          instance,
           table: ModelNames.Method,
           action: "afterUpsert",
         });
@@ -325,9 +320,9 @@ export const Handler = dbsequelize.define(
     hooks: {
       afterUpsert: async (instance) => {
         await HooksDB({
-          instance: instance,
+          instance,
           table: ModelNames.Handler,
-          action: "upsert",
+          action: "afterUpsert",
         });
       },
     },
@@ -370,64 +365,34 @@ export const Application = dbsequelize.define(
     description: {
       type: DataTypes.TEXT,
     },
-    vars: {
-      type: JSON_TYPE,
-      get() {
-        return JSON_ADAPTER.getData(this, "vars");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "vars", value);
-      },
+    jwt_key: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      defaultValue: DataTypes.UUIDV4,
+      comment: "Security key to generate JWT for the application",
     },
-    params: {
-      type: JSON_TYPE,
-      get() {
-        return JSON_ADAPTER.getData(this, "params");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "params", value);
-      },
-    },
+    vars: jsonField("vars"),
+    params: jsonField("params"),
   },
   {
     freezeTableName: true,
     timestamps: true,
     indexes: [],
     hooks: {
-      afterBulkCreate: async (instance) => {
-        //
-      },
-      afterUpsert: async (/** @type {any} */ instance) => {
-        //        instance.rowkey = 999;
-
-        //    console.log(">>>>>>>>>>>>>>>> afterUpsert xxxxxxxxxxxxxxxxxxxxxxxxxx");
+      afterUpsert: async (instance) => {
         await HooksDB({
-          instance: instance,
+          instance,
           table: ModelNames.Application,
           action: "afterUpsert",
         });
       },
       beforeUpsert: (instance) => {
         if (instance.app && !validateAppName(instance.app)) {
-          throw new Error("The application name cannot be empty.");
+          throw new Error("The application name cannot be empty or invalid.");
         }
-      },
-      beforeSave: (/** @type {{ rowkey: number; }} */ instance) => {
-        //
       },
       beforeValidate: (instance) => {
-        ensureUUID(instance, "idapp");
         randomRowKey(instance);
-        // Esta función si se ejecuta al momento de crear una nueva APP, poniendo en minuscula el nombre de la app
-        instance.app = instance.app.toLowerCase();
-      },
-      beforeCreate: (instance) => {
-        //
-      },
-      beforeBulkCreate: (instance) => {
-        if (instance && Array.isArray(instance)) {
-          //
-        }
       },
     },
   },
@@ -469,16 +434,7 @@ export const AppVars = dbsequelize.define(
       type: DataTypes.STRING(10),
       allowNull: false,
     },
-    value: {
-      type: JSON_TYPE,
-      allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "value");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "value", value);
-      },
-    },
+    value: jsonField("value", { allowNull: true }),
   },
   {
     freezeTableName: true,
@@ -504,19 +460,16 @@ export const AppVars = dbsequelize.define(
     ],
 
     hooks: {
-      beforeValidate: (instance) => {
-        // Si hay que adaptar JSON, se hace aquí
-      },
-      afterUpsert: async (/** @type {any} */ instance) => {
+      afterUpsert: async (instance) => {
         await HooksDB({
-          instance: instance,
+          instance,
           table: ModelNames.AppVars,
           action: "afterUpsert",
         });
       },
-      afterDestroy: async (/** @type {any} */ instance) => {
+      afterDestroy: async (instance) => {
         await HooksDB({
-          instance: instance,
+          instance,
           table: ModelNames.AppVars,
           action: "afterDestroy",
         });
@@ -544,16 +497,7 @@ export const EndpointBackup = dbsequelize.define(
       allowNull: false,
       comment: "Hash of the backup data for quick comparison",
     },
-    data: {
-      type: JSON_TYPE,
-      comment: "Endpoint data backup",
-      get() {
-        return JSON_ADAPTER.getData(this, "data");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "data", value);
-      },
-    },
+    data: jsonField("data", { comment: "Endpoint data backup" }),
   },
   {
     freezeTableName: true,
@@ -584,6 +528,14 @@ export const Endpoint = dbsequelize.define(
       allowNull: false,
       unique: true,
       defaultValue: DataTypes.UUIDV4,
+      set(value) {
+
+        if (!value || !uuidRegex.test(value)) {
+          this.setDataValue("idendpoint", uuidv4());
+        } else {
+          this.setDataValue("idendpoint", value);
+        }
+      },
     },
     rowkey: {
       type: DataTypes.SMALLINT,
@@ -690,32 +642,14 @@ export const Endpoint = dbsequelize.define(
       allowNull: false,
       defaultValue: "",
     },
-    ctrl: {
-      type: JSON_TYPE,
-      comment: "Additional controls. Users, Logs, etc.",
-      get() {
-        return JSON_ADAPTER.getData(this, "ctrl");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "ctrl", value);
-      },
-    },
+    ctrl: jsonField("ctrl", { comment: "Additional controls. Users, Logs, etc." }),
     code: {
       type: DataTypes.TEXT,
       allowNull: false,
       defaultValue: "",
       comment: "Code and parameters",
     },
-    cors: {
-      type: JSON_TYPE,
-      allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "cors");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "cors", value);
-      },
-    },
+    cors: jsonField("cors", { allowNull: true }),
     cache_time: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -723,60 +657,14 @@ export const Endpoint = dbsequelize.define(
       comment:
         "Time in which the data will be kept in cache. Zero to disable the cache.",
     },
-    mcp: {
-      type: JSON_TYPE,
+    mcp: jsonField("mcp", { allowNull: true }),
+    json_schema: jsonField("json_schema", {
       allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "mcp");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "mcp", value);
-      },
-    },
-    json_schema: {
-      type: JSON_TYPE,
-      allowNull: true,
-      defaultValue: JSON_ADAPTER._isMsSql()
-        ? JSON.stringify(default_json_schema)
-        : default_json_schema,
-      get() {
-        return JSON_ADAPTER.getData(this, "json_schema");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "json_schema", value);
-      },
-    },
-    custom_data: {
-      type: JSON_TYPE,
-      allowNull: true,
-      defaultValue: JSON_ADAPTER._isMsSql() ? JSON.stringify({}) : {},
-      get() {
-        return JSON_ADAPTER.getData(this, "custom_data");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "custom_data", value);
-      },
-    },
-    headers_test: {
-      type: JSON_TYPE,
-      allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "headers_test");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "headers_test", value);
-      },
-    },
-    data_test: {
-      type: JSON_TYPE,
-      allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "data_test");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "data_test", value);
-      },
-    },
+      defaultValue: default_json_schema,
+    }),
+    custom_data: jsonField("custom_data", { allowNull: true }),
+    headers_test: jsonField("headers_test", { allowNull: true }),
+    data_test: jsonField("data_test", { allowNull: true }),
   },
   {
     freezeTableName: true,
@@ -795,22 +683,14 @@ export const Endpoint = dbsequelize.define(
     ],
     hooks: {
       afterUpsert: async (instance) => {
-        // instance.rowkey = 999;
-
         await HooksDB({
-          instance: instance,
+          instance,
           table: ModelNames.Endpoint,
           action: "afterUpsert",
         });
       },
-      beforeUpsert: async (
-        /** @type {{ rowkey: number; idendpoint: string}} */ instance,
-      ) => {
-        //
-      },
       beforeValidate: (instance) => {
         randomRowKey(instance);
-        ensureUUID(instance, "idendpoint");
         if (
           instance.handler == "FUNCTION" &&
           (!instance.code || instance.code.length < 1)
@@ -826,9 +706,6 @@ export const Endpoint = dbsequelize.define(
       },
       beforeBulkCreate: (instance) => {
         randomRowKey(instance);
-      },
-      beforeCreate: (instance) => {
-        //
       },
     },
   },
@@ -871,7 +748,12 @@ export const LogEntry = dbsequelize.define(
     idclient: {
       type: DataTypes.UUID,
       allowNull: true,
-      comment: "idclient",
+      comment: "idclient uuid",
+    },
+    iduser: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      comment: "ID System user",
     },
     url: {
       type: DataTypes.TEXT,
@@ -931,101 +813,26 @@ export const LogEntry = dbsequelize.define(
       allowNull: true,
       comment: "Host client",
     },
-    req_headers: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "Request Headers",
-      get() {
-        return JSON_ADAPTER.getData(this, "req_headers");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "req_headers", value);
-      },
-    },
-    res_headers: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "Response Headers",
-      get() {
-        return JSON_ADAPTER.getData(this, "res_headers");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "res_headers", value);
-      },
-    },
-    query: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "",
-      get() {
-        return JSON_ADAPTER.getData(this, "query");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "query", value);
-      },
-    },
-    body: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "",
-      get() {
-        return JSON_ADAPTER.getData(this, "body");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "body", value);
-      },
-    },
-    params: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "",
-      get() {
-        return JSON_ADAPTER.getData(this, "params");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "params", value);
-      },
-    },
+    req_headers: jsonField("req_headers", { comment: "Request Headers" }),
+    res_headers: jsonField("res_headers", { comment: "Response Headers" }),
+    query: jsonField("query"),
+    body: jsonField("body"),
+    params: jsonField("params"),
     response_time: {
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: -1,
       comment: "",
     },
-    response_data: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "data",
-      get() {
-        return JSON_ADAPTER.getData(this, "response_data");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "response_data", value);
-      },
-    },
-    message: {
-      type: JSON_TYPE,
-      allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "message");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "message", value);
-      },
-      comment: "JSON Message log",
-    },
+    response_data: jsonField("response_data", { comment: "data" }),
+    message: jsonField("message", { comment: "JSON Message log" }),
   },
   {
     freezeTableName: true,
     timestamps: false, // No necesitamos createdAt ni updatedAt para este caso
     paranoid: false, // Evita el soft delete
     comment: "Tabla de logs de la aplicación",
-    hooks: {
-      afterCreate: async (/** @type {any} */ instance, options) => { },
-      beforeValidate: (instance) => {
-        //
-      },
-    },
+    hooks: {},
     indexes: [
       // 1. Búsquedas rápidas por Aplicación + Tiempo (para ver logs recientes de una app)
       {
@@ -1219,17 +1026,7 @@ export const IntervalTask = dbsequelize.define(
       allowNull: true,
       comment: "Next run",
     },
-    params: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "",
-      get() {
-        return JSON_ADAPTER.getData(this, "params");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "params", value);
-      },
-    },
+    params: jsonField("params"),
     exec_time_limit: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -1253,17 +1050,7 @@ export const IntervalTask = dbsequelize.define(
       allowNull: true,
       comment: "Last time executed in miliseconds",
     },
-    last_response: {
-      type: JSON_TYPE,
-      allowNull: true,
-      comment: "",
-      get() {
-        return JSON_ADAPTER.getData(this, "last_response");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "last_response", value);
-      },
-    },
+    last_response: jsonField("last_response"),
     note: {
       type: DataTypes.TEXT,
       allowNull: true,
@@ -1276,11 +1063,9 @@ export const IntervalTask = dbsequelize.define(
     paranoid: false, // Evita el soft delete
     comment: "App Intervals",
     hooks: {
-      afterUpsert: async (/** @type {any} */ instance, options) => {
-        //console.log("xxxxxxxxxxxxxxxxxxxxxxxxxx", instance);
-
+      afterUpsert: async (instance) => {
         await HooksDB({
-          instance: instance,
+          instance,
           table: ModelNames.IntervalTask,
           action: "afterUpsert",
         });
@@ -1311,16 +1096,7 @@ export const tblDemo = dbsequelize.define(
       unique: true,
       allowNull: false,
     },
-    json_data: {
-      type: JSON_TYPE,
-      allowNull: true,
-      get() {
-        return JSON_ADAPTER.getData(this, "json_data");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "json_data", value);
-      },
-    },
+    json_data: jsonField("json_data"),
   },
   {
     freezeTableName: true,
@@ -1415,7 +1191,7 @@ export const ApiClient = dbsequelize.define(
       type: DataTypes.ENUM("initial", "active", "suspended", "inactive"),
       defaultValue: "initial",
     },
-    change_password: { type: DataTypes.BOOLEAN, defaultValue: true },
+    change_password: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     first_name: { type: DataTypes.STRING(200), allowNull: true },
     last_name: { type: DataTypes.STRING(200), allowNull: true },
     email: { type: DataTypes.STRING(150), allowNull: false },
@@ -1439,16 +1215,7 @@ export const ApiClient = dbsequelize.define(
       defaultValue: DataTypes.NOW,
     },
     endAt: { type: DataTypes.DATE, allowNull: true },
-    custom_data: {
-      type: JSON_TYPE,
-      comment: "User custom data",
-      get() {
-        return JSON_ADAPTER.getData(this, "custom_data");
-      },
-      set(value) {
-        JSON_ADAPTER.setData(this, "custom_data", value);
-      },
-    },
+    custom_data: jsonField("custom_data", { comment: "User custom data" }),
     last_login: {
       type: DataTypes.DATE,
       allowNull: true, // << corregido
@@ -1482,18 +1249,29 @@ export const ApiKey = dbsequelize.define(
   ModelNames.ApiKey,
   {
     idkey: {
-      type: DataTypes.UUID,
+      type: DataTypes.BIGINT,
       primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
+      autoIncrement: true,
     },
-    idclient: { type: DataTypes.UUID, allowNull: false },
+    idapp: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: Application, key: "idapp" }
+    },
+    idclient: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: ApiClient, key: "idclient" }
+    },
     enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
     startAt: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      comment: "Fecha de inicio de la API Key",
     },
-    endAt: { type: DataTypes.DATE },
+    endAt: { type: DataTypes.DATE, comment: "Fecha de expiración de la API Key" },
+    token: { type: DataTypes.TEXT, allowNull: false, comment: "Token de la API Key" },
     description: { type: DataTypes.STRING(150) },
   },
   {
@@ -1511,54 +1289,9 @@ export const ApiKey = dbsequelize.define(
   },
 );
 
-// ApiKeyEndpoint - Si Se elimina un idkey en el modelo ApiKey tambien debe eliminarse en cascada de este modelo, lo mismo con el campo idendpoint.
-export const ApiKeyEndpoint = dbsequelize.define(
-  ModelNames.ApiKeyEndpoint,
-  {
-    idkey: { type: DataTypes.UUID, allowNull: false }, // Es llave foranea del modelo ApiKey
-    idendpoint: { type: DataTypes.UUID, allowNull: false }, // Es llave foranea de idendpoint del Modelo Endpoint
-  },
-  { timestamps: true, freezeTableName: true },
-);
 
-/*
-ApiClient → ApiKey (1:N)
-Un cliente puede tener varias API Keys.
-*/
-ApiClient.hasMany(ApiKey, {
-  foreignKey: "idclient",
-  onDelete: "CASCADE",
-});
 
-ApiKey.belongsTo(ApiClient, {
-  foreignKey: "idclient",
-});
 
-/*
-ApiKey → ApiKeyEndpoint (1:N)
-Una API Key puede estar autorizada para varios endpoints.
-*/
-ApiKey.hasMany(ApiKeyEndpoint, {
-  foreignKey: "idkey",
-  onDelete: "CASCADE",
-});
-
-ApiKeyEndpoint.belongsTo(ApiKey, {
-  foreignKey: "idkey",
-});
-
-/*
-Endpoint → ApiKeyEndpoint (1:N)
-(Suponiendo que el modelo Endpoint existe y tiene idendpoint como PK)
-*/
-Endpoint.hasMany(ApiKeyEndpoint, {
-  foreignKey: "idendpoint",
-  onDelete: "CASCADE",
-});
-
-ApiKeyEndpoint.belongsTo(Endpoint, {
-  foreignKey: "idendpoint",
-});
 
 //////////////////////////////////////////////////////
 // ✅ Relación: Una Application tiene muchas variables
@@ -1660,3 +1393,12 @@ ClientTransactions.belongsTo(Endpoint, {
   as: "endpoint",
   constraints: false,
 });
+
+// ----------------------------
+// ApiClient -> ApiKey -> Endpoint
+// ----------------------------
+ApiClient.hasMany(ApiKey, { foreignKey: "idclient", as: "keys" });
+ApiKey.belongsTo(ApiClient, { foreignKey: "idclient", as: "client" });
+
+Application.hasMany(ApiKey, { foreignKey: "idapp", as: "keys" });
+ApiKey.belongsTo(Application, { foreignKey: "idapp", as: "app" });

@@ -90,11 +90,11 @@ export function getIPFromRequest(req) {
 /**
  * @param {string} token
  */
-export function checkToken(token) {
+export function checkToken(token, key = JWTKEY) {
   if (token) {
     try {
       // Verificar y decodificar el token
-      const decodedToken = tokenVerify(token);
+      const decodedToken = tokenVerify(token, key);
 
       if (decodedToken && decodedToken.data) {
         return decodedToken.data;
@@ -109,34 +109,7 @@ export function checkToken(token) {
   }
 }
 
-// Middleware para validar el token de usuario del systema (Administradores de endpoints)
-/**
- * @param {any} req
- * @param { any } res
- * @param {() => void} next
- */
-export function ___validateSystemToken(req, res, next) {
-  req.headers["data-token"] = ""; // Vacia los datos que llegan en el token
-  let dataAuth = getUserPasswordTokenFromRequest(req);
 
-  // Verificar si se proporcionó un token
-  if (!dataAuth.token) {
-    return res.status(401).json({ error: "Token not found" });
-  }
-
-  let data = checkToken(dataAuth.token);
-
-  if (data) {
-    if (data.for == "user") {
-      req.headers["data-token"] = JSON.stringify(data); // setea los datos del token para usarlo posteriormente
-      next();
-    } else {
-      return res.status(401).json({ error: "Incorrect token" });
-    }
-  } else {
-    return res.status(401).json({ error: "Token invalid" });
-  }
-}
 
 /**
  * @param {number} code
@@ -167,8 +140,8 @@ export function EncryptPwd(pwd) {
 /**
  * @param {any} token
  */
-export function tokenVerify(token) {
-  return jwt.verify(token, JWTKEY);
+export function tokenVerify(token, key = JWTKEY) {
+  return jwt.verify(token, key);
 }
 
 /**
@@ -190,9 +163,17 @@ export function getUserPasswordTokenFromRequest(req) {
       password = undefined;
     }
   } else if (authHeader?.startsWith("Bearer ")) {
+
+    let jwt_key = JWTKEY;
     token = authHeader.split(" ")[1];
+
+    if (token.startsWith("OFAPI_KEY@")) {
+      token = token.slice("OFAPI_KEY@".length); // corta solo el prefijo inicial
+      jwt_key = req?.openfusionapi?.handler?.params?.jwt_key || JWTKEY;
+    }
+
     try {
-      data_token = checkToken(token);
+      data_token = checkToken(token, jwt_key);
     } catch (e) {
       data_token = null;
     }

@@ -17,6 +17,7 @@ import Endpoint from "./server/endpoint/index.js";
 import { BotManager } from "./server/bot-manager/manager.js";
 import { getAllBots } from "./db/bot.js";
 import { TasksInterval } from "./timer/tasks.js";
+import { defaultApiClient } from "./db/apiclient.js";
 
 import dbAPIs from "./db/sequelize.js";
 import { defaultApps, getApplicationsTreeByFilters } from "./db/app.js";
@@ -702,8 +703,8 @@ export default class ServerAPI extends EventEmitter {
     // En este metodo se debe validar de que clase de usuario es, si es del sistema o si es usuario externo
     let check = false;
 
-    if (data_aut?.Bearer?.data?.api && handler.params) {
-      check = true; // De momento usuarios de API tiene acceso libre
+    if (data_aut?.Bearer?.data?.apikey?.idapp == handler.params.idapp) {
+      check = true; // Valida que el token esté asociado al idapp
     } else if (data_aut?.Bearer?.data?.admin && handler.params) {
       let user = data_aut.Bearer.data.admin;
 
@@ -1016,6 +1017,12 @@ export default class ServerAPI extends EventEmitter {
 
       try {
         await defaultUser();
+      } catch (error) {
+        console.log(error);
+      }
+
+       try {
+        await defaultApiClient();
       } catch (error) {
         console.log(error);
       }

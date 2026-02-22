@@ -1,9 +1,17 @@
-import { schema_return_customFunction } from "./json_schemas.js";
+import { z } from "zod";
 import { setCacheReply, replyException } from "./utils.js";
 
-import Ajv from "ajv";
-const ajv = new Ajv({ removeAdditional: true, allErrors: true });
-const validateSchema = ajv.compile(schema_return_customFunction);
+const schemaResult = z.object({
+  code: z.number(),
+  data: z.union([
+    z.record(z.any()),      // object
+    z.array(z.any()),       // array
+    z.boolean(),
+    z.string(),
+    z.number(),
+    z.null(),
+  ]),
+});
 
 export const customFunction = async (
   $_REQUEST_,
@@ -47,19 +55,21 @@ export const customFunction = async (
         signal: controller.signal,
       });
     } catch (err) {
-      console.error("Function execution error:", err);
+      // Verificar abort PRIMERO para que el timeout no quede enmascarado
+      // por un error propio de la función que ocurra casi simultáneamente
       if (controller.signal.aborted) {
-        throw new Error("Execution timeout");
+        throw new Error("Execution timeout (5 min exceeded)");
       }
+      console.error("Function execution error:", err);
       throw err;
     } finally {
       clearTimeout(timer);
     }
 
-    // Validar salida
-    if (!validateSchema(fnresult)) {
-      const errors = validateSchema.errors || [{ message: "Invalid response" }];
-      //     setCacheReply($_REPLY_, { errors });
+    // Validar salida con Zod
+    const parsed = schemaResult.safeParse(fnresult);
+    if (!parsed.success) {
+      const errors = parsed.error.flatten();
       console.error("Response validation errors:", errors);
       $_REPLY_.code(500).send(errors);
       return;

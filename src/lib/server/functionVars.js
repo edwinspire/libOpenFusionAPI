@@ -34,9 +34,51 @@ export const JWTKEY = JWT_KEY ?? 'oy8632rcv"$/8';
 /**
  * @param {any} data
  */
-export function GenToken(data, exp_seconds = 3600 /* 1 hora */) {
-  const exp = Math.floor(Date.now() / 1000) + Number(exp_seconds);
-  return jwt.sign({ data: { ...data, _rnd_: Math.random() }, exp }, JWTKEY);
+export function GenToken(data, exp_seconds = 3600 /* 1 hora */, key = JWTKEY) {
+  let exp = Math.floor(Date.now() / 1000) + Number(exp_seconds);
+  return jwt.sign({ data: { ...data, _rnd_: Math.random() }, exp: exp }, key);
+}
+
+/**
+ * Genera un JWT firmado con fechas de inicio y fin explícitas.
+ * @param {any} data - Datos a incluir en el token.
+ * @param {Date|string} [startAt] - Fecha/hora de inicio. Por defecto: ahora.
+ * @param {Date|string} [endAt]   - Fecha/hora de expiración. Por defecto: ahora + 1 hora.
+ * @param {string} [key]          - Clave de firma. Por defecto: JWTKEY.
+ * @returns {string} JWT firmado.
+ */
+export function GenTokenJWT(data, startAt, endAt, key = JWTKEY) {
+  const now = new Date();
+
+  const start = startAt ? new Date(startAt) : now;
+  const end = endAt ? new Date(endAt) : new Date(start.getTime() + 3600 * 1000);
+
+  // Validaciones
+  if (isNaN(start.getTime())) {
+    throw new Error("startAt no es una fecha válida");
+  }
+
+  if (isNaN(end.getTime())) {
+    throw new Error("endAt no es una fecha válida");
+  }
+
+  if (end <= start) {
+    throw new Error("endAt debe ser mayor que startAt");
+  }
+
+  const iat = Math.floor(start.getTime() / 1000);
+  const exp = Math.floor(end.getTime() / 1000);
+  const nbf = iat; // inicio de validez real
+
+  return jwt.sign(
+    {
+      data: { ...data },
+      iat,
+      exp,
+      nbf
+    },
+    key
+  );
 }
 
 export const jsException = (message, data, http_statusCode = 500) => {

@@ -292,6 +292,14 @@ export default class Endpoint extends EventEmitter {
   getDataLog(log_level, request, reply) {
     let handler_param = request?.openfusionapi?.handler?.params || {};
 
+    let iduser = undefined;
+    let idclient = undefined;
+    if (request.openfusionapi?.user?.admin?.iduser){
+      iduser = request.openfusionapi.user.admin.iduser;
+    }else if (request.openfusionapi?.user?.apikey?.idclient){
+      idclient = request.openfusionapi.user.apikey.idclient;
+    }
+    
     let data_log = {
       trace_id: request.headers["ofapi-trace-id"],
       timestamp: new Date(),
@@ -309,6 +317,8 @@ export default class Endpoint extends EventEmitter {
       query: undefined,
       body: undefined,
       params: undefined,
+      iduser: iduser,
+      idclient: idclient,
       response_time: reply?.openfusionapi?.lastResponse?.responseTime,
       response_data: undefined,
       message: reply?.openfusionapi?.lastResponse?.exception,
@@ -510,6 +520,7 @@ export default class Endpoint extends EventEmitter {
             );
             endpoint.url_key = key;
             endpoint.idapp = appData.idapp;
+            endpoint.jwt_key = appData.jwt_key;
 
             if (!this.internal_endpoint[key]) {
               this.internal_endpoint[key] = {};
