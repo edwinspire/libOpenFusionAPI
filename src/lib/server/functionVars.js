@@ -6,7 +6,7 @@ import * as sequelize from "sequelize";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import nodemailer from "nodemailer";
 import * as xmlCrypto from "xml-crypto";
-import * as xmldom from "xmldom";
+import * as xmldom from "@xmldom/xmldom";
 import * as forge from "node-forge";
 import * as uuid from "uuid";
 import Zod from "zod";
@@ -73,7 +73,7 @@ export function GenTokenJWT(data, startAt, endAt, key = JWTKEY) {
   return jwt.sign(
     {
       data: { ...data },
-      iat,
+      //iat,
       exp,
       nbf
     },
