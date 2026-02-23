@@ -132,11 +132,13 @@ export default class ServerAPI extends EventEmitter {
 
     this.TasksInterval = new TasksInterval();
 
+    const maxBodyBytes =
+      (parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024) ||
+      DEFAULT_MAX_FILE_SIZE_UPLOAD;
+
     this.fastify = Fastify({
       logger: false,
-      bodyLimit:
-        parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024 ||
-        DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
+      bodyLimit: maxBodyBytes,
     });
 
     // Map<String, Set<WebSocket>>
@@ -216,23 +218,12 @@ export default class ServerAPI extends EventEmitter {
 
   async _build() {
     await this.fastify.register(formbody, {
-      bodyLimit:
-        parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024 ||
-        DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
+      bodyLimit: maxBodyBytes,
     });
     await this.fastify.register(multipart, {
-      //attachFieldsToBody: "keyValues", // Consume memoria porque los archivos se guardan en memoria, los archivos se guardan en un buffer pero se pierde los detalles del archivo.
-      attachFieldsToBody: true, // Se guardan los archivos en memoria pero de forma detallada, puede ser prblema con archivos grandes.
+      attachFieldsToBody: true,
       limits: {
-        //fieldNameSize: 100, // Max field name size in bytes
-        //fieldSize: 100, // Max field value size in bytes
-        //fields: 10, // Max number of non-file fields
-        fileSize:
-          parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024 ||
-          DEFAULT_MAX_FILE_SIZE_UPLOAD, // For multipart forms, the max file size in bytes
-        //files: 1, // Max number of file fields
-        //headerPairs: 2000, // Max number of header key=>value pairs
-        //parts: 1000, // For multipart forms, the max number of parts (fields + files)
+        fileSize: maxBodyBytes,
       },
     });
 
@@ -458,7 +449,7 @@ export default class ServerAPI extends EventEmitter {
                       if (
                         client_ws.readyState === 1 && // OPEN
                         client_ws.openfusionapi.idclient !=
-                          connection.socket.openfusionapi.idclient
+                        connection.socket.openfusionapi.idclient
                       ) {
                         client_ws.send(JSON.stringify(msgObj.payload));
                       }
@@ -645,17 +636,18 @@ export default class ServerAPI extends EventEmitter {
             );
             return;
           }
-
-          console.log("Continuando con el siguiente valor...");
         }
       }
     }, 3000);
 
     const manager = new BotManager();
+    let isBotLoopRunning = false;
 
     console.log("--- Starting System (grammY edition) ---");
 
     setInterval(async () => {
+      if (isBotLoopRunning) return; // Evita solapamiento si el ciclo anterior aún no terminó
+      isBotLoopRunning = true;
       try {
         const apps = await getApplicationsTreeByFilters({
           endpoint: { handler: "TELEGRAM_BOT" },
@@ -696,6 +688,8 @@ export default class ServerAPI extends EventEmitter {
         }
       } catch (error) {
         console.error("Error in bot management loop:", error);
+      } finally {
+        isBotLoopRunning = false;
       }
     }, 10000);
   }
@@ -749,6 +743,7 @@ export default class ServerAPI extends EventEmitter {
             error: "The System API requires a valid Token.",
             url: request.url,
           });
+          return;
         }
       } else {
         //
@@ -796,6 +791,7 @@ export default class ServerAPI extends EventEmitter {
                 error: "The API requires a valid Token.",
                 url: request.url,
               });
+              return;
             }
             break;
         }
@@ -1021,7 +1017,7 @@ export default class ServerAPI extends EventEmitter {
         console.log(error);
       }
 
-       try {
+      try {
         await defaultApiClient();
       } catch (error) {
         console.log(error);
