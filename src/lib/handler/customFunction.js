@@ -1,17 +1,24 @@
-import { z } from "zod";
 import { setCacheReply, replyException } from "./utils.js";
 
-const schemaResult = z.object({
-  code: z.number(),
-  data: z.union([
-    z.record(z.any()),      // object
-    z.array(z.any()),       // array
-    z.boolean(),
-    z.string(),
-    z.number(),
-    z.null(),
-  ]),
-});
+const VALID_DATA_TYPES = new Set(["object", "array", "boolean", "string", "number", "null"]);
+
+/**
+ * Validates that fnresult has the expected shape: { code: number, data: any }
+ * Equivalent to the previous Zod schema — zero external dependencies.
+ */
+function validateFnResult(result) {
+  if (result === null || typeof result !== "object") {
+    return { success: false, error: "Function result must be an object" };
+  }
+  if (typeof result.code !== "number") {
+    return { success: false, error: `'code' must be a number, got: ${typeof result.code}` };
+  }
+  const dataType = result.data === null ? "null" : Array.isArray(result.data) ? "array" : typeof result.data;
+  if (!VALID_DATA_TYPES.has(dataType)) {
+    return { success: false, error: `'data' has unsupported type: ${dataType}` };
+  }
+  return { success: true };
+}
 
 export const customFunction = async (
   $_REQUEST_,
@@ -66,12 +73,11 @@ export const customFunction = async (
       clearTimeout(timer);
     }
 
-    // Validar salida con Zod
-    const parsed = schemaResult.safeParse(fnresult);
+    // Validar salida
+    const parsed = validateFnResult(fnresult);
     if (!parsed.success) {
-      const errors = parsed.error.flatten();
-      console.error("Response validation errors:", errors);
-      $_REPLY_.code(500).send(errors);
+      console.error("Response validation errors:", parsed.error);
+      $_REPLY_.code(500).send({ error: parsed.error });
       return;
     }
 
