@@ -132,13 +132,13 @@ export default class ServerAPI extends EventEmitter {
 
     this.TasksInterval = new TasksInterval();
 
-    const maxBodyBytes =
+    this.maxBodyBytes =
       (parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024) ||
       DEFAULT_MAX_FILE_SIZE_UPLOAD;
 
     this.fastify = Fastify({
       logger: false,
-      bodyLimit: maxBodyBytes,
+      bodyLimit: this.maxBodyBytes,
     });
 
     // Map<String, Set<WebSocket>>
@@ -218,12 +218,12 @@ export default class ServerAPI extends EventEmitter {
 
   async _build() {
     await this.fastify.register(formbody, {
-      bodyLimit: maxBodyBytes,
+      bodyLimit: this.maxBodyBytes,
     });
     await this.fastify.register(multipart, {
       attachFieldsToBody: true,
       limits: {
-        fileSize: maxBodyBytes,
+        fileSize: this.maxBodyBytes,
       },
     });
 
