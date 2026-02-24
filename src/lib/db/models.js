@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:events";
 import { DataTypes } from "sequelize";
 import dbsequelize from "./sequelize.js";
 import { v4 as uuidv4 } from "uuid";
@@ -54,6 +55,40 @@ const default_json_schema = {
     },
   },
 };
+
+
+export default class ModelHooks extends EventEmitter {
+  constructor() {
+    super();
+  }
+  emit(data) {
+    let instance = {};
+
+  if (Array.isArray(data.instance)) {
+    instance = data.instance[0];
+  } else {
+    instance = data.instance;
+  }
+
+  let dataHook = {};
+
+  try {
+    dataHook = {
+      host: instance.sequelize.config.host,
+      database: instance.sequelize.config.database,
+      schema: data.schema || "",
+      model: data.table,
+      action: data.action,
+      data: instance,
+    };
+  } catch (error) {
+    console.log("Error en HooksDB:", error);
+  }
+    super.emit('hook', dataHook);
+  }
+}
+
+export const modelHooks = new ModelHooks();
 
 class JSON_ADAPTER {
   constructor() { }
@@ -683,11 +718,20 @@ export const Endpoint = dbsequelize.define(
     ],
     hooks: {
       afterUpsert: async (instance) => {
+        
+        modelHooks.emit({
+          instance,
+          table: ModelNames.Endpoint,
+          action: "afterUpsert",
+        });
+
+        /*
         await HooksDB({
           instance,
           table: ModelNames.Endpoint,
           action: "afterUpsert",
         });
+        */
       },
       beforeValidate: (instance) => {
         randomRowKey(instance);

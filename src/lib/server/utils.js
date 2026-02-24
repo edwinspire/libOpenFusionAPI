@@ -63,7 +63,8 @@ export async function emitHook(data) {
     const uF = fnUrlae.create(internal_url_post_hooks, false);
 
     let r = await uF.POST({ data: data });
-    return await r.json();
+    let resp = await r.json();
+    return resp;
   } catch (error) {
     console.error(error);
     return { error: "Error validating webhook data", data: error };

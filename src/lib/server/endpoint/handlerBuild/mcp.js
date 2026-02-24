@@ -6,7 +6,8 @@ import * as z from "zod";
 import { URLAutoEnvironment } from "../../functionVars.js";
 
 export const CreateMCPHandler = async (app_name, environment) => {
-  let app = await getApplicationTreeByFilters({
+  
+   let app = await getApplicationTreeByFilters({
     app: app_name,
     enabled: true,
     endpoint: {

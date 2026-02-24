@@ -11,7 +11,7 @@ import { CreateMCPHandler } from "./handlerBuild/mcp.js";
 import { createFunctionVM } from "../createFunctionVM.js";
 import hash from "object-hash";
 import Ajv from "ajv";
-import { type } from "node:os";
+
 const ajv = new Ajv();
 const default_id_app = "62a03367-e2d5-459c-b236-b6878f546142";
 
@@ -294,12 +294,12 @@ export default class Endpoint extends EventEmitter {
 
     let iduser = undefined;
     let idclient = undefined;
-    if (request.openfusionapi?.user?.admin?.iduser){
+    if (request.openfusionapi?.user?.admin?.iduser) {
       iduser = request.openfusionapi.user.admin.iduser;
-    }else if (request.openfusionapi?.user?.apikey?.idclient){
+    } else if (request.openfusionapi?.user?.apikey?.idclient) {
       idclient = request.openfusionapi.user.apikey.idclient;
     }
-    
+
     let data_log = {
       trace_id: request.headers["ofapi-trace-id"],
       timestamp: new Date(),
@@ -448,23 +448,44 @@ export default class Endpoint extends EventEmitter {
   }
 
   deleteEndpointByidEndpoint(idendpoint) {
-    if (idendpoint) {
+    if (!idendpoint) return;
+
+    try {
       let ep_list = Object.keys(this.internal_endpoint);
 
-      for (let index = 0; index < ep_list.length; index++) {
-        let ep = this.internal_endpoint[ep_list[index]];
-        if (ep && ep.handler.params.idendpoint == idendpoint) {
+      // idendpoint es único por endpoint, al encontrar uno no es necesario seguir recorriendo
+      for (const key of ep_list) {
+        const ep = this.internal_endpoint[key];
+        if (ep?.handler?.params?.idendpoint === idendpoint) {
           this.cache.delete({
-            app: ep?.handler?.params?.app,
-            resource: ep?.handler?.params?.resource,
-            env: ep?.handler?.params?.environment,
-            method: ep?.handler?.params?.method,
+            app: ep.handler.params.app,
+            resource: ep.handler.params.resource,
+            env: ep.handler.params.environment,
+            method: ep.handler.params.method,
           });
-          delete this.internal_endpoint[ep_list[index]];
-
+          delete this.internal_endpoint[key];
           break;
         }
       }
+
+      // Elimina todos los endpoints que tienen el handler MCP
+      // Se regenera ep_list para no iterar sobre claves ya eliminadas
+      ep_list = Object.keys(this.internal_endpoint);
+
+      for (const key of ep_list) {
+        const ep = this.internal_endpoint[key];
+        if (ep?.handler?.params?.handler === "MCP") {
+          this.cache.delete({
+            app: ep.handler.params.app,
+            resource: ep.handler.params.resource,
+            env: ep.handler.params.environment,
+            method: ep.handler.params.method,
+          });
+          delete this.internal_endpoint[key];
+        }
+      }
+    } catch (error) {
+      console.error(`deleteEndpointByidEndpoint error [idendpoint=${idendpoint}]:`, error);
     }
   }
 

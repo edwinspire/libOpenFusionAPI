@@ -28,11 +28,11 @@ export const mcpFunction = async (
       server?.close?.();
     });
     await server.connect(transport);
-    await transport.handleRequest(request, reply.raw, request.body);
+    await transport.handleRequest(request.raw, reply.raw, request.body);
   } catch (error) {
     console.error("Error handling MCP request:", error);
-    if (!reply.headersSent) {
-      reply.status(500).send({
+    if (!reply.sent) {
+      reply.code(500).send({
         jsonrpc: "2.0",
         error: {
           code: -32603,

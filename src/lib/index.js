@@ -35,6 +35,7 @@ import {
   LogEntry,
   IntervalTask,
   tblDemo,
+  modelHooks
 } from "./db/models.js";
 import { runHandler } from "./handler/handler.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
@@ -58,7 +59,7 @@ import {
   urlSystemPath,
   default_port,
   internal_url_ws,
-  WebSocketValidateFormatChannelName,
+  WebSocketValidateFormatChannelName, url_key
 } from "./server/utils_path.js";
 
 import fs from "fs";
@@ -131,6 +132,44 @@ export default class ServerAPI extends EventEmitter {
     );
 
     this.TasksInterval = new TasksInterval();
+
+    modelHooks.on("hook", async (data) => {
+
+      // Borrar la cache de funciones de la app cuando se actualiza la app
+      if (
+        data.model == prefixTableName("application") &&
+        data.action === "afterUpsert"
+      ) {
+        // Cuando se modifica una app
+
+        // TODO: Revisar el entorno no solo la app
+        if (data.data?.app) {
+          setTimeout(() => {
+            // Espera 5 segundos para borrar la cache de las funciones del endpoint
+            this._deleteEndpointsByAppName(data.data?.app);
+          }, 5000);
+        }
+      } else if (
+        data.model == prefixTableName("appvars") &&
+        (data.action === "afterUpsert" ||
+          data.action === "afterDestroy")
+      ) {
+        // Cuando se modifica / borra una variable de aplicación
+        this.endpoints.deleteEndpointsByIdApp(
+          data.data?.idapp,
+          data.data?.environment,
+        );
+      } else if (
+        data.model == prefixTableName("endpoint") &&
+        data.action === "afterUpsert"
+      ) {
+        // Cuando hay cambios en un endpoint
+        this.endpoints.deleteEndpointByidEndpoint(
+          data?.data?.idendpoint,
+          data?.data?.environment,
+        );
+      }
+    });
 
     this.maxBodyBytes =
       (parseInt(MAX_FILE_SIZE_UPLOAD, 10) * 1024 * 1024) ||
@@ -341,27 +380,26 @@ export default class ServerAPI extends EventEmitter {
     });
 
     this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
-      // Todos los clientes deben estar registrados para poder hacer broadcast o desconectarlos masivamente
-      // Crea un idclient para poder enviar un mensaje solo para un socket especifico
+      // En @fastify/websocket v11, connection ES el WebSocket directamente (no connection.socket)
       try {
-        connection.socket.openfusionapi = req.openfusionapi
+        connection.openfusionapi = req.openfusionapi
           ? req.openfusionapi
           : {};
 
-        //connection.socket.openfusionapi.idclient = getUUID();
+        //connection.openfusionapi.idclient = getUUID();
       } catch (error) {
         console.log(error);
       }
 
-      connection.socket.on("open", (message) => {
+      connection.on("open", (message) => {
         //  console.log("Abre");
       });
-      connection.socket.on("close", (message) => {
+      connection.on("close", (message) => {
         //console.log("Cierra");
-        this._removeWsSubscriber(connection.socket);
+        this._removeWsSubscriber(connection);
       });
 
-      connection.socket.on("message", (message) => {
+      connection.on("message", (message) => {
         // TODO: Validar acceso en cada mensaje
         // TODO: Validar si el usuario solo puede recibir mensajes
         // TODO: Validar si los usuarios pueden enviar un mensaje broadcast
@@ -388,7 +426,7 @@ export default class ServerAPI extends EventEmitter {
                   let validate_channel_subscribe =
                     WebSocketValidateFormatChannelName(msgObj.payload.channel);
                   if (!validate_channel_subscribe.valid) {
-                    connection.socket.send(
+                    connection.send(
                       JSON.stringify({
                         subscribed: false,
                         channel: msgObj.payload.channel,
@@ -396,16 +434,16 @@ export default class ServerAPI extends EventEmitter {
                       }),
                     );
                   } else {
-                    connection.socket.openfusionapi.channel =
+                    connection.openfusionapi.channel =
                       msgObj.payload.channel;
-                    connection.socket.openfusionapi.idclient = getUUID();
+                    connection.openfusionapi.idclient = getUUID();
                     this._addWsSubscriber(
-                      connection.socket,
-                      connection.socket.openfusionapi.handler.params.idendpoint,
+                      connection,
+                      connection.openfusionapi.handler.params.idendpoint,
                       msgObj.payload.channel,
                     );
 
-                    connection.socket.send(
+                    connection.send(
                       JSON.stringify({
                         subscribed: true,
                         channel: msgObj.payload.channel,
@@ -414,7 +452,7 @@ export default class ServerAPI extends EventEmitter {
                     );
                   }
                 } else {
-                  connection.socket.send(
+                  connection.send(
                     JSON.stringify({
                       subscribed: false,
                       channel: msgObj.payload.channel,
@@ -423,23 +461,23 @@ export default class ServerAPI extends EventEmitter {
                   );
                 }
               } else if (
-                connection.socket.openfusionapi.idclient &&
+                connection.openfusionapi.idclient &&
                 msgObj.channel == "/ping"
               ) {
-                connection.socket.send(
+                connection.send(
                   JSON.stringify({
                     channel: "/pong",
                     payload: {},
                   }),
                 );
-              } else if (connection.socket.openfusionapi.idclient) {
+              } else if (connection.openfusionapi.idclient) {
                 // Broadcast
                 // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
                 // TODO: Revisar un mecanismo para limitar que un cliente puede enviar mensajes y esté limitado solo a leer mensajes
                 // Broadcast Optimization
                 const idendpoint =
-                  connection.socket.openfusionapi.handler.params.idendpoint;
-                const channel = connection.socket.openfusionapi.channel;
+                  connection.openfusionapi.handler.params.idendpoint;
+                const channel = connection.openfusionapi.channel;
                 const key = this._getWsKey(idendpoint, channel);
 
                 if (this.wsSubscribers.has(key)) {
@@ -449,48 +487,48 @@ export default class ServerAPI extends EventEmitter {
                       if (
                         client_ws.readyState === 1 && // OPEN
                         client_ws.openfusionapi.idclient !=
-                        connection.socket.openfusionapi.idclient
+                        connection.openfusionapi.idclient
                       ) {
                         client_ws.send(JSON.stringify(msgObj.payload));
                       }
                     } catch (error) {
-                      connection.socket.send(
+                      connection.send(
                         JSON.stringify({ error: error.message }),
                       );
                     }
                   });
                 }
               } else {
-                connection.socket.send(
+                connection.send(
                   JSON.stringify({ error: "Invalid client. Bye." }),
                 );
-                connection.socket.close();
+                connection.close();
               }
             } else {
               //    console.log("❌ Inválido. Errores detectados:");
               // ¡Aquí está la magia! `validate.errors` es un array con los detalles.
-              connection.socket.send(
+              connection.send(
                 JSON.stringify({
                   error: validateSchemaMessageWebSocket.errors,
                 }),
               );
-              connection.socket.close();
+              connection.close();
             }
           } else {
             // Devuelve un mensaje al cliente que originó el mensaje
-            connection.socket.send(
+            connection.send(
               JSON.stringify({
                 error: "Invalid channel name format",
                 message: msgString,
               }),
             );
-            connection.socket.close();
+            connection.close();
           }
         } catch (error) {
-          connection.socket.send(
+          connection.send(
             JSON.stringify({ error: error.message, message: msgString }),
           );
-          connection.socket.close();
+          connection.close();
         }
       });
     });

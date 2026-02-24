@@ -11,8 +11,13 @@ export function jsonSchemaToZod(schema, root = null) {
 
   // Manejo de $ref
   if (schema.$ref) {
-    const ref = resolveRef(schema.$ref, root);
-    return jsonSchemaToZod(ref, root);
+    return jsonSchemaToZod(resolveRef(schema.$ref, root), root);
+  }
+
+  // type como array: e.g. ["string", "null"] → z.union
+  if (Array.isArray(schema.type)) {
+    const types = schema.type.map(t => jsonSchemaToZod({ ...schema, type: t }, root));
+    return types.length === 1 ? types[0] : z.union(types);
   }
 
   // Manejo de combinadores
@@ -53,13 +58,26 @@ export function jsonSchemaToZod(schema, root = null) {
 
     case undefined:
       // Puede ser enum-only, const-only o combinators
-      if (schema.enum) return z.enum(schema.enum);
+      if (schema.enum !== undefined) return makeEnum(schema.enum);
       if (schema.const !== undefined) return z.literal(schema.const);
       throw new Error("JSON Schema inválido o no soportado: " + JSON.stringify(schema));
 
     default:
       throw new Error("Tipo JSON Schema no soportado: " + schema.type);
   }
+}
+
+/* ---------------------------------------------------------
+   ENUM — soporta valores mixtos (string, number, boolean, null)
+--------------------------------------------------------- */
+function makeEnum(values) {
+  // z.enum() en Zod v4 solo acepta arrays de strings
+  if (values.every(v => typeof v === "string")) {
+    return z.enum(values);
+  }
+  // Para valores mixtos usamos z.union de literales
+  const literals = values.map(v => z.literal(v));
+  return literals.length === 1 ? literals[0] : z.union(literals);
 }
 
 /* ---------------------------------------------------------
@@ -72,17 +90,19 @@ function makeString(schema) {
   if (schema.maxLength != null) out = out.max(schema.maxLength);
   if (schema.pattern) out = out.regex(new RegExp(schema.pattern));
 
+  // Zod v4: los formatos son métodos de z.string(), no top-level
   if (schema.format) {
     switch (schema.format) {
-      case "email": out = z.email(); break;
-      case "uuid": out = z.uuid(); break;
-      case "uri": out = z.url(); break;
-      case "date-time": out = z.datetime(); break;
+      case "email": out = out.email(); break;
+      case "uuid": out = out.uuid(); break;
+      case "uri": out = out.url(); break;
+      case "date-time": out = out.datetime(); break;
     }
   }
 
-  if (schema.enum) out = z.enum(schema.enum);
-  if (schema.const !== undefined) out = z.literal(schema.const);
+  // enum y const tienen prioridad sobre el tipo base
+  if (schema.enum !== undefined) return makeEnum(schema.enum);
+  if (schema.const !== undefined) return z.literal(schema.const);
 
   if (schema.nullable) out = out.nullable();
 
@@ -95,15 +115,12 @@ function makeString(schema) {
 function makeNumber(schema) {
   let out = z.number();
 
-  if (schema.type === "integer") {
-    out = out.int();
-  }
-
+  if (schema.type === "integer") out = out.int();
   if (schema.minimum != null) out = out.min(schema.minimum);
   if (schema.maximum != null) out = out.max(schema.maximum);
 
-  if (schema.enum) out = z.enum(schema.enum.map(String)).transform(Number);
-  if (schema.const !== undefined) out = z.literal(schema.const);
+  if (schema.enum !== undefined) return makeEnum(schema.enum);
+  if (schema.const !== undefined) return z.literal(schema.const);
 
   if (schema.nullable) out = out.nullable();
 
@@ -114,10 +131,16 @@ function makeNumber(schema) {
    ARRAY
 --------------------------------------------------------- */
 function makeArray(schema, root) {
-  if (!schema.items) throw new Error("El schema array requiere 'items'");
+  // Sin items: array de elementos desconocidos
+  if (!schema.items) return z.array(z.unknown());
 
-  let item = jsonSchemaToZod(schema.items, root);
-  let out = z.array(item);
+  // Soporte de tuplas: items como array de schemas
+  if (Array.isArray(schema.items)) {
+    const items = schema.items.map(s => jsonSchemaToZod(s, root));
+    return z.tuple(items);
+  }
+
+  let out = z.array(jsonSchemaToZod(schema.items, root));
 
   if (schema.minItems != null) out = out.min(schema.minItems);
   if (schema.maxItems != null) out = out.max(schema.maxItems);
@@ -164,7 +187,8 @@ function resolveRef(ref, root) {
 
   for (const p of path) {
     result = result[p];
-    if (!result) throw new Error("Referencia no encontrada: " + ref);
+    // Usar === undefined para no fallar con valores falsy legítimos (0, false, "")
+    if (result === undefined) throw new Error("Referencia no encontrada: " + ref);
   }
 
   return result;
