@@ -8,7 +8,7 @@ import {
   deleteApiKey,
   getApiKeyByFilters,
 } from "../../../../../db/apikey.js";
-//import { ApiClientfindByIdOrUsername } from "../../../../../db/apiclient.js";
+
 
 export async function fnUpsertApiKey(params) {
   let r = { data: undefined, code: 204 };
@@ -37,17 +37,6 @@ export async function fnUpsertApiKey(params) {
     ak.enabled = true;
     ak.startAt = new Date(ak.startAt || new Date());
     ak.endAt = new Date(ak.endAt || new Date(ak.startAt.getTime() + 30 * 24 * 60 * 60 * 1000)); // 1 month
-
-    /*
-        let client = await ApiClientfindByIdOrUsername(ak.idclient);
-        if (!client || !Array.isArray(client) || client.length === 0) {
-          r.data = "Client not found";
-          r.code = 404;
-          return r;
-        }
-    
-        let cli = client[0].toJSON();
-    */
 
     const raw_key = params?.request?.openfusionapi?.handler?.params?.jwt_key;
 
