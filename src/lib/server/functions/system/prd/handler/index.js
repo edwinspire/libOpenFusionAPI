@@ -1,11 +1,29 @@
-import { getAllHandlers } from "../../../../../db/handler.js";
-import { getHandlerDoc } from "../../../../../handler/handler.js";
+import { getHandlerDoc, Handlers } from "../../../../../handler/handler.js";
 
 
 export async function fnGetHandler(params) {
   let r = { code: 204, data: undefined };
   try {
-    const hs = await getAllHandlers();
+
+    const ordenado = Object.keys(Handlers)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = Handlers[key];
+        return acc;
+      }, {});
+
+    const hs = Object.keys(ordenado).map((key) => {
+      const h = ordenado[key];
+      return {
+        handler: key,
+        label: h.label,
+        description: h.description,
+        css_class: h.css_class,
+        css_icon: h.css_icon,
+        modules: h.modules
+      };
+    });
+
 
     r.data = hs;
     r.code = 200;

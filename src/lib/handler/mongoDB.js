@@ -126,7 +126,7 @@ export const mongodbFunction = async (
       }
     }
 
-    response.code(200).send(result_fn.data);
+    response.code(result_fn.code || 200).send(result_fn.data);
   } catch (error) {
     replyException($_REQUEST_, response, error);
   }

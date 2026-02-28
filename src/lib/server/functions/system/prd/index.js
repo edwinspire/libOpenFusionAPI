@@ -3,7 +3,6 @@ import { version } from "../../../version.js";
 import  dbsequelize  from "../../../../db/sequelize.js";
 
 export * from "./user/index.js";
-export * from "./handler/index.js";
 export * from "./logs/index.js";
 export * from "./method/index.js";
 export * from "./app/index.js";
@@ -13,6 +12,7 @@ export * from "./endpoint/index.js";
 export * from "./interval_tasks/index.js";
 export * from "./bots/index.js";
 export * from "./apikey/index.js";
+export * from "./handler/index.js";
 
 export async function fnListFnVarsHandlerJS(params) {
   let r = { code: 204, data: undefined };

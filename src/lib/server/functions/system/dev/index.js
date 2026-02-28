@@ -1,5 +1,4 @@
 import { login } from "../../../../db/user.js";
-import { getAllHandlers } from "../../../../db/handler.js";
 import { getAllMethods } from "../../../../db/method.js";
 import { getAllApps, getAppById, upsertApp } from "../../../../db/app.js";
 import { v4 as uuidv4 } from "uuid";
@@ -89,27 +88,7 @@ export async function fnLogout(req, res) {
   return r;
 }
 
-/**
- * @param {any} req
- * @param {{ code: (arg0: number) => { (): any; new (): any; json: { (arg0: import("sequelize").Model<any, any>[]): void; new (): any; }; }; }} res
- */
-export async function fnGetHandler(req, res) {
-  let r = { code: 204, data: undefined };
-  try {
-    const hs = await getAllHandlers();
 
-    //res.code(200).json(hs);
-    // @ts-ignore
-    r.data = hs;
-    r.code = 200;
-  } catch (error) {
-    // @ts-ignore
-    r.data = error;
-    r.code = 500;
-    //res.code(500).json({ error: error.message });
-  }
-  return r;
-}
 
 /**
  * @param {any} req

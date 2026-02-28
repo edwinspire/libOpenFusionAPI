@@ -23,12 +23,11 @@ import dbAPIs from "./db/sequelize.js";
 import { defaultApps, getApplicationsTreeByFilters } from "./db/app.js";
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
-import { defaultHandlers } from "./db/handler.js";
+//import { defaultHandlers } from "./db/handler.js";
 import {
   prefixTableName,
   User,
   Method,
-  Handler,
   Application,
   AppVars,
   Endpoint as EndpointBBDD,
@@ -1037,11 +1036,13 @@ export default class ServerAPI extends EventEmitter {
         }
       }
 
+      /*
       try {
         await defaultHandlers();
       } catch (error) {
         console.log(error);
       }
+      */
 
       try {
         await defaultMethods();

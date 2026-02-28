@@ -92,10 +92,7 @@ export const fetchFunction = async (
     }
 
     // @ts-ignore
-    if (
-      response.openfusionapi.lastResponse &&
-      response.openfusionapi.lastResponse.hash_request
-    ) {
+    if (response.openfusionapi?.lastResponse?.hash_request) {
       // @ts-ignore
       // Limit caching size to avoid memory issues with large binaries
       if (Buffer.isBuffer(r)) {
