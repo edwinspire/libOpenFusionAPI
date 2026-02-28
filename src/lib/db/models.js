@@ -20,7 +20,7 @@ export const ModelNames = {
   EndpointBackup: prefixTableName("endpoint_bkp"),
   IntervalTask: prefixTableName("intervaltask"),
   Method: prefixTableName("method"),
-  Handler: prefixTableName("handler"),
+  //Handler: prefixTableName("handler"),
   Demo: prefixTableName("demo"),
   AppVars: prefixTableName("appvars"),
   UserProfile: prefixTableName("user_profile"),
@@ -312,6 +312,7 @@ export const Method = dbsequelize.define(
   },
 );
 
+/*
 // Definir el modelo de la tabla 'Handler'
 export const Handler = dbsequelize.define(
   ModelNames.Handler,
@@ -363,7 +364,7 @@ export const Handler = dbsequelize.define(
     },
   },
 );
-
+*/
 
 // Definir el modelo de la tabla 'App'
 

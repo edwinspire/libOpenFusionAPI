@@ -101,14 +101,7 @@ export const defaultHandlers = () => {
         description: "Create an mcp server for the application.",
         icon_class: " fa-solid fa-brain ",
         color_class: "danger",
-      },
-      {
-        id: "AGENT_IA",
-        text: `AGENT IA`,
-        description: "Implement a basic AI agent",
-        icon_class: "fa-solid fa-database",
-        color_class: "",
-      },
+      }
     ];
 
     handlers.forEach(async (h) => {
