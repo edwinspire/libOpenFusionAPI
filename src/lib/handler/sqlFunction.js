@@ -65,18 +65,18 @@ export const sqlFunction = async (
   /** @type {{ handler?: string; code: any; }} */ method
 ) => {
   try {
-    let paramsSQL = {query: method.code, config: typeof method.custom_data === 'string' ? JSON.parse(method.custom_data) : method.custom_data};
+    let paramsSQL = { query: method.code, config: typeof method.custom_data === 'string' ? JSON.parse(method.custom_data) : method.custom_data };
 
-   /* 
- El config debería tener:
-
-// Option 3: Passing parameters separately (other dialects)
-const sequelize = new Sequelize('database', 'username', 'password', {
-  host: 'localhost',
-  dialect: 'postgres'
-});
-
- */
+    /* 
+  El config debería tener:
+ 
+ // Option 3: Passing parameters separately (other dialects)
+ const sequelize = new Sequelize('database', 'username', 'password', {
+   host: 'localhost',
+   dialect: 'postgres'
+ });
+ 
+  */
 
     /*
     try {
