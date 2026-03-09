@@ -497,8 +497,8 @@ export default class Endpoint extends EventEmitter {
         let ep = this.internal_endpoint[ep_list[index]];
         if (
           ep &&
-          ep.handler.params.idapp == idapp &&
-          ep.handler.params.environment == env
+          ep?.handler?.params?.idapp == idapp &&
+          ep?.handler?.params?.environment == env
         ) {
           this.cache.delete({
             app: ep?.handler?.params?.app,

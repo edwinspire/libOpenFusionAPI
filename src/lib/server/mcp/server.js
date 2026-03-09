@@ -11,6 +11,10 @@ function getServer(app) {
   const server = new McpServer({
     name: "OpenFusionAPI MCP Server",
     version: "1.0.0",
+  }, {
+    capabilities: {
+      resources: {}
+    }
   });
 
   /*

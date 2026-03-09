@@ -5,10 +5,11 @@ export const system_app = {
   },
   "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
   "app": "system",
-  "rowkey": 778,
+  "rowkey": 471,
   "iduser": null,
   "enabled": true,
   "description": "App System",
+  "jwt_key": "a6c042e9-5516-484f-a502-051fa8906331",
   "createdAt": "2025-11-21T22:04:52.650Z",
   "updatedAt": "2025-11-22T00:11:41.979Z",
   "vrs": [],
@@ -77,7 +78,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff4",
-      "rowkey": 473,
+      "rowkey": 353,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -99,6 +100,7 @@ export const system_app = {
     },
     {
       "ctrl": {
+        "admin": true,
         "users": [],
         "log": {
           "status_info": 1,
@@ -109,13 +111,119 @@ export const system_app = {
         }
       },
       "cors": {},
-      "mcp": {},
+      "mcp": {
+        "enabled": true,
+        "name": "app_create_update",
+        "title": "Create Update App",
+        "description": "Create or update app data."
+      },
       "json_schema": {
         "in": {
-          "enabled": false,
-          "schema": {}
+          "enabled": true,
+          "schema": {
+            "title": "AppConfigUpsert",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "app",
+              "enabled"
+            ],
+            "properties": {
+              "idapp": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Si se envía UUID se ejecuta UPDATE"
+              },
+              "app": {
+                "type": "string",
+                "maxLength": 50
+              },
+              "iduser": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "enabled": {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1
+                ],
+                "default": 1
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "jwt_key": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "vars": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "object",
+                    "array",
+                    "null"
+                  ]
+                }
+              },
+              "params": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "object",
+                    "array",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "anyOf": [
+              {
+                "description": "INSERT: idapp no debe existir",
+                "not": {
+                  "required": [
+                    "idapp"
+                  ]
+                }
+              },
+              {
+                "description": "UPDATE: idapp debe existir y ser UUID",
+                "required": [
+                  "idapp"
+                ]
+              }
+            ]
+          }
         },
-        "out": {}
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
       },
       "custom_data": {},
       "headers_test": {},
@@ -125,7 +233,9 @@ export const system_app = {
             "enabled": false,
             "key": "",
             "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+            "_id": "ji619p4iv",
+            "type": 1
           }
         ],
         "body": {
@@ -139,29 +249,36 @@ export const system_app = {
           "text": {
             "value": ""
           },
-          "form": {}
+          "form": [],
+          "urlencoded": []
         },
         "headers": [
           {
             "enabled": false,
             "key": "",
             "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+            "_id": "u8hnnlexu",
+            "type": 1
           }
         ],
         "auth": {
+          "selection": 0,
           "basic": {
             "username": "",
             "password": ""
           },
           "bearer": {
             "token": ""
-          },
-          "selection": 0
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff3",
-      "rowkey": 122,
+      "rowkey": 372,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -192,7 +309,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
-      "rowkey": 308,
+      "rowkey": 321,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -308,7 +425,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff1",
-      "rowkey": 890,
+      "rowkey": 640,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -408,7 +525,7 @@ export const system_app = {
         }
       },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f6160",
-      "rowkey": 161,
+      "rowkey": 18,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -439,7 +556,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
-      "rowkey": 118,
+      "rowkey": 967,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -556,7 +673,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf02",
-      "rowkey": 230,
+      "rowkey": 526,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -599,9 +716,227 @@ export const system_app = {
         "in": {
           "enabled": true,
           "schema": {
+            "title": "Endpoint",
             "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "additionalProperties": false,
+            "required": [
+              "idapp",
+              "environment",
+              "timeout",
+              "resource",
+              "method",
+              "handler",
+              "access",
+              "title",
+              "description",
+              "price_by_request",
+              "price_kb_request",
+              "price_kb_response",
+              "keywords",
+              "code",
+              "cache_time"
+            ],
+            "properties": {
+              "idendpoint": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Identificador del endpoint. Si no se envía, el modelo lo genera automáticamente."
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true,
+                "description": "Indica si el endpoint está habilitado."
+              },
+              "idapp": {
+                "type": "string",
+                "format": "uuid",
+                "description": "UUID de la aplicación asociada."
+              },
+              "environment": {
+                "type": "string",
+                "enum": [
+                  "dev",
+                  "qa",
+                  "prd"
+                ],
+                "default": "dev",
+                "description": "Ambiente donde estará disponible."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 30,
+                "description": "Tiempo máximo de ejecución del endpoint."
+              },
+              "resource": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300,
+                "description": "Ruta del endpoint."
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE",
+                  "OPTIONS",
+                  "HEAD"
+                ],
+                "description": "Método HTTP."
+              },
+              "handler": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 15,
+                "description": "Tipo de manejador del endpoint."
+              },
+              "access": {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "default": 2,
+                "description": "0=Public, 1=Basic, 2=Token, 3=Basic and Token, 4=Local"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 200,
+                "default": "",
+                "description": "Descripción corta del endpoint."
+              },
+              "description": {
+                "type": "string",
+                "default": "",
+                "description": "Descripción detallada."
+              },
+              "price_by_request": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 1,
+                "description": "Costo por request en millicents."
+              },
+              "price_kb_request": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 1,
+                "description": "Costo por KB de request en millicents."
+              },
+              "price_kb_response": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 1,
+                "description": "Costo por KB de response en millicents."
+              },
+              "keywords": {
+                "type": "string",
+                "default": "",
+                "description": "Palabras clave."
+              },
+              "ctrl": {
+                "$ref": "#/$defs/jsonValue",
+                "description": "Controles adicionales. Users, Logs, etc."
+              },
+              "code": {
+                "type": "string",
+                "default": "",
+                "description": "Código y parámetros."
+              },
+              "cors": {
+                "$ref": "#/$defs/jsonValue",
+                "description": "Configuración CORS."
+              },
+              "cache_time": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 0,
+                "description": "Tiempo en caché. Cero desactiva caché."
+              },
+              "mcp": {
+                "$ref": "#/$defs/jsonValue",
+                "description": "Configuración MCP."
+              },
+              "json_schema": {
+                "$ref": "#/$defs/jsonValue",
+                "description": "JSON Schema asociado al endpoint."
+              },
+              "custom_data": {
+                "$ref": "#/$defs/jsonValue",
+                "description": "Datos personalizados."
+              },
+              "headers_test": {
+                "$ref": "#/$defs/jsonValue",
+                "description": "Headers de prueba."
+              },
+              "data_test": {
+                "$ref": "#/$defs/jsonValue",
+                "description": "Payload de prueba."
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "handler": {
+                      "const": "FUNCTION"
+                    }
+                  },
+                  "required": [
+                    "handler"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ]
+                }
+              }
+            ],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/$defs/jsonValue"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/jsonValue"
+                    }
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
           }
         },
         "out": {
@@ -637,7 +972,8 @@ export const system_app = {
           "text": {
             "value": ""
           },
-          "form": []
+          "form": [],
+          "urlencoded": []
         },
         "headers": [
           {
@@ -665,7 +1001,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf01",
-      "rowkey": 850,
+      "rowkey": 419,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -772,7 +1108,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
-      "rowkey": 388,
+      "rowkey": 549,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -844,7 +1180,7 @@ export const system_app = {
         }
       },
       "idendpoint": "13f94d7d-6612-4c30-8202-286cbbe3da3e",
-      "rowkey": 441,
+      "rowkey": 80,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -937,7 +1273,7 @@ export const system_app = {
         }
       },
       "idendpoint": "25ca7819-8823-4835-87c5-04b792bc594d",
-      "rowkey": 326,
+      "rowkey": 242,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1037,7 +1373,7 @@ export const system_app = {
         }
       },
       "idendpoint": "788e6e35-106d-45db-acb0-839db45c20f6",
-      "rowkey": 372,
+      "rowkey": 38,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1068,7 +1404,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908194",
-      "rowkey": 492,
+      "rowkey": 615,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1099,7 +1435,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
-      "rowkey": 781,
+      "rowkey": 77,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1130,7 +1466,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
-      "rowkey": 478,
+      "rowkey": 10,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1230,7 +1566,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d2fff88-66a6-43b5-9cab-11b5aec1a706",
-      "rowkey": 762,
+      "rowkey": 58,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1330,7 +1666,7 @@ export const system_app = {
         }
       },
       "idendpoint": "f57b01dc-a51c-4c23-ab4b-c890ca733e80",
-      "rowkey": 530,
+      "rowkey": 150,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1361,7 +1697,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 227,
+      "rowkey": 955,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1392,7 +1728,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 630,
+      "rowkey": 213,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1423,7 +1759,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ee",
-      "rowkey": 239,
+      "rowkey": 235,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1509,7 +1845,7 @@ export const system_app = {
         }
       },
       "idendpoint": "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
-      "rowkey": 793,
+      "rowkey": 837,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1662,7 +1998,7 @@ export const system_app = {
         }
       },
       "idendpoint": "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
-      "rowkey": 14,
+      "rowkey": 80,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1693,7 +2029,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
-      "rowkey": 63,
+      "rowkey": 112,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1828,7 +2164,7 @@ export const system_app = {
         }
       },
       "idendpoint": "20354d7a-e4fe-47af-8ff6-187bca92f3f9",
-      "rowkey": 879,
+      "rowkey": 502,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1935,7 +2271,7 @@ export const system_app = {
         }
       },
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 862,
+      "rowkey": 59,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2033,7 +2369,7 @@ export const system_app = {
         }
       },
       "idendpoint": "51316993-907c-4fd0-859f-7d2a0bc90dd3",
-      "rowkey": 301,
+      "rowkey": 788,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2062,7 +2398,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3ead2170-283d-4c6a-abc1-eddd217b6d01",
-      "rowkey": 889,
+      "rowkey": 220,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2091,7 +2427,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "047845ac-5367-48ed-9465-8e36ba6c7bae",
-      "rowkey": 211,
+      "rowkey": 662,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2201,7 +2537,7 @@ export const system_app = {
         }
       },
       "idendpoint": "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
-      "rowkey": 42,
+      "rowkey": 545,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2345,7 +2681,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cff35b3a-7ca0-4ef8-882d-d39815d55616",
-      "rowkey": 802,
+      "rowkey": 204,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2431,7 +2767,7 @@ export const system_app = {
         }
       },
       "idendpoint": "bcf0e362-a454-4e47-85a0-772c4ddd3538",
-      "rowkey": 272,
+      "rowkey": 365,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2517,7 +2853,7 @@ export const system_app = {
         }
       },
       "idendpoint": "0b48cd44-09fe-40e7-b0a7-59fe01e054cc",
-      "rowkey": 208,
+      "rowkey": 529,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2586,7 +2922,7 @@ export const system_app = {
         }
       },
       "idendpoint": "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
-      "rowkey": 107,
+      "rowkey": 249,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2655,7 +2991,7 @@ export const system_app = {
         }
       },
       "idendpoint": "e753e2db-ca20-4607-82b7-34b70e435a0c",
-      "rowkey": 528,
+      "rowkey": 600,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2724,7 +3060,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34987a43-63e4-4926-824b-5254155b5c80",
-      "rowkey": 56,
+      "rowkey": 557,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2801,7 +3137,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34870b00-beb1-45d3-ada6-c164fc22cd7a",
-      "rowkey": 767,
+      "rowkey": 247,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2896,7 +3232,7 @@ export const system_app = {
         }
       },
       "idendpoint": "787a8ec2-b0d7-44ae-9214-2254f9d9d086",
-      "rowkey": 258,
+      "rowkey": 155,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2957,7 +3293,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
-      "rowkey": 724,
+      "rowkey": 100,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2988,7 +3324,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "12fb738c-7d1f-4eba-afb4-508a9fa9d06a",
-      "rowkey": 815,
+      "rowkey": 417,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3072,7 +3408,7 @@ export const system_app = {
         }
       },
       "idendpoint": "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
-      "rowkey": 861,
+      "rowkey": 709,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3103,7 +3439,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2fa0",
-      "rowkey": 837,
+      "rowkey": 783,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3134,7 +3470,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2faf",
-      "rowkey": 534,
+      "rowkey": 832,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3165,7 +3501,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "17c211d6-8c81-4274-b5c4-604126454ab0",
-      "rowkey": 438,
+      "rowkey": 386,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3249,7 +3585,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d3de358-681d-4b61-98dc-c1663db0c02c",
-      "rowkey": 401,
+      "rowkey": 704,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3343,7 +3679,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
-      "rowkey": 237,
+      "rowkey": 855,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3407,7 +3743,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "18731c87-9d59-44b6-8871-ecaa493008e5",
-      "rowkey": 772,
+      "rowkey": 710,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3500,7 +3836,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
-      "rowkey": 477,
+      "rowkey": 811,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3615,7 +3951,7 @@ export const system_app = {
         }
       },
       "idendpoint": "871cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 179,
+      "rowkey": 910,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3646,7 +3982,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "131cca3e-f835-4414-89ca-5ddbbec5ab89",
-      "rowkey": 469,
+      "rowkey": 547,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3677,7 +4013,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
-      "rowkey": 40,
+      "rowkey": 658,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3708,7 +4044,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 555,
+      "rowkey": 500,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3739,7 +4075,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908193",
-      "rowkey": 567,
+      "rowkey": 733,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3768,7 +4104,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
-      "rowkey": 996,
+      "rowkey": 368,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3799,7 +4135,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
-      "rowkey": 899,
+      "rowkey": 448,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3885,7 +4221,7 @@ export const system_app = {
         }
       },
       "idendpoint": "a0130d77-b779-4dea-a87f-6841520ffade",
-      "rowkey": 568,
+      "rowkey": 54,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
