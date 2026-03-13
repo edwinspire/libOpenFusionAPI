@@ -11,7 +11,9 @@ import * as forge from "node-forge";
 import * as uuid from "uuid";
 import Zod from "zod";
 import * as XLSX from "xlsx";
-import * as xlsx_style from "xlsx-js-style";
+//import * as xlsx_style from "xlsx-js-style";
+import xlsx_style from "xlsx-js-style";
+
 import {
   createImage as createImageFromHTML,
   createPDF as createPDFFromHTML,
