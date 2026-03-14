@@ -55,6 +55,10 @@ export const CreateMCPHandler = async (app_name, environment) => {
       false
     );
 
+    // Bug fix #4: toolName único por URL+METHOD para evitar colisiones
+    let toolName = url_internal.replace(/[^a-zA-Z0-9]/g, "_");
+    toolName = `${toolName}_${endpoint.method}`;
+
     // Bug fix #5: Uso de optional chaining para evitar TypeError si mcp.title/description no existen
     markdown_api_docs.push(`##
 ## Endpoint
@@ -151,10 +155,6 @@ ${JSON.stringify(endpoint?.json_schema?.out?.schema, null, 2)}
 
       - This endpoint performs a ** deterministic operation **.
 `);
-
-    // Bug fix #4: toolName único por URL+METHOD para evitar colisiones
-    let toolName = url_internal.replace(/[^a-zA-Z0-9]/g, "_");
-    toolName = `${toolName}_${endpoint.method} `;
 
     let zod_inputSchema = z.object({}).describe("Data to send to the endpoint.");
 
