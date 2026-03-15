@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import Endpoint from "./server/endpoint/index.js";
 
-import { BotManager } from "./server/bot-manager/manager.js";
+import { BackgroundTaskManager } from "./server/background_tasks.js";
 import { getAllBots } from "./db/bot.js";
 import { TasksInterval } from "./timer/tasks.js";
 import { defaultApiClient } from "./db/apiclient.js";
@@ -39,15 +39,16 @@ import {
 import { runHandler } from "./handler/handler.js";
 import { fnPublic, fnSystem } from "./server/functions/index.js";
 import { OpenFusionWebsocketClient } from "./server/websocket_client.js";
+import { WebSocketManager } from "./server/websocket_manager.js";
 
 import {
-  getUserPasswordTokenFromRequest,
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
   CreateOpenFusionAPIToken,
   getAppVarsObject,
 } from "./server/utils.js";
+import { AuthService } from "./server/auth_service.js";
 
 import { validateSchemaMessageWebSocket } from "./server/schemas/index.js";
 
@@ -179,42 +180,7 @@ export default class ServerAPI extends EventEmitter {
       bodyLimit: this.maxBodyBytes,
     });
 
-    // Map<String, Set<WebSocket>>
-    // Key: `${idendpoint}::${channel}`
-    this.wsSubscribers = new Map();
-
     this._build();
-  }
-
-  _getWsKey(idendpoint, channel) {
-    return `${idendpoint}::${channel}`;
-  }
-
-  _addWsSubscriber(socket, idendpoint, channel) {
-    const key = this._getWsKey(idendpoint, channel);
-    if (!this.wsSubscribers.has(key)) {
-      this.wsSubscribers.set(key, new Set());
-    }
-    this.wsSubscribers.get(key).add(socket);
-  }
-
-  _removeWsSubscriber(socket) {
-    if (
-      socket.openfusionapi &&
-      socket.openfusionapi.channel &&
-      socket.openfusionapi.handler
-    ) {
-      const idendpoint = socket.openfusionapi.handler.params.idendpoint;
-      const channel = socket.openfusionapi.channel;
-      const key = this._getWsKey(idendpoint, channel);
-      if (this.wsSubscribers.has(key)) {
-        const set = this.wsSubscribers.get(key);
-        set.delete(socket);
-        if (set.size === 0) {
-          this.wsSubscribers.delete(key);
-        }
-      }
-    }
   }
 
   async checkwebHookDB(request) {
@@ -278,6 +244,7 @@ export default class ServerAPI extends EventEmitter {
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     });
     await this.fastify.register(websocket);
+    this.webSocketManager = new WebSocketManager(this.fastify);
 
     const www_dir = "www";
     const rutaDirectorio = path.join(process.cwd(), www_dir);
@@ -327,7 +294,7 @@ export default class ServerAPI extends EventEmitter {
           if (handlerEndpoint?.params?.enabled) {
             request.openfusionapi = { handler: handlerEndpoint };
             // TODO:  Aqui deberí validar si las cedenciales son validas antes de consultar a la base de datos. es decir antes de hacer getEndpoint. Analizalo.
-            await this._check_auth(handlerEndpoint, request, reply);
+            await AuthService.check_auth(handlerEndpoint, request, reply);
           } else {
             reply
               .code(410)
@@ -378,159 +345,7 @@ export default class ServerAPI extends EventEmitter {
       }
     });
 
-    this.fastify.get("/ws/*", { websocket: true }, (connection, req) => {
-      // En @fastify/websocket v11, connection ES el WebSocket directamente (no connection.socket)
-      try {
-        connection.openfusionapi = req.openfusionapi
-          ? req.openfusionapi
-          : {};
-
-        //connection.openfusionapi.idclient = getUUID();
-      } catch (error) {
-        console.log(error);
-      }
-
-      connection.on("open", (message) => {
-        //  console.log("Abre");
-      });
-      connection.on("close", (message) => {
-        //console.log("Cierra");
-        this._removeWsSubscriber(connection);
-      });
-
-      connection.on("message", (message) => {
-        // TODO: Validar acceso en cada mensaje
-        // TODO: Validar si el usuario solo puede recibir mensajes
-        // TODO: Validar si los usuarios pueden enviar un mensaje broadcast
-        // TODO: Habilitar que se pueda realizar comunicación uno a uno entre clientes
-        // TODO: Tomar en cuenta que si el endpoint se lo deshabilita inmediatamente se debe desconectar a todos los clientes y no permitir la reconexion
-
-        // TODO: Crear canales a los cuales se puede subscribir un cliente para recibir mensajes solo de ese canal, esto facilita la comunicación entre clientes sin necesidad de hacer broadcast a todos los clientes conectados
-        let msgString = message.toString();
-        let msgObj;
-        try {
-          msgObj = JSON.parse(msgString);
-          let validate_channel = WebSocketValidateFormatChannelName(
-            msgObj.channel,
-          );
-          if (validate_channel.valid) {
-            let isValid = validateSchemaMessageWebSocket(msgObj);
-
-            if (isValid) {
-              //console.log("✅ Válido");
-
-              // valida si el mensaje es para subscribir a un canal
-              if (msgObj.channel == "/subscribe") {
-                if (msgObj.payload.channel) {
-                  let validate_channel_subscribe =
-                    WebSocketValidateFormatChannelName(msgObj.payload.channel);
-                  if (!validate_channel_subscribe.valid) {
-                    connection.send(
-                      JSON.stringify({
-                        subscribed: false,
-                        channel: msgObj.payload.channel,
-                        error: validate_channel_subscribe.error,
-                      }),
-                    );
-                  } else {
-                    connection.openfusionapi.channel =
-                      msgObj.payload.channel;
-                    connection.openfusionapi.idclient = getUUID();
-                    this._addWsSubscriber(
-                      connection,
-                      connection.openfusionapi.handler.params.idendpoint,
-                      msgObj.payload.channel,
-                    );
-
-                    connection.send(
-                      JSON.stringify({
-                        subscribed: true,
-                        channel: msgObj.payload.channel,
-                        message: `Subscribed to channel ${msgObj.payload.channel}`,
-                      }),
-                    );
-                  }
-                } else {
-                  connection.send(
-                    JSON.stringify({
-                      subscribed: false,
-                      channel: msgObj.payload.channel,
-                      message: `Channel name is required to subscribe`,
-                    }),
-                  );
-                }
-              } else if (
-                connection.openfusionapi.idclient &&
-                msgObj.channel == "/ping"
-              ) {
-                connection.send(
-                  JSON.stringify({
-                    channel: "/pong",
-                    payload: {},
-                  }),
-                );
-              } else if (connection.openfusionapi.idclient) {
-                // Broadcast
-                // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
-                // TODO: Revisar un mecanismo para limitar que un cliente puede enviar mensajes y esté limitado solo a leer mensajes
-                // Broadcast Optimization
-                const idendpoint =
-                  connection.openfusionapi.handler.params.idendpoint;
-                const channel = connection.openfusionapi.channel;
-                const key = this._getWsKey(idendpoint, channel);
-
-                if (this.wsSubscribers.has(key)) {
-                  const subscribers = this.wsSubscribers.get(key);
-                  subscribers.forEach((client_ws) => {
-                    try {
-                      if (
-                        client_ws.readyState === 1 && // OPEN
-                        client_ws.openfusionapi.idclient !=
-                        connection.openfusionapi.idclient
-                      ) {
-                        client_ws.send(JSON.stringify(msgObj.payload));
-                      }
-                    } catch (error) {
-                      connection.send(
-                        JSON.stringify({ error: error.message }),
-                      );
-                    }
-                  });
-                }
-              } else {
-                connection.send(
-                  JSON.stringify({ error: "Invalid client. Bye." }),
-                );
-                connection.close();
-              }
-            } else {
-              //    console.log("❌ Inválido. Errores detectados:");
-              // ¡Aquí está la magia! `validate.errors` es un array con los detalles.
-              connection.send(
-                JSON.stringify({
-                  error: validateSchemaMessageWebSocket.errors,
-                }),
-              );
-              connection.close();
-            }
-          } else {
-            // Devuelve un mensaje al cliente que originó el mensaje
-            connection.send(
-              JSON.stringify({
-                error: "Invalid channel name format",
-                message: msgString,
-              }),
-            );
-            connection.close();
-          }
-        } catch (error) {
-          connection.send(
-            JSON.stringify({ error: error.message, message: msgString }),
-          );
-          connection.close();
-        }
-      });
-    });
+    this.webSocketManager.registerRoutes();
 
     // Declare a route
     this.fastify.all(struct_api_path, async (request, reply) => {
@@ -650,191 +465,10 @@ export default class ServerAPI extends EventEmitter {
 
     this.TasksInterval.run();
 
-    setInterval(async () => {
-      if (this.fastify.websocketServer.clients.size > 1) {
-        this._emitEndpointEvent(
-          "system_information",
-          await getSystemInfoDynamic(),
-        );
-
-        for (const client_ws of this.fastify.websocketServer.clients) {
-          //  console.log("Procesando:", valor);
-
-          if (
-            client_ws.openfusionapi?.channel == "/server/events" &&
-            client_ws?.openfusionapi?.handler?.params?.url_key?.startsWith(
-              urlSystemPath.Websocket.EventServer,
-            )
-          ) {
-            //   console.log("---");
-            this._emitEndpointEvent(
-              "system_information",
-              await getSystemInfoDynamic(),
-            );
-            return;
-          }
-        }
-      }
-    }, 3000);
-
-    const manager = new BotManager();
-    let isBotLoopRunning = false;
-
-    console.log("--- Starting System (grammY edition) ---");
-
-    setInterval(async () => {
-      if (isBotLoopRunning) return; // Evita solapamiento si el ciclo anterior aún no terminó
-      isBotLoopRunning = true;
-      try {
-        const apps = await getApplicationsTreeByFilters({
-          endpoint: { handler: "TELEGRAM_BOT" },
-        });
-        //console.log("bots", bots);
-
-        for (let index = 0; index < apps.length; index++) {
-          const app = apps[index];
-
-          if (app.endpoints && app.endpoints.length > 0) {
-            let appvars_obj = {};
-
-            if (app.enabled) {
-              appvars_obj = getAppVarsObject(app.vrs);
-            }
-
-            for (let index = 0; index < app.endpoints.length; index++) {
-              const element = app.endpoints[index];
-              try {
-                if (element.enabled && app.enabled) {
-                  console.log("Starting Bot " + element.idendpoint);
-                  await manager.startBot(
-                    element.idendpoint,
-                    element.custom_data.token,
-                    element.code,
-                    element.environment,
-                    appvars_obj[element.environment],
-                  );
-                } else {
-                  console.log("Stopping Bot " + element.idendpoint);
-                  await manager.stopBot(element.idendpoint);
-                }
-              } catch (error) {
-                console.error("Error managing bot " + element.idbot);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error in bot management loop:", error);
-      } finally {
-        isBotLoopRunning = false;
-      }
-    }, 10000);
-  }
-  _check_auth_Bearer(handler, data_aut) {
-    // En este metodo se debe validar de que clase de usuario es, si es del sistema o si es usuario externo
-    let check = false;
-
-    if (data_aut?.Bearer?.data?.apikey?.idapp == handler.params.idapp) {
-      check = true; // Valida que el token esté asociado al idapp
-    } else if (data_aut?.Bearer?.data?.admin && handler.params) {
-      let user = data_aut.Bearer.data.admin;
-
-      if (user.username == "superuser" && user.enabled) {
-        check = true;
-      } else if (handler.params.app == "system" && user.ctrl.as_admin) {
-        check = true;
-      } else if (handler.params.app == "system" && !user.ctrl.as_admin) {
-        check = false;
-      }
-    }
-
-    return check;
+    const backgroundTasks = new BackgroundTaskManager(this);
+    backgroundTasks.startAll();
   }
 
-  async _check_auth_Basic(handler, data_aut) {
-    let user = await login(data_aut.Basic.username, data_aut.Basic.password);
-
-    if (user.login) {
-      // Simulamos un Bearer para usar el mismo método
-      data_aut.Bearer.data = user;
-      return this._check_auth_Bearer(handler, data_aut) ? user : null;
-    } else {
-      return false;
-    }
-  }
-
-  async _check_auth(handler, request, reply) {
-    // Validar si la API es publica o privada
-
-    if (handler.params.access > 0) {
-      let data_aut = getUserPasswordTokenFromRequest(request);
-
-      //
-      if (handler.params.app == "system") {
-        // Las APIs de system solo se pueden acceder con token de usuario
-        // TODO: Validar los casos cuando no son admin pero si tiene las atribuciones para system
-        if (this._check_auth_Bearer(handler, data_aut)) {
-          request.openfusionapi.user = data_aut.Bearer.data;
-        } else {
-          reply.code(401).send({
-            error: "The System API requires a valid Token.",
-            url: request.url,
-          });
-          return;
-        }
-      } else {
-        //
-        // TODO: Implementar correctamente el control de acceso
-        switch (handler.params.access) {
-          case 1: // Basic
-            // Aqui el código para validar usuario y clave de API
-            // Este paso puede ser pesado ya que se debe consultar a la base de datos. Es recomendable usarlo en lo minimo
-            if (data_aut.Basic.username && data_aut.Basic.password) {
-              let checkbasic = await this._check_auth_Basic(handler, data_aut);
-              if (checkbasic) {
-                request.openfusionapi.user = checkbasic;
-              }
-            } else {
-              reply.code(401).send({
-                error: "The API requires a valid Username y Password",
-                url: request.url,
-              });
-            }
-
-            break;
-
-          case 3:
-            if (this._check_auth_Bearer(handler, data_aut)) {
-              request.openfusionapi.user = data_aut.Bearer.data;
-            } else if (data_aut.Basic.username && data_aut.Basic.password) {
-              let checkbasic = await this._check_auth_Basic(handler, data_aut);
-              if (checkbasic) {
-                request.openfusionapi.user = checkbasic;
-              }
-            } else {
-              reply.code(401).send({
-                error: "The API requires a Token or Username and Password",
-                url: request.url,
-              });
-            }
-
-            break;
-          default:
-            // Por default use BEARER
-            if (this._check_auth_Bearer(handler, data_aut)) {
-              request.openfusionapi.user = data_aut.Bearer.data;
-            } else {
-              reply.code(401).send({
-                error: "The API requires a valid Token.",
-                url: request.url,
-              });
-              return;
-            }
-            break;
-        }
-      }
-    }
-  }
 
   _addFunctions() {
     if (fnSystem) {
