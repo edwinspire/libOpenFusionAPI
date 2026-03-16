@@ -1,13 +1,16 @@
 import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
-import { setCacheReply, replyException } from "./utils.js";
+import {
+  getHandlerExecutionContext,
+  replyException,
+  sendHandlerError,
+  sendHandlerResponse,
+} from "./utils.js";
 
 import { Pool } from "./ConnectionPool.js";
 
 export const sqlFunction = async (context) => {
-  const request = context?.request;
-  const reply = context?.reply;
-  const method = context?.method || context?.endpoint;
+  const { request, reply, method } = getHandlerExecutionContext(context);
   try {
     let paramsSQL = { query: method.code, config: typeof method.custom_data === 'string' ? JSON.parse(method.custom_data) : method.custom_data };
 
@@ -56,7 +59,7 @@ export const sqlFunction = async (context) => {
               ? data_request.config
               : JSON.parse(data_request.config);
         } catch (e) {
-          reply.code(400).send({ error: "Invalid JSON in connection params" });
+          sendHandlerError(reply, 400, "Invalid JSON in connection params");
           return;
         }
       }
@@ -79,7 +82,7 @@ export const sqlFunction = async (context) => {
             ? data_request.bind
             : JSON.parse(data_request.bind);
       } catch (e) {
-        reply.code(400).send({ error: "Invalid JSON in bind params" });
+        sendHandlerError(reply, 400, "Invalid JSON in bind params");
         return;
       }
     }
@@ -139,19 +142,15 @@ export const sqlFunction = async (context) => {
 
         //  console.log('-------------> ', result_query.toSQL())
 
-        setCacheReply(reply, result_query);
-        reply.code(200).send(result_query);
+        sendHandlerResponse(reply, {
+          statusCode: 200,
+          data: result_query,
+        });
       } else {
-        let alt_resp = { error: "Params configuration is not complete" };
-        //setCacheReply(reply, alt_resp);
-
-        reply.code(400).send(alt_resp);
+        sendHandlerError(reply, 400, "Params configuration is not complete");
       }
     } else {
-      let alt_resp = { error: "Database Params configuration is not complete" };
-      //setCacheReply(reply, alt_resp);
-
-      reply.code(400).send(alt_resp);
+      sendHandlerError(reply, 400, "Database Params configuration is not complete");
     }
 
   } catch (error) {

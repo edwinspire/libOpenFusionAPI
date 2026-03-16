@@ -1,5 +1,10 @@
 import { mergeObjects } from "../server/utils.js";
-import { setCacheReply, replyException } from "./utils.js";
+import {
+  getHandlerExecutionContext,
+  replyException,
+  sendHandlerError,
+  sendHandlerResponse,
+} from "./utils.js";
 import hana from "@sap/hana-client";
 
 const connections = new Map();
@@ -77,9 +82,7 @@ const getConnection = async (configHash, paramsSQL) => {
 };
 
 export const sqlHana = async (context) => {
-  const request = context?.request;
-  const reply = context?.reply;
-  const method = context?.method || context?.endpoint;
+  const { request, reply, method } = getHandlerExecutionContext(context);
   try {
     let paramsSQL = { query: method.code, config: typeof method.custom_data === 'string' ? JSON.parse(method.custom_data) : method.custom_data };
 
@@ -111,7 +114,7 @@ export const sqlHana = async (context) => {
               ? data_request.config
               : JSON.parse(data_request.config);
         } catch (e) {
-          reply.code(400).send({ error: "Invalid JSON in connection params" });
+          sendHandlerError(reply, 400, "Invalid JSON in connection params");
           return;
         }
 
@@ -159,7 +162,7 @@ export const sqlHana = async (context) => {
               ? data_request.bind
               : JSON.parse(data_request.bind);
           } catch (e) {
-            reply.code(400).send({ error: "Invalid JSON in bind params" });
+            sendHandlerError(reply, 400, "Invalid JSON in bind params");
             return;
           }
         } else if (data_request.params) {
@@ -168,7 +171,7 @@ export const sqlHana = async (context) => {
               ? data_request.params
               : JSON.parse(data_request.params);
           } catch (e) {
-            reply.code(400).send({ error: "Invalid JSON in params" });
+            sendHandlerError(reply, 400, "Invalid JSON in params");
             return;
           }
         }
@@ -204,8 +207,10 @@ export const sqlHana = async (context) => {
           paramsSQL.options
         );
 
-        setCacheReply(reply, result);
-        reply.code(200).send(result);
+        sendHandlerResponse(reply, {
+          statusCode: 200,
+          data: result,
+        });
         /*
         var conn_params_qa = {
           "serverNode": "192.169.178.123:10349",
@@ -216,15 +221,10 @@ export const sqlHana = async (context) => {
 
         //  console.log('-------------> ', result_query.toSQL())
       } else {
-        let alt_resp = { error: "Params configuration is not complete" };
-        setCacheReply(reply, alt_resp);
-
-        reply.code(400).send(alt_resp);
+        sendHandlerError(reply, 400, "Params configuration is not complete");
       }
     } else {
-      let alt_resp = { error: "Not data" };
-      setCacheReply(reply, alt_resp);
-      reply.code(400).send(alt_resp);
+      sendHandlerError(reply, 400, "Not data");
     }
   } catch (error) {
     replyException(request, reply, error);

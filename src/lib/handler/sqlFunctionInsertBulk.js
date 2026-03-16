@@ -1,14 +1,17 @@
 import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
 import { parseQualifiedName } from "../db/utils.js";
-import { setCacheReply, replyException } from "./utils.js";
+import {
+  getHandlerExecutionContext,
+  replyException,
+  sendHandlerError,
+  sendHandlerResponse,
+} from "./utils.js";
 
 import { Pool } from "./ConnectionPool.js";
 
 export const sqlFunctionInsertBulk = async (context) => {
-  const request = context?.request;
-  const reply = context?.reply;
-  const method = context?.method || context?.endpoint;
+  const { request, reply, method } = getHandlerExecutionContext(context);
   try {
     // Parsear custom_data con validación null-safe
     const customData = typeof method.custom_data === "string"
@@ -16,7 +19,7 @@ export const sqlFunctionInsertBulk = async (context) => {
       : method.custom_data;
 
     if (!customData) {
-      reply.code(400).send({ error: "custom_data configuration is required" });
+      sendHandlerError(reply, 400, "custom_data configuration is required");
       return;
     }
 
@@ -30,7 +33,7 @@ export const sqlFunctionInsertBulk = async (context) => {
 
     // Solo POST tiene sentido para bulk insert
     if (request.method !== "POST") {
-      reply.code(405).send({ error: "Only POST method is allowed for bulk insert" });
+      sendHandlerError(reply, 405, "Only POST method is allowed for bulk insert");
       return;
     }
 
@@ -45,7 +48,7 @@ export const sqlFunctionInsertBulk = async (context) => {
             : JSON.parse(data_request.config);
         paramsSQL.config = mergeObjects(paramsSQL.config, connection_json);
       } catch (e) {
-        reply.code(400).send({ error: "Invalid JSON in config params" });
+        sendHandlerError(reply, 400, "Invalid JSON in config params");
         return;
       }
     }
@@ -62,17 +65,17 @@ export const sqlFunctionInsertBulk = async (context) => {
 
     // Validaciones con early return
     if (!paramsSQL.config.database) {
-      reply.code(400).send({ error: "Database is required" });
+      sendHandlerError(reply, 400, "Database is required");
       return;
     }
 
     if (!paramsSQL.table_name || paramsSQL.table_name.length === 0) {
-      reply.code(400).send({ error: "Table name is required" });
+      sendHandlerError(reply, 400, "Table name is required");
       return;
     }
 
     if (!paramsSQL.config.options) {
-      reply.code(400).send({ error: "Params configuration is not complete" });
+      sendHandlerError(reply, 400, "Params configuration is not complete");
       return;
     }
 
@@ -99,8 +102,10 @@ export const sqlFunctionInsertBulk = async (context) => {
       paramsSQL.ignoreDuplicates
     );
 
-    setCacheReply(reply, result_query);
-    reply.code(200).send(result_query);
+    sendHandlerResponse(reply, {
+      statusCode: 200,
+      data: result_query,
+    });
   } catch (error) {
     replyException(request, reply, error);
   }

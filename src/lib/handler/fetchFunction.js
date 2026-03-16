@@ -1,11 +1,14 @@
 // @ts-ignore
 import uFetch from "@edwinspire/universal-fetch";
-import { replyException } from "./utils.js";
+import {
+  getHandlerExecutionContext,
+  replyException,
+  sendHandlerError,
+  sendHandlerResponse,
+} from "./utils.js";
 
 export const fetchFunction = async (context) => {
-  const request = context?.request;
-  const reply = context?.reply;
-  const method = context?.method || context?.endpoint;
+  const { request, reply, method } = getHandlerExecutionContext(context);
   //console.log(uFetch);
   try {
     // Removed unused req_headers block
@@ -39,9 +42,11 @@ export const fetchFunction = async (context) => {
       typeof method.code !== "string" ||
       method.code.length == 0
     ) {
-      reply
-        .code(500)
-        .send({ error: `The destination URL ${method.code} is invalid.` });
+      sendHandlerError(
+        reply,
+        500,
+        `The destination URL ${method.code} is invalid.`,
+      );
       return;
     }
 
@@ -70,7 +75,7 @@ export const fetchFunction = async (context) => {
 
     // @ts-ignore
     if (typeof FData[httpMethod] !== "function") {
-      reply.code(405).send({ error: `Method ${httpMethod} not allowed/supported` });
+      sendHandlerError(reply, 405, `Method ${httpMethod} not allowed/supported`);
       return;
     }
 
@@ -87,9 +92,10 @@ export const fetchFunction = async (context) => {
       "last-modified",
     ];
 
+    const responseHeaders = {};
     resp.headers.forEach((value, key) => {
       if (headersToForward.includes(key.toLowerCase())) {
-        reply.header(key, value);
+        responseHeaders[key] = value;
       }
     });
 
@@ -130,7 +136,12 @@ export const fetchFunction = async (context) => {
       }
     }
 
-    reply.code(resp.status).send(r);
+    sendHandlerResponse(reply, {
+      statusCode: resp.status,
+      data: r,
+      cache: false,
+      headers: responseHeaders,
+    });
   } catch (error) {
     //  console.log(error);
     replyException(request, reply, error);

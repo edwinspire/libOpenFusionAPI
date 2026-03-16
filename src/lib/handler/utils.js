@@ -51,6 +51,10 @@ export const sendHandlerResponse = (
   reply.code(statusCode).send(data);
 };
 
+export const sendHandlerError = (reply, statusCode, error, extra = {}) => {
+  reply.code(statusCode).send({ error, ...extra });
+};
+
 
 
 export const isValidHttpStatusCode = (code) => {
