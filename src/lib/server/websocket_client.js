@@ -115,12 +115,12 @@ export class OpenFusionWebsocketClient extends EventEmitter {
 
   // ─── Enviar mensaje JSON ───
   send(message) {
-    if (this.ws.readyState === WebSocket.OPEN) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       const json = JSON.stringify(message);
       this.ws.send(json);
       //console.log("📤 Mensaje JSON enviado:", message);
     } else {
-      console.warn("⚠️ No se puede enviar: conexión no abierta", message.channel);
+      console.debug("[ws-client] Skip send while socket is not open", message?.channel);
     }
   }
 

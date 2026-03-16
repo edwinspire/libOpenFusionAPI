@@ -10,12 +10,14 @@ export class ServerReadyOrchestrator {
     // Fastify is already listening at this point.
     this.websocketClientEndpoint.on("open", () => {
       this.websocketClientEndpoint.subscribe("/server/events");
+
+      // Start periodic tasks only after WS internal channel is available.
+      this.tasksInterval.run();
+
+      this.backgroundTasks = this.backgroundTaskFactory();
+      this.backgroundTasks.startAll();
     });
+
     this.websocketClientEndpoint.connect();
-
-    this.tasksInterval.run();
-
-    this.backgroundTasks = this.backgroundTaskFactory();
-    this.backgroundTasks.startAll();
   }
 }
