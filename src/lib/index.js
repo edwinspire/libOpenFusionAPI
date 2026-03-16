@@ -72,6 +72,7 @@ import { registerCorePlugins } from "./server/runtime/registerCorePlugins.js";
 import { registerRequestLifecycle } from "./server/runtime/registerRequestLifecycle.js";
 import { EndpointRuntimeService } from "./server/runtime/EndpointRuntimeService.js";
 import { FunctionRegistryService } from "./server/runtime/FunctionRegistryService.js";
+import { DbHookCacheInvalidationService } from "./server/runtime/DbHookCacheInvalidationService.js";
 import { defaultAuthPolicy, defaultCorsPolicy } from "./server/runtime/policies.js";
 
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
@@ -153,42 +154,17 @@ export default class ServerAPI extends EventEmitter {
 
     this.TasksInterval = new TasksInterval();
 
+    this.dbHookCacheInvalidation = new DbHookCacheInvalidationService({
+      endpoints: this.endpoints,
+      deleteEndpointsByAppName: (appName) => this._deleteEndpointsByAppName(appName),
+      applicationModel: prefixTableName("application"),
+      appvarsModel: prefixTableName("appvars"),
+      endpointModel: prefixTableName("endpoint"),
+      appInvalidateDelayMs: 5000,
+    });
+
     modelHooks.on("hook", async (data) => {
-
-      // Borrar la cache de funciones de la app cuando se actualiza la app
-      if (
-        data.model == prefixTableName("application") &&
-        data.action === "afterUpsert"
-      ) {
-        // Cuando se modifica una app
-
-        // TODO: Revisar el entorno no solo la app
-        if (data.data?.app) {
-          setTimeout(() => {
-            // Espera 5 segundos para borrar la cache de las funciones del endpoint
-            this._deleteEndpointsByAppName(data.data?.app);
-          }, 5000);
-        }
-      } else if (
-        data.model == prefixTableName("appvars") &&
-        (data.action === "afterUpsert" ||
-          data.action === "afterDestroy")
-      ) {
-        // Cuando se modifica / borra una variable de aplicación
-        this.endpoints.deleteEndpointsByIdApp(
-          data.data?.idapp,
-          data.data?.environment,
-        );
-      } else if (
-        data.model == prefixTableName("endpoint") &&
-        data.action === "afterUpsert"
-      ) {
-        // Cuando hay cambios en un endpoint
-        this.endpoints.deleteEndpointByidEndpoint(
-          data?.data?.idendpoint,
-          data?.data?.environment,
-        );
-      }
+      this.dbHookCacheInvalidation.handleHookData(data);
     });
 
     this.maxBodyBytes =
@@ -204,40 +180,7 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async checkwebHookDB(request) {
-    // Borrar la cache de funciones de la app cuando se actualiza la app
-    if (
-      request?.body?.model == prefixTableName("application") &&
-      request?.body?.action === "afterUpsert"
-    ) {
-      // Cuando se modifica una app
-
-      // TODO: Revisar el entorno no solo la app
-      if (request?.body?.data?.app) {
-        setTimeout(() => {
-          // Espera 5 segundos para borrar la cache de las funciones del endpoint
-          this._deleteEndpointsByAppName(request?.body?.data?.app);
-        }, 5000);
-      }
-    } else if (
-      request?.body?.model == prefixTableName("appvars") &&
-      (request?.body?.action === "afterUpsert" ||
-        request?.body?.action === "afterDestroy")
-    ) {
-      // Cuando se modifica / borra una variable de aplicación
-      this.endpoints.deleteEndpointsByIdApp(
-        request?.body?.data?.idapp,
-        request?.body?.data?.environment,
-      );
-    } else if (
-      request?.body?.model == prefixTableName("endpoint") &&
-      request?.body?.action === "afterUpsert"
-    ) {
-      // Cuando hay cambios en un endpoint
-      this.endpoints.deleteEndpointByidEndpoint(
-        request?.body?.data?.idendpoint,
-        request?.body?.data?.environment,
-      );
-    }
+    this.dbHookCacheInvalidation.handleHookData(request?.body);
   }
 
   async _build() {
