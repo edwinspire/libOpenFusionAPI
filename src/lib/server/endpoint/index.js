@@ -25,7 +25,7 @@ export default class Endpoint extends EventEmitter {
   /** @type {Map} In-flight loading promises — shared with EndpointLoader. */
   loadingPromises = new Map();
 
-  constructor() {
+  constructor(dependencies) {
     super();
 
     const timedCache = new TimedCache();
@@ -36,9 +36,10 @@ export default class Endpoint extends EventEmitter {
     this._loader = new EndpointLoader(
       this.internal_endpoint,
       this.fnLocal,
-      this.loadingPromises
+      this.loadingPromises,
+      dependencies
     );
-    this._logger = new EndpointLogger((event, data) => this.emit(event, data));
+    this._logger = new EndpointLogger((event, data) => this.emit(event, data), dependencies);
     this._metrics = new MetricsCollector(this.internal_endpoint, timedCache);
   }
 

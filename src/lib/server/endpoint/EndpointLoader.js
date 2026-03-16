@@ -1,8 +1,5 @@
 import { get_url_params, url_key } from "../utils_path.js";
-import { getApplicationTreeByFilters } from "../../db/app.js";
 import { replaceAllFast } from "./utils.js";
-import { createFunctionVM } from "../createFunctionVM.js";
-import { CreateMCPHandler } from "./handlerBuild/mcp.js";
 import Ajv from "ajv";
 
 const ajv = new Ajv();
@@ -17,10 +14,13 @@ export class EndpointLoader {
    * @param {object} fnLocal           - Shared reference to the local function registry.
    * @param {Map}    loadingPromises   - Shared in-flight promise map (thundering-herd guard).
    */
-  constructor(internalEndpoint, fnLocal, loadingPromises) {
+  constructor(internalEndpoint, fnLocal, loadingPromises, dependencies) {
     this._ep = internalEndpoint;
     this._fnLocal = fnLocal;
     this._loadingPromises = loadingPromises;
+    this._dbFetcher = dependencies.dbFetcher;
+    this._vmFactory = dependencies.vmFactory;
+    this._mcpBuilder = dependencies.mcpBuilder;
   }
 
   getFnNames() {
@@ -74,7 +74,7 @@ export class EndpointLoader {
 
   async _loadEndpointsByAPPToCache(params) {
     try {
-      let appData = await getApplicationTreeByFilters({
+      let appData = await this._dbFetcher({
         app: params.app,
         enabled: true,
         endpoint: {
@@ -180,21 +180,21 @@ export class EndpointLoader {
 
         // Handler-specific initialization
         if (returnHandler.params.handler == "MCP") {
-          returnHandler.params.server_mcp = await CreateMCPHandler(
+          returnHandler.params.server_mcp = await this._mcpBuilder(
             returnHandler.params.app,
             returnHandler.params.environment
           );
         }
 
         if (returnHandler.params.handler == "MONGODB") {
-          returnHandler.params.jsFn = await createFunctionVM(
+          returnHandler.params.jsFn = await this._vmFactory(
             returnHandler.params.code,
             appvars_obj,
             returnHandler.params.timeout
           );
           returnHandler.params.code = undefined;
         } else if (returnHandler.params.handler == "JS") {
-          returnHandler.params.jsFn = await createFunctionVM(
+          returnHandler.params.jsFn = await this._vmFactory(
             returnHandler.params.code,
             appvars_obj,
             returnHandler.params.timeout

@@ -1,5 +1,4 @@
 import { Buffer } from "node:buffer";
-import { createLog } from "../../db/log.js";
 import { getIPFromRequest } from "../utils.js";
 import { getLogLevelForStatus } from "./utils.js";
 
@@ -13,13 +12,14 @@ export class EndpointLogger {
   /**
    * @param {(event: string, data: any) => void} emitFn - Bound emit from the parent EventEmitter.
    */
-  constructor(emitFn) {
+  constructor(emitFn, dependencies = {}) {
     this._emit = emitFn;
+    this._createLog = dependencies.createLog;
   }
 
   async pushLog(log) {
     try {
-      const data = await createLog(log);
+      const data = await this._createLog(log);
       return { data, error: undefined };
     } catch (err) {
       return { data: undefined, error: err };

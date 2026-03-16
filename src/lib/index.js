@@ -20,7 +20,10 @@ import { TasksInterval } from "./timer/tasks.js";
 import { defaultApiClient } from "./db/apiclient.js";
 
 import dbAPIs from "./db/sequelize.js";
-import { defaultApps, getApplicationsTreeByFilters } from "./db/app.js";
+import { defaultApps, getApplicationsTreeByFilters, getApplicationTreeByFilters } from "./db/app.js";
+import { createLog } from "./db/log.js";
+import { createFunctionVM } from "./server/createFunctionVM.js";
+import { CreateMCPHandler } from "./server/endpoint/handlerBuild/mcp.js";
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
 //import { defaultHandlers } from "./db/handler.js";
@@ -110,7 +113,12 @@ const dir_fn = path.join(process.cwd(), PATH_APP_FUNCTIONS || "fn");
 export default class ServerAPI extends EventEmitter {
   constructor({ buildDB = false } = {}) {
     super();
-    this.endpoints = new Endpoint();
+    this.endpoints = new Endpoint({
+      dbFetcher: getApplicationTreeByFilters,
+      vmFactory: createFunctionVM,
+      mcpBuilder: CreateMCPHandler,
+      createLog: createLog
+    });
     this.endpoints.on("log", (data) => {
       this.TasksInterval.pushLog(data);
       //      this.websocketClientEndpoint.send({ payload: data });
