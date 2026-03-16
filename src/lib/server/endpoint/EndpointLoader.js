@@ -1,8 +1,8 @@
 import { get_url_params, url_key } from "../utils_path.js";
 import { replaceAllFast } from "./utils.js";
-import Ajv from "ajv";
+// import Ajv from "ajv";
 
-const ajv = new Ajv();
+// const ajv = new Ajv();
 
 /**
  * Handles loading endpoints from the database, building their handlers,
@@ -169,14 +169,16 @@ export class EndpointLoader {
         }
 
         // Compile JSON schema validator if enabled
-        if (returnHandler?.params?.json_schema?.in?.enabled) {
-          try {
-            returnHandler.params.json_schema.in.fn_ajv_validate_schema =
-              ajv.compile(returnHandler.params.json_schema.in.schema);
-          } catch (error) {
-            console.trace(error);
-          }
-        }
+        // TODO: Re-enable this block when request-time schema validation is wired
+        // into the handler pipeline (pre-handler/pre-validation).
+        // if (returnHandler?.params?.json_schema?.in?.enabled) {
+        //   try {
+        //     returnHandler.params.json_schema.in.fn_ajv_validate_schema =
+        //       ajv.compile(returnHandler.params.json_schema.in.schema);
+        //   } catch (error) {
+        //     console.trace(error);
+        //   }
+        // }
 
         // Handler-specific initialization
         if (returnHandler.params.handler == "MCP") {

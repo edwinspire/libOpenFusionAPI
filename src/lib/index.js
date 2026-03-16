@@ -68,6 +68,8 @@ import {
 import fs from "fs";
 import path from "path";
 import { getSystemInfoDynamic } from "./server/systeminformation.js";
+import { registerCorePlugins } from "./server/runtime/registerCorePlugins.js";
+import { registerRequestLifecycle } from "./server/runtime/registerRequestLifecycle.js";
 
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
@@ -229,213 +231,55 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _build() {
-    await this.fastify.register(formbody, {
-      bodyLimit: this.maxBodyBytes,
-    });
-    await this.fastify.register(multipart, {
-      attachFieldsToBody: true,
-      limits: {
-        fileSize: this.maxBodyBytes,
-      },
-    });
-
-    this.fastify.register(cookie, {
-      secret: JWT_KEY, // for cookies signature
-      hook: "preValidation", // set to false to disable cookie autoparsing or set autoparsing on any of the following hooks: 'onRequest', 'preParsing', 'preHandler', 'preValidation'. default: 'onRequest'
-      parseOptions: {}, // options for parsing cookies
-    });
-
-    await this.fastify.register(cors, {
-      origin: "*",
-      credentials: true, // 🚨 OBLIGATORIO para que el navegador envíe las cookies
-      allowedHeaders: ["Content-Type", "Authorization"],
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    });
-    await this.fastify.register(websocket);
-    this.webSocketManager = new WebSocketManager(this.fastify);
-
     const www_dir = "www";
     const rutaDirectorio = path.join(process.cwd(), www_dir);
 
-    // Verificar si el directorio existe
-    if (!fs.existsSync(rutaDirectorio)) {
-      // Crear el directorio si no existe
-      fs.mkdirSync(rutaDirectorio);
-    }
-
-    await this.fastify.register(fastifyStatic, {
-      root: rutaDirectorio,
-      prefix: "/", // opcional: por defecto '/'
+    await registerCorePlugins({
+      fastify: this.fastify,
+      maxBodyBytes: this.maxBodyBytes,
+      jwtKey: JWT_KEY,
+      wwwDirPath: rutaDirectorio,
+      plugins: {
+        formbody,
+        multipart,
+        cookie,
+        cors,
+        websocket,
+        fastifyStatic,
+        fs,
+      },
+      corsConfig: {
+        // TODO: Replace wildcard origin with an explicit allowlist when credentials=true.
+        // Browser credentialed requests with origin='*' are not CORS-compliant.
+        origin: "*",
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"],
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      },
     });
+
+    this.webSocketManager = new WebSocketManager(this.fastify);
 
     this.buildDB();
     this.loadFunctionFiles();
     this._addFunctions();
 
-    this.fastify.addHook("preValidation", async (request, reply) => {
-      const user_agent = request.headers["user-agent"];
-
-      if (!request.ws && (!user_agent || user_agent.length === 0)) {
-        // Por seguridad no se permite request sin user-agent
-        reply.code(403).send({ error: "Fail" });
-        return;
-      }
-
-      let request_path_params = get_url_params(request.url, request.method);
-
-      if (!request.headers["ofapi-trace-id"]) {
-        let trace_id = getUUID();
-        request.headers["ofapi-trace-id"] = trace_id;
-        reply.header("ofapi-trace-id", trace_id);
-      } else {
-        reply.header("ofapi-trace-id", request.headers["ofapi-trace-id"]);
-      }
-
-      if (request_path_params && request_path_params.url_key) {
-        let cache_endpoint =
-          await this.endpoints.getEndpoint(request_path_params);
-
-        //
-        if (cache_endpoint && cache_endpoint.handler) {
-          let handlerEndpoint = cache_endpoint.handler;
-
-          if (handlerEndpoint?.params?.enabled) {
-            request.openfusionapi = { handler: handlerEndpoint };
-            // TODO:  Aqui deberí validar si las cedenciales son validas antes de consultar a la base de datos. es decir antes de hacer getEndpoint. Analizalo.
-            await AuthService.check_auth(handlerEndpoint, request, reply);
-          } else {
-            reply
-              .code(410)
-              .send({ message: "Endpoint unabled.", url: request.url });
-          }
-        } else {
-          reply
-            .code(404)
-            .send({ error: "Endpoint Not Found", url: request.url });
-        }
-      }
-    });
-
-    // Hook para capturar cuando llega la petición
-    this.fastify.addHook("onRequest", async (request, reply) => {
-      request.startTime = process.hrtime(); // Capturamos el tiempo de inicio usando `process.hrtime()`
-    });
-
-    this.fastify.addHook("onResponse", async (request, reply) => {
-      //  console.log('\n\n\n', request.openfusionapi);
-      // TODO: verificar si hay problemas al omitir esta parte de codigo para este tipo de método
-      if (request.method !== "OPTIONS") {
-        const diff = process.hrtime(request.startTime); // Calculamos la diferencia de tiempo
-        const timeTaken = Math.round(diff[0] * 1e3 + diff[1] * 1e-6); // Convertimos a milisegundos
-
-        if (!reply.openfusionapi) {
-          reply.openfusionapi = { lastResponse: { responseTime: timeTaken } };
-        }
-
-        if (!reply.openfusionapi.lastResponse) {
-          reply.openfusionapi.lastResponse = { responseTime: timeTaken };
-        }
-
-        if (!reply.openfusionapi.lastResponse.responseTime) {
-          reply.openfusionapi.lastResponse.responseTime = timeTaken;
-        }
-
-        this.endpoints.saveLog(request, reply);
-
-        ///////////
-        let handler_param = request?.openfusionapi?.handler?.params || {};
-        if (handler_param?.idendpoint) {
-          // Solo aqui debe guardar en cache la respuesta
-          this.endpoints.setCache(handler_param?.url_key, request, reply);
-        }
-        handler_param.statusCode = reply.statusCode;
-        this._emitEndpointEvent("request_completed", handler_param);
-      }
+    registerRequestLifecycle({
+      fastify: this.fastify,
+      structApiPath: struct_api_path,
+      serverApi: this,
+      endpoints: this.endpoints,
+      getUUID,
+      getURLParams: get_url_params,
+      authService: AuthService,
+      runHandler,
+      getIPFromRequest,
+      emitEndpointEvent: (event_name, data) => {
+        this._emitEndpointEvent(event_name, data);
+      },
     });
 
     this.webSocketManager.registerRoutes();
-
-    // Declare a route
-    this.fastify.all(struct_api_path, async (request, reply) => {
-      let handlerEndpoint = request.openfusionapi.handler;
-      request.openfusionapi.ip_request = getIPFromRequest(request);
-
-      if (!reply.openfusionapi) {
-        reply.openfusionapi = {};
-      }
-
-      if (handlerEndpoint.params.handler == "JS") {
-        reply.openfusionapi.server = this;
-      }
-
-      let server_data = {};
-
-      reply.openfusionapi.lastResponse = {
-        hash_request: "0A0",
-        data: undefined,
-      };
-
-      if (
-        handlerEndpoint.params &&
-        handlerEndpoint.params.app &&
-        handlerEndpoint.params.app == "system"
-      ) {
-        if (handlerEndpoint.params.handler == "FUNCTION") {
-          server_data.endpoint_class = this.endpoints;
-        }
-      }
-
-      this._emitEndpointEvent("request_start", {
-        idendpoint: handlerEndpoint.params?.idendpoint,
-        idapp: handlerEndpoint.params?.idapp,
-        url: request.url,
-        method: request.method,
-        app: handlerEndpoint.params?.app,
-        environment: handlerEndpoint.params?.environment,
-        endpoint: handlerEndpoint.params?.url_method,
-        //responseTime: timeTaken,
-        //statusCode: reply.statusCode,
-      });
-
-      if (
-        handlerEndpoint.params &&
-        handlerEndpoint.params.cache_time &&
-        handlerEndpoint.params.cache_time > 0
-      ) {
-        let hash_request = this.endpoints.hash_request(
-          request,
-          handlerEndpoint.params.url_key,
-        );
-
-        reply.openfusionapi.lastResponse.hash_request = hash_request;
-        request.openfusionapi.hash_request = hash_request;
-
-        let data_cache = this.endpoints.cache.getPayload({
-          app: handlerEndpoint.params.app,
-          resource: handlerEndpoint.params.resource,
-          env: handlerEndpoint.params.environment,
-          method: request.method,
-          hash: hash_request,
-        });
-
-        if (data_cache && data_cache.data) {
-          // Si se obtiene desde caché, se agrega el header 'X-Cache: HIT'
-          reply.header("X-Cache", "HIT");
-
-          reply.openfusionapi.lastResponse[hash_request] = data_cache.data;
-
-          // Envia los datos que están en cache
-          reply.code(200).send(data_cache.data);
-        } else {
-          // Agregar el header 'X-Cache: MISS' si se obtiene un nuevo resultado
-          reply.header("X-Cache", "MISS");
-
-          await runHandler(request, reply, handlerEndpoint.params, server_data);
-        }
-      } else {
-        await runHandler(request, reply, handlerEndpoint.params, server_data);
-      }
-    });
 
     this.SERVER_DATE_START = Date.now();
 

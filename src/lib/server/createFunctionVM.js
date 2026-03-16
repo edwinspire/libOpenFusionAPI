@@ -70,7 +70,12 @@ clearTimeout(to);
         fs
       };
 
-      const sandbox = { ...customVarsAndFunctions, ...defaults, ...app_vars };
+      const sandbox = {
+        ...customVarsAndFunctions,
+        ...defaults,
+        ...app_vars,
+        $_APP_VARS_: app_vars,
+      };
 
       // Crear contexto aislado
       const context = vm.createContext(sandbox, {

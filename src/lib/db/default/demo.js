@@ -1378,7 +1378,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "$_RETURN_DATA_ = $_VARS_APP;",
+      "code": "$_RETURN_DATA_ = $_APP_VARS_;",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.791Z",
       "updatedAt": "2025-11-22T00:11:42.274Z"

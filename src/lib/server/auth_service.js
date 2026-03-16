@@ -4,6 +4,7 @@ import { getUserPasswordTokenFromRequest } from "./auth.js";
 export class AuthService {
   static check_auth_Bearer(handler, data_aut) {
     let check = false;
+    const userCtrl = data_aut?.Bearer?.data?.admin?.ctrl || {};
 
     if (data_aut?.Bearer?.data?.apikey?.idapp == handler.params.idapp) {
       check = true; 
@@ -12,9 +13,9 @@ export class AuthService {
 
       if (user.username == "superuser" && user.enabled) {
         check = true;
-      } else if (handler.params.app == "system" && user.ctrl.as_admin) {
+      } else if (handler.params.app == "system" && userCtrl.as_admin) {
         check = true;
-      } else if (handler.params.app == "system" && !user.ctrl.as_admin) {
+      } else if (handler.params.app == "system" && !userCtrl.as_admin) {
         check = false;
       }
     }
@@ -54,6 +55,12 @@ export class AuthService {
               let checkbasic = await AuthService.check_auth_Basic(handler, data_aut);
               if (checkbasic) {
                 request.openfusionapi.user = checkbasic;
+              } else {
+                reply.code(401).send({
+                  error: "Invalid Username or Password",
+                  url: request.url,
+                });
+                return;
               }
             } else {
               reply.code(401).send({
@@ -70,6 +77,12 @@ export class AuthService {
               let checkbasic = await AuthService.check_auth_Basic(handler, data_aut);
               if (checkbasic) {
                 request.openfusionapi.user = checkbasic;
+              } else {
+                reply.code(401).send({
+                  error: "Invalid Username or Password",
+                  url: request.url,
+                });
+                return;
               }
             } else {
               reply.code(401).send({
