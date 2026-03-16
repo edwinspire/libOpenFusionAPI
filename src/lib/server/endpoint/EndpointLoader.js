@@ -4,6 +4,20 @@ import { replaceAllFast } from "./utils.js";
 
 // const ajv = new Ajv();
 
+const HANDLERS_SKIP_CODE_REPLACEMENT = new Set([
+  "JS",
+  "MCP",
+  "MONGODB",
+  "FUNCTION",
+]);
+
+const HANDLERS_PARSE_CUSTOM_DATA_JSON = new Set([
+  "SQL",
+  "HANA",
+  "MONGODB",
+  "SQL_BULK_I",
+]);
+
 /**
  * Handles loading endpoints from the database, building their handlers,
  * and managing the thundering-herd protection during concurrent loads.
@@ -21,6 +35,24 @@ export class EndpointLoader {
     this._dbFetcher = dependencies.dbFetcher;
     this._vmFactory = dependencies.vmFactory;
     this._mcpBuilder = dependencies.mcpBuilder;
+
+    this._handlerInitializers = {
+      MCP: async (returnHandler) => {
+        returnHandler.params.server_mcp = await this._mcpBuilder(
+          returnHandler.params.app,
+          returnHandler.params.environment
+        );
+      },
+      MONGODB: async (returnHandler, appvars_obj) => {
+        await this._initVmHandler(returnHandler, appvars_obj);
+      },
+      JS: async (returnHandler, appvars_obj) => {
+        await this._initVmHandler(returnHandler, appvars_obj);
+      },
+      FUNCTION: async (returnHandler) => {
+        this._initFunctionHandler(returnHandler);
+      },
+    };
   }
 
   getFnNames() {
@@ -141,31 +173,7 @@ export class EndpointLoader {
         }
 
         if (props.length > 0) {
-          if (
-            endpointData.handler !== "JS" &&
-            endpointData.handler !== "MCP" &&
-            endpointData.handler !== "MONGODB" &&
-            endpointData.handler !== "FUNCTION" &&
-            returnHandler.params.code &&
-            returnHandler.params.code.length > 0
-          ) {
-            returnHandler.params.code = replaceAllFast(
-              returnHandler.params.code,
-              props
-            );
-          }
-
-          if (
-            typeof returnHandler?.params?.custom_data === "string" &&
-            (endpointData.handler == "SQL" ||
-              endpointData.handler == "HANA" ||
-              endpointData.handler == "MONGODB" ||
-              endpointData.handler == "SQL_BULK_I")
-          ) {
-            returnHandler.params.custom_data = JSON.parse(
-              replaceAllFast(returnHandler.params.custom_data, props)
-            );
-          }
+          this._applyAppVarsReplacements(returnHandler, endpointData, props);
         }
 
         // Compile JSON schema validator if enabled
@@ -180,58 +188,7 @@ export class EndpointLoader {
         //   }
         // }
 
-        // Handler-specific initialization
-        if (returnHandler.params.handler == "MCP") {
-          returnHandler.params.server_mcp = await this._mcpBuilder(
-            returnHandler.params.app,
-            returnHandler.params.environment
-          );
-        }
-
-        if (returnHandler.params.handler == "MONGODB") {
-          returnHandler.params.jsFn = await this._vmFactory(
-            returnHandler.params.code,
-            appvars_obj,
-            returnHandler.params.timeout
-          );
-          returnHandler.params.code = undefined;
-        } else if (returnHandler.params.handler == "JS") {
-          returnHandler.params.jsFn = await this._vmFactory(
-            returnHandler.params.code,
-            appvars_obj,
-            returnHandler.params.timeout
-          );
-          returnHandler.params.code = undefined;
-        } else if (returnHandler.params.handler == "FUNCTION") {
-          if (
-            this._fnLocal[returnHandler.params.environment] &&
-            this._fnLocal[returnHandler.params.environment][
-              returnHandler.params.app
-            ] &&
-            this._fnLocal[returnHandler.params.environment][
-              returnHandler.params.app
-            ][returnHandler.params.code]
-          ) {
-            returnHandler.params.Fn =
-              this._fnLocal[returnHandler.params.environment][
-                returnHandler.params.app
-              ][returnHandler.params.code];
-          } else if (
-            this._fnLocal[returnHandler.params.environment] &&
-            this._fnLocal[returnHandler.params.environment]["public"] &&
-            this._fnLocal[returnHandler.params.environment]["public"][
-              returnHandler.params.code
-            ]
-          ) {
-            returnHandler.params.Fn =
-              this._fnLocal[returnHandler.params.environment]["public"][
-                returnHandler.params.code
-              ];
-          }
-
-          returnHandler.message = "";
-          returnHandler.status = 200;
-        }
+        await this._initializeHandler(returnHandler, appvars_obj);
       } else {
         returnHandler.message = `Method ${endpointData.method} Unabled`;
         returnHandler.status = 404;
@@ -243,5 +200,57 @@ export class EndpointLoader {
     }
 
     return returnHandler;
+  }
+
+  _applyAppVarsReplacements(returnHandler, endpointData, props) {
+    if (
+      !HANDLERS_SKIP_CODE_REPLACEMENT.has(endpointData.handler) &&
+      returnHandler.params.code &&
+      returnHandler.params.code.length > 0
+    ) {
+      returnHandler.params.code = replaceAllFast(returnHandler.params.code, props);
+    }
+
+    if (
+      typeof returnHandler?.params?.custom_data === "string" &&
+      HANDLERS_PARSE_CUSTOM_DATA_JSON.has(endpointData.handler)
+    ) {
+      returnHandler.params.custom_data = JSON.parse(
+        replaceAllFast(returnHandler.params.custom_data, props)
+      );
+    }
+  }
+
+  async _initializeHandler(returnHandler, appvars_obj) {
+    const handlerName = returnHandler?.params?.handler;
+    const initializer = this._handlerInitializers[handlerName];
+
+    if (initializer) {
+      await initializer(returnHandler, appvars_obj);
+    }
+  }
+
+  async _initVmHandler(returnHandler, appvars_obj) {
+    returnHandler.params.jsFn = await this._vmFactory(
+      returnHandler.params.code,
+      appvars_obj,
+      returnHandler.params.timeout
+    );
+    returnHandler.params.code = undefined;
+  }
+
+  _initFunctionHandler(returnHandler) {
+    const envFunctions = this._fnLocal[returnHandler.params.environment];
+    const appFunctions = envFunctions && envFunctions[returnHandler.params.app];
+    const publicFunctions = envFunctions && envFunctions["public"];
+
+    if (appFunctions && appFunctions[returnHandler.params.code]) {
+      returnHandler.params.Fn = appFunctions[returnHandler.params.code];
+    } else if (publicFunctions && publicFunctions[returnHandler.params.code]) {
+      returnHandler.params.Fn = publicFunctions[returnHandler.params.code];
+    }
+
+    returnHandler.message = "";
+    returnHandler.status = 200;
   }
 }
