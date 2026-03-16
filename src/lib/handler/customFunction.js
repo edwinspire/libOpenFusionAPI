@@ -1,4 +1,8 @@
-import { setCacheReply, replyException } from "./utils.js";
+import {
+  getHandlerExecutionContext,
+  replyException,
+  sendHandlerResponse,
+} from "./utils.js";
 
 const VALID_DATA_TYPES = new Set(["object", "array", "boolean", "string", "number", "null"]);
 
@@ -21,10 +25,7 @@ function validateFnResult(result) {
 }
 
 export const customFunction = async (context) => {
-  const request = context?.request;
-  const reply = context?.reply;
-  const method = context?.method || context?.endpoint;
-  const server_data = context?.server_data;
+  const { request, reply, method, server_data } = getHandlerExecutionContext(context);
   try {
     // Validación de función
     if (typeof method.Fn !== "function") {
@@ -81,10 +82,11 @@ export const customFunction = async (context) => {
     }
 
     // Respuesta válida
-    setCacheReply(reply, fnresult.data);
-    reply.code(fnresult.code || 200).send(fnresult.data);
+    sendHandlerResponse(reply, {
+      statusCode: fnresult.code || 200,
+      data: fnresult.data,
+    });
   } catch (err) {
     replyException(request, reply, err);
-
   }
 };

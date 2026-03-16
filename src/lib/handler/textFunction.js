@@ -1,11 +1,13 @@
-import { setCacheReply, replyException } from "./utils.js";
+import {
+  getHandlerExecutionContext,
+  replyException,
+  sendHandlerResponse,
+} from "./utils.js";
 
 export const textFunction = async (
   /** @type {{ request: { method?: any; headers: any; body: any; query: any; }; reply: { code: (arg0: number) => { (): any; new (): any; send: { (arg0: { error: any; }): void; new (): any; }; type: { (arg0: string): { (): any; new (): any; header: { (arg0: string, arg1: string): { (): any; new (): any; send: { (arg0: any): void; new (): any; }; }; }; }; }; }; }; endpoint: { handler?: string; code: any; custom_data?: any; }; }} */ context
 ) => {
-  const request = context.request;
-  const reply = context.reply;
-  const endpoint = context.endpoint;
+  const { request, reply, endpoint } = getHandlerExecutionContext(context);
 
   try {
 
@@ -38,13 +40,14 @@ export const textFunction = async (
       return;
     }
 
-    setCacheReply(reply, endpoint.code);
-
-    reply
-      .code(200)
-      .type(mimeType)
-      .header("Content-Disposition", `attachment; filename="${filename}"`)
-      .send(endpoint.code);
+    sendHandlerResponse(reply, {
+      statusCode: 200,
+      data: endpoint.code,
+      contentType: mimeType,
+      headers: {
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      },
+    });
   } catch (error) {
     replyException(request, reply, error);
   }

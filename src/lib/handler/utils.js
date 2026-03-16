@@ -14,6 +14,43 @@ export const setCacheReply = (reply, data) => {
   return reply;
 };
 
+export const getHandlerExecutionContext = (context) => {
+  return {
+    request: context?.request,
+    reply: context?.reply,
+    method: context?.method || context?.endpoint,
+    endpoint: context?.endpoint || context?.method,
+    server_data: context?.server_data,
+  };
+};
+
+export const sendHandlerResponse = (
+  reply,
+  {
+    statusCode = 200,
+    data = null,
+    cache = true,
+    headers,
+    contentType,
+  } = {},
+) => {
+  if (headers) {
+    for (const [key, value] of Object.entries(headers)) {
+      reply.header(key, value);
+    }
+  }
+
+  if (contentType) {
+    reply.type(contentType);
+  }
+
+  if (cache) {
+    setCacheReply(reply, data);
+  }
+
+  reply.code(statusCode).send(data);
+};
+
 
 
 export const isValidHttpStatusCode = (code) => {

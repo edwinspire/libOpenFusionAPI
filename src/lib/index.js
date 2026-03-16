@@ -14,7 +14,6 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import Endpoint from "./server/endpoint/index.js";
 
-import { BackgroundTaskManager } from "./server/background_tasks.js";
 import { getAllBots } from "./db/bot.js";
 import { TasksInterval } from "./timer/tasks.js";
 import { defaultApiClient } from "./db/apiclient.js";
@@ -73,7 +72,9 @@ import { registerRequestLifecycle } from "./server/runtime/registerRequestLifecy
 import { EndpointRuntimeService } from "./server/runtime/EndpointRuntimeService.js";
 import { FunctionRegistryService } from "./server/runtime/FunctionRegistryService.js";
 import { DbHookCacheInvalidationService } from "./server/runtime/DbHookCacheInvalidationService.js";
+import { ServerReadyOrchestrator } from "./server/runtime/ServerReadyOrchestrator.js";
 import { defaultAuthPolicy, defaultCorsPolicy } from "./server/runtime/policies.js";
+import { BackgroundTaskManager } from "./server/background_tasks.js";
 
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
@@ -270,16 +271,13 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _runOnReady() {
-    // Fastify is now listening — safe to open the internal WebSocket connection.
-    this.websocketClientEndpoint.on("open", () => {
-      this.websocketClientEndpoint.subscribe("/server/events");
+    const readyOrchestrator = new ServerReadyOrchestrator({
+      websocketClientEndpoint: this.websocketClientEndpoint,
+      tasksInterval: this.TasksInterval,
+      backgroundTaskFactory: () => new BackgroundTaskManager(this),
     });
-    this.websocketClientEndpoint.connect();
 
-    this.TasksInterval.run();
-
-    const backgroundTasks = new BackgroundTaskManager(this);
-    backgroundTasks.startAll();
+    readyOrchestrator.start();
   }
 
 
