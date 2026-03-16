@@ -70,6 +70,9 @@ import path from "path";
 import { getSystemInfoDynamic } from "./server/systeminformation.js";
 import { registerCorePlugins } from "./server/runtime/registerCorePlugins.js";
 import { registerRequestLifecycle } from "./server/runtime/registerRequestLifecycle.js";
+import { EndpointRuntimeService } from "./server/runtime/EndpointRuntimeService.js";
+import { FunctionRegistryService } from "./server/runtime/FunctionRegistryService.js";
+import { defaultAuthPolicy, defaultCorsPolicy } from "./server/runtime/policies.js";
 
 const DEFAULT_MAX_FILE_SIZE_UPLOAD = 100 * 1024 * 1024; // Default 100 MB
 const {
@@ -121,6 +124,12 @@ export default class ServerAPI extends EventEmitter {
       mcpBuilder: CreateMCPHandler,
       createLog: createLog
     });
+    this.functionRegistry = new FunctionRegistryService({
+      endpoints: this.endpoints,
+      dirFn: dir_fn,
+      fs,
+      getFunctionsFiles,
+    });
     this.endpoints.on("log", (data) => {
       this.TasksInterval.pushLog(data);
       //      this.websocketClientEndpoint.send({ payload: data });
@@ -139,6 +148,7 @@ export default class ServerAPI extends EventEmitter {
     this.websocketClientEndpoint = new OpenFusionWebsocketClient(
       internal_url_ws(urlSystemPath.Websocket.EventServer),
       {},
+      { autoConnect: false }, // connect only after fastify.listen() resolves
     );
 
     this.TasksInterval = new TasksInterval();
@@ -256,6 +266,7 @@ export default class ServerAPI extends EventEmitter {
         allowedHeaders: ["Content-Type", "Authorization"],
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       },
+      corsPolicy: defaultCorsPolicy,
     });
 
     this.webSocketManager = new WebSocketManager(this.fastify);
@@ -264,9 +275,7 @@ export default class ServerAPI extends EventEmitter {
     this.loadFunctionFiles();
     this._addFunctions();
 
-    registerRequestLifecycle({
-      fastify: this.fastify,
-      structApiPath: struct_api_path,
+    const endpointRuntimeService = new EndpointRuntimeService({
       serverApi: this,
       endpoints: this.endpoints,
       getUUID,
@@ -277,6 +286,13 @@ export default class ServerAPI extends EventEmitter {
       emitEndpointEvent: (event_name, data) => {
         this._emitEndpointEvent(event_name, data);
       },
+      authPolicy: defaultAuthPolicy,
+    });
+
+    registerRequestLifecycle({
+      fastify: this.fastify,
+      structApiPath: struct_api_path,
+      endpointRuntimeService,
     });
 
     this.webSocketManager.registerRoutes();
@@ -311,9 +327,11 @@ export default class ServerAPI extends EventEmitter {
   }
 
   async _runOnReady() {
+    // Fastify is now listening — safe to open the internal WebSocket connection.
     this.websocketClientEndpoint.on("open", () => {
       this.websocketClientEndpoint.subscribe("/server/events");
     });
+    this.websocketClientEndpoint.connect();
 
     this.TasksInterval.run();
 
@@ -323,55 +341,7 @@ export default class ServerAPI extends EventEmitter {
 
 
   _addFunctions() {
-    if (fnSystem) {
-      if (fnSystem.fn_system_prd) {
-        const entries = Object.entries(fnSystem.fn_system_prd);
-        for (let [fName, fn] of entries) {
-          // console.log(":::::.> fnSystem >> ", fName, fn);
-          this._appendAppFunction("system", "prd", fName, fn);
-        }
-      }
-
-      if (fnSystem.fn_system_qa) {
-        const entries = Object.entries(fnSystem.fn_system_qa);
-        for (let [fName, fn] of entries) {
-          // console.log(":::::.> fnSystem >> ", fName, fn);
-          this._appendAppFunction("system", "qa", fName, fn);
-        }
-      }
-
-      if (fnSystem.fn_system_dev) {
-        const entries = Object.entries(fnSystem.fn_system_dev);
-        for (let [fName, fn] of entries) {
-          // console.log(":::::.> fnSystem >> ", fName, fn);
-          this._appendAppFunction("system", "dev", fName, fn);
-        }
-      }
-    }
-
-    if (fnPublic) {
-      if (fnPublic.fn_public_dev) {
-        const entriesP = Object.entries(fnPublic.fn_public_dev);
-        for (let [fName, fn] of entriesP) {
-          //console.log(prop + ": " + fn);
-          this._appendAppFunction("public", "dev", fName, fn);
-        }
-      }
-      if (fnPublic.fn_public_qa) {
-        const entriesP = Object.entries(fnPublic.fn_public_qa);
-        for (let [fName, fn] of entriesP) {
-          //console.log(prop + ": " + fn);
-          this._appendAppFunction("public", "qa", fName, fn);
-        }
-      }
-      if (fnPublic.fn_public_prd) {
-        const entriesP = Object.entries(fnPublic.fn_public_prd);
-        for (let [fName, fn] of entriesP) {
-          //console.log(prop + ": " + fn);
-          this._appendAppFunction("public", "prd", fName, fn);
-        }
-      }
-    }
+    this.functionRegistry.addBuiltInFunctions(fnSystem, fnPublic);
   }
 
   _deleteEndpointsByAppName(app_name) {
@@ -379,47 +349,7 @@ export default class ServerAPI extends EventEmitter {
   }
 
   loadFunctionFiles() {
-    function CreateFnPath(fn_path) {
-      try {
-        if (!fs.existsSync(fn_path)) {
-          // Si no existe, créala recursivamente
-          // @ts-ignore
-          fs.mkdirSync(
-            fn_path,
-            { recursive: true },
-            (/** @type {any} */ err) => {
-              if (err) {
-                console.error("Error al crear la ruta:", err);
-              } else {
-                console.log("Ruta creada exitosamente.");
-              }
-            },
-          );
-        } else {
-          console.log("La ruta ya existe.");
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      return fn_path;
-    }
-
-    // Crea las rutas para las funciones personalizadas
-    CreateFnPath(`${dir_fn}/system/dev`);
-    CreateFnPath(`${dir_fn}/system/qa`);
-    CreateFnPath(`${dir_fn}/system/prd`);
-
-    CreateFnPath(`${dir_fn}/public/dev`);
-    CreateFnPath(`${dir_fn}/public/qa`);
-    CreateFnPath(`${dir_fn}/public/prd`);
-
-    getFunctionsFiles(dir_fn).forEach((data_js) => {
-      this._appendFunctionsFiles(
-        data_js.file,
-        data_js.data.appName,
-        data_js.data.environment,
-      );
-    });
+    this.functionRegistry.loadFunctionFiles();
   }
 
   /**
@@ -428,56 +358,15 @@ export default class ServerAPI extends EventEmitter {
    * @param {string} environment
    */
   async _appendFunctionsFiles(file_app, _app_name, environment) {
-    try {
-      console.log("Load Module -> ", file_app);
-
-      // Obtener la última parte
-      const fname = file_app.split("/").pop();
-
-      const stat_mod = fs.statSync(file_app);
-
-      if (
-        stat_mod.isFile() &&
-        fname.endsWith(".js") &&
-        fname.startsWith("fn")
-      ) {
-        console.log("Es un archivo:", fname);
-
-        const taskModule = await import(file_app);
-
-        console.log("Module: ", taskModule);
-
-        if (taskModule && taskModule.default) {
-          this._appendAppFunction(
-            _app_name,
-            environment,
-            fname.replace(".js", ""),
-            taskModule.default,
-          );
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    return this.functionRegistry.appendFunctionsFile(
+      file_app,
+      _app_name,
+      environment,
+    );
   }
 
   _appendAppFunction(appname, environment, functionName, fn) {
-    //console.log(`::> Add Function ${functionName} on ${environment}`);
-    if (functionName.startsWith("fn")) {
-      // Crea el environment vacío si no existe
-      if (!this.endpoints.fnLocal[environment]) {
-        this.endpoints.fnLocal[environment] = {};
-      }
-
-      if (!this.endpoints.fnLocal[environment][appname]) {
-        this.endpoints.fnLocal[environment][appname] = {};
-      }
-
-      this.endpoints.fnLocal[environment][appname][functionName] = fn;
-      // this._fnLocalNames = this.endpoints.getFnNames();
-    } else {
-      throw `The function must start with "fn". appName: ${appname} - functionName: ${functionName}.`;
-    }
+    this.functionRegistry.appendAppFunction(appname, environment, functionName, fn);
   }
 
   /**
@@ -485,18 +374,7 @@ export default class ServerAPI extends EventEmitter {
    * @param {string} [environment]
    */
   _getFunctions(appName, environment) {
-    let d;
-    let p;
-
-    if (this.endpoints.fnLocal[environment]) {
-      d = this.endpoints.fnLocal[environment][appName];
-      p = this.endpoints.fnLocal[environment]["public"];
-    }
-
-    //    console.log(d, p);
-
-    // Si hay funciones publicas con el mismo nombre que la función de aplicación, la funcion de aplicación sobreescribe a la publica
-    return { ...p, ...d };
+    return this.functionRegistry.getFunctions(appName, environment);
   }
 
   /**

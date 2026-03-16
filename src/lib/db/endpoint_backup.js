@@ -1,15 +1,30 @@
 import { EndpointBackup } from "./models.js";
 import crypto from "crypto";
 
+function sortObjectDeep(value) {
+  if (Array.isArray(value)) {
+    return value.map(sortObjectDeep);
+  }
+
+  if (value && typeof value === "object") {
+    const sorted = {};
+    for (const key of Object.keys(value).sort()) {
+      sorted[key] = sortObjectDeep(value[key]);
+    }
+    return sorted;
+  }
+
+  return value;
+}
+
 function hashObjectSync(obj) {
-  const jsonString = JSON.stringify(obj, Object.keys(obj).sort());
+  const jsonString = JSON.stringify(sortObjectDeep(obj));
   return crypto.createHash("sha256").update(jsonString).digest("hex");
 }
 
 /**
  * Inserta backup SOLO si la combinación (idendpoint + hash) no existe
  * @param {string} idendpoint - UUID del endpoint
- * @param {string} hash - Hash SHA-512 en hexadecimal (128 caracteres)
  * @param {object} data - Datos a respaldar (objeto plano)
  * @returns {Promise<{ created: boolean, instance: EndpointBackup | null }>}
  */
@@ -22,27 +37,48 @@ export async function createEndpointBackup({ idendpoint, data }) {
   if (!data || typeof data !== "object") {
     throw new Error("data debe ser un objeto válido");
   }
-  data.rowkey = 0; // Evita que cambios en rowkey afecten al hash
-  data.createdAt = null; // Evita que cambios en createdAt afecten al hash
-  data.updatedAt = null; // Evita que cambios en updatedAt afecten al hash
-  data.internal_hash_row = null; // Evita que cambios en internal_hash_row afecten al hash
-  const hash = hashObjectSync(data);
+  const dataToHash = {
+    ...data,
+    rowkey: 0,
+    createdAt: null,
+    updatedAt: null,
+    internal_hash_row: null,
+  };
+  const hash = hashObjectSync(dataToHash);
 
   try {
-    const instance = await EndpointBackup.create(
-      { idendpoint, hash, data },
-      {
-        logging: false, // Opcional: desactiva logs para mejor rendimiento
-        //raw: true, // Opcional: mejora rendimiento en inserciones masivas
-      },
-    );
-    return { created: true, instance };
+    // Upsert is more robust across dialects and avoids race conditions from findOrCreate.
+    const [instance, created] = await EndpointBackup.upsert({
+      idendpoint,
+      hash,
+      data: dataToHash,
+    }, {
+      logging: false,
+      returning: true,
+    });
+
+    return {
+      created: created === true,
+      instance: created === true ? instance : null,
+    };
   } catch (error) {
-    // ✅ Manejo específico de duplicados (funciona en PostgreSQL, MySQL, SQL Server)
-    console.error("Error creating endpoint backup:", error);
-    if (error.name === "SequelizeUniqueConstraintError") {
+    // Duplicado esperado: ya existe backup idéntico
+    const parentCode = error?.parent?.code;
+    const parentNumber = error?.parent?.number;
+    const isDuplicate =
+      error?.name === "SequelizeUniqueConstraintError" ||
+      parentCode === "SQLITE_CONSTRAINT" || // sqlite
+      parentCode === "23505" || // postgres unique_violation
+      parentCode === "ER_DUP_ENTRY" || // mysql/mariadb
+      parentNumber === 2601 || // mssql duplicate key row
+      parentNumber === 2627; // mssql unique constraint
+
+    if (isDuplicate) {
       return { created: false, instance: null };
     }
+
+    console.error("Error creating endpoint backup:", error);
+    throw error;
   }
 }
 

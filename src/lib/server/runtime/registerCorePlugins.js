@@ -5,6 +5,7 @@ export async function registerCorePlugins({
   wwwDirPath,
   plugins,
   corsConfig,
+  corsPolicy,
 }) {
   const {
     formbody,
@@ -33,8 +34,11 @@ export async function registerCorePlugins({
     parseOptions: {},
   });
 
+  const resolvedCorsConfig =
+    typeof corsPolicy === "function" ? corsPolicy(corsConfig) : corsConfig;
+
   await fastify.register(cors, {
-    ...corsConfig,
+    ...resolvedCorsConfig,
   });
 
   await fastify.register(websocket);

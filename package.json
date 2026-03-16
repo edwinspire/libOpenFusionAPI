@@ -4,6 +4,7 @@
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./test/index.js",
+    "test:smoke": "node ./test/smoke_runtime.js",
     "set_version": "node ./set_version.js",
     "start": "node --max-old-space-size=4096 ./src/server.js",
     "reinstall": "rm -rf node_modules package-lock.json && npm install"

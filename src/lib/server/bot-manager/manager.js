@@ -2,12 +2,17 @@ import { Worker } from "node:worker_threads";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
+import { EventEmitter } from "node:events";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export class BotManager {
+const BOT_FAILURE_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const BOT_FAILURE_THRESHOLD = 3;              // failures before auto-disable
+
+export class BotManager extends EventEmitter {
   constructor() {
+    super();
     this.activeBots = new Map(); // Map<botId, Worker>
     this.botErrorHistory = new Map(); // Map<botId, { timestamps: [], cooldownUntil: 0 }>
   }
@@ -89,16 +94,21 @@ export class BotManager {
           }
 
           const now = Date.now();
-          // Add current error
           history.timestamps.push(now);
 
-          // Keep only errors from last 5 minutes (300000 ms)
-          history.timestamps = history.timestamps.filter(t => now - t < 300000);
+          // Keep only errors within the failure window
+          history.timestamps = history.timestamps.filter(
+            (t) => now - t < BOT_FAILURE_WINDOW_MS,
+          );
 
-          if (history.timestamps.length >= 5) {
-            console.error(`[Manager] Bot ${botId} reached 5 errors in 5 minutes. Entering 5-minute cooldown.`);
-            history.cooldownUntil = now + 300000;
-            history.timestamps = []; // Reset history after triggering cooldown
+          if (history.timestamps.length >= BOT_FAILURE_THRESHOLD) {
+            console.error(
+              `[Manager] Bot ${botId} reached ${BOT_FAILURE_THRESHOLD} failures in 5 minutes. Disabling endpoint.`,
+            );
+            history.cooldownUntil = now + BOT_FAILURE_WINDOW_MS;
+            history.timestamps = [];
+            // Notify callers so they can persist enabled=false in the DB
+            this.emit("disable", { botId });
           }
         }
         this.activeBots.delete(botId);

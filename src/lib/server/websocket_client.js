@@ -22,7 +22,13 @@ const MAX_RECONNECT_DELAY = 30 * 1000; // Máx backoff 30s
 // Cliente con reconexión y heartbeat
 // ─────────────────────────────────────────────────────────────
 export class OpenFusionWebsocketClient extends EventEmitter {
-  constructor(url, headers = {}) {
+  /**
+   * @param {string} url
+   * @param {object} [headers]
+   * @param {{ autoConnect?: boolean }} [options]
+   *   autoConnect=false: do not connect immediately; caller must call .connect() when ready.
+   */
+  constructor(url, headers = {}, { autoConnect = true } = {}) {
     super();
     this.url = url;
     this.headers = headers;
@@ -30,7 +36,7 @@ export class OpenFusionWebsocketClient extends EventEmitter {
     this.retryCount = 0;
     this.heartbeatTimer = null;
     this.pongTimeoutTimer = null;
-    this.connect();
+    if (autoConnect) this.connect();
   }
 
   connect() {

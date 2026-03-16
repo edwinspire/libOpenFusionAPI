@@ -1,5 +1,6 @@
 import { BotManager } from "./bot-manager/manager.js";
 import { getApplicationsTreeByFilters } from "../db/app.js";
+import { disableEndpoint } from "../db/endpoint.js";
 import { getAppVarsObject } from "./utils.js";
 import { getSystemInfoDynamic } from "./systeminformation.js";
 import { urlSystemPath } from "./utils_path.js";
@@ -43,6 +44,18 @@ export class BackgroundTaskManager {
   startBotLoop() {
     const manager = new BotManager();
     let isBotLoopRunning = false;
+
+    // Auto-disable an endpoint that keeps crashing so it stops wasting resources
+    manager.on("disable", async ({ botId }) => {
+      try {
+        await disableEndpoint(botId);
+        console.warn(
+          `[BotManager] Endpoint ${botId} auto-disabled after repeated failures.`,
+        );
+      } catch (err) {
+        console.error(`[BotManager] Failed to disable endpoint ${botId}:`, err);
+      }
+    });
 
     console.log("--- Starting System (grammY edition) ---");
 

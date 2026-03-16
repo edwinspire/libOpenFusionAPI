@@ -44,6 +44,22 @@ export const getAllEndpoints = async () => {
   }
 };
 
+// DISABLE — sets enabled=false without deleting the record
+export const disableEndpoint = async (
+  /** @type {import("sequelize").Identifier | undefined} */ idendpoint,
+) => {
+  try {
+    const [updated] = await Endpoint.update(
+      { enabled: false },
+      { where: { idendpoint } },
+    );
+    return updated > 0;
+  } catch (error) {
+    console.error("Error disabling endpoint:", error);
+    throw error;
+  }
+};
+
 // DELETE
 export const deleteEndpoint = async (
   /** @type {import("sequelize").Identifier | undefined} */ idendpoint,

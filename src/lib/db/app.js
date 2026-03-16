@@ -290,7 +290,8 @@ export const restoreAppFromBackup = async (app) => {
                 ep.custom_data = JSON.parse(ep.code);
               } catch (error) {
                 // Deja como está porque se debe estar usando una variable de aplicación
-                console.error("Error parsing SOAP code:", error);
+                // Informativo: código SOAP antiguo que no es JSON válido (se usa variable de app)
+                console.debug("[migration] SOAP endpoint code is not JSON (expected for app-var endpoints):", error.message);
               }
             }else if(ep.handler == "SQL" || ep.handler == "HANA"){
               try {
@@ -300,7 +301,8 @@ export const restoreAppFromBackup = async (app) => {
                 ep.custom_data = params.config;
               } catch (error) {
                 // Deja como está porque se debe estar usando una variable de aplicación
-                console.error("Error parsing SQL code:", error);
+                // Informativo: código SQL antiguo que no es JSON válido (se usa variable de app)
+                console.debug("[migration] SQL/HANA endpoint code is not JSON (expected for app-var endpoints):", error.message);
               }
             }else if(ep.handler == "TEXT"){
               try {
@@ -310,7 +312,7 @@ export const restoreAppFromBackup = async (app) => {
                 ep.custom_data = {mimeType: params.mimeType};
               } catch (error) {
                 // Deja como está porque se debe estar usando una variable de aplicación
-                console.error("Error parsing TEXT code:", error);
+                console.log("Backup Endpoint TEXT Error parsing code. Only by old version. Error:", error);
               }
             }else if(ep.handler == "SQL_BULK_I"){
               try {
@@ -320,7 +322,7 @@ export const restoreAppFromBackup = async (app) => {
                 ep.custom_data = params.config;
               } catch (error) {
                 // Deja como está porque se debe estar usando una variable de aplicación
-                console.error("Error parsing SQL code:", error);
+                console.log("Backup Endpoint SQL_BULK_I Error parsing code. Only by old version. Error:", error);
               }
             }
 
