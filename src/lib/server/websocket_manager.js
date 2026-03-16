@@ -8,6 +8,15 @@ export class WebSocketManager {
     // Map<String, Set<WebSocket>>
     // Key: `${idendpoint}::${channel}`
     this.wsSubscribers = new Map();
+
+    this.commandHandlers = {
+      "/subscribe": (connection, msgObj) => {
+        this.handleSubscribe(connection, msgObj);
+      },
+      "/ping": (connection) => {
+        this.handlePing(connection);
+      },
+    };
   }
 
   getWsKey(idendpoint, channel) {
@@ -39,6 +48,91 @@ export class WebSocketManager {
         }
       }
     }
+  }
+
+  sendJson(connection, payload) {
+    connection.send(JSON.stringify(payload));
+  }
+
+  handleSubscribe(connection, msgObj) {
+    if (msgObj.payload.channel) {
+      let validate_channel_subscribe = WebSocketValidateFormatChannelName(
+        msgObj.payload.channel,
+      );
+      if (!validate_channel_subscribe.valid) {
+        this.sendJson(connection, {
+          subscribed: false,
+          channel: msgObj.payload.channel,
+          error: validate_channel_subscribe.error,
+        });
+        return;
+      }
+
+      connection.openfusionapi.channel = msgObj.payload.channel;
+      connection.openfusionapi.idclient = getUUID();
+      this.addWsSubscriber(
+        connection,
+        connection.openfusionapi.handler.params.idendpoint,
+        msgObj.payload.channel,
+      );
+
+      this.sendJson(connection, {
+        subscribed: true,
+        channel: msgObj.payload.channel,
+        message: `Subscribed to channel ${msgObj.payload.channel}`,
+      });
+      return;
+    }
+
+    this.sendJson(connection, {
+      subscribed: false,
+      channel: msgObj.payload.channel,
+      message: "Channel name is required to subscribe",
+    });
+  }
+
+  handlePing(connection) {
+    this.sendJson(connection, {
+      channel: "/pong",
+      payload: {},
+    });
+  }
+
+  handleBroadcast(connection, msgObj) {
+    // Broadcast
+    // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
+    // TODO: Revisar un mecanismo para limitar que un cliente puede enviar mensajes y esté limitado solo a leer mensajes
+    // Broadcast Optimization
+    const idendpoint = connection.openfusionapi.handler.params.idendpoint;
+    const channel = connection.openfusionapi.channel;
+    const key = this.getWsKey(idendpoint, channel);
+
+    if (this.wsSubscribers.has(key)) {
+      const subscribers = this.wsSubscribers.get(key);
+      subscribers.forEach((client_ws) => {
+        try {
+          if (
+            client_ws.readyState === 1 &&
+            client_ws.openfusionapi.idclient != connection.openfusionapi.idclient
+          ) {
+            client_ws.send(JSON.stringify(msgObj.payload));
+          }
+        } catch (error) {
+          this.sendJson(connection, { error: error.message });
+        }
+      });
+    }
+  }
+
+  dispatchCommand(connection, msgObj) {
+    const commandHandler = this.commandHandlers[msgObj.channel];
+
+    if (commandHandler) {
+      commandHandler(connection, msgObj);
+      return true;
+    }
+
+    return false;
   }
 
   registerRoutes() {
@@ -83,114 +177,35 @@ export class WebSocketManager {
             if (isValid) {
               //console.log("✅ Válido");
 
-              // valida si el mensaje es para subscribir a un canal
-              if (msgObj.channel == "/subscribe") {
-                if (msgObj.payload.channel) {
-                  let validate_channel_subscribe =
-                    WebSocketValidateFormatChannelName(msgObj.payload.channel);
-                  if (!validate_channel_subscribe.valid) {
-                    connection.send(
-                      JSON.stringify({
-                        subscribed: false,
-                        channel: msgObj.payload.channel,
-                        error: validate_channel_subscribe.error,
-                      }),
-                    );
-                  } else {
-                    connection.openfusionapi.channel =
-                      msgObj.payload.channel;
-                    connection.openfusionapi.idclient = getUUID();
-                    this.addWsSubscriber(
-                      connection,
-                      connection.openfusionapi.handler.params.idendpoint,
-                      msgObj.payload.channel,
-                    );
-
-                    connection.send(
-                      JSON.stringify({
-                        subscribed: true,
-                        channel: msgObj.payload.channel,
-                        message: `Subscribed to channel ${msgObj.payload.channel}`,
-                      }),
-                    );
-                  }
-                } else {
-                  connection.send(
-                    JSON.stringify({
-                      subscribed: false,
-                      channel: msgObj.payload.channel,
-                      message: `Channel name is required to subscribe`,
-                    }),
-                  );
-                }
-              } else if (
-                connection.openfusionapi.idclient &&
-                msgObj.channel == "/ping"
-              ) {
-                connection.send(
-                  JSON.stringify({
-                    channel: "/pong",
-                    payload: {},
-                  }),
-                );
+              if (!connection.openfusionapi.idclient && msgObj.channel !== "/subscribe") {
+                this.sendJson(connection, { error: "Invalid client. Bye." });
+                connection.close();
+              } else if (this.dispatchCommand(connection, msgObj)) {
+                return;
               } else if (connection.openfusionapi.idclient) {
-                // Broadcast
-                // TODO: Esto no me parece que se optimo porque hay que recorrer todos los clientes en busca de los que corresponden a ese path
-                // TODO: Revisar un mecanismo para limitar que un cliente puede enviar mensajes y esté limitado solo a leer mensajes
-                // Broadcast Optimization
-                const idendpoint =
-                  connection.openfusionapi.handler.params.idendpoint;
-                const channel = connection.openfusionapi.channel;
-                const key = this.getWsKey(idendpoint, channel);
-
-                if (this.wsSubscribers.has(key)) {
-                  const subscribers = this.wsSubscribers.get(key);
-                  subscribers.forEach((client_ws) => {
-                    try {
-                      if (
-                        client_ws.readyState === 1 && // OPEN
-                        client_ws.openfusionapi.idclient !=
-                        connection.openfusionapi.idclient
-                      ) {
-                        client_ws.send(JSON.stringify(msgObj.payload));
-                      }
-                    } catch (error) {
-                      connection.send(
-                        JSON.stringify({ error: error.message }),
-                      );
-                    }
-                  });
-                }
+                this.handleBroadcast(connection, msgObj);
               } else {
-                connection.send(
-                  JSON.stringify({ error: "Invalid client. Bye." }),
-                );
+                this.sendJson(connection, { error: "Invalid client. Bye." });
                 connection.close();
               }
             } else {
               //    console.log("❌ Inválido. Errores detectados:");
               // ¡Aquí está la magia! `validate.errors` es un array con los detalles.
-              connection.send(
-                JSON.stringify({
-                  error: validateSchemaMessageWebSocket.errors,
-                }),
-              );
+              this.sendJson(connection, {
+                error: validateSchemaMessageWebSocket.errors,
+              });
               connection.close();
             }
           } else {
             // Devuelve un mensaje al cliente que originó el mensaje
-            connection.send(
-              JSON.stringify({
-                error: "Invalid channel name format",
-                message: msgString,
-              }),
-            );
+            this.sendJson(connection, {
+              error: "Invalid channel name format",
+              message: msgString,
+            });
             connection.close();
           }
         } catch (error) {
-          connection.send(
-            JSON.stringify({ error: error.message, message: msgString }),
-          );
+          this.sendJson(connection, { error: error.message, message: msgString });
           connection.close();
         }
       });
