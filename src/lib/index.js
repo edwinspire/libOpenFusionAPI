@@ -48,9 +48,9 @@ import {
   getIPFromRequest,
   getFunctionsFiles,
   getUUID,
-  CreateOpenFusionAPIToken,
   getAppVarsObject,
 } from "./server/utils.js";
+import { CreateOpenFusionAPIToken } from "./server/auth.js";
 import { AuthService } from "./server/auth_service.js";
 
 import { validateSchemaMessageWebSocket } from "./server/schemas/index.js";

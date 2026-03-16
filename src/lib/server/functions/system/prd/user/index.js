@@ -4,7 +4,7 @@ import {
   getAllUsers,
   updateUserPassword,
 } from "../../../../../db/user.js";
-import {getUserPasswordTokenFromRequest} from "../../../../utils.js";
+import {getUserPasswordTokenFromRequest} from "../../../../auth.js";
 
 export async function fnCreateUser(params) {
   let r = { data: undefined, code: 204 };

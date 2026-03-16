@@ -1,4 +1,5 @@
-import { EncryptPwd, customError } from "../server/utils.js";
+import { customError } from "../server/utils.js";
+import { EncryptPwd } from "../server/auth.js";
 import { GenToken } from "../server/functionVars.js";
 import { validatePasswordSecurity } from "./utils.js";
 import { User } from "./models.js";

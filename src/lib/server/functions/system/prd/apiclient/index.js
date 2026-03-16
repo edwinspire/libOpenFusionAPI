@@ -1,4 +1,4 @@
-import { getUserPasswordTokenFromRequest } from "../../../../utils.js";
+import { getUserPasswordTokenFromRequest } from "../../../../auth.js";
 import { GenToken } from "../../../../functionVars.js";
 import { GetSystemPaths } from "../../../../utils_path.js";
 import uFetch from "@edwinspire/universal-fetch";

@@ -9,9 +9,6 @@ import uFetch from "@edwinspire/universal-fetch";
 import Zod from "zod";
 import {
   URLAutoEnvironment,
-  functionsVars,
-  GenToken,
-  JWTKEY,
 } from "./functionVars.js";
 
 const { PORT } = process.env;
@@ -88,27 +85,7 @@ export function getIPFromRequest(req) {
   return ip;
 }
 
-/**
- * @param {string} token
- */
-export function checkToken(token, key = JWTKEY) {
-  if (token) {
-    try {
-      // Verificar y decodificar el token
-      const decodedToken = tokenVerify(token, key);
 
-      if (decodedToken && decodedToken.data) {
-        return decodedToken.data;
-      }
-
-      return false;
-    } catch (error) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-}
 
 
 
@@ -126,104 +103,9 @@ export function customError(code, message) {
   }
 }
 
-export function CreateRandomPassword(prefix = "rp") {
-  const password = prefix + "_" + randomUUID();
-  return { password, encrypted: EncryptPwd(password) };
-}
 
-/**
- * @param {import("crypto").BinaryLike} pwd
- */
-export function EncryptPwd(pwd) {
-  return createHmac("sha256", JWTKEY).update(pwd).digest("hex");
-}
 
-/**
- * @param {any} token
- */
-export function tokenVerify(token, key = JWTKEY) {
-  return jwt.verify(token, key);
-}
 
-/**
- * @param {any} req
- */
-export function getUserPasswordTokenFromRequest(req) {
-  const authHeader = req.headers?.authorization;
-  let username, token, password, data_token;
-
-  if (authHeader?.startsWith("Basic ")) {
-    const encoded = authHeader.split(" ")[1] ?? "";
-    const decoded = Buffer.from(encoded, "base64").toString("utf8");
-    const idx = decoded.indexOf(":");
-    if (idx >= 0) {
-      username = decoded.slice(0, idx);
-      password = decoded.slice(idx + 1);
-    } else {
-      username = decoded;
-      password = undefined;
-    }
-  } else if (authHeader?.startsWith("Bearer ")) {
-
-    let jwt_key = JWTKEY;
-    token = authHeader.split(" ")[1];
-
-    if (token.startsWith("OFAPI_KEY@")) {
-      token = token.slice("OFAPI_KEY@".length); // corta solo el prefijo inicial
-      jwt_key = req?.openfusionapi?.handler?.params?.jwt_key || JWTKEY;
-    }
-
-    try {
-      data_token = checkToken(token, jwt_key);
-    } catch (e) {
-      data_token = null;
-    }
-  } else {
-    // Buscamos en las cookies como ultima alterntiva
-    try {
-      let token = req.cookies.OFAPI_TOKEN;
-      data_token = checkToken(token);
-    } catch (e) {
-      data_token = null;
-    }
-  }
-
-  return { Basic: { username, password }, Bearer: { token, data: data_token } };
-}
-
-/**
- * @param {any} socket
- */
-export function websocketUnauthorized(socket) {
-  // Si el cliente no está autenticado, responder con un error 401 Unauthorized
-  socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
-  socket.destroy();
-}
-
-/**
- * @param {any} app
- * @param {any} endpointData
- * @param {any} jwtoken
- */
-export function checkAPIToken(app, endpointData, jwtoken) {
-  //
-  try {
-    let data = tokenVerify(jwtoken);
-
-    console.log("::::::> checkAPIToken ::: > ", data, endpointData);
-
-    if (data && data.app && data.env) {
-      // Verificar que el app corresponda a la data que está en el jwtoken
-
-      return data.app == app && data.env == endpointData.env;
-    }
-
-    return false;
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
 
 /**
  * @param {string} path_file
@@ -276,11 +158,7 @@ export const getFunctionsFiles = (fn_path) => {
   });
 };
 
-export const md5 = (/** @type {any} */ data) => {
-  const hash = createHash("md5");
-  hash.update(typeof data !== "string" ? JSON.stringify(data) : data);
-  return hash.digest("hex");
-};
+
 
 // Une dos objetos json, los valores de obj2 sobreescriben los valores de obj1
 export const mergeObjects = (obj1, obj2) => {
@@ -311,62 +189,7 @@ export const mergeObjects = (obj1, obj2) => {
   return merged;
 };
 
-export const createFunction = async (
-  /** @type {string} */ code,
-  /** @type {string} */ app_vars
-) => {
-  let app_vars_string = "";
-  // TODO: la variable app_vars no se la debería usar ya que al crear el codigo de la función ya se reemplaza el nombre de la variable por el valor que se la ha asignado.
-  let fn = new Function("$_VARS_", "throw new Error('No code to execute');");
 
-  try {
-    let vars = Object.keys(await functionsVars()).join(", ");
-
-    let codefunction = `
-return async()=>{
-  ${app_vars_string}  
-  let {${vars}} = $_VARS_;
-  
-  ${code}
-  return {data: $_RETURN_DATA_, headers: $_CUSTOM_HEADERS_};  
-}
-`;
-
-    fn = new Function("$_VARS_", codefunction);
-  } catch (error) {
-    fn = new Function("", "throw new Error('Error creating function');");
-  }
-
-  return fn;
-};
-
-export const getInternalURL = (relative_path) => {
-  console.warn("Decrepted getInternalURL!!!!!\n" + relative_path + "\n");
-  return `http://localhost:${PORT}${relative_path}`;
-};
-
-export const fetchOFAPI = (url) => {
-  url = isAbsoluteUrl(url) ? url : getInternalURL(url);
-
-  return new uFetch(url);
-};
-
-const isAbsoluteUrl = (url) => {
-  // 1. Filtro rápido: Si no tiene ':', no puede ser absoluta (evita el try/catch)
-  if (typeof url !== "string" || !url.includes(":")) return false;
-
-  try {
-    // 2. El constructor URL lanza error si no es válida
-    // new URL() acepta rutas relativas si se le da una base,
-    // pero si solo le pasas un string, valida si parece absoluta.
-    // Para ser 100% seguros de que es absoluta, verificamos el protocolo.
-    const parsed = new URL(url);
-    // ws:, wss:, http:, https:, ftp:, etc.
-    return parsed.protocol.length > 0;
-  } catch (e) {
-    return false;
-  }
-};
 
 export /**
  * Devuelve el método de parsing sugerido basado en el Content-Type.
@@ -411,36 +234,7 @@ export /**
   return "text"; // Fallback genérico
 }
 
-// Función que valida el input para permitir solo letras y números
-export const validateAppName = (name) => {
-  // Expresión regular que permite:
-  // - Letras (a-z, A-Z)
-  // - Números (0-9)
-  // - Caracteres especiales permitidos: - _ . ~
-  // - No permite espacios, caracteres especiales no permitidos, ni caracteres no imprimibles
-  const regex = /^[a-zA-Z0-9_~.-]+$/;
-  return regex.test(name);
-};
 
-export const CreateOpenFusionAPIToken = () => {
-  // Obtener un token interno para el acceso a los endpoints protegidos
-  const token = GenToken(
-    {
-      admin: {
-        username: "openfusionapi",
-        first_name: "openfusionapi",
-        last_name: "openfusionapi",
-        ip: "127.0.0.0",
-        enabled: true,
-        ctrl: {
-          as_admin: true,
-        },
-      },
-    },
-    60 * 60 * 24 * 365
-  ); // Valido por un año
-  process.env.USER_OPENFUSIONAPI_TOKEN = token;
-};
 
 /**
  * @param {Array<{environment: string, name: string, value: any}>} app_vars

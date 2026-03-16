@@ -2,62 +2,7 @@ import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
 import { setCacheReply, replyException } from "./utils.js";
 
-const connections = new Map();
-const MAX_CONNECTIONS = 50;
-
-/**
- * Gestiona el ciclo de vida de las conexiones para evitar fugas de memoria.
- * Implementa una estrategia LRU (Least Recently Used).
- */
-const getConnection = async (configHash, paramsSQL) => {
-  // 1. Si existe, actualizamos timestamp y retornamos
-  if (connections.has(configHash)) {
-    const connData = connections.get(configHash);
-    connData.lastUsed = Date.now();
-    return connData.sequelize;
-  }
-
-  // 2. Si no existe, verificamos límite
-  if (connections.size >= MAX_CONNECTIONS) {
-    // Buscar la conexión más antigua (LRU)
-    let oldestHash = null;
-    let oldestTime = Infinity;
-
-    for (const [hash, data] of connections.entries()) {
-      if (data.lastUsed < oldestTime) {
-        oldestTime = data.lastUsed;
-        oldestHash = hash;
-      }
-    }
-
-    if (oldestHash) {
-      console.log(`Closing idle connection: ${oldestHash}`);
-      const oldConn = connections.get(oldestHash);
-      try {
-        await oldConn.sequelize.close();
-      } catch (err) {
-        console.error("Error closing idle connection:", err);
-      }
-      connections.delete(oldestHash);
-    }
-  }
-
-  // 3. Crear nueva conexión
-  const sequelize = new Sequelize(
-    paramsSQL.config.database,
-    paramsSQL.config.username,
-    paramsSQL.config.password,
-    paramsSQL.config.options
-  );
-
-  // 4. Guardar en mapa
-  connections.set(configHash, {
-    sequelize: sequelize,
-    lastUsed: Date.now(),
-  });
-
-  return sequelize;
-};
+import { Pool } from "./ConnectionPool.js";
 
 export const sqlFunction = async (
   /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
@@ -178,7 +123,7 @@ export const sqlFunction = async (
           port: paramsSQL.config.options?.port,
         });
 
-        let sequelize = await getConnection(configHash, paramsSQL);
+        let sequelize = await Pool.getConnection(configHash, paramsSQL);
 
         let result_query = undefined;
 

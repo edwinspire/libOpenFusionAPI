@@ -1,4 +1,4 @@
-import { getUserPasswordTokenFromRequest } from "../../../../utils.js";
+import { getUserPasswordTokenFromRequest } from "../../../../auth.js";
 import { GenTokenJWT } from "../../../../functionVars.js";
 
 import {

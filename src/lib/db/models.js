@@ -2,7 +2,8 @@ import { EventEmitter } from "node:events";
 import { DataTypes } from "sequelize";
 import dbsequelize from "./sequelize.js";
 import { v4 as uuidv4 } from "uuid";
-import { emitHook, validateAppName } from "../server/utils.js";
+import { emitHook } from "../server/utils.js";
+import { validateAppName } from "../server/validation.js";
 
 const { TABLE_NAME_PREFIX_API } = process.env;
 const IS_MSSQL = ["mssql", "sqlite"].includes(dbsequelize.getDialect());

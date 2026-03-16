@@ -1,5 +1,5 @@
 import { login } from "../db/user.js";
-import { getUserPasswordTokenFromRequest } from "./utils.js";
+import { getUserPasswordTokenFromRequest } from "./auth.js";
 
 export class AuthService {
   static check_auth_Bearer(handler, data_aut) {
