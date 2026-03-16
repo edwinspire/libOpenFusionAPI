@@ -4,11 +4,10 @@ import { setCacheReply, replyException } from "./utils.js";
 
 import { Pool } from "./ConnectionPool.js";
 
-export const sqlFunction = async (
-  /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ reply,
-  /** @type {{ handler?: string; code: any; }} */ method
-) => {
+export const sqlFunction = async (context) => {
+  const request = context?.request;
+  const reply = context?.reply;
+  const method = context?.method || context?.endpoint;
   try {
     let paramsSQL = { query: method.code, config: typeof method.custom_data === 'string' ? JSON.parse(method.custom_data) : method.custom_data };
 
@@ -144,13 +143,13 @@ export const sqlFunction = async (
         reply.code(200).send(result_query);
       } else {
         let alt_resp = { error: "Params configuration is not complete" };
-        setCacheReply(reply, alt_resp);
+        //setCacheReply(reply, alt_resp);
 
         reply.code(400).send(alt_resp);
       }
     } else {
       let alt_resp = { error: "Database Params configuration is not complete" };
-      setCacheReply(reply, alt_resp);
+      //setCacheReply(reply, alt_resp);
 
       reply.code(400).send(alt_resp);
     }

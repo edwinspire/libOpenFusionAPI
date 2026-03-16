@@ -3,11 +3,11 @@ import {
 } from "../server/mcp/server.js";
 
 
-export const mcpFunction = async (
-  /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ reply,
-  /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
-) => {
+export const mcpFunction = async (context) => {
+  const request = context?.request;
+  const reply = context?.reply;
+  const method = context?.method || context?.endpoint;
+  const server_data = context?.server_data;
   try {
     const serverFactory = request.openfusionapi?.handler?.params?.server_mcp;
 

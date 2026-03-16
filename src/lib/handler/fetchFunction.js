@@ -2,13 +2,10 @@
 import uFetch from "@edwinspire/universal-fetch";
 import { replyException } from "./utils.js";
 
-export const fetchFunction = async (
-  /** @type {{
-	  url(url, init): unknown method?: any; headers: any; body: any; query: any; 
-}} */ $_REQUEST_,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
-  /** @type {{ handler?: string; code: any; }} */ method,
-) => {
+export const fetchFunction = async (context) => {
+  const request = context?.request;
+  const reply = context?.reply;
+  const method = context?.method || context?.endpoint;
   //console.log(uFetch);
   try {
     // Removed unused req_headers block
@@ -16,7 +13,18 @@ export const fetchFunction = async (
     /** ------------------------------
      *  SANITIZAR HEADERS
      * ------------------------------*/
-    const forwardedHeaders = { ...$_REQUEST_.headers };
+    // console.log('-------> Fetch Function');
+    //   console.log('custom_data-------> ', method.custom_data);
+    const forwardedHeaders = { ...request.headers };
+    try {
+      if (forwardedHeaders.host) {
+        delete forwardedHeaders.host;
+      }
+
+      if (forwardedHeaders.origin) {
+        delete forwardedHeaders.origin;
+      }
+    } catch (error) {}
 
     delete forwardedHeaders["content-length"];
     delete forwardedHeaders["host"];
@@ -31,25 +39,38 @@ export const fetchFunction = async (
       typeof method.code !== "string" ||
       method.code.length == 0
     ) {
-      response
+      reply
         .code(500)
         .send({ error: `The destination URL ${method.code} is invalid.` });
       return;
     }
 
+    let req_body = method.custom_data;
+
+    let paramsFetch = {};
+    paramsFetch = {
+      ...method.custom_data, ...{
+        method: method.custom_data?.method || request.method, // Usar el metodo de la configuracion
+        headers: forwardedHeaders,
+        body: request.body, // Usar los body de la peticion
+        query: request.query, // Usar los query de la peticion,
+      }
+    };
+
     let init = {
       headers: forwardedHeaders, // Usar los headers de la peticion
-      body: $_REQUEST_.body, // Usar los body de la peticion
-      query: $_REQUEST_.query, // Usar los query de la peticion,
+      body: request.body, // Usar los body de la peticion
+      query: request.query, // Usar los query de la peticion,
       url: method.code,
     };
 
     const FData = new uFetch();
-    const httpMethod = $_REQUEST_.method.toUpperCase();
+    //  console.log('method -------> ', paramsFetch.method );
+    const httpMethod = request.method.toUpperCase();
 
     // @ts-ignore
     if (typeof FData[httpMethod] !== "function") {
-      response.code(405).send({ error: `Method ${httpMethod} not allowed/supported` });
+      reply.code(405).send({ error: `Method ${httpMethod} not allowed/supported` });
       return;
     }
 
@@ -68,7 +89,7 @@ export const fetchFunction = async (
 
     resp.headers.forEach((value, key) => {
       if (headersToForward.includes(key.toLowerCase())) {
-        response.header(key, value);
+        reply.header(key, value);
       }
     });
 
@@ -92,25 +113,26 @@ export const fetchFunction = async (
     }
 
     // @ts-ignore
-    if (response.openfusionapi?.lastResponse?.hash_request) {
+    if (reply.openfusionapi?.lastResponse?.hash_request) {
       // @ts-ignore
       // Limit caching size to avoid memory issues with large binaries
       if (Buffer.isBuffer(r)) {
         // TODO: Verificar si este limite en la cache puede dar problemas con el cliente si no se lo cachea
         if (r.length < 50 * 1024 * 1024) { // 50MB limit for cache
-          //          response.openfusionapi.lastResponse.data = r.toString('base64'); // Cache as base64? Or just skip?
+          //          reply.openfusionapi.lastResponse.data = r.toString('base64'); // Cache as base64? Or just skip?
           // Storing large binary in JSON cache might be bad.
           // For now, let's skip checking or store metadata.
-          //response.openfusionapi.lastResponse.data = { info: "Binary data", size: r.length, type: contentType };
-          response.openfusionapi.lastResponse.data = r;
+          //reply.openfusionapi.lastResponse.data = { info: "Binary data", size: r.length, type: contentType };
+          reply.openfusionapi.lastResponse.data = r;
         }
       } else {
-        response.openfusionapi.lastResponse.data = r;
+        reply.openfusionapi.lastResponse.data = r;
       }
     }
 
-    response.code(resp.status).send(r);
+    reply.code(resp.status).send(r);
   } catch (error) {
-    replyException($_REQUEST_, response, error);
+    //  console.log(error);
+    replyException(request, reply, error);
   }
 };

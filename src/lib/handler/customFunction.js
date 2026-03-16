@@ -20,30 +20,29 @@ function validateFnResult(result) {
   return { success: true };
 }
 
-export const customFunction = async (
-  $_REQUEST_,
-  $_REPLY_,
-  method,
-  $_SERVER_DATA_
-) => {
+export const customFunction = async (context) => {
+  const request = context?.request;
+  const reply = context?.reply;
+  const method = context?.method || context?.endpoint;
+  const server_data = context?.server_data;
   try {
     // Validación de función
     if (typeof method.Fn !== "function") {
-      const msg = `URL: ${$_REQUEST_.url} - Function '${method.code}' not found.`;
+      const msg = `URL: ${request.url} - Function '${method.code}' not found.`;
       console.error(msg);
-      $_REPLY_.code(500).send({ error: msg });
+      reply.code(500).send({ error: msg });
       return;
     }
 
     // Obtener datos seguros del request
     const body =
-      typeof $_REQUEST_.body === "object" && $_REQUEST_.body !== null
-        ? { ...$_REQUEST_.body }
+      typeof request.body === "object" && request.body !== null
+        ? { ...request.body }
         : null;
 
     const query =
-      typeof $_REQUEST_.query === "object" && $_REQUEST_.query !== null
-        ? { ...$_REQUEST_.query }
+      typeof request.query === "object" && request.query !== null
+        ? { ...request.query }
         : null;
 
     const user_data = body && Object.keys(body).length > 0 ? body : query || {};
@@ -55,10 +54,10 @@ export const customFunction = async (
     let fnresult;
     try {
       fnresult = await method.Fn({
-        request: $_REQUEST_,
+        request: request,
         user_data,
-        reply: $_REPLY_,
-        server_data: $_SERVER_DATA_,
+        reply: reply,
+        server_data: server_data,
         signal: controller.signal,
       });
     } catch (err) {
@@ -77,15 +76,15 @@ export const customFunction = async (
     const parsed = validateFnResult(fnresult);
     if (!parsed.success) {
       console.error("Response validation errors:", parsed.error);
-      $_REPLY_.code(500).send({ error: parsed.error });
+      reply.code(500).send({ error: parsed.error });
       return;
     }
 
     // Respuesta válida
-    setCacheReply($_REPLY_, fnresult.data);
-    $_REPLY_.code(fnresult.code || 200).send(fnresult.data);
+    setCacheReply(reply, fnresult.data);
+    reply.code(fnresult.code || 200).send(fnresult.data);
   } catch (err) {
-    replyException($_REQUEST_, $_REPLY_, err);
+    replyException(request, reply, err);
 
   }
 };

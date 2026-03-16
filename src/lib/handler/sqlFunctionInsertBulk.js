@@ -5,11 +5,10 @@ import { setCacheReply, replyException } from "./utils.js";
 
 import { Pool } from "./ConnectionPool.js";
 
-export const sqlFunctionInsertBulk = async (
-  /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ reply,
-  /** @type {{ handler?: string; code: any; }} */ method
-) => {
+export const sqlFunctionInsertBulk = async (context) => {
+  const request = context?.request;
+  const reply = context?.reply;
+  const method = context?.method || context?.endpoint;
   try {
     // Parsear custom_data con validación null-safe
     const customData = typeof method.custom_data === "string"

@@ -1,10 +1,12 @@
 import { setCacheReply, replyException } from "./utils.js";
 
 export const textFunction = async (
-  /** @type {{ method?: any; headers: any; body: any; query: any; }} */ request,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
-  /** @type {{ handler?: string; code: any; }} */ endpoint
+  /** @type {{ request: { method?: any; headers: any; body: any; query: any; }; reply: { code: (arg0: number) => { (): any; new (): any; send: { (arg0: { error: any; }): void; new (): any; }; type: { (arg0: string): { (): any; new (): any; header: { (arg0: string, arg1: string): { (): any; new (): any; send: { (arg0: any): void; new (): any; }; }; }; }; }; }; }; endpoint: { handler?: string; code: any; custom_data?: any; }; }} */ context
 ) => {
+  const request = context.request;
+  const reply = context.reply;
+  const endpoint = context.endpoint;
+
   try {
 
   const textConfig = typeof endpoint.custom_data === "string"
@@ -32,19 +34,19 @@ export const textFunction = async (
     let filename = Date.now() + "." + getExtensionFromMimeType(mimeType);
 
     if (!endpoint.code) {
-      response.code(400).send({ error: "No payload provided" });
+      reply.code(400).send({ error: "No payload provided" });
       return;
     }
 
-    setCacheReply(response, endpoint.code);
+    setCacheReply(reply, endpoint.code);
 
-    response
+    reply
       .code(200)
       .type(mimeType)
       .header("Content-Disposition", `attachment; filename="${filename}"`)
       .send(endpoint.code);
   } catch (error) {
-    replyException(request, response, error);
+    replyException(request, reply, error);
   }
 };
 

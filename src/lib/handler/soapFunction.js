@@ -71,11 +71,10 @@ setInterval(() => {
   }
 }, CACHE_TTL);
 
-export const soapFunction = async (
-  /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
-  /** @type {{ handler?: string; code: any; }} */ endpoint
-) => {
+export const soapFunction = async (context) => {
+  const request = context?.request;
+  const reply = context?.reply;
+  const endpoint = context?.method || context?.endpoint;
   try {
     // console.log(">>>>>>>>>>>>> method.code -----> ", method.code);
     let SOAPParameters;
@@ -95,37 +94,37 @@ export const soapFunction = async (
     //    console.log(SOAPParameters);
     let dataRequest = {};
 
-    if ($_REQUEST_.method == "GET") {
+    if (request.method == "GET") {
       // Obtiene los datos del query
-      SOAPParameters.RequestArgs = $_REQUEST_.query;
+      SOAPParameters.RequestArgs = request.query;
       dataRequest = SOAPParameters;
-    } else if ($_REQUEST_.method == "POST") {
+    } else if (request.method == "POST") {
       // Obtiene los datos del body
-      //console.log('>>>>>>>>>>>>>>>>' , $_REQUEST_.body);
-      dataRequest = $_REQUEST_.body;
+      //console.log('>>>>>>>>>>>>>>>>' , request.body);
+      dataRequest = request.body;
       //dataRequest = joinObj(SOAPParameters, dataRequest);
       dataRequest = mergeObjects(dataRequest, SOAPParameters);
     }
 
-    dataRequest.HTTPHeaders = $_REQUEST_.headers;
+    dataRequest.HTTPHeaders = request.headers;
 
     //console.log('dataRequest>>>>>', dataRequest);
 
     let soap_response = await SOAPGenericClient(dataRequest);
 
     if (soap_response.error && Array.isArray(soap_response.error)) {
-      response.code(400).send(soap_response);
+      reply.code(400).send(soap_response);
       return;
     }
 
-    if (response.openfusionapi?.lastResponse?.hash_request) {
+    if (reply.openfusionapi?.lastResponse?.hash_request) {
       // @ts-ignore
-      response.openfusionapi.lastResponse.data = soap_response;
+      reply.openfusionapi.lastResponse.data = soap_response;
     }
 
-    response.code(200).send(soap_response);
+    reply.code(200).send(soap_response);
   } catch (error) {
-    replyException($_REQUEST_, response, error);
+    replyException(request, reply, error);
   }
 
   ////

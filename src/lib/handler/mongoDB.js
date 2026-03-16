@@ -1,6 +1,6 @@
-import { functionsVars } from "../server/functionVars.js";
+import { functionsVars, listFunctionsVars } from "../server/functionVars.js";
 import mongoose from "mongoose";
-import { replyException } from "./utils.js";
+import { replyException, setCacheReply } from "./utils.js";
 
 // TODO: No probado completamente, revisar antes de producción
 
@@ -94,11 +94,11 @@ async function getOrCreateConnection(paramsMongo) {
   return conn;
 }
 
-export const mongodbFunction = async (
-  /** @type {{ method?: any; headers: any; body: any; query: any; }} */ $_REQUEST_,
-  /** @type {{ status: (arg0: number) => { (): any; new (): any; json: { (arg0: { error: any; }): void; new (): any; }; }; }} */ response,
-  /** @type {{ handler?: string; code: any; jsFn?: any }} */ method
-) => {
+export const mongodbFunction = async (context) => {
+  const request = context?.request;
+  const reply = context?.reply;
+  const method = context?.method || context?.endpoint;
+  const server_data = context?.server_data;
   try {
     if (!method.jsFn) {
       throw new Error("Function 'jsFn' is not defined in the method configuration.");
@@ -107,27 +107,16 @@ export const mongodbFunction = async (
     let paramsMongo = getMongoDBParams(method.custom_data);
     const conn = await getOrCreateConnection(paramsMongo);
 
-    let fnVars = functionsVars($_REQUEST_, response, method.environment);
+    let fnVars = functionsVars(request, reply, method.environment);
     fnVars.mongooseInstance = conn; // Conexión específica para esta config
 
-    let f = method.jsFn;
+    let fnresult = await method.jsFn(fnVars);
 
-    let result_fn = await f(fnVars);
+    setCacheReply(reply, fnresult.data);
 
-    if (
-      response.openfusionapi?.lastResponse?.hash_request
-    ) {
-      response.openfusionapi.lastResponse.data = result_fn.data;
-    }
+    reply.code(200).send(fnresult.data);
 
-    if (result_fn.headers && result_fn.headers.size > 0) {
-      for (const [key, value] of result_fn.headers) {
-        response.header(key, value);
-      }
-    }
-
-    response.code(result_fn.code || 200).send(result_fn.data);
   } catch (error) {
-    replyException($_REQUEST_, response, error);
+    replyException(request, reply, error);
   }
 };

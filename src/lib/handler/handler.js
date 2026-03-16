@@ -151,7 +151,13 @@ export async function runHandler(request, response, endpoint, server_data) {
       return;
     }
 
-    await handler.fn(request, response, endpoint, server_data);
+    await handler.fn({
+      request,
+      reply: response,
+      method: endpoint,
+      endpoint,
+      server_data
+    });
   } catch (err) {
     replyException(request, response, err);
   }
