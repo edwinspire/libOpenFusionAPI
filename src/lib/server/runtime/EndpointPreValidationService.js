@@ -47,26 +47,27 @@ export class EndpointPreValidationService {
 
       let request_path_params = this.getURLParams(request.url, request.method);
 
-      if (request_path_params && request_path_params.url_key) {
-        let cache_endpoint = await this.endpoints.getEndpoint(request_path_params);
+      // Si la solicitud NO es una ruta de API, permite que continúe el procesamiento normal
+      if (!request_path_params || !request_path_params.url_key) {
+        return;
+      }
 
-        if (cache_endpoint && cache_endpoint.handler) {
-          let handlerEndpoint = cache_endpoint.handler;
+      let cache_endpoint = await this.endpoints.getEndpoint(request_path_params);
 
-          if (handlerEndpoint?.params?.enabled) {
-            if (!this.authPolicy({ request, reply, handlerEndpoint })) {
-              reply.code(403).send({ error: "Auth policy denied", url: request.url });
-              return;
-            }
+      if (cache_endpoint && cache_endpoint.handler) {
+        let handlerEndpoint = cache_endpoint.handler;
 
-            request.openfusionapi = { handler: handlerEndpoint };
-            await this.authService.check_auth(handlerEndpoint, request, reply);
-          } else {
-            reply.code(410).send({ message: "Endpoint unabled.", url: request.url });
+        if (handlerEndpoint?.params?.enabled) {
+          if (!this.authPolicy({ request, reply, handlerEndpoint })) {
+            reply.code(403).send({ error: "Auth policy denied", url: request.url });
+            return;
           }
+
+          request.openfusionapi = { handler: handlerEndpoint };
+          await this.authService.check_auth(handlerEndpoint, request, reply);
+        } else {
+          reply.code(410).send({ message: "Endpoint unabled.", url: request.url });
         }
-      } else {
-        reply.code(404).send({ error: "Endpoint Not Found", url: request.url });
       }
     } catch (error) {
       this.replyMappedError(error, request, reply);
