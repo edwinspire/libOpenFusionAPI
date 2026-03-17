@@ -5,7 +5,7 @@ export const system_app = {
   },
   "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
   "app": "system",
-  "rowkey": 471,
+  "rowkey": 707,
   "iduser": null,
   "enabled": true,
   "description": "App System",
@@ -78,7 +78,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff4",
-      "rowkey": 353,
+      "rowkey": 891,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -278,7 +278,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff3",
-      "rowkey": 372,
+      "rowkey": 519,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -309,7 +309,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
-      "rowkey": 321,
+      "rowkey": 24,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -425,7 +425,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff1",
-      "rowkey": 640,
+      "rowkey": 642,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -525,7 +525,7 @@ export const system_app = {
         }
       },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f6160",
-      "rowkey": 18,
+      "rowkey": 553,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -556,7 +556,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
-      "rowkey": 967,
+      "rowkey": 565,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -673,7 +673,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf02",
-      "rowkey": 526,
+      "rowkey": 719,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -716,26 +716,7 @@ export const system_app = {
         "in": {
           "enabled": true,
           "schema": {
-            "title": "Endpoint",
             "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "idapp",
-              "environment",
-              "timeout",
-              "resource",
-              "method",
-              "handler",
-              "access",
-              "title",
-              "description",
-              "price_by_request",
-              "price_kb_request",
-              "price_kb_response",
-              "keywords",
-              "code",
-              "cache_time"
-            ],
             "properties": {
               "idendpoint": {
                 "type": "string",
@@ -879,6 +860,25 @@ export const system_app = {
                 "description": "Payload de prueba."
               }
             },
+            "additionalProperties": false,
+            "title": "Endpoint",
+            "required": [
+              "idapp",
+              "environment",
+              "timeout",
+              "resource",
+              "method",
+              "handler",
+              "access",
+              "title",
+              "description",
+              "price_by_request",
+              "price_kb_request",
+              "price_kb_response",
+              "keywords",
+              "code",
+              "cache_time"
+            ],
             "allOf": [
               {
                 "if": {
@@ -1001,7 +1001,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf01",
-      "rowkey": 419,
+      "rowkey": 408,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1108,7 +1108,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
-      "rowkey": 549,
+      "rowkey": 824,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1180,7 +1180,7 @@ export const system_app = {
         }
       },
       "idendpoint": "13f94d7d-6612-4c30-8202-286cbbe3da3e",
-      "rowkey": 80,
+      "rowkey": 7,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1273,7 +1273,7 @@ export const system_app = {
         }
       },
       "idendpoint": "25ca7819-8823-4835-87c5-04b792bc594d",
-      "rowkey": 242,
+      "rowkey": 457,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1373,7 +1373,7 @@ export const system_app = {
         }
       },
       "idendpoint": "788e6e35-106d-45db-acb0-839db45c20f6",
-      "rowkey": 38,
+      "rowkey": 355,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1404,7 +1404,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908194",
-      "rowkey": 615,
+      "rowkey": 321,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1435,7 +1435,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
-      "rowkey": 77,
+      "rowkey": 946,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1466,7 +1466,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
-      "rowkey": 10,
+      "rowkey": 472,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1566,7 +1566,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d2fff88-66a6-43b5-9cab-11b5aec1a706",
-      "rowkey": 58,
+      "rowkey": 725,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1666,7 +1666,7 @@ export const system_app = {
         }
       },
       "idendpoint": "f57b01dc-a51c-4c23-ab4b-c890ca733e80",
-      "rowkey": 150,
+      "rowkey": 395,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1697,7 +1697,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 955,
+      "rowkey": 736,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1728,7 +1728,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 213,
+      "rowkey": 972,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1759,7 +1759,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ee",
-      "rowkey": 235,
+      "rowkey": 340,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1845,7 +1845,7 @@ export const system_app = {
         }
       },
       "idendpoint": "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
-      "rowkey": 837,
+      "rowkey": 886,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1998,7 +1998,7 @@ export const system_app = {
         }
       },
       "idendpoint": "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
-      "rowkey": 80,
+      "rowkey": 924,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2020,17 +2020,64 @@ export const system_app = {
     },
     {
       "ctrl": {
-        "admin": true
+        "admin": true,
+        "users": [],
+        "log": {}
       },
       "cors": {},
       "mcp": {},
-      "json_schema": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
       "custom_data": {},
       "headers_test": {},
-      "data_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "adbumcb7z",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
       "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
-      "rowkey": 112,
-      "enabled": true,
+      "rowkey": 320,
+      "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
@@ -2103,13 +2150,13 @@ export const system_app = {
                 "type": "string"
               }
             },
+            "additionalProperties": false,
             "required": [
               "idapp",
               "name",
               "type",
               "environment"
-            ],
-            "additionalProperties": false
+            ]
           }
         },
         "out": {
@@ -2164,7 +2211,7 @@ export const system_app = {
         }
       },
       "idendpoint": "20354d7a-e4fe-47af-8ff6-187bca92f3f9",
-      "rowkey": 502,
+      "rowkey": 458,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2271,7 +2318,7 @@ export const system_app = {
         }
       },
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 59,
+      "rowkey": 65,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2369,7 +2416,7 @@ export const system_app = {
         }
       },
       "idendpoint": "51316993-907c-4fd0-859f-7d2a0bc90dd3",
-      "rowkey": 788,
+      "rowkey": 993,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2398,7 +2445,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3ead2170-283d-4c6a-abc1-eddd217b6d01",
-      "rowkey": 220,
+      "rowkey": 423,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2427,7 +2474,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "047845ac-5367-48ed-9465-8e36ba6c7bae",
-      "rowkey": 662,
+      "rowkey": 406,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2537,7 +2584,7 @@ export const system_app = {
         }
       },
       "idendpoint": "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
-      "rowkey": 545,
+      "rowkey": 637,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2681,7 +2728,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cff35b3a-7ca0-4ef8-882d-d39815d55616",
-      "rowkey": 204,
+      "rowkey": 98,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2700,6 +2747,243 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-12-03T16:55:58.599Z",
       "updatedAt": "2025-12-03T16:55:58.599Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "upsert_sql_endpoint_handler",
+        "title": "UPSERT SQL Endpoint",
+        "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idendpoint": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "idapp": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "environment": {
+                "type": "string",
+                "enum": [
+                  "dev",
+                  "qa",
+                  "prd"
+                ]
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "resource": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "access": {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "description": {
+                "type": "string"
+              },
+              "price_by_request": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "price_kb_request": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "price_kb_response": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "keywords": {
+                "type": "string"
+              },
+              "ctrl": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "code": {
+                "type": "string"
+              },
+              "cors": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "cache_time": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "mcp": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "json_schema": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "custom_data": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "headers_test": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "data_test": {
+                "$ref": "#/$defs/jsonValue"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idapp",
+              "environment",
+              "timeout",
+              "resource",
+              "access",
+              "title",
+              "description",
+              "price_by_request",
+              "price_kb_request",
+              "price_kb_response",
+              "keywords",
+              "code",
+              "cache_time"
+            ],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/$defs/jsonValue"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/jsonValue"
+                    }
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "k6wkj9wea",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "8bb911ac-374c-41c9-b93f-21d037abf330",
+      "rowkey": 839,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/sql",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT SQL Handler Endpoint",
+      "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "sql,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.POST({data: });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-03-17T16:03:50.532Z",
+      "updatedAt": "2026-03-17T16:03:50.532Z"
     },
     {
       "ctrl": {},
@@ -2767,7 +3051,7 @@ export const system_app = {
         }
       },
       "idendpoint": "bcf0e362-a454-4e47-85a0-772c4ddd3538",
-      "rowkey": 365,
+      "rowkey": 798,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2853,7 +3137,7 @@ export const system_app = {
         }
       },
       "idendpoint": "0b48cd44-09fe-40e7-b0a7-59fe01e054cc",
-      "rowkey": 529,
+      "rowkey": 227,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2922,7 +3206,7 @@ export const system_app = {
         }
       },
       "idendpoint": "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
-      "rowkey": 249,
+      "rowkey": 504,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2991,7 +3275,7 @@ export const system_app = {
         }
       },
       "idendpoint": "e753e2db-ca20-4607-82b7-34b70e435a0c",
-      "rowkey": 600,
+      "rowkey": 765,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3060,7 +3344,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34987a43-63e4-4926-824b-5254155b5c80",
-      "rowkey": 557,
+      "rowkey": 727,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3137,7 +3421,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34870b00-beb1-45d3-ada6-c164fc22cd7a",
-      "rowkey": 247,
+      "rowkey": 51,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3232,7 +3516,7 @@ export const system_app = {
         }
       },
       "idendpoint": "787a8ec2-b0d7-44ae-9214-2254f9d9d086",
-      "rowkey": 155,
+      "rowkey": 358,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3293,7 +3577,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
-      "rowkey": 100,
+      "rowkey": 311,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3324,7 +3608,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "12fb738c-7d1f-4eba-afb4-508a9fa9d06a",
-      "rowkey": 417,
+      "rowkey": 939,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3408,7 +3692,7 @@ export const system_app = {
         }
       },
       "idendpoint": "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
-      "rowkey": 709,
+      "rowkey": 779,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3439,7 +3723,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2fa0",
-      "rowkey": 783,
+      "rowkey": 500,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3470,7 +3754,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2faf",
-      "rowkey": 832,
+      "rowkey": 501,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3501,7 +3785,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "17c211d6-8c81-4274-b5c4-604126454ab0",
-      "rowkey": 386,
+      "rowkey": 883,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3585,7 +3869,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d3de358-681d-4b61-98dc-c1663db0c02c",
-      "rowkey": 704,
+      "rowkey": 299,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3679,7 +3963,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
-      "rowkey": 855,
+      "rowkey": 152,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3743,7 +4027,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "18731c87-9d59-44b6-8871-ecaa493008e5",
-      "rowkey": 710,
+      "rowkey": 8,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3836,7 +4120,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
-      "rowkey": 811,
+      "rowkey": 569,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3951,7 +4235,7 @@ export const system_app = {
         }
       },
       "idendpoint": "871cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 910,
+      "rowkey": 87,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3982,7 +4266,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "131cca3e-f835-4414-89ca-5ddbbec5ab89",
-      "rowkey": 547,
+      "rowkey": 227,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4013,7 +4297,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
-      "rowkey": 658,
+      "rowkey": 29,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4044,7 +4328,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 500,
+      "rowkey": 785,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4075,7 +4359,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908193",
-      "rowkey": 733,
+      "rowkey": 707,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4104,7 +4388,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
-      "rowkey": 368,
+      "rowkey": 338,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4135,7 +4419,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
-      "rowkey": 448,
+      "rowkey": 211,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4221,7 +4505,7 @@ export const system_app = {
         }
       },
       "idendpoint": "a0130d77-b779-4dea-a87f-6841520ffade",
-      "rowkey": 54,
+      "rowkey": 355,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",

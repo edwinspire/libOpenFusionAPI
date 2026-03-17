@@ -3,10 +3,11 @@ export const demo_app = {
   "params": {},
   "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
   "app": "demo",
-  "rowkey": 153,
+  "rowkey": 27,
   "iduser": null,
   "enabled": true,
   "description": "App DEMO",
+  "jwt_key": "f30ce432-7b32-4267-8af3-3dfd7c0f7ed6",
   "createdAt": "2024-01-30T03:33:10.835Z",
   "updatedAt": "2025-11-22T05:07:07.329Z",
   "vrs": [
@@ -247,6 +248,26 @@ export const demo_app = {
       "environment": "prd",
       "createdAt": "2025-11-22T00:04:44.616Z",
       "updatedAt": "2025-11-24T04:07:40.240Z"
+    },
+    {
+      "value": "{}",
+      "idvar": "0cad1b1f-1c22-439a-bf7b-b00d54398ba6",
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "name": "TEST_VAR_1",
+      "type": "string",
+      "environment": "dev",
+      "createdAt": "2026-02-23T21:58:00.808Z",
+      "updatedAt": "2026-02-23T21:58:00.808Z"
+    },
+    {
+      "value": "\"ok amigo\"",
+      "idvar": "ebcef503-7e6c-4268-9cb6-4d2106b8f54a",
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "name": "TEST_VAR",
+      "type": "string",
+      "environment": "dev",
+      "createdAt": "2026-02-23T21:59:05.815Z",
+      "updatedAt": "2026-02-23T21:59:05.815Z"
     }
   ],
   "endpoints": [
@@ -345,7 +366,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "b04920b7-393d-4c67-aba2-89af14541963",
-      "rowkey": 887,
+      "rowkey": 76,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -364,6 +385,236 @@ export const demo_app = {
       "cache_time": 30,
       "createdAt": "2025-11-29T15:35:55.801Z",
       "updatedAt": "2025-11-29T15:35:55.801Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "example_sql_bind_config_param",
+        "title": "SQL Example - Bind with config as parameter",
+        "description": "This endpoint uses the SQL handler to connect to a database and execute a query.\n\nThe endpoint is accessed through the HTTP GET method, which requires a mandatory parameter called name. This parameter is securely bound to the SQL query using Sequelize parameter binding, following Sequelize's recommended query parameterization practices to ensure safe query execution.\n\nUnlike configurations that rely on application-level variables, the database connection parameters for this endpoint are defined directly within a JSON configuration specific to the endpoint. This configuration includes the necessary information required to establish the database connection during execution.\n\nThe input parameter structure and validation rules are defined using a JSON Schema, which ensures that the request contains the required parameter and that the data type is correct.\n\nAdditionally, this endpoint is registered as an MCP tool, allowing it to be invoked directly by AI agents. The tool includes a title and description designed to help AI systems understand the purpose of the endpoint and when it should be used.\n\nKey Operational Details\n\nHandler Type: SQL\n\nHTTP Method: GET\n\nRequired Parameter: name\n\nQuery Binding: Sequelize parameter binding\n\nDatabase Configuration: Defined locally in a JSON configuration specific to this endpoint\n\nInput Validation: JSON Schema\n\nAI Integration: Exposed as an MCP tool with descriptive metadata for AI consumption"
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "Nombre"
+              }
+            },
+            "additionalProperties": false,
+            "title": "NameRequest",
+            "required": [
+              "name"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {
+        "database": "memory",
+        "username": "",
+        "password": "",
+        "options": {
+          "host": "localhost",
+          "dialect": "sqlite"
+        }
+      },
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "name",
+            "value": "holla",
+            "_id": "7874bhon4",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "[\n  {\n    \"nombre\": \"holla\"\n  }\n]",
+          "sizeKBResponse": "0.02"
+        }
+      },
+      "idendpoint": "ebc0db68-8063-40ab-8832-c380f6971df9",
+      "rowkey": 397,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/main/example/sql/bind/config",
+      "method": "GET",
+      "handler": "SQL",
+      "access": 0,
+      "title": "SQL Example - Bind with config as parameter",
+      "description": "This endpoint uses the SQL handler to connect to a database and execute a query.\n\nThe endpoint is accessed through the HTTP GET method, which requires a mandatory parameter called name. This parameter is securely bound to the SQL query using Sequelize parameter binding, following Sequelize's recommended query parameterization practices to ensure safe query execution.\n\nUnlike configurations that rely on application-level variables, the database connection parameters for this endpoint are defined directly within a JSON configuration specific to the endpoint. This configuration includes the necessary information required to establish the database connection during execution.\n\nThe input parameter structure and validation rules are defined using a JSON Schema, which ensures that the request contains the required parameter and that the data type is correct.\n\nAdditionally, this endpoint is registered as an MCP tool, allowing it to be invoked directly by AI agents. The tool includes a title and description designed to help AI systems understand the purpose of the endpoint and when it should be used.\n\nKey Operational Details\n\nHandler Type: SQL\n\nHTTP Method: GET\n\nRequired Parameter: name\n\nQuery Binding: Sequelize parameter binding\n\nDatabase Configuration: Defined locally in a JSON configuration specific to this endpoint\n\nInput Validation: JSON Schema\n\nAI Integration: Exposed as an MCP tool with descriptive metadata for AI consumption",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "sql",
+      "code": "SELECT :name as nombre;",
+      "cache_time": 45,
+      "createdAt": "2026-03-16T20:50:27.888Z",
+      "updatedAt": "2026-03-16T20:50:27.888Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "example_sql_bind_config_appvar",
+        "title": "SQL Example  - Config on appvar",
+        "description": "This endpoint uses the SQL handler to establish a connection to a database and execute a query.\n\nThe HTTP GET method expects a required parameter called name. This parameter is safely bound to the SQL query using Sequelize parameter binding, ensuring proper query parameterization and preventing SQL injection.\n\nThe database connection configuration is provided through the application variable $_VAR_SQLITE.\nThis variable contains a JSON object with the database connection parameters. During runtime, the system automatically replaces this variable with the actual connection configuration.\n\nThe input parameters are defined using a JSON Schema, which specifies the required structure and validation rules for the request.\n\nAdditionally, this endpoint is exposed as an MCP tool, meaning it can be invoked directly by AI agents. The tool includes a title and description specifically designed to help AI systems understand when and how to use this endpoint.\n\nKey Operational Details\n\nHandler Type: SQL\n\nExecution Context: Database query via Sequelize\n\nInput Parameter: name (required)\n\nDatabase Configuration: Provided via the runtime variable $_VAR_SQLITE\n\nInput Validation: Defined using JSON Schema\n\nAI Integration: Registered as an MCP tool with descriptive metadata for AI usage"
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "Nombre"
+              }
+            },
+            "additionalProperties": false,
+            "title": "NameRequest",
+            "required": [
+              "name"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": "$_VAR_SQLITE",
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "9uqqlqc1d",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "69eb0045-b5e4-49b2-b70c-170ca59842fc",
+      "rowkey": 258,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/main/example/sql/bind/config/appvar",
+      "method": "GET",
+      "handler": "SQL",
+      "access": 0,
+      "title": "SQL Example - Bind with config on appvar",
+      "description": "This endpoint uses the SQL handler to establish a connection to a database and execute a query.\n\nThe HTTP GET method expects a required parameter called name. This parameter is safely bound to the SQL query using Sequelize parameter binding, ensuring proper query parameterization and preventing SQL injection.\n\nThe database connection configuration is provided through the application variable $_VAR_SQLITE.\nThis variable contains a JSON object with the database connection parameters. During runtime, the system automatically replaces this variable with the actual connection configuration.\n\nThe input parameters are defined using a JSON Schema, which specifies the required structure and validation rules for the request.\n\nAdditionally, this endpoint is exposed as an MCP tool, meaning it can be invoked directly by AI agents. The tool includes a title and description specifically designed to help AI systems understand when and how to use this endpoint.\n\nKey Operational Details\n\nHandler Type: SQL\n\nExecution Context: Database query via Sequelize\n\nInput Parameter: name (required)\n\nDatabase Configuration: Provided via the runtime variable $_VAR_SQLITE\n\nInput Validation: Defined using JSON Schema\n\nAI Integration: Registered as an MCP tool with descriptive metadata for AI usage",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "SELECT :name as nombre;",
+      "cache_time": 0,
+      "createdAt": "2026-03-17T14:34:19.788Z",
+      "updatedAt": "2026-03-17T14:34:19.788Z"
     },
     {
       "ctrl": {
@@ -389,7 +640,7 @@ export const demo_app = {
           }
         }
       },
-      "custom_data": {},
+      "custom_data": "$_VAR_SQLITE",
       "headers_test": {},
       "data_test": {
         "body": {
@@ -435,7 +686,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "bb87e424-4ef3-4e5a-83ea-b5c719a34288",
-      "rowkey": 61,
+      "rowkey": 238,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -450,7 +701,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "{\n  \"config\": \"$_VAR_SQLITE\",\n  \"query\": \"SELECT :name as nombre;\"\n}",
+      "code": "SELECT :name as nombre;",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.792Z",
       "updatedAt": "2025-11-22T00:11:42.277Z"
@@ -479,7 +730,15 @@ export const demo_app = {
           }
         }
       },
-      "custom_data": {},
+      "custom_data": {
+        "database": "memory",
+        "username": "",
+        "password": "",
+        "options": {
+          "host": "localhost",
+          "dialect": "sqlite"
+        }
+      },
       "headers_test": {},
       "data_test": {
         "body": {
@@ -513,7 +772,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "ae8726f7-36ec-4c70-8183-85837b783698",
-      "rowkey": 541,
+      "rowkey": 18,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -528,7 +787,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "{\n  \"config\": {\n    \"database\": \"memory\",\n    \"username\": \"\",\n    \"password\": \"\",\n    \"options\": {\n      \"host\": \"localhost\",\n      \"dialect\": \"sqlite\"\n    }\n  },\n  \"query\": \"SELECT 1097 AS test_sql;\"\n}",
+      "code": "SELECT 1097 AS test_sql;",
       "cache_time": 120,
       "createdAt": "2025-11-21T22:04:52.792Z",
       "updatedAt": "2025-11-22T00:11:42.276Z"
@@ -577,7 +836,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "82b0a799-21b0-4b95-8d58-43cfa44f7c47",
-      "rowkey": 659,
+      "rowkey": 162,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -592,7 +851,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "{\n  \"config\": \"\",\n  \"query\": \"SELECT\\n    job_id AS [Job ID],\\n    name AS [Job Name],\\n    enabled AS [Is Enabled]\\nFROM\\n    msdb.dbo.sysjobs;\"\n}",
+      "code": "SELECT\n    job_id AS [Job ID],\n    name AS [Job Name],\n    enabled AS [Is Enabled]\nFROM\n    msdb.dbo.sysjobs;",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.791Z",
       "updatedAt": "2025-11-22T00:11:42.274Z"
@@ -621,11 +880,11 @@ export const demo_app = {
           }
         }
       },
-      "custom_data": {},
+      "custom_data": "$_VAR_SQLITE",
       "headers_test": {},
       "data_test": {},
       "idendpoint": "dedb3546-3bf8-4973-8c8a-5c7308338ba5",
-      "rowkey": 936,
+      "rowkey": 376,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -640,7 +899,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "{\n  \"config\": \"$_VAR_SQLITE\",\n  \"query\": \"SELECT $name as nombre, strftime('%Y-%m-%d %H-%M-%S','now') AS dt;\"\n}",
+      "code": "SELECT $name as nombre, strftime('%Y-%m-%d %H-%M-%S','now') AS dt;",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.792Z",
       "updatedAt": "2025-11-22T00:11:42.276Z"
@@ -673,7 +932,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "0d488251-6e49-4239-8c85-be101619aa1f",
-      "rowkey": 555,
+      "rowkey": 920,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -721,7 +980,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "82fdbae6-5180-4ddd-ae75-c31dc60cf641",
-      "rowkey": 249,
+      "rowkey": 487,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -769,7 +1028,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "fda286e7-d51f-40ec-a239-35edcbf364eb",
-      "rowkey": 499,
+      "rowkey": 830,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -871,7 +1130,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "1243bf72-7a66-4366-91d4-0925a6bd4523",
-      "rowkey": 635,
+      "rowkey": 722,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -961,7 +1220,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "5c874c8c-36dd-467b-8935-6776c5a6b595",
-      "rowkey": 68,
+      "rowkey": 867,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1051,7 +1310,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "f1143955-f3e5-4127-b764-8cabe3c0c105",
-      "rowkey": 877,
+      "rowkey": 307,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1129,7 +1388,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "45cf84b5-d82f-4aca-ad16-85a25ed6f387",
-      "rowkey": 582,
+      "rowkey": 911,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1219,7 +1478,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "bb7d57e9-3efe-4c6b-92c9-6c586ba7e177",
-      "rowkey": 835,
+      "rowkey": 999,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1296,7 +1555,7 @@ export const demo_app = {
         "headers": {}
       },
       "idendpoint": "01ca8730-091d-4dce-b2bf-b0325df4dcef",
-      "rowkey": 676,
+      "rowkey": 364,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1363,7 +1622,7 @@ export const demo_app = {
         "headers": {}
       },
       "idendpoint": "73ade868-1616-42e4-bd6e-0de1a55b4e9b",
-      "rowkey": 73,
+      "rowkey": 480,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1429,7 +1688,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "28c0bf52-57d6-4974-bd74-d58fec8c205f",
-      "rowkey": 806,
+      "rowkey": 119,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1484,7 +1743,7 @@ export const demo_app = {
         "auth": {}
       },
       "idendpoint": "5509b6b9-5d52-4b33-a20f-c372c739575d",
-      "rowkey": 595,
+      "rowkey": 925,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1560,7 +1819,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "e909e080-35e2-4250-b799-da4770589e3f",
-      "rowkey": 600,
+      "rowkey": 446,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1610,7 +1869,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "90879480-8348-44e8-9985-b91e05b32041",
-      "rowkey": 707,
+      "rowkey": 803,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1676,7 +1935,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "134b1b86-ee20-4210-9948-5ecac5c6d7d6",
-      "rowkey": 323,
+      "rowkey": 181,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1721,7 +1980,9 @@ export const demo_app = {
           }
         }
       },
-      "custom_data": {},
+      "custom_data": {
+        "mimeType": "text/plain"
+      },
       "headers_test": {},
       "data_test": {
         "body": {
@@ -1753,7 +2014,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "87ec2f9a-64fc-4818-9a93-e47bf3d8b0dd",
-      "rowkey": 110,
+      "rowkey": 152,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1768,7 +2029,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "{\n  \"mimeType\": \"text/plain\",\n  \"payload\": \"Hello edwinspire with Open Fusion API\"\n}",
+      "code": "Hello edwinspire with Open Fusion API",
       "cache_time": 30,
       "createdAt": "2025-11-21T22:04:52.791Z",
       "updatedAt": "2025-11-22T00:11:42.275Z"
@@ -1798,7 +2059,9 @@ export const demo_app = {
           }
         }
       },
-      "custom_data": {},
+      "custom_data": {
+        "mimeType": "text/xml"
+      },
       "headers_test": {},
       "data_test": {
         "query": [
@@ -1818,7 +2081,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "20c6fb54-f048-44ad-88e4-6aca76a62aec",
-      "rowkey": 872,
+      "rowkey": 259,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1833,7 +2096,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "{\n  \"mimeType\": \"text/xml\",\n  \"payload\": \"<hello>edwinspire</hello>\"\n}",
+      "code": "<hello>edwinspire</hello>",
       "cache_time": 30,
       "createdAt": "2025-11-21T22:04:52.792Z",
       "updatedAt": "2025-11-22T00:11:42.276Z"
@@ -1864,7 +2127,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "9e461698-df3c-4420-ad5b-1811c9937c2c",
-      "rowkey": 341,
+      "rowkey": 216,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1909,7 +2172,7 @@ export const demo_app = {
           }
         }
       },
-      "custom_data": {},
+      "custom_data": "$_VAR_$_VAR_CNX_OMS",
       "headers_test": {},
       "data_test": {
         "auth": {
@@ -1943,7 +2206,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "f5f42a0a-d2f1-4356-bb51-323014fbc9fb",
-      "rowkey": 314,
+      "rowkey": 618,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1958,7 +2221,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "{\n  \"config\": \"$_VAR_$_VAR_CNX_OMS\",\n  \"query\": \"SELECT * FROM ofapi_method WHERE method IN (:methods);\"\n}",
+      "code": "SELECT * FROM ofapi_method WHERE method IN (:methods);",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.791Z",
       "updatedAt": "2025-11-22T00:11:42.274Z"
@@ -1992,7 +2255,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "9b7200b4-c77c-42a4-a8c0-85bb963b4644",
-      "rowkey": 581,
+      "rowkey": 197,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -2092,7 +2355,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "f7d8e356-e06c-47cc-92a1-9946761b5751",
-      "rowkey": 444,
+      "rowkey": 884,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "qa",

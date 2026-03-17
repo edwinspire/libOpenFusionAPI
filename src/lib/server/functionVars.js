@@ -37,7 +37,7 @@ export const JWTKEY = JWT_KEY ?? 'oy8632rcv"$/8';
 /**
  * @param {any} data
  */
-export function GenToken(data, exp_seconds = 3600 /* 1 hora */, key = JWTKEY) {
+export function GenToken(data, exp_seconds = 3600 *2 /* 2 horas */, key = JWTKEY) {
   let exp = Math.floor(Date.now() / 1000) + Number(exp_seconds);
   return jwt.sign({ data: { ...data, _rnd_: Math.random() }, exp: exp }, key);
 }
