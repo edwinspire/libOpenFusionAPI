@@ -35,6 +35,12 @@ export function jsonSchemaToZod(schema, root = null) {
       .reduce((acc, cur) => acc.and(cur));
   }
 
+  // Soporte de negación de requeridos: { not: { required: ["field"] } }
+  // Útil para reglas condicionales tipo INSERT/UPDATE en anyOf.
+  if (schema.not && Array.isArray(schema.not.required)) {
+    return makeNotRequiredConstraint(schema.not.required, schema.description);
+  }
+
   // Tipos primitivos
   switch (schema.type) {
     case "string":
@@ -65,6 +71,17 @@ export function jsonSchemaToZod(schema, root = null) {
     default:
       throw new Error("Tipo JSON Schema no soportado: " + schema.type);
   }
+}
+
+function makeNotRequiredConstraint(requiredKeys, description) {
+  let out = z.record(z.unknown()).refine(
+    (obj) => !requiredKeys.every((key) => Object.prototype.hasOwnProperty.call(obj, key)),
+    {
+      message: description || `Las propiedades [${requiredKeys.join(", ")}] no deben existir simultaneamente.`,
+    }
+  );
+
+  return out;
 }
 
 /* ---------------------------------------------------------

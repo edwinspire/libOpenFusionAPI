@@ -162,12 +162,21 @@ ${JSON.stringify(endpoint?.json_schema?.out?.schema, null, 2)}
       endpoint?.json_schema?.in?.enabled &&
       endpoint?.json_schema?.in?.schema
     ) {
-      // Convertir
-      const zodSchema = jsonSchemaToZod(endpoint.json_schema.in.schema);
-      if (zodSchema instanceof z.ZodObject) {
-        zod_inputSchema = zodSchema;
-      } else {
-        zod_inputSchema = z.object({ value: zodSchema });
+      try {
+        const zodSchema = jsonSchemaToZod(endpoint.json_schema.in.schema);
+        if (zodSchema instanceof z.ZodObject) {
+          zod_inputSchema = zodSchema;
+        } else {
+          zod_inputSchema = z.object({ value: zodSchema });
+        }
+      } catch (error) {
+        console.warn(
+          `[MCP] Schema no soportado para ${endpoint.method} ${endpoint.resource}. Se usa schema flexible.`,
+          error?.message || error,
+        );
+        zod_inputSchema = z.record(z.unknown()).describe(
+          "Flexible input due to unsupported JSON Schema features.",
+        );
       }
     }
 
