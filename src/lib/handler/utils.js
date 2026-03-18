@@ -35,9 +35,14 @@ export const sendHandlerResponse = (
   } = {},
 ) => {
   if (headers) {
+    /*
     for (const [key, value] of Object.entries(headers)) {
       reply.header(key, value);
     }
+    */
+     for (const [key, value] of headers) {
+        reply.header(key, value);
+      }
   }
 
   if (contentType) {

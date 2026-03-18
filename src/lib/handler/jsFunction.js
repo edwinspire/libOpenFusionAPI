@@ -18,6 +18,7 @@ export const jsFunction = async (context) => {
     sendHandlerResponse(reply, {
       statusCode: 200,
       data: fnresult.data,
+      headers: fnresult.headers,
     });
   } catch (error) {
     replyException(request, reply, error);

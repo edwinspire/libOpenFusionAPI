@@ -2980,7 +2980,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "sql,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.POST({data: });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.POST({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-03-17T16:03:50.532Z",
       "updatedAt": "2026-03-17T16:03:50.532Z"

@@ -19,20 +19,25 @@ export const createFunctionVM = async (
      */
     const wrappedCode = `
       (async () => {
-      
-  // El timeout ahora controla el AbortController, no la VM
-  const controller = new AbortController();
-  const signal = controller.signal;
-  
-   // Si el código tarda más del timeout permitido (timeoutVM + 1s), abortamos.
-  let to = setTimeout(() => {
-    console.log('Timeout alcanzado, abortando vm...');
-    controller.abort();
-  }, ${timeoutVM + 1000}); 
+        // El timeout ahora controla el AbortController, no la VM
+        const controller = new AbortController();
+        const signal = controller.signal;
 
-        ${code}
+        // Si el codigo tarda mas del timeout permitido (timeoutVM + 1s), abortamos.
+        const to = setTimeout(() => {
+          console.log("Timeout alcanzado, abortando vm...");
+          controller.abort();
+        }, ${timeoutVM + 1000});
 
-clearTimeout(to);
+        const __executeUserCode = async () => {
+          ${code}
+        };
+
+        try {
+          await __executeUserCode();
+        } finally {
+          clearTimeout(to);
+        }
 
         return {
           data: typeof $_RETURN_DATA_ !== "undefined" ? $_RETURN_DATA_ : null,
@@ -84,10 +89,23 @@ clearTimeout(to);
       });
 
       // Compilar script
-      const script = new vm.Script(wrappedCode, {
-        filename: "sandbox.vm.js",
-        //        timeout: 60 * 60 * 1000, // evita loops infinitos // Maximo 1 hora // Revisar
-      });
+      let script;
+      try {
+        script = new vm.Script(wrappedCode, {
+          filename: "sandbox.vm.js",
+          //        timeout: 60 * 60 * 1000, // evita loops infinitos // Maximo 1 hora // Revisar
+        });
+      } catch (compileError) {
+        const codePreview = (code || "")
+          .split("\n")
+          .slice(0, 25)
+          .join("\n");
+        const enhancedError = new Error(
+          `Invalid endpoint JS code. ${compileError?.message || "Unknown compile error"}\n--- code preview ---\n${codePreview}`
+        );
+        enhancedError.cause = compileError;
+        throw enhancedError;
+      }
 
       // Ejecutar
       return await script.runInContext(context, {
