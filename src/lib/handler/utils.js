@@ -35,14 +35,20 @@ export const sendHandlerResponse = (
   } = {},
 ) => {
   if (headers) {
-    /*
-    for (const [key, value] of Object.entries(headers)) {
-      reply.header(key, value);
-    }
-    */
-     for (const [key, value] of headers) {
+    const isObjectLike = typeof headers === "object" && headers !== null;
+    const isIterable = isObjectLike && typeof headers[Symbol.iterator] === "function";
+
+    if (isIterable) {
+      for (const [key, value] of headers) {
         reply.header(key, value);
       }
+    } else if (isObjectLike) {
+      for (const [key, value] of Object.entries(headers)) {
+        reply.header(key, value);
+      }
+    } else {
+      console.warn("sendHandlerResponse: headers ignored because they are not iterable/object");
+    }
   }
 
   if (contentType) {
