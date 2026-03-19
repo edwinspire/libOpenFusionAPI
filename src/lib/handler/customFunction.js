@@ -85,6 +85,7 @@ export const customFunction = async (context) => {
     sendHandlerResponse(reply, {
       statusCode: fnresult.code || 200,
       data: fnresult.data,
+      headers: fnresult.headers,
     });
   } catch (err) {
     replyException(request, reply, err);

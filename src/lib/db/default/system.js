@@ -441,7 +441,7 @@ export const system_app = {
       "price_kb_response": 1,
       "keywords": "endpoint",
       "code": "fnEndpointGetByIdApp",
-      "cache_time": 30,
+      "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
     },
@@ -689,7 +689,7 @@ export const system_app = {
       "price_kb_response": 1,
       "keywords": "endpoint",
       "code": "fnEndpointGetById",
-      "cache_time": 30,
+      "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
     },
