@@ -58,6 +58,10 @@ export class EndpointRequestFlowService {
 
   async handleApiRequest(request, reply) {
     try {
+      if (reply.sent) {
+        return;
+      }
+
       let handlerEndpoint = validateEndpointContext(request, reply);
       request.openfusionapi.ip_request = this.getIPFromRequest(request);
 

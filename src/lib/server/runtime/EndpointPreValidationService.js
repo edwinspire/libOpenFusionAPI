@@ -54,20 +54,23 @@ export class EndpointPreValidationService {
 
       let cache_endpoint = await this.endpoints.getEndpoint(request_path_params);
 
-      if (cache_endpoint && cache_endpoint.handler) {
-        let handlerEndpoint = cache_endpoint.handler;
+      if (!cache_endpoint || !cache_endpoint.handler) {
+        reply.code(404).send({ error: "Endpoint not found", url: request.url });
+        return;
+      }
 
-        if (handlerEndpoint?.params?.enabled) {
-          if (!this.authPolicy({ request, reply, handlerEndpoint })) {
-            reply.code(403).send({ error: "Auth policy denied", url: request.url });
-            return;
-          }
+      let handlerEndpoint = cache_endpoint.handler;
 
-          request.openfusionapi = { handler: handlerEndpoint };
-          await this.authService.check_auth(handlerEndpoint, request, reply);
-        } else {
-          reply.code(410).send({ message: "Endpoint unabled.", url: request.url });
+      if (handlerEndpoint?.params?.enabled) {
+        if (!this.authPolicy({ request, reply, handlerEndpoint })) {
+          reply.code(403).send({ error: "Auth policy denied", url: request.url });
+          return;
         }
+
+        request.openfusionapi = { handler: handlerEndpoint };
+        await this.authService.check_auth(handlerEndpoint, request, reply);
+      } else {
+        reply.code(410).send({ message: "Endpoint unabled.", url: request.url });
       }
     } catch (error) {
       this.replyMappedError(error, request, reply);
