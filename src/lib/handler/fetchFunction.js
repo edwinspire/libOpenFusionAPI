@@ -34,6 +34,12 @@ export const fetchFunction = async (context) => {
     delete forwardedHeaders["connection"];
     delete forwardedHeaders["x-forwarded-for"];
 
+    // Explicitly preserve the distributed trace ID for outbound calls
+    const traceId = request.headers["ofapi-trace-id"];
+    if (traceId) {
+      forwardedHeaders["ofapi-trace-id"] = traceId;
+    }
+
     /** ------------------------------
      *  VALIDAR URL DESTINO
      * ------------------------------*/

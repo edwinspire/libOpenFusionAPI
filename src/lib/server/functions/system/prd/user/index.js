@@ -32,12 +32,11 @@ export async function fnLogin(params) {
 
     // Establecer una cookie básica
     params.reply.setCookie("OFAPI_TOKEN", "", {
-      path: "/", // Ruta para la que es válida la cookie
-      httpOnly: true, // La cookie no es accesible desde JavaScript
-      //secure: true,       // Solo se envía en conexiones HTTPS
-      sameSite: "Strict", // Protección CSRF (opciones: 'Strict', 'Lax', 'None')
-      maxAge: 5, //  (en segundos)
-      //domain: 'tudominio.com' // Dominio para el que es válida
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: "Strict",
+      maxAge: 5,
     });
 
     if (user.login) {
@@ -46,12 +45,11 @@ export async function fnLogin(params) {
       params.reply.header("Authorization", aut);
 
       params.reply.setCookie("OFAPI_TOKEN", user.token, {
-        path: "/", // Ruta para la que es válida la cookie
-        httpOnly: true, // La cookie no es accesible desde JavaScript
-        //secure: true,       // Solo se envía en conexiones HTTPS
-        sameSite: "Lax", // Protección CSRF (opciones: 'Strict', 'Lax', 'None')
-        maxAge: 60 * 60, // (en segundos)
-        //domain: 'tudominio.com' // Dominio para el que es válida
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "Lax",
+        maxAge: 60 * 60,
       });
 
       r.data = user;

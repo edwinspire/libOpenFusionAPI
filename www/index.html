@@ -1,1 +1,332 @@
-<h1>Open Fusion API</h1>
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>libOpenFusionAPI | Runtime Gateway</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			:root {
+				--bg: #f2f5fb;
+				--bg-soft: #e8eef9;
+				--ink: #1d2a3b;
+				--ink-muted: #526175;
+				--line: #d4deed;
+				--brand: #1e5eff;
+				--brand-deep: #123fbc;
+				--accent: #00a58f;
+				--card: #ffffffd9;
+				--shadow: 0 16px 40px rgba(28, 54, 102, 0.12);
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100vh;
+				color: var(--ink);
+				font-family: "Sora", sans-serif;
+				background:
+					radial-gradient(circle at 6% 14%, #dfe7ff 0%, transparent 38%),
+					radial-gradient(circle at 90% 0%, #d5fff7 0%, transparent 30%),
+					linear-gradient(160deg, var(--bg) 0%, var(--bg-soft) 100%);
+			}
+
+			.frame {
+				width: min(1120px, 92vw);
+				margin: 0 auto;
+				padding: 34px 0 68px;
+			}
+
+			.topbar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 16px;
+			}
+
+			.brand {
+				display: inline-flex;
+				align-items: center;
+				gap: 12px;
+			}
+
+			.brand-mark {
+				width: 38px;
+				height: 38px;
+				border-radius: 11px;
+				display: grid;
+				place-items: center;
+				font-weight: 700;
+				color: #fff;
+				background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+				box-shadow: var(--shadow);
+			}
+
+			.brand-copy strong {
+				display: block;
+				letter-spacing: 0.02em;
+			}
+
+			.brand-copy small {
+				color: var(--ink-muted);
+			}
+
+			.hero {
+				margin-top: 24px;
+				padding: 36px;
+				border: 1px solid var(--line);
+				border-radius: 24px;
+				background: var(--card);
+				backdrop-filter: blur(6px);
+				box-shadow: var(--shadow);
+				position: relative;
+				overflow: hidden;
+			}
+
+			.hero::before {
+				content: "";
+				position: absolute;
+				width: 280px;
+				height: 280px;
+				border-radius: 50%;
+				top: -130px;
+				right: -110px;
+				background: radial-gradient(circle, #1e5eff26 0%, transparent 70%);
+				pointer-events: none;
+			}
+
+			.eyebrow {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				font-size: 0.8rem;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--brand-deep);
+				background: #ecf2ff;
+				border: 1px solid #c8d7ff;
+				padding: 6px 10px;
+				border-radius: 999px;
+			}
+
+			h1 {
+				margin: 16px 0 0;
+				font-size: clamp(2rem, 4.6vw, 3.6rem);
+				line-height: 1.05;
+				max-width: 16ch;
+			}
+
+			.lead {
+				margin-top: 18px;
+				max-width: 70ch;
+				color: var(--ink-muted);
+				line-height: 1.6;
+				font-size: 1.04rem;
+			}
+
+			.actions {
+				margin-top: 24px;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 12px;
+			}
+
+			.btn {
+				text-decoration: none;
+				padding: 11px 16px;
+				border-radius: 12px;
+				border: 1px solid transparent;
+				font-weight: 600;
+				transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+			}
+
+			.btn:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 10px 28px rgba(21, 66, 166, 0.2);
+			}
+
+			.btn-primary {
+				color: #fff;
+				background: linear-gradient(135deg, var(--brand) 0%, var(--brand-deep) 100%);
+			}
+
+			.btn-secondary {
+				color: var(--ink);
+				border-color: var(--line);
+				background: #fff;
+			}
+
+			.layout {
+				margin-top: 22px;
+				display: grid;
+				grid-template-columns: repeat(12, minmax(0, 1fr));
+				gap: 14px;
+			}
+
+			.card {
+				border-radius: 18px;
+				border: 1px solid var(--line);
+				background: var(--card);
+				box-shadow: var(--shadow);
+				padding: 18px;
+				animation: reveal 560ms ease-out both;
+			}
+
+			.span-6 {
+				grid-column: span 6;
+			}
+
+			.span-4 {
+				grid-column: span 4;
+			}
+
+			.span-8 {
+				grid-column: span 8;
+			}
+
+			.card h2,
+			.card h3 {
+				margin: 0 0 8px;
+			}
+
+			.card p,
+			.card li {
+				color: var(--ink-muted);
+				line-height: 1.58;
+			}
+
+			ul {
+				margin: 0;
+				padding-left: 18px;
+			}
+
+			.kpi {
+				display: grid;
+				gap: 8px;
+			}
+
+			.kpi strong {
+				font-size: 1.65rem;
+				color: var(--brand-deep);
+			}
+
+			.snippet {
+				margin: 0;
+				padding: 12px;
+				border-radius: 12px;
+				color: #dbe6ff;
+				background: #0f1f3c;
+				border: 1px solid #29436f;
+				font-family: "IBM Plex Mono", monospace;
+				font-size: 0.88rem;
+				line-height: 1.7;
+				overflow-x: auto;
+			}
+
+			footer {
+				margin-top: 24px;
+				color: #5a677a;
+				font-size: 0.93rem;
+			}
+
+			@keyframes reveal {
+				from {
+					opacity: 0;
+					transform: translateY(12px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@media (max-width: 920px) {
+				.hero {
+					padding: 24px;
+				}
+
+				.span-6,
+				.span-4,
+				.span-8 {
+					grid-column: span 12;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main class="frame">
+			<header class="topbar">
+				<div class="brand">
+					<span class="brand-mark">OF</span>
+					<div class="brand-copy">
+						<strong>libOpenFusionAPI</strong>
+						<small>Dynamic API Runtime Platform</small>
+					</div>
+				</div>
+			</header>
+
+			<section class="hero">
+				<span class="eyebrow">Fastify-powered API Engine</span>
+				<h1>Ship configurable APIs with production-ready control.</h1>
+				<p class="lead">
+					libOpenFusionAPI is a modular runtime that exposes HTTP and WebSocket endpoints
+					from dynamic configuration. It supports multiple execution handlers including
+					SQL, JS, SOAP, MCP, and MongoDB, making it ideal for integration-heavy systems.
+				</p>
+				<div class="actions">
+					<a class="btn btn-primary" href="/docs">Open Documentation</a>
+					<a class="btn btn-secondary" href="/api/system/info/prd">Server Health</a>
+				</div>
+			</section>
+
+			<section class="layout">
+				<article class="card span-6" style="animation-delay: 80ms">
+					<h2>Core Capabilities</h2>
+					<ul>
+						<li>Endpoint lookup and execution at runtime with cache acceleration.</li>
+						<li>Pluggable handlers for database, script, webhook, and MCP workflows.</li>
+						<li>Authentication and policy hooks per endpoint definition.</li>
+						<li>Built-in tracing, request logging, and response lifecycle events.</li>
+					</ul>
+				</article>
+
+				<article class="card span-6" style="animation-delay: 130ms">
+					<h2>Technology Base</h2>
+					<p>
+						Built on Node.js, Fastify, and Sequelize with multi-environment operation
+						for dev, qa, and production. Designed for teams that need speed without losing
+						governance or observability.
+					</p>
+				</article>
+
+				<article class="card span-4" style="animation-delay: 180ms">
+					<h3>Environments</h3>
+					<div class="kpi">
+						<strong>3+</strong>
+						<p>Native support for separated dev, qa, and production routes.</p>
+					</div>
+				</article>
+
+				<article class="card span-8" style="animation-delay: 220ms">
+					<h3>Quick Request Examples</h3>
+					<pre class="snippet">GET /api/system/version/prd
+GET /api/system/api/endpoints/prd
+GET /api/system/info/prd</pre>
+				</article>
+			</section>
+
+			<footer>
+				Maintained by Edwinspire. This page is a concise entry point for operators,
+				developers, and API consumers.
+			</footer>
+		</main>
+	</body>
+</html>

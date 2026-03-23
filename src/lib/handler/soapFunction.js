@@ -18,6 +18,39 @@ const MAX_CLIENTS = 50;
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutos
 
 /**
+ * Headers that must never be forwarded to an upstream SOAP service.
+ *
+ * Hop-by-hop (RFC 7230 §6.1): connection-specific, become invalid across hops.
+ * Body/content: managed entirely by node-soap; overriding them corrupts the XML envelope.
+ * Host/routing: must resolve to the SOAP target, not the original client.
+ * Credentials: authorization carries the OpenFusionAPI JWT (not the SOAP service's credential);
+ *   cookie/set-cookie would leak browser session data to external services.
+ * Proxy/forwarding: internal routing metadata; enterprise SOAP servers actively reject these.
+ * Response-context: headers that only make sense in responses (e.g. "server").
+ * Browser-specific: "referer" is rejected by many corporate SOAP/firewall setups.
+ * All "sec-*" headers are handled separately via startsWith() to cover current and future
+ *   browser security hints (sec-ch-ua, sec-fetch-*, sec-gpc, etc.).
+ */
+const SOAP_BLOCKED_HEADERS = new Set([
+  // Hop-by-hop — RFC 7230 §6.1
+  "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+  "te", "trailer", "transfer-encoding", "upgrade",
+  // Body/content — managed by node-soap
+  "content-type", "content-length", "content-encoding",
+  // Host/routing
+  "host", "origin",
+  // Credentials — must not leak to external services
+  "authorization", "cookie", "set-cookie",
+  // Proxy/forwarding infrastructure
+  "x-forwarded-for", "x-forwarded-host", "x-forwarded-proto",
+  "x-real-ip", "forwarded",
+  // Response-context headers
+  "server",
+  // Commonly rejected by SOAP/enterprise servers
+  "referer",
+]);
+
+/**
  * Obtiene un cliente SOAP del caché o crea uno nuevo.
  * Implementa LRU (Least Recently Used) y TTL (Time To Live).
  */
@@ -160,19 +193,12 @@ export const SOAPGenericClient = async (
       SOAPParameters.options
     );
 
-    // Pasar todos los headers del Request al cliente SOAP, excluyendo los que causan conflicto
+    // Forward request headers to the SOAP client, excluding those that cause errors.
+    // SOAP_BLOCKED_HEADERS (Set) handles exact matches in O(1).
+    // All sec-* headers (browser security hints) are blocked via prefix check.
     for (const [key, value] of Object.entries(SOAPParameters.HTTPHeaders)) {
       const k = key.toLowerCase();
-      if (
-        k !== "content-type" &&
-        k !== "content-length" &&
-        k !== "host" &&
-        k !== "server" &&
-        k !== "referer" &&
-        !k.includes("sec-ch-ua") &&
-        !k.includes("sec-fetch") &&
-        !k.includes("x-forwarded")
-      ) {
+      if (!SOAP_BLOCKED_HEADERS.has(k) && !k.startsWith("sec-")) {
         client.addHttpHeader(key, value);
       }
     }

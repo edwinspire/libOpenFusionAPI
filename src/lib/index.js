@@ -333,6 +333,29 @@ export default class ServerAPI extends EventEmitter {
         console.log("Crea la base de datos");
 
         try {
+          if (dbAPIs.getDialect() === "sqlite") {
+            const appTable = prefixTableName("application");
+            const backupTable = `${appTable}_backup`;
+
+            // SQLite + alter can leave stale backup tables on failed migrations.
+            await dbAPIs.query(`DROP TABLE IF EXISTS \`${backupTable}\`;`);
+
+            // Ensure app uniqueness before SQLite recreates table with UNIQUE(app).
+            // Keeps the first row per app (case-insensitive) and removes duplicates.
+            try {
+              await dbAPIs.query(
+                `DELETE FROM \`${appTable}\`
+                 WHERE rowid NOT IN (
+                   SELECT MIN(rowid)
+                   FROM \`${appTable}\`
+                   GROUP BY LOWER(app)
+                 );`,
+              );
+            } catch (error) {
+              // First boot may not have the application table yet.
+            }
+          }
+
           await dbAPIs.sync({ alter: true });
           console.log("Database created or updated successfully.");
         } catch (error) {
