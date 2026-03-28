@@ -1,11 +1,10 @@
 export const system_app = {
-  "vars": {},
   "params": {
     "users": []
   },
   "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
   "app": "system",
-  "rowkey": 707,
+  "rowkey": 374,
   "iduser": null,
   "enabled": true,
   "description": "App System",
@@ -14,6 +13,664 @@ export const system_app = {
   "updatedAt": "2025-11-22T00:11:41.979Z",
   "vrs": [],
   "endpoints": [
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908194",
+      "rowkey": 896,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/apiclient",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Create user external",
+      "description": "Create user external",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnCreateApiClient",
+      "cache_time": 0,
+      "createdAt": "2025-12-02T00:16:24.771Z",
+      "updatedAt": "2025-12-03T16:27:48.432Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {}
+        },
+        "out": {}
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": ""
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "34870b00-beb1-45d3-ada6-c164fc22cd7a",
+      "rowkey": 751,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/log/app/summary",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Get summary by idapp from logs",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetLogSummaryByAppStatusCode",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.726Z",
+      "updatedAt": "2025-11-22T00:11:42.112Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "adbumcb7z",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
+      "rowkey": 475,
+      "enabled": false,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/app/var",
+      "method": "DELETE",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Delete app var",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnDeleteAppVar",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.724Z",
+      "updatedAt": "2025-11-22T00:11:42.106Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "body": {
+          "js": {
+            "code": "{}"
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {},
+          "selection": 0
+        },
+        "auth": {
+          "basic": {},
+          "bearer": {},
+          "selection": 0
+        },
+        "headers": [
+          {
+            "enabled": true,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983"
+          }
+        ],
+        "query": [
+          {
+            "enabled": true,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983"
+          }
+        ]
+      },
+      "idendpoint": "18731c87-9d59-44b6-8871-ecaa493008e5",
+      "rowkey": 991,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/log",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnInsertLog",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.723Z",
+      "updatedAt": "2025-11-22T00:11:42.104Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
+      "rowkey": 153,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/app/0.01",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetAppById",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.724Z",
+      "updatedAt": "2025-11-22T00:11:42.106Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
+      "rowkey": 123,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/app/backup",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Get App data to backup by idapp",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetAppBackupById",
+      "cache_time": 30,
+      "createdAt": "2025-11-21T22:04:52.723Z",
+      "updatedAt": "2025-11-22T00:11:42.105Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2fa0",
+      "rowkey": 60,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/environment",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetEnvironment",
+      "cache_time": 90,
+      "createdAt": "2025-11-21T22:04:52.722Z",
+      "updatedAt": "2025-11-22T00:11:42.102Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
+      "rowkey": 162,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/users/list",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetUsersList",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.726Z",
+      "updatedAt": "2025-11-22T00:11:42.113Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
+      "rowkey": 230,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/app/internal/metrics",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Return internal metrics",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetInternalAppMetrics",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.725Z",
+      "updatedAt": "2025-11-22T00:11:42.109Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
+      "rowkey": 984,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/interval_tasks/byidapp",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetIntervalTasksByIdApp",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.726Z",
+      "updatedAt": "2025-11-22T00:11:42.111Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
+      "rowkey": 320,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/apps/0.01",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetApps",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.725Z",
+      "updatedAt": "2025-11-22T00:11:42.110Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "9l4922vfy",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "f57b01dc-a51c-4c23-ab4b-c890ca733e80",
+      "rowkey": 346,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/apikey",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "API Key UPSERT",
+      "description": "Create or Update API Key Token",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "apikey",
+      "code": "fnUpsertApiKey",
+      "cache_time": 0,
+      "createdAt": "2026-02-21T04:34:49.323Z",
+      "updatedAt": "2026-02-21T04:34:49.323Z"
+    },
     {
       "ctrl": {
         "users": [],
@@ -77,13 +734,230 @@ export const system_app = {
           "selection": 0
         }
       },
-      "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff4",
-      "rowkey": 891,
+      "idendpoint": "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
+      "rowkey": 778,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
-      "resource": "/api/app",
+      "resource": "/server/version",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Get version API server",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetServerVersion",
+      "cache_time": 9999,
+      "createdAt": "2025-11-21T22:04:52.726Z",
+      "updatedAt": "2025-11-22T00:11:42.112Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908193",
+      "rowkey": 97,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/user/create",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Create user admin",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnCreateUser",
+      "cache_time": 0,
+      "createdAt": "2025-12-02T00:16:24.771Z",
+      "updatedAt": "2025-12-03T16:27:48.432Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "e753e2db-ca20-4607-82b7-34b70e435a0c",
+      "rowkey": 385,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/interval_tasks/delete",
+      "method": "DELETE",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fndeleteIntervalTask",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.726Z",
+      "updatedAt": "2025-11-22T00:11:42.113Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
+      "rowkey": 267,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/app/backup",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Restore App data from backup by idapp",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnRestoreAppFromBackup",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.724Z",
+      "updatedAt": "2025-11-22T00:11:42.105Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "bcf0e362-a454-4e47-85a0-772c4ddd3538",
+      "rowkey": 877,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/information/dynamic",
       "method": "GET",
       "handler": "FUNCTION",
       "access": 2,
@@ -93,10 +967,72 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "fnAppGetById",
+      "code": "fnGetSystemInfoDynamic",
       "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.726Z",
-      "updatedAt": "2025-11-22T00:11:42.112Z"
+      "createdAt": "2025-11-21T22:04:52.722Z",
+      "updatedAt": "2025-11-22T00:11:42.102Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2faf",
+      "rowkey": 260,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/environment/0.01",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetEnvironment",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.722Z",
+      "updatedAt": "2025-11-22T00:11:42.102Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
+      "rowkey": 949,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/websocket/hooks",
+      "method": "WS",
+      "handler": "NA",
+      "access": 0,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.723Z",
+      "updatedAt": "2025-11-22T00:11:42.103Z"
     },
     {
       "ctrl": {
@@ -114,14 +1050,15 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "app_create_update",
-        "title": "Create Update App",
-        "description": "Create or update app data."
+        "title": "Create or Update Application",
+        "description": "Creates or updates the main Application record only. Does NOT create endpoints or AppVars. Use 'appvar_upsert' for per-environment variables and 'endpoint_upsert' to add endpoints. Operation mode: omit 'idapp' for INSERT; include a valid UUID in 'idapp' for UPDATE. The 'app' name is normalized to lowercase, must be unique, and must match [a-zA-Z0-9_~.-] (max 50 chars)."
       },
       "json_schema": {
         "in": {
           "enabled": true,
           "schema": {
             "title": "AppConfigUpsert",
+            "description": "INSERT when 'idapp' is omitted. UPDATE when 'idapp' is a valid UUID. This endpoint persists only the Application root record.",
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -132,17 +1069,20 @@ export const system_app = {
               "idapp": {
                 "type": "string",
                 "format": "uuid",
-                "description": "Si se envía UUID se ejecuta UPDATE"
+                "description": "Omit for INSERT (server generates UUID). Provide a valid UUID for UPDATE."
               },
               "app": {
                 "type": "string",
-                "maxLength": 50
+                "maxLength": 50,
+                "pattern": "^[a-zA-Z0-9_~.\\-]+$",
+                "description": "Application name. Automatically normalized to lowercase. Must be unique. Allowed chars: letters, digits, _ ~ . -"
               },
               "iduser": {
                 "type": [
                   "integer",
                   "null"
-                ]
+                ],
+                "description": "ID of the creator/owner user. Optional."
               },
               "enabled": {
                 "type": "integer",
@@ -150,26 +1090,31 @@ export const system_app = {
                   0,
                   1
                 ],
-                "default": 1
+                "default": 1,
+                "description": "1 = active, 0 = disabled. Send as integer (0/1); stored internally as boolean."
               },
               "description": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Human-readable description of the application."
               },
               "jwt_key": {
                 "type": [
                   "string",
                   "null"
                 ],
-                "format": "uuid"
+                "format": "uuid",
+                "description": "JWT signing key for the app. If omitted, it can be generated automatically."
               },
               "vars": {
                 "type": [
                   "object",
                   "null"
                 ],
+                "description": "Deprecated compatibility field. Do not use for new apps. Use appvar_upsert for per-environment variables.",
+                "deprecated": true,
                 "additionalProperties": {
                   "type": [
                     "string",
@@ -186,6 +1131,7 @@ export const system_app = {
                   "object",
                   "null"
                 ],
+                "description": "Free-form metadata for the application (not AppVars).",
                 "additionalProperties": {
                   "type": [
                     "string",
@@ -200,7 +1146,7 @@ export const system_app = {
             },
             "anyOf": [
               {
-                "description": "INSERT: idapp no debe existir",
+                "description": "INSERT: do not include 'idapp'",
                 "not": {
                   "required": [
                     "idapp"
@@ -208,7 +1154,7 @@ export const system_app = {
                 }
               },
               {
-                "description": "UPDATE: idapp debe existir y ser UUID",
+                "description": "UPDATE: include 'idapp' with a valid UUID",
                 "required": [
                   "idapp"
                 ]
@@ -217,10 +1163,52 @@ export const system_app = {
           }
         },
         "out": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
             "type": "object",
-            "properties": {},
+            "description": "On success returns the persisted Application object. On error returns the exception payload.",
+            "properties": {
+              "idapp": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "app": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "jwt_key": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "params": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "rowkey": {
+                "type": "integer"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
             "additionalProperties": true
           }
         }
@@ -241,7 +1229,14 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "app": "mi_nueva_app",
+              "enabled": 1,
+              "description": "App creada desde MCP",
+              "params": {
+                "users": []
+              }
+            }
           },
           "xml": {
             "code": ""
@@ -278,7 +1273,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff3",
-      "rowkey": 519,
+      "rowkey": 157,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -308,13 +1303,99 @@ export const system_app = {
       "custom_data": {},
       "headers_test": {},
       "data_test": {},
-      "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
-      "rowkey": 24,
+      "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ee",
+      "rowkey": 370,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
-      "resource": "/api/app/0.01",
+      "resource": "/app/documentation",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Get documentation to endpoints by app id",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetAppDocById",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.724Z",
+      "updatedAt": "2025-11-22T00:11:42.106Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "0b48cd44-09fe-40e7-b0a7-59fe01e054cc",
+      "rowkey": 499,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/information/static",
       "method": "GET",
       "handler": "FUNCTION",
       "access": 2,
@@ -324,10 +1405,445 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "fnGetAppById",
+      "code": "fnGetSystemInfoStatic",
       "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.106Z"
+      "createdAt": "2025-11-21T22:04:52.723Z",
+      "updatedAt": "2025-11-22T00:11:42.103Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "17c211d6-8c81-4274-b5c4-604126454ab0",
+      "rowkey": 707,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/handler/0.01",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetHandler",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.727Z",
+      "updatedAt": "2025-11-22T00:11:42.114Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "a0130d77-b779-4dea-a87f-6841520ffade",
+      "rowkey": 817,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/websocket/server",
+      "method": "WS",
+      "handler": "NA",
+      "access": 0,
+      "title": "",
+      "description": "Send events from server",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.726Z",
+      "updatedAt": "2025-11-22T00:11:42.111Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
+      "rowkey": 260,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/method/0.01",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetMethod",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.725Z",
+      "updatedAt": "2025-11-22T00:11:42.109Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
+      "rowkey": 623,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/apiclient/login",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnLoginApiClient",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.727Z",
+      "updatedAt": "2025-11-22T00:11:42.114Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "3ead2170-283d-4c6a-abc1-eddd217b6d01",
+      "rowkey": 261,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/cache/clear",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnClearCache",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.723Z",
+      "updatedAt": "2025-11-22T00:11:42.105Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "body": {
+          "json": {
+            "code": ""
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {},
+          "selection": 0
+        },
+        "auth": {
+          "basic": {},
+          "bearer": {},
+          "selection": 0
+        },
+        "headers": [
+          {
+            "enabled": true,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983"
+          }
+        ],
+        "query": [
+          {
+            "enabled": true,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983"
+          }
+        ]
+      },
+      "idendpoint": "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
+      "rowkey": 645,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/responses/status_code/count",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetResponseCountStatus",
+      "cache_time": 2,
+      "createdAt": "2025-11-21T22:04:52.727Z",
+      "updatedAt": "2025-11-22T00:11:42.114Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3,
+          "level": 0
+        }
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
+      "rowkey": 992,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/log",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetLogs",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.722Z",
+      "updatedAt": "2025-11-22T00:11:42.101Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "env",
+            "value": "prd",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "13f94d7d-6612-4c30-8202-286cbbe3da3e",
+      "rowkey": 850,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/function_names",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnFunctionNames",
+      "cache_time": 999,
+      "createdAt": "2025-11-21T22:04:52.725Z",
+      "updatedAt": "2025-11-22T00:11:42.108Z"
     },
     {
       "ctrl": {
@@ -343,10 +1859,457 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "tknoj6ef6",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "3d2fff88-66a6-43b5-9cab-11b5aec1a706",
+      "rowkey": 772,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/apikey",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 3,
+      "title": "Get API Key",
+      "description": "Get API Key",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetApiKeyByFilters",
+      "cache_time": 30,
+      "createdAt": "2026-02-21T07:45:25.852Z",
+      "updatedAt": "2026-02-21T07:45:25.852Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "047845ac-5367-48ed-9465-8e36ba6c7bae",
+      "rowkey": 188,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/cache/response/size",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetCacheSize",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.723Z",
+      "updatedAt": "2025-11-22T00:11:42.104Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "12fb738c-7d1f-4eba-afb4-508a9fa9d06a",
+      "rowkey": 683,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/restore",
+      "method": "PUT",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "",
+      "description": "Check and restore default endpoints",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "restore",
+      "code": "fnCheckSystemApp",
+      "cache_time": 0,
+      "createdAt": "2025-12-04T19:48:28.390Z",
+      "updatedAt": "2025-12-05T04:40:40.564Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
+      "rowkey": 464,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/user/changepassword",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Update user password",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnUpdateUserPassword",
+      "cache_time": 0,
+      "createdAt": "2025-11-30T04:19:03.270Z",
+      "updatedAt": "2025-12-03T16:27:48.432Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "068fusy95",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "788e6e35-106d-45db-acb0-839db45c20f6",
+      "rowkey": 538,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api_clients",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Get API Clients",
+      "description": "Get list all api clients",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "api",
+      "code": "fnGetApiClientfindByIdOrUsername",
+      "cache_time": 30,
+      "createdAt": "2026-02-21T07:10:26.497Z",
+      "updatedAt": "2026-02-21T07:15:54.867Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "34987a43-63e4-4926-824b-5254155b5c80",
+      "rowkey": 719,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/interval_tasks/upsert",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnUpsertIntervalTask",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.724Z",
+      "updatedAt": "2025-11-22T00:11:42.107Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {}
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
+      "rowkey": 559,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/log/recordsperminute",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetLogsRecordsPerMinute",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.724Z",
+      "updatedAt": "2025-11-22T00:11:42.107Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
         "enabled": true,
-        "name": "app_endpoints",
-        "title": "app_endpoints",
-        "description": "It retrieves the list of all endpoints associated with an application. It receives the idapp as a parameter."
+        "name": "Get App List Filters",
+        "title": "Get App List Filters",
+        "description": "It obtains the list of applications using various available filters."
       },
       "json_schema": {
         "in": {
@@ -355,12 +2318,55 @@ export const system_app = {
             "type": "object",
             "properties": {
               "idapp": {
-                "type": "string"
+                "type": "string",
+                "description": "Identificador único de la aplicación (UUID o string)"
+              },
+              "app": {
+                "type": "string",
+                "description": "Nombre de la aplicación (se normaliza a lowercase)"
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "Estado de la aplicación"
+              },
+              "endpoint": {
+                "type": "object",
+                "properties": {
+                  "idendpoint": {
+                    "type": "string",
+                    "description": "Identificador del endpoint"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "POST",
+                      "PUT",
+                      "DELETE",
+                      "PATCH"
+                    ],
+                    "description": "Método HTTP (se normaliza a uppercase)"
+                  },
+                  "handler": {
+                    "type": "string",
+                    "description": "Tipo de handler (se normaliza a uppercase)"
+                  },
+                  "environment": {
+                    "type": "string",
+                    "description": "Ambiente (dev, qa, prd, etc.)"
+                  },
+                  "resource": {
+                    "type": "string",
+                    "description": "Recurso del endpoint"
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Estado del endpoint"
+                  }
+                },
+                "additionalProperties": false
               }
             },
-            "required": [
-              "idapp"
-            ],
             "additionalProperties": false
           }
         },
@@ -382,7 +2388,7 @@ export const system_app = {
             "key": "",
             "value": "",
             "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-            "_id": "3w5spzz6r",
+            "_id": "tm8hswwdc",
             "type": 1
           }
         ],
@@ -397,15 +2403,15 @@ export const system_app = {
           "text": {
             "value": ""
           },
-          "form": []
+          "form": [],
+          "urlencoded": []
         },
         "headers": [
           {
             "enabled": false,
             "key": "",
             "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-            "_id": "xxam93qr0",
+            "_id": "dpjmrz7sb",
             "type": 1
           }
         ],
@@ -424,23 +2430,23 @@ export const system_app = {
           "sizeKBResponse": -1
         }
       },
-      "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff1",
-      "rowkey": 642,
+      "idendpoint": "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
+      "rowkey": 140,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
-      "resource": "/api/app/endpoints",
-      "method": "GET",
+      "resource": "/app/tree/by/filters",
+      "method": "POST",
       "handler": "FUNCTION",
-      "access": 2,
-      "title": "Get Endpoint by App",
-      "description": "It retrieves the list of all endpoints associated with an application. It receives the idapp as a parameter.",
+      "access": 3,
+      "title": "",
+      "description": "Get apps",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "endpoint",
-      "code": "fnEndpointGetByIdApp",
+      "keywords": "",
+      "code": "fnGetApplicationsTreeByFilters",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
@@ -525,7 +2531,7 @@ export const system_app = {
         }
       },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f6160",
-      "rowkey": 553,
+      "rowkey": 230,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -536,37 +2542,6 @@ export const system_app = {
       "access": 2,
       "title": "App List",
       "description": "Gets the list of all applications in the OpenFusionAPI system.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetApps",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.725Z",
-      "updatedAt": "2025-11-22T00:11:42.110Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
-      "rowkey": 565,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/api/apps/0.01",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -591,9 +2566,9 @@ export const system_app = {
       "cors": {},
       "mcp": {
         "enabled": true,
-        "name": "get_endpoint_data",
-        "title": "get_endpoint_data",
-        "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp."
+        "name": "upsert_sql_endpoint_handler",
+        "title": "UPSERT SQL Endpoint",
+        "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize."
       },
       "json_schema": {
         "in": {
@@ -601,14 +2576,238 @@ export const system_app = {
           "schema": {
             "type": "object",
             "properties": {
+              "idendpoint": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
               "idapp": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "environment": {
+                "type": "string",
+                "enum": [
+                  "dev",
+                  "qa",
+                  "prd"
+                ]
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "resource": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "access": {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "description": {
                 "type": "string"
+              },
+              "price_by_request": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "price_kb_request": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "price_kb_response": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "keywords": {
+                "type": "string"
+              },
+              "ctrl": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "code": {
+                "type": "string"
+              },
+              "cors": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "cache_time": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "mcp": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "json_schema": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "custom_data": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "headers_test": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "data_test": {
+                "$ref": "#/$defs/jsonValue"
               }
             },
+            "additionalProperties": false,
             "required": [
-              "idapp"
+              "idapp",
+              "environment",
+              "timeout",
+              "resource",
+              "access",
+              "title",
+              "description",
+              "price_by_request",
+              "price_kb_request",
+              "price_kb_response",
+              "keywords",
+              "code",
+              "cache_time"
             ],
-            "additionalProperties": false
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/$defs/jsonValue"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/jsonValue"
+                    }
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "k6wkj9wea",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "8bb911ac-374c-41c9-b93f-21d037abf330",
+      "rowkey": 764,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/sql",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT SQL Handler Endpoint",
+      "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "sql,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.POST({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-03-17T16:03:50.532Z",
+      "updatedAt": "2026-03-17T16:03:50.532Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "availables_functions_modules",
+        "title": "availables_functions_modules",
+        "description": "It retrieves the list of all available functions and modules that can be used within an endpoint when using the \"JS\" handler."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
           }
         },
         "out": {
@@ -629,7 +2828,204 @@ export const system_app = {
             "key": "",
             "value": "",
             "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-            "_id": "fi2s5e1bn",
+            "_id": "6ufqp2ww4",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "3d3de358-681d-4b61-98dc-c1663db0c02c",
+      "rowkey": 781,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/handler/js/funtions",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "List JS Functions",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "js,functions,handler",
+      "code": "fnListFnVarsHandlerJS",
+      "cache_time": 60,
+      "createdAt": "2025-11-21T22:04:52.726Z",
+      "updatedAt": "2025-11-22T00:11:42.113Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "app_vars",
+        "title": "app_vars",
+        "description": "It obtains the list of application variables by passing the application id as a parameter (iadpp)."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idapp": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idapp"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "ej7qaujbd",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
+      "rowkey": 583,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/app/variables/idapp",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "App vars",
+      "description": "Get application variables by idapp",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetAppVarsByIdApp",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.724Z",
+      "updatedAt": "2025-11-22T00:11:42.106Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 0,
+          "status_success": 0,
+          "status_redirect": 0,
+          "status_client_error": 0,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+            "_id": "8bs5sn23b",
             "type": 1
           }
         ],
@@ -653,7 +3049,7 @@ export const system_app = {
             "key": "",
             "value": "",
             "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-            "_id": "g8d18g0mz",
+            "_id": "cu8ua5yll",
             "type": 1
           }
         ],
@@ -672,23 +3068,481 @@ export const system_app = {
           "sizeKBResponse": -1
         }
       },
-      "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf02",
-      "rowkey": 719,
+      "idendpoint": "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
+      "rowkey": 931,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
-      "resource": "/api/endpoint",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "GET Endpoint Data",
-      "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp.",
+      "resource": "/database/hooks",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "",
+      "description": "Receiver of hooks issued from the database, these events will be forwarded via websocket to be consumed by clients.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "endpoint",
-      "code": "fnEndpointGetById",
+      "keywords": "",
+      "code": "ofapi.server.checkwebHookDB(request);\n",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.725Z",
+      "updatedAt": "2025-11-22T00:11:42.108Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {}
+        },
+        "out": {}
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          }
+        ],
+        "auth": {
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          },
+          "selection": 0
+        }
+      },
+      "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff4",
+      "rowkey": 547,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/app",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnAppGetById",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.726Z",
+      "updatedAt": "2025-11-22T00:11:42.112Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
+      "rowkey": 561,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/apiclient/changepassword",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "Update API Client password",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnUpdateAPIClientPassword",
+      "cache_time": 0,
+      "createdAt": "2025-11-30T04:19:03.270Z",
+      "updatedAt": "2025-12-03T16:27:48.432Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": {},
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "51316993-907c-4fd0-859f-7d2a0bc90dd3",
+      "rowkey": 439,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/bot/all",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Get all Bots",
+      "description": "Get all bots",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "bot",
+      "code": "fnGetAllBots",
+      "cache_time": 0,
+      "createdAt": "2026-02-01T08:21:49.670Z",
+      "updatedAt": "2026-02-01T08:21:49.670Z"
+    },
+    {
+      "ctrl": {
+        "admin": true
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {},
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "131cca3e-f835-4414-89ca-5ddbbec5ab89",
+      "rowkey": 69,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/logout/0.01",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "",
+      "description": "",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnLogout",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.724Z",
+      "updatedAt": "2025-11-22T00:11:42.107Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "vbe7fffrs",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "787a8ec2-b0d7-44ae-9214-2254f9d9d086",
+      "rowkey": 842,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/mcp/server",
+      "method": "POST",
+      "handler": "MCP",
+      "access": 0,
+      "title": "OpenFusionAPI MCP",
+      "description": "OpenFusionAPI MCP Server.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "mcp,server,OpenFusionAPI",
+      "code": "",
+      "cache_time": 10,
+      "createdAt": "2026-02-17T14:03:38.449Z",
+      "updatedAt": "2026-02-17T14:03:38.449Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "Endpoint Change History",
+        "title": "endpoint_change_history",
+        "description": "Returns the change history of an endpoint. This information can be useful for reverting to a previous version."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idendpoint": {
+                "type": "string",
+                "minLength": 1,
+                "example": "cfdf4ac3-bd98-463e-ae57-d331193ed416"
+              }
+            },
+            "required": [
+              "idendpoint"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "idendpoint",
+            "value": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
+            "internal_hash_row": "",
+            "type": 1,
+            "_id": "revv5ds96"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "",
+            "type": 1,
+            "_id": "0pq1ds56t"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
+      "rowkey": 465,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint/backup",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Endpoint Change History",
+      "description": "Returns the change history of an endpoint. This information can be useful for reverting to a previous version.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
+      "code": "fnGetEndpointBackupByIdEndpoint",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
@@ -709,7 +3563,7 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "endpoint_upsert",
-        "title": "endpoint_upsert",
+        "title": "Endpoint UPSERT",
         "description": "Creates or updates the parameters of an endpoint according to the selected handler."
       },
       "json_schema": {
@@ -1001,7 +3855,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf01",
-      "rowkey": 408,
+      "rowkey": 253,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1010,7 +3864,7 @@ export const system_app = {
       "method": "POST",
       "handler": "FUNCTION",
       "access": 2,
-      "title": "Upsert Endpoint",
+      "title": "Endpoint UPSERT",
       "description": "Creates or updates the parameters of an endpoint according to the selected handler.",
       "price_by_request": 1,
       "price_kb_request": 1,
@@ -1035,18 +3889,25 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
+        "enabled": true,
+        "name": "get_endpoint_data",
+        "title": "Get Endpoint Details",
+        "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp. Returns detailed data from an endpoint."
       },
       "json_schema": {
         "in": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
             "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "properties": {
+              "idapp": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idapp"
+            ]
           }
         },
         "out": {
@@ -1063,10 +3924,11 @@ export const system_app = {
       "data_test": {
         "query": [
           {
-            "enabled": true,
-            "key": "idendpoint",
-            "value": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
-            "internal_hash_row": "",
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+            "_id": "fi2s5e1bn",
             "type": 1
           }
         ],
@@ -1081,14 +3943,16 @@ export const system_app = {
           "text": {
             "value": ""
           },
-          "form": {}
+          "form": [],
+          "urlencoded": []
         },
         "headers": [
           {
             "enabled": false,
             "key": "",
             "value": "",
-            "internal_hash_row": "",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+            "_id": "g8d18g0mz",
             "type": 1
           }
         ],
@@ -1107,98 +3971,26 @@ export const system_app = {
           "sizeKBResponse": -1
         }
       },
-      "idendpoint": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
-      "rowkey": 824,
+      "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf02",
+      "rowkey": 530,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
-      "resource": "/api/endpoint/backup",
+      "resource": "/api/endpoint",
       "method": "GET",
       "handler": "FUNCTION",
       "access": 2,
-      "title": "Endpoint Get Backup",
-      "description": "Obtiene los respaldos de cambios realizados en endpoint",
+      "title": "GET Endpoint Data",
+      "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp. Returns detailed data from an endpoint.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetEndpointBackupByIdEndpoint",
+      "keywords": "endpoint",
+      "code": "fnEndpointGetById",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
-    },
-    {
-      "ctrl": {
-        "users": [],
-        "log": {}
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": true,
-            "key": "env",
-            "value": "prd",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "13f94d7d-6612-4c30-8202-286cbbe3da3e",
-      "rowkey": 7,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/api/function_names",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnFunctionNames",
-      "cache_time": 999,
-      "createdAt": "2025-11-21T22:04:52.725Z",
-      "updatedAt": "2025-11-22T00:11:42.108Z"
     },
     {
       "ctrl": {
@@ -1273,7 +4065,7 @@ export const system_app = {
         }
       },
       "idendpoint": "25ca7819-8823-4835-87c5-04b792bc594d",
-      "rowkey": 457,
+      "rowkey": 239,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1307,576 +4099,10 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
-      },
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "068fusy95",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "788e6e35-106d-45db-acb0-839db45c20f6",
-      "rowkey": 355,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/api_clients",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 0,
-      "title": "Get API Clients",
-      "description": "Get list all api clients",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "api",
-      "code": "fnGetApiClientfindByIdOrUsername",
-      "cache_time": 30,
-      "createdAt": "2026-02-21T07:10:26.497Z",
-      "updatedAt": "2026-02-21T07:15:54.867Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908194",
-      "rowkey": 321,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/apiclient",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "Create user external",
-      "description": "Create user external",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnCreateApiClient",
-      "cache_time": 0,
-      "createdAt": "2025-12-02T00:16:24.771Z",
-      "updatedAt": "2025-12-03T16:27:48.432Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
-      "rowkey": 946,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/apiclient/changepassword",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Update API Client password",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnUpdateAPIClientPassword",
-      "cache_time": 0,
-      "createdAt": "2025-11-30T04:19:03.270Z",
-      "updatedAt": "2025-12-03T16:27:48.432Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
-      "rowkey": 472,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/apiclient/login",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 0,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnLoginApiClient",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.727Z",
-      "updatedAt": "2025-11-22T00:11:42.114Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
-      },
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "tknoj6ef6",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "3d2fff88-66a6-43b5-9cab-11b5aec1a706",
-      "rowkey": 725,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/apikey",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 3,
-      "title": "Get API Key",
-      "description": "Get API Key",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetApiKeyByFilters",
-      "cache_time": 30,
-      "createdAt": "2026-02-21T07:45:25.852Z",
-      "updatedAt": "2026-02-21T07:45:25.852Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
-      },
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "9l4922vfy",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "f57b01dc-a51c-4c23-ab4b-c890ca733e80",
-      "rowkey": 395,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/apikey",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "API Key UPSERT",
-      "description": "Create or Update API Key Token",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "apikey",
-      "code": "fnUpsertApiKey",
-      "cache_time": 0,
-      "createdAt": "2026-02-21T04:34:49.323Z",
-      "updatedAt": "2026-02-21T04:34:49.323Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 736,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/app/backup",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Get App data to backup by idapp",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetAppBackupById",
-      "cache_time": 30,
-      "createdAt": "2025-11-21T22:04:52.723Z",
-      "updatedAt": "2025-11-22T00:11:42.105Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 972,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/app/backup",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Restore App data from backup by idapp",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnRestoreAppFromBackup",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.105Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ee",
-      "rowkey": 340,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/app/documentation",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Get documentation to endpoints by app id",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetAppDocById",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.106Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
-      "rowkey": 886,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/app/internal/metrics",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Return internal metrics",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetInternalAppMetrics",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.725Z",
-      "updatedAt": "2025-11-22T00:11:42.109Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {}
-      },
-      "cors": {},
-      "mcp": {
         "enabled": true,
-        "name": "Get App List Filters",
-        "title": "Get App List Filters",
-        "description": "It obtains the list of applications using various available filters."
+        "name": "app_endpoints",
+        "title": "List endpoints of an app",
+        "description": "It retrieves the list of all endpoints associated with an application. It receives the idapp as a parameter. List endpoints of an app"
       },
       "json_schema": {
         "in": {
@@ -1885,56 +4111,13 @@ export const system_app = {
             "type": "object",
             "properties": {
               "idapp": {
-                "type": "string",
-                "description": "Identificador único de la aplicación (UUID o string)"
-              },
-              "app": {
-                "type": "string",
-                "description": "Nombre de la aplicación (se normaliza a lowercase)"
-              },
-              "enabled": {
-                "type": "boolean",
-                "description": "Estado de la aplicación"
-              },
-              "endpoint": {
-                "type": "object",
-                "properties": {
-                  "idendpoint": {
-                    "type": "string",
-                    "description": "Identificador del endpoint"
-                  },
-                  "method": {
-                    "type": "string",
-                    "enum": [
-                      "GET",
-                      "POST",
-                      "PUT",
-                      "DELETE",
-                      "PATCH"
-                    ],
-                    "description": "Método HTTP (se normaliza a uppercase)"
-                  },
-                  "handler": {
-                    "type": "string",
-                    "description": "Tipo de handler (se normaliza a uppercase)"
-                  },
-                  "environment": {
-                    "type": "string",
-                    "description": "Ambiente (dev, qa, prd, etc.)"
-                  },
-                  "resource": {
-                    "type": "string",
-                    "description": "Recurso del endpoint"
-                  },
-                  "enabled": {
-                    "type": "boolean",
-                    "description": "Estado del endpoint"
-                  }
-                },
-                "additionalProperties": false
+                "type": "string"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "required": [
+              "idapp"
+            ]
           }
         },
         "out": {
@@ -1955,7 +4138,7 @@ export const system_app = {
             "key": "",
             "value": "",
             "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-            "_id": "tm8hswwdc",
+            "_id": "3w5spzz6r",
             "type": 1
           }
         ],
@@ -1970,15 +4153,15 @@ export const system_app = {
           "text": {
             "value": ""
           },
-          "form": [],
-          "urlencoded": []
+          "form": []
         },
         "headers": [
           {
             "enabled": false,
             "key": "",
             "value": "",
-            "_id": "dpjmrz7sb",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+            "_id": "xxam93qr0",
             "type": 1
           }
         ],
@@ -1997,104 +4180,26 @@ export const system_app = {
           "sizeKBResponse": -1
         }
       },
-      "idendpoint": "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
-      "rowkey": 924,
+      "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff1",
+      "rowkey": 440,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
-      "resource": "/app/tree/by/filters",
-      "method": "POST",
+      "resource": "/api/app/endpoints",
+      "method": "GET",
       "handler": "FUNCTION",
-      "access": 3,
-      "title": "",
-      "description": "Get apps",
+      "access": 2,
+      "title": "Get Endpoint by App",
+      "description": "It retrieves the list of all endpoints associated with an application. It receives the idapp as a parameter. List endpoints of an app",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetApplicationsTreeByFilters",
+      "keywords": "endpoint",
+      "code": "fnEndpointGetByIdApp",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {}
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "adbumcb7z",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
-      "rowkey": 320,
-      "enabled": false,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/app/var",
-      "method": "DELETE",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Delete app var",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnDeleteAppVar",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.106Z"
     },
     {
       "ctrl": {
@@ -2211,7 +4316,7 @@ export const system_app = {
         }
       },
       "idendpoint": "20354d7a-e4fe-47af-8ff6-187bca92f3f9",
-      "rowkey": 458,
+      "rowkey": 335,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2245,10 +4350,10 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
-        "enabled": true,
-        "name": "app_vars",
-        "title": "app_vars",
-        "description": "It obtains the list of application variables by passing the application id as a parameter (iadpp)."
+        "enabled": false,
+        "name": "user_login",
+        "title": "User Login",
+        "description": "Login for user access.."
       },
       "json_schema": {
         "in": {
@@ -2256,13 +4361,21 @@ export const system_app = {
           "schema": {
             "type": "object",
             "properties": {
-              "idapp": {
-                "type": "string"
+              "username": {
+                "type": "string",
+                "description": "Nombre de usuario"
+              },
+              "password": {
+                "type": "string",
+                "description": "Contraseña del usuario"
               }
             },
-            "additionalProperties": false,
+            "additionalProperties": true,
+            "title": "Login",
+            "description": "Schema para validar credenciales de login",
             "required": [
-              "idapp"
+              "username",
+              "password"
             ]
           }
         },
@@ -2283,7 +4396,7 @@ export const system_app = {
             "enabled": false,
             "key": "",
             "value": "",
-            "_id": "ej7qaujbd",
+            "_id": "hl2so8w0j",
             "type": 1
           }
         ],
@@ -2317,292 +4430,26 @@ export const system_app = {
           "sizeKBResponse": -1
         }
       },
-      "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 65,
+      "idendpoint": "871cd2ed-8456-4e5e-8ab5-b7724a908191",
+      "rowkey": 19,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
-      "resource": "/app/variables/idapp",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "App vars",
-      "description": "Get application variables by idapp",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetAppVarsByIdApp",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.106Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
-      },
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": {},
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "51316993-907c-4fd0-859f-7d2a0bc90dd3",
-      "rowkey": 993,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/bot/all",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 0,
-      "title": "Get all Bots",
-      "description": "Get all bots",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "bot",
-      "code": "fnGetAllBots",
-      "cache_time": 0,
-      "createdAt": "2026-02-01T08:21:49.670Z",
-      "updatedAt": "2026-02-01T08:21:49.670Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "3ead2170-283d-4c6a-abc1-eddd217b6d01",
-      "rowkey": 423,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/cache/clear",
+      "resource": "/system/login",
       "method": "POST",
       "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
+      "access": 0,
+      "title": "System Login",
+      "description": "User Login.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnClearCache",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.723Z",
-      "updatedAt": "2025-11-22T00:11:42.105Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "047845ac-5367-48ed-9465-8e36ba6c7bae",
-      "rowkey": 406,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/cache/response/size",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetCacheSize",
+      "keywords": "login",
+      "code": "fnLogin",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.723Z",
       "updatedAt": "2025-11-22T00:11:42.104Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 0,
-          "status_success": 0,
-          "status_redirect": 0,
-          "status_client_error": 0,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
-      },
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-            "_id": "8bs5sn23b",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-            "_id": "cu8ua5yll",
-            "type": 1
-          }
-        ],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
-      "rowkey": 637,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/database/hooks",
-      "method": "POST",
-      "handler": "JS",
-      "access": 0,
-      "title": "",
-      "description": "Receiver of hooks issued from the database, these events will be forwarded via websocket to be consumed by clients.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "ofapi.server.checkwebHookDB(request);\n",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.725Z",
-      "updatedAt": "2025-11-22T00:11:42.108Z"
     },
     {
       "ctrl": {
@@ -2728,7 +4575,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cff35b3a-7ca0-4ef8-882d-d39815d55616",
-      "rowkey": 98,
+      "rowkey": 78,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2747,1783 +4594,6 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-12-03T16:55:58.599Z",
       "updatedAt": "2025-12-03T16:55:58.599Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": true,
-        "name": "upsert_sql_endpoint_handler",
-        "title": "UPSERT SQL Endpoint",
-        "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize."
-      },
-      "json_schema": {
-        "in": {
-          "enabled": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "idendpoint": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "enabled": {
-                "type": "boolean"
-              },
-              "idapp": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "environment": {
-                "type": "string",
-                "enum": [
-                  "dev",
-                  "qa",
-                  "prd"
-                ]
-              },
-              "timeout": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "resource": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 300
-              },
-              "access": {
-                "type": "integer",
-                "enum": [
-                  0,
-                  1,
-                  2,
-                  3,
-                  4
-                ]
-              },
-              "title": {
-                "type": "string",
-                "maxLength": 200
-              },
-              "description": {
-                "type": "string"
-              },
-              "price_by_request": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "price_kb_request": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "price_kb_response": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "keywords": {
-                "type": "string"
-              },
-              "ctrl": {
-                "$ref": "#/$defs/jsonValue"
-              },
-              "code": {
-                "type": "string"
-              },
-              "cors": {
-                "$ref": "#/$defs/jsonValue"
-              },
-              "cache_time": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "mcp": {
-                "$ref": "#/$defs/jsonValue"
-              },
-              "json_schema": {
-                "$ref": "#/$defs/jsonValue"
-              },
-              "custom_data": {
-                "$ref": "#/$defs/jsonValue"
-              },
-              "headers_test": {
-                "$ref": "#/$defs/jsonValue"
-              },
-              "data_test": {
-                "$ref": "#/$defs/jsonValue"
-              }
-            },
-            "additionalProperties": false,
-            "required": [
-              "idapp",
-              "environment",
-              "timeout",
-              "resource",
-              "access",
-              "title",
-              "description",
-              "price_by_request",
-              "price_kb_request",
-              "price_kb_response",
-              "keywords",
-              "code",
-              "cache_time"
-            ],
-            "$defs": {
-              "jsonValue": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": {
-                      "$ref": "#/$defs/jsonValue"
-                    }
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/$defs/jsonValue"
-                    }
-                  },
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "integer"
-                  },
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            }
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "k6wkj9wea",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "8bb911ac-374c-41c9-b93f-21d037abf330",
-      "rowkey": 839,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/endpoint/sql",
-      "method": "POST",
-      "handler": "JS",
-      "access": 3,
-      "title": "UPSERT SQL Handler Endpoint",
-      "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "sql,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.POST({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
-      "cache_time": 0,
-      "createdAt": "2026-03-17T16:03:50.532Z",
-      "updatedAt": "2026-03-17T16:03:50.532Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "bcf0e362-a454-4e47-85a0-772c4ddd3538",
-      "rowkey": 798,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/information/dynamic",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetSystemInfoDynamic",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.722Z",
-      "updatedAt": "2025-11-22T00:11:42.102Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "0b48cd44-09fe-40e7-b0a7-59fe01e054cc",
-      "rowkey": 227,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/information/static",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetSystemInfoStatic",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.723Z",
-      "updatedAt": "2025-11-22T00:11:42.103Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
-      "rowkey": 504,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/interval_tasks/byidapp",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetIntervalTasksByIdApp",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.726Z",
-      "updatedAt": "2025-11-22T00:11:42.111Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "e753e2db-ca20-4607-82b7-34b70e435a0c",
-      "rowkey": 765,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/interval_tasks/delete",
-      "method": "DELETE",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fndeleteIntervalTask",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.726Z",
-      "updatedAt": "2025-11-22T00:11:42.113Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "34987a43-63e4-4926-824b-5254155b5c80",
-      "rowkey": 727,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/interval_tasks/upsert",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnUpsertIntervalTask",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.107Z"
-    },
-    {
-      "ctrl": {
-        "users": [],
-        "log": {}
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {}
-        },
-        "out": {}
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": ""
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "34870b00-beb1-45d3-ada6-c164fc22cd7a",
-      "rowkey": 51,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/log/app/summary",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Get summary by idapp from logs",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetLogSummaryByAppStatusCode",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.726Z",
-      "updatedAt": "2025-11-22T00:11:42.112Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "vbe7fffrs",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "787a8ec2-b0d7-44ae-9214-2254f9d9d086",
-      "rowkey": 358,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/mcp/server",
-      "method": "POST",
-      "handler": "MCP",
-      "access": 0,
-      "title": "OpenFusionAPI MCP",
-      "description": "OpenFusionAPI MCP Server.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "mcp,server,OpenFusionAPI",
-      "code": "",
-      "cache_time": 10,
-      "createdAt": "2026-02-17T14:03:38.449Z",
-      "updatedAt": "2026-02-17T14:03:38.449Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "body": {
-          "json": {
-            "code": ""
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {},
-          "selection": 0
-        },
-        "auth": {
-          "basic": {},
-          "bearer": {},
-          "selection": 0
-        },
-        "headers": [
-          {
-            "enabled": true,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983"
-          }
-        ],
-        "query": [
-          {
-            "enabled": true,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983"
-          }
-        ]
-      },
-      "idendpoint": "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
-      "rowkey": 311,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/responses/status_code/count",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetResponseCountStatus",
-      "cache_time": 2,
-      "createdAt": "2025-11-21T22:04:52.727Z",
-      "updatedAt": "2025-11-22T00:11:42.114Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "12fb738c-7d1f-4eba-afb4-508a9fa9d06a",
-      "rowkey": 939,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/restore",
-      "method": "PUT",
-      "handler": "FUNCTION",
-      "access": 0,
-      "title": "",
-      "description": "Check and restore default endpoints",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "restore",
-      "code": "fnCheckSystemApp",
-      "cache_time": 0,
-      "createdAt": "2025-12-04T19:48:28.390Z",
-      "updatedAt": "2025-12-05T04:40:40.564Z"
-    },
-    {
-      "ctrl": {
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {}
-        },
-        "out": {}
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
-      "rowkey": 779,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/server/version",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Get version API server",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetServerVersion",
-      "cache_time": 9999,
-      "createdAt": "2025-11-21T22:04:52.726Z",
-      "updatedAt": "2025-11-22T00:11:42.112Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2fa0",
-      "rowkey": 500,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/environment",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetEnvironment",
-      "cache_time": 90,
-      "createdAt": "2025-11-21T22:04:52.722Z",
-      "updatedAt": "2025-11-22T00:11:42.102Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2faf",
-      "rowkey": 501,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/environment/0.01",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetEnvironment",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.722Z",
-      "updatedAt": "2025-11-22T00:11:42.102Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "17c211d6-8c81-4274-b5c4-604126454ab0",
-      "rowkey": 883,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/handler/0.01",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetHandler",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.727Z",
-      "updatedAt": "2025-11-22T00:11:42.114Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {}
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": true,
-        "name": "availables_functions_modules",
-        "title": "availables_functions_modules",
-        "description": "It retrieves the list of all available functions and modules that can be used within an endpoint when using the \"JS\" handler."
-      },
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
-            "_id": "6ufqp2ww4",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "3d3de358-681d-4b61-98dc-c1663db0c02c",
-      "rowkey": 299,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/handler/js/funtions",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "List JS Functions",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "js,functions,handler",
-      "code": "fnListFnVarsHandlerJS",
-      "cache_time": 60,
-      "createdAt": "2025-11-21T22:04:52.726Z",
-      "updatedAt": "2025-11-22T00:11:42.113Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3,
-          "level": 0
-        }
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1,
-          "MimeType": ""
-        }
-      },
-      "idendpoint": "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
-      "rowkey": 152,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/log",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 0,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetLogs",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.722Z",
-      "updatedAt": "2025-11-22T00:11:42.101Z"
-    },
-    {
-      "ctrl": {
-        "users": [],
-        "log": {}
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "body": {
-          "js": {
-            "code": "{}"
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {},
-          "selection": 0
-        },
-        "auth": {
-          "basic": {},
-          "bearer": {},
-          "selection": 0
-        },
-        "headers": [
-          {
-            "enabled": true,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983"
-          }
-        ],
-        "query": [
-          {
-            "enabled": true,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "b9427bedda283d6b3c25ad634983b8bfbfc32d5a3006a5a9d6c541a332f1d983"
-          }
-        ]
-      },
-      "idendpoint": "18731c87-9d59-44b6-8871-ecaa493008e5",
-      "rowkey": 8,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/log",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnInsertLog",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.723Z",
-      "updatedAt": "2025-11-22T00:11:42.104Z"
-    },
-    {
-      "ctrl": {
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
-      },
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {}
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
-      "rowkey": 569,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/log/recordsperminute",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetLogsRecordsPerMinute",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.107Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": false,
-        "name": "user_login",
-        "title": "User Login",
-        "description": "Login for user access.."
-      },
-      "json_schema": {
-        "in": {
-          "enabled": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "username": {
-                "type": "string",
-                "description": "Nombre de usuario"
-              },
-              "password": {
-                "type": "string",
-                "description": "Contraseña del usuario"
-              }
-            },
-            "additionalProperties": true,
-            "title": "Login",
-            "description": "Schema para validar credenciales de login",
-            "required": [
-              "username",
-              "password"
-            ]
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "hl2so8w0j",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "871cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 87,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/login",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 0,
-      "title": "System Login",
-      "description": "User Login.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "login",
-      "code": "fnLogin",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.723Z",
-      "updatedAt": "2025-11-22T00:11:42.104Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "131cca3e-f835-4414-89ca-5ddbbec5ab89",
-      "rowkey": 227,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/logout/0.01",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnLogout",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.107Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
-      "rowkey": 29,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/system/method/0.01",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetMethod",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.725Z",
-      "updatedAt": "2025-11-22T00:11:42.109Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 785,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/user/changepassword",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Update user password",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnUpdateUserPassword",
-      "cache_time": 0,
-      "createdAt": "2025-11-30T04:19:03.270Z",
-      "updatedAt": "2025-12-03T16:27:48.432Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908193",
-      "rowkey": 707,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/user/create",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "Create user admin",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnCreateUser",
-      "cache_time": 0,
-      "createdAt": "2025-12-02T00:16:24.771Z",
-      "updatedAt": "2025-12-03T16:27:48.432Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
-      "rowkey": 338,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/users/list",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetUsersList",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.726Z",
-      "updatedAt": "2025-11-22T00:11:42.113Z"
-    },
-    {
-      "ctrl": {
-        "admin": true
-      },
-      "cors": {},
-      "mcp": {},
-      "json_schema": {},
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {},
-      "idendpoint": "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
-      "rowkey": 211,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/websocket/hooks",
-      "method": "WS",
-      "handler": "NA",
-      "access": 0,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.723Z",
-      "updatedAt": "2025-11-22T00:11:42.103Z"
-    },
-    {
-      "ctrl": {},
-      "cors": {},
-      "mcp": {},
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": {}
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
-          }
-        ],
-        "auth": {
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          },
-          "selection": 0
-        }
-      },
-      "idendpoint": "a0130d77-b779-4dea-a87f-6841520ffade",
-      "rowkey": 355,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/websocket/server",
-      "method": "WS",
-      "handler": "NA",
-      "access": 0,
-      "title": "",
-      "description": "Send events from server",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.726Z",
-      "updatedAt": "2025-11-22T00:11:42.111Z"
     }
   ]
 }
