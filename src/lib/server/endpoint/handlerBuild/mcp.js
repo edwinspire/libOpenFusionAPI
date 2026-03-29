@@ -1,4 +1,4 @@
-import { getServer, jsonSchemaToZod, ResourceTemplate } from "../../mcp/server.js";
+import { getServer, jsonSchemaToZod } from "../../mcp/server.js";
 import { getApplicationTreeByFilters } from "../../../db/app.js";
 import { internal_url_endpoint } from "../../utils_path.js";
 import * as z from "zod";
@@ -24,6 +24,344 @@ export const CreateMCPHandler = async (app_name, environment) => {
   // Objeto mutable compartido: cada request HTTP actualiza los headers aquí,
   // y las tool callbacks los leen en tiempo de ejecución (closure por referencia).
   const requestContext = { headers: {} };
+
+  const getAccessLevelLabel = (access) => {
+    switch (access) {
+      case 0:
+        return "Public (no authentication)";
+      case 1:
+        return "Basic authentication";
+      case 2:
+        return "Token authentication";
+      case 3:
+        return "Basic + Token authentication";
+      case 4:
+        return "Local only";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const stringifySafe = (value, fallback = "{}") => {
+    if (value === undefined || value === null) return fallback;
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch (_error) {
+      return fallback;
+    }
+  };
+
+  const isEmptyObject = (value) => {
+    return (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      Object.keys(value).length === 0
+    );
+  };
+
+  const isSchemaTooGeneric = (schema) => {
+    if (!schema || typeof schema !== "object") return true;
+    if (isEmptyObject(schema)) return true;
+
+    const schemaKeys = Object.keys(schema);
+    if (schemaKeys.length === 1 && schema.additionalProperties === true) return true;
+
+    return (
+      schema.type === "object" &&
+      isEmptyObject(schema.properties) &&
+      schema.additionalProperties === true
+    );
+  };
+
+  const inferSchemaFromExample = (value) => {
+    if (value === null) return { type: "null" };
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) return { type: "array", items: {} };
+      return {
+        type: "array",
+        items: inferSchemaFromExample(value[0]),
+      };
+    }
+
+    const valueType = typeof value;
+    if (valueType === "string") return { type: "string" };
+    if (valueType === "number") return Number.isInteger(value) ? { type: "integer" } : { type: "number" };
+    if (valueType === "boolean") return { type: "boolean" };
+
+    if (valueType === "object") {
+      const properties = {};
+      const required = [];
+      for (const [key, nestedValue] of Object.entries(value)) {
+        properties[key] = inferSchemaFromExample(nestedValue);
+        required.push(key);
+      }
+      return {
+        type: "object",
+        properties,
+        additionalProperties: false,
+        ...(required.length > 0 ? { required } : {}),
+      };
+    }
+
+    return {};
+  };
+
+  const buildExampleFromSchema = (schema, depth = 0) => {
+    if (!schema || typeof schema !== "object") return null;
+    if (depth > 5) return null;
+
+    const explicitExample = schema.example ?? schema.default;
+    if (explicitExample !== undefined) return explicitExample;
+
+    if (Array.isArray(schema.enum) && schema.enum.length > 0) {
+      return schema.enum[0];
+    }
+
+    const schemaType = Array.isArray(schema.type) ? schema.type.find((t) => t !== "null") : schema.type;
+
+    switch (schemaType) {
+      case "string": {
+        if (schema.format === "uuid") return "00000000-0000-0000-0000-000000000000";
+        if (schema.format === "date-time") return "2026-01-01T00:00:00.000Z";
+        if (schema.pattern && schema.pattern.includes("a-zA-Z0-9_~.\\-")) return "example_value";
+        return "string";
+      }
+      case "integer":
+      case "number":
+        return 0;
+      case "boolean":
+        return false;
+      case "array": {
+        const itemExample = buildExampleFromSchema(schema.items, depth + 1);
+        return itemExample === null || itemExample === undefined ? [] : [itemExample];
+      }
+      case "object": {
+        const out = {};
+        const properties = schema.properties && typeof schema.properties === "object"
+          ? schema.properties
+          : {};
+        const required = Array.isArray(schema.required) ? schema.required : [];
+        const selectedKeys = required.length > 0 ? required : Object.keys(properties).slice(0, 4);
+
+        for (const key of selectedKeys) {
+          if (!properties[key]) continue;
+          const child = buildExampleFromSchema(properties[key], depth + 1);
+          if (child !== undefined) out[key] = child;
+        }
+
+        return out;
+      }
+      default:
+        return null;
+    }
+  };
+
+  const normalizeToolKey = (name) => {
+    return sanitizeToolName(name ?? "", "").toLowerCase();
+  };
+
+  const TOOL_DOC_OVERRIDES = {
+    get_endpoint_data: {
+      description:
+        "Returns detailed data for a specific endpoint, including its configuration, metadata and runtime-relevant fields. Use this tool to inspect endpoint settings before updating or debugging.",
+      notes: [
+        "Send the application identifier in `idapp` exactly as defined in the input schema.",
+        "Use this response as a read-before-write step prior to endpoint_upsert changes.",
+      ],
+    },
+    app_vars: {
+      description:
+        "Obtains the list of application variables for the given `idapp`.",
+      notes: [
+        "The parameter name is `idapp` (not `iadpp`).",
+        "Values may be serialized depending on each variable `type`.",
+      ],
+    },
+    availables_functions_modules: {
+      description:
+        "Retrieves all available internal functions and modules that can be referenced by endpoints using the `JS` handler.",
+      notes: [
+        "Useful to validate allowed imports/helpers before publishing JS endpoints.",
+        "Some legacy deployments may expose the internal path with historical typos; the MCP tool name remains stable.",
+      ],
+    },
+    app_endpoints: {
+      description:
+        "Retrieves all endpoints associated with one application (`idapp`) with their key metadata.",
+    },
+    apps_list: {
+      description:
+        "Retrieves all applications with their application variables and related endpoints.",
+    },
+    endpoint_change_history: {
+      description:
+        "Returns the ordered change history of an endpoint, useful for audits and rollback analysis.",
+      notes: [
+        "Entries are typically ordered by newest-first unless the backend configuration defines otherwise.",
+      ],
+    },
+    get_app_list_filters: {
+      description:
+        "Returns applications and nested endpoint data using the provided filters.",
+      notes: [
+        "When multiple filters are sent, backends commonly evaluate them as AND conditions.",
+      ],
+    },
+    appvar_upsert: {
+      description:
+        "Creates or updates an application variable for a target `idapp` and `environment`.",
+      notes: [
+        "`value` is sent as string in this contract; serialize JSON when storing structured data.",
+      ],
+    },
+    upsert_sql_endpoint_handler: {
+      description:
+        "Creates or updates SQL-based endpoints (CRUD/query) with Sequelize-compatible database configuration.",
+      notes: [
+        "Prefer this specialized tool for SQL handler setup; use endpoint_upsert for generic multi-handler updates.",
+      ],
+    },
+  };
+
+  const getToolDocOverride = (safeToolName) => {
+    if (!safeToolName) return null;
+    return TOOL_DOC_OVERRIDES[normalizeToolKey(safeToolName)] ?? null;
+  };
+
+  const toPrettyText = (value, fallback = "No example available.") => {
+    if (value === undefined || value === null) return fallback;
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (trimmed.length === 0) return fallback;
+      try {
+        return JSON.stringify(JSON.parse(trimmed), null, 2);
+      } catch (_error) {
+        return trimmed;
+      }
+    }
+    if (typeof value === "object") {
+      if (Array.isArray(value) && value.length === 0) return fallback;
+      if (!Array.isArray(value) && Object.keys(value).length === 0) return fallback;
+      return JSON.stringify(value, null, 2);
+    }
+    return String(value);
+  };
+
+  const sanitizeToolName = (name, fallback = "tool") => {
+    const raw = (name ?? fallback).toString().trim();
+    const cleaned = raw
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9_.-]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^[_\-.]+|[_\-.]+$/g, "");
+    return cleaned.length > 0 ? cleaned : fallback;
+  };
+
+  const normalizeSchemaForZod = (schema) => {
+    if (!schema || typeof schema !== "object") return schema;
+
+    const UNSUPPORTED_KEYS = new Set([
+      "if",
+      "then",
+      "else",
+      "anyOf",
+      "allOf",
+      "oneOf",
+      "not",
+      "dependentSchemas",
+      "unevaluatedProperties",
+      "patternProperties",
+      "prefixItems",
+      "contains",
+      "$defs",
+      "definitions",
+    ]);
+
+    const visit = (node) => {
+      if (Array.isArray(node)) return node.map(visit);
+      if (!node || typeof node !== "object") return node;
+
+      const out = {};
+      for (const [key, value] of Object.entries(node)) {
+        if (UNSUPPORTED_KEYS.has(key)) continue;
+        out[key] = visit(value);
+      }
+
+      if (out.type === "object") {
+        if (!out.properties || typeof out.properties !== "object") {
+          out.properties = {};
+        }
+
+        if (Array.isArray(out.required) && out.required.length > 0) {
+          out.required = out.required.filter((k) => out.properties?.[k]);
+          if (out.required.length === 0) delete out.required;
+        }
+      }
+
+      return out;
+    };
+
+    return visit(schema);
+  };
+
+  const isEndpointUpsertEndpoint = (endpoint) => {
+    const mcpName = (endpoint?.mcp?.name ?? "").toString().trim().toLowerCase();
+    return (
+      mcpName === "endpoint_upsert" ||
+      (
+        endpoint?.resource === "/api/endpoint" &&
+        endpoint?.method === "POST" &&
+        endpoint?.code === "fnEndpointUpsert"
+      )
+    );
+  };
+
+  const getEndpointUpsertHandlerGuide = (endpoint) => {
+    if (!isEndpointUpsertEndpoint(endpoint)) return "";
+
+    return `
+## Handler-Specific Guide (endpoint_upsert)
+
+- This tool performs UPSERT on endpoint metadata. Use a stable \`idendpoint\` to update an existing endpoint; omit \`idendpoint\` to create a new one.
+- The field \`handler\` changes the meaning of \`code\` and related fields.
+- Validate the pair \`method\` + \`resource\` + \`environment\` to avoid accidental duplicates.
+
+### Common Required Fields
+
+- \`idapp\`, \`environment\`, \`timeout\`, \`resource\`, \`method\`, \`handler\`, \`access\`, \`title\`, \`description\`, \`code\`, \`cache_time\`.
+
+### Per-Handler Rules
+
+- \`FUNCTION\`: \`code\` must be the internal registered function name (example: \`fnMyFunction\`).
+- \`JS\`: \`code\` must be executable server-side JavaScript (async logic returning response data).
+- \`SQL\`: \`code\` should be a JSON object/string with DB \`config\` + SQL \`query\` (+ optional \`query_type\`).
+- \`SQL_BULK_I\`: \`code\` should define bulk insert config (for example \`table_name\`, \`config\`, optional \`ignoreDuplicates\`); request body sends row array.
+- \`FETCH\`: \`code\` is the target URL to proxy.
+- \`SOAP\`: \`code\` should define SOAP config (for example \`wsdl\`, \`functionName\`, \`RequestArgs\`, auth if needed).
+- \`HANA\`: \`code\` should define HANA connection + query configuration; parameters are sent in body (usually \`params\`).
+- \`MONGODB\`: \`code\` should define Mongo config + VM logic payload.
+- \`TEXT\`: \`code\` should define static payload and MIME type.
+- \`MCP\`: use for MCP gateway endpoints; ensure tool metadata in \`mcp\` object is coherent.
+- \`TELEGRAM_BOT\`: baseline webhook endpoint; keep logic minimal unless bot lifecycle is managed externally.
+- \`AGENT_IA\`: experimental handler; use only when your runtime explicitly supports it.
+- \`NA\`: not implemented for production behavior.
+
+### Recommended Agent Workflow
+
+- Step 1: Select \`handler\` first.
+- Step 2: Build \`code\` with the handler contract above.
+- Step 3: Add \`json_schema\` and \`mcp\` metadata when the endpoint will be exposed as a tool.
+- Step 4: UPSERT and then read back the endpoint to verify persisted structure.
+`;
+  };
+
+  const getEndpointUpsertDescriptionAddon = (endpoint) => {
+    if (!isEndpointUpsertEndpoint(endpoint)) return "";
+
+    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is function identifier/string. JS => `code` is JavaScript source. SQL/FETCH/SOAP/HANA/MONGODB/TEXT/SQL_BULK_I => `code` is handler config object. MCP/TELEGRAM_BOT/AGENT_IA/NA => use only for those specialized integrations. Recommended agent workflow: choose handler first, then build payload structure for that handler.";
+  };
 
   // Bug fix #1: Validar que app y app.endpoints existan antes de filtrar
   if (!app || !Array.isArray(app?.endpoints)) {
@@ -58,6 +396,43 @@ export const CreateMCPHandler = async (app_name, environment) => {
     // Bug fix #4: toolName único por URL+METHOD para evitar colisiones
     let toolName = url_internal.replace(/[^a-zA-Z0-9]/g, "_");
     toolName = `${toolName}_${endpoint.method}`;
+    toolName = sanitizeToolName(toolName, "endpoint_tool");
+
+    const mcpNameRaw = endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
+      ? endpoint.mcp.name
+      : toolName;
+    const safeToolName = sanitizeToolName(mcpNameRaw, toolName);
+
+    const inputSchema = endpoint?.json_schema?.in?.schema ?? {};
+    const outputSchema = endpoint?.json_schema?.out?.schema ?? {};
+    const inputSchemaNormalized = normalizeSchemaForZod(inputSchema);
+    const schemaWasNormalized = stringifySafe(inputSchemaNormalized) !== stringifySafe(inputSchema);
+    const override = getToolDocOverride(safeToolName);
+    const rawExampleRequest = endpoint?.data_test?.body?.json?.code;
+    const rawExampleResponse = endpoint?.data_test?.last_response?.data;
+    const generatedRequestExample = buildExampleFromSchema(inputSchema);
+    const generatedResponseExample = buildExampleFromSchema(outputSchema);
+    const exampleRequest = rawExampleRequest ?? generatedRequestExample;
+    const exampleResponse = rawExampleResponse ?? generatedResponseExample;
+    const inferredOutputSchemaFromExample =
+      (rawExampleResponse !== undefined && rawExampleResponse !== null)
+        ? inferSchemaFromExample(rawExampleResponse)
+        : null;
+    const effectiveOutputSchema = isSchemaTooGeneric(outputSchema)
+      ? (inferredOutputSchemaFromExample ?? outputSchema)
+      : outputSchema;
+    const outputSchemaWasInferred =
+      isSchemaTooGeneric(outputSchema) &&
+      inferredOutputSchemaFromExample &&
+      !isSchemaTooGeneric(inferredOutputSchemaFromExample);
+    const varsDeprecated =
+      endpoint?.json_schema?.in?.schema?.properties?.vars?.deprecated === true;
+    const endpointUpsertHandlerGuide = getEndpointUpsertHandlerGuide(endpoint);
+    const endpointUpsertDescriptionAddon = getEndpointUpsertDescriptionAddon(endpoint);
+    const baseDescription = endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
+      ? endpoint?.mcp?.description
+      : endpoint.description;
+    const effectiveDescription = override?.description ?? baseDescription;
 
     // Bug fix #5: Uso de optional chaining para evitar TypeError si mcp.title/description no existen
     markdown_api_docs.push(`##
@@ -66,16 +441,15 @@ export const CreateMCPHandler = async (app_name, environment) => {
         ? endpoint?.mcp?.name
         : toolName}** 
 
+**MCP Tool Name (safe)**
+${safeToolName}
+
 ### Description
-${endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
-        ? endpoint?.mcp?.description
-        : endpoint.description}
+${effectiveDescription}
 
   
 
-This endpoint is designed as a simple arithmetic demonstration for
-
-development and testing purposes.
+This endpoint belongs to application **${app_name}** and is exposed to MCP agents.
 
   
 
@@ -96,7 +470,7 @@ ${url_internal}
 ------------------------------------------------------------------------
 
 ## Access Level
-${endpoint.access == 0 ? "Public" : "Private (require authentication)"}
+${getAccessLevelLabel(endpoint.access)}
 
 ------------------------------------------------------------------------
 
@@ -107,7 +481,7 @@ ${endpoint.access == 0 ? "Public" : "Private (require authentication)"}
 
 \`\`\` json
 
-${JSON.stringify( endpoint?.json_schema?.in?.schema, null, 2)}
+${stringifySafe(inputSchema)}
 
 \`\`\`
 
@@ -115,6 +489,12 @@ ${JSON.stringify( endpoint?.json_schema?.in?.schema, null, 2)}
   
 
 # Example Request
+
+\`\`\` json
+
+${toPrettyText(exampleRequest)}
+
+\`\`\`
 
   
 
@@ -128,7 +508,7 @@ ${JSON.stringify( endpoint?.json_schema?.in?.schema, null, 2)}
 
 \`\`\` json
 
-${JSON.stringify(endpoint?.json_schema?.out?.schema, null, 2)}
+${stringifySafe(effectiveOutputSchema)}
 
       \`\`\`
 ------------------------------------------------------------------------
@@ -138,12 +518,11 @@ ${JSON.stringify(endpoint?.json_schema?.out?.schema, null, 2)}
 # Example Response
 
 
+  \`\`\` json
 
-      \`\`\` json
+${toPrettyText(exampleResponse)}
 
-
-
-        \`\`\`
+    \`\`\`
 
   
 
@@ -153,7 +532,15 @@ ${JSON.stringify(endpoint?.json_schema?.out?.schema, null, 2)}
 
 # Behavior Notes(for AI Agents)
 
-      - This endpoint performs a ** deterministic operation **.
+  - Use this tool only with fields defined in the input schema.
+  - If schema marks a field as deprecated, avoid it for new integrations.
+  - Access level above indicates if credentials are required.
+  ${schemaWasNormalized ? "- Internal runtime validation schema was normalized for MCP compatibility (unsupported JSON Schema keywords removed)." : "- Runtime validation uses the published JSON schema directly."}
+  ${outputSchemaWasInferred ? "- Output schema was inferred from a real example response because the declared output schema is too generic." : "- Output schema is documented as declared by the endpoint contract."}
+  ${varsDeprecated ? "- Field `vars` is deprecated (compatibility only). Use appvar_upsert for new app variables." : "- Validate required fields before sending the request."}
+  ${(override?.notes ?? []).map((note) => `- ${note}`).join("\n  ")}
+
+${endpointUpsertHandlerGuide}
 `);
 
     let zod_inputSchema = z.object({}).describe("Data to send to the endpoint.");
@@ -163,7 +550,7 @@ ${JSON.stringify(endpoint?.json_schema?.out?.schema, null, 2)}
       endpoint?.json_schema?.in?.schema
     ) {
       try {
-        const zodSchema = jsonSchemaToZod(endpoint.json_schema.in.schema);
+        const zodSchema = jsonSchemaToZod(inputSchemaNormalized);
         if (zodSchema instanceof z.ZodObject) {
           zod_inputSchema = zodSchema;
         } else {
@@ -181,18 +568,16 @@ ${JSON.stringify(endpoint?.json_schema?.out?.schema, null, 2)}
     }
 
     server.registerTool(
-      endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
-        ? endpoint?.mcp?.name
-        : toolName,
+      safeToolName,
       {
         title:
           endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
             ? endpoint?.mcp?.title
             : endpoint.description,
         description: `${endpoint.access == 0 ? "Public" : "Private"}  ${endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
-            ? endpoint?.mcp?.description
-            : endpoint.description
-          } `,
+            ? (override?.description ?? endpoint?.mcp?.description)
+            : (override?.description ?? endpoint.description)
+          }${endpointUpsertDescriptionAddon} `,
 
         inputSchema: zod_inputSchema,
       },
@@ -280,11 +665,11 @@ ${markdown_api_docs.join("\n")}
   )
 
 server.registerTool(
-  "list_api_endpoints_" + app_name,
+  sanitizeToolName("list_api_endpoints_" + app_name, "list_api_endpoints"),
   {
     title: "List API endpoints for " + app_name + " on " + environment + " environment",
     description: "Return documentation for all API endpoints for application '" + app_name + "' on '" + environment + "' environment.",
-    inputSchema: z.object({}).shape,
+    inputSchema: z.object({}),
     annotations: { readOnlyHint: true },
   },
   async () => ({
