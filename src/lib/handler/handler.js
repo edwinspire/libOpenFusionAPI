@@ -105,6 +105,13 @@ export const Handlers = {
       "Create a Telegram Bot. Within this endpoint, you can write JavaScript code to give the Bot functionality.",
     modules: listFunctionsVars()
   },
+  NA: {
+    label: "Not Assigned",
+    css_icon: "fa-solid fa-ban",
+    css_class: "secondary",
+    description:
+      "Internal default/no-op handler. Keep for compatibility; avoid selecting it for new integrations.",
+  },
 };
 
 export const getHandlerDoc = async (handler) => {

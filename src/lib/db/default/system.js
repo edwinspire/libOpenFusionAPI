@@ -5,7 +5,7 @@ export const system_app = {
   },
   "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
   "app": "system",
-  "rowkey": 493,
+  "rowkey": 155,
   "iduser": null,
   "enabled": true,
   "description": "App System",
@@ -146,7 +146,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff4",
-      "rowkey": 226,
+      "rowkey": 911,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -217,13 +217,18 @@ export const system_app = {
                 "description": "ID of the creator/owner user. Optional."
               },
               "enabled": {
-                "type": "integer",
+                "type": [
+                  "boolean",
+                  "integer"
+                ],
                 "enum": [
+                  true,
+                  false,
                   0,
                   1
                 ],
-                "default": 1,
-                "description": "1 = active, 0 = disabled. Send as integer (0/1); stored internally as boolean."
+                "default": true,
+                "description": "Whether the application is enabled. Prefer boolean values; legacy 0/1 is still accepted for compatibility."
               },
               "description": {
                 "type": [
@@ -363,7 +368,7 @@ export const system_app = {
           "json": {
             "code": {
               "app": "mi_nueva_app",
-              "enabled": 1,
+              "enabled": true,
               "description": "App creada desde MCP",
               "params": {
                 "users": []
@@ -405,7 +410,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff3",
-      "rowkey": 196,
+      "rowkey": 434,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -505,7 +510,7 @@ export const system_app = {
         }
       },
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
-      "rowkey": 522,
+      "rowkey": 481,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -621,7 +626,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff1",
-      "rowkey": 314,
+      "rowkey": 899,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -704,7 +709,7 @@ export const system_app = {
         }
       },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
-      "rowkey": 225,
+      "rowkey": 544,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -804,7 +809,7 @@ export const system_app = {
         }
       },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f6160",
-      "rowkey": 81,
+      "rowkey": 603,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -839,9 +844,9 @@ export const system_app = {
       "cors": {},
       "mcp": {
         "enabled": true,
-        "name": "get_endpoint_data",
-        "title": "Get Endpoint Details",
-        "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp. Returns detailed data from an endpoint."
+        "name": "read_endpoint_data",
+        "title": "Read Endpoint Details",
+        "description": "Returns the data of an endpoint by passing the idendpoint as a parameter."
       },
       "json_schema": {
         "in": {
@@ -849,13 +854,13 @@ export const system_app = {
           "schema": {
             "type": "object",
             "properties": {
-              "idapp": {
+              "idendpoint": {
                 "type": "string"
               }
             },
             "additionalProperties": false,
             "required": [
-              "idapp"
+              "idendpoint"
             ]
           }
         },
@@ -921,7 +926,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf02",
-      "rowkey": 854,
+      "rowkey": 989,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -931,7 +936,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "GET Endpoint Data",
-      "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp. Returns detailed data from an endpoint.",
+      "description": "Returns the data of an endpoint by passing the idendpoint as a parameter.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -958,7 +963,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_upsert",
         "title": "Endpoint UPSERT",
-        "description": "Creates or updates an endpoint. ⚠️ JS handler: use $_RETURN_DATA_ (not return) to output data. INSERT: omit idendpoint. UPDATE: include idendpoint UUID. Call get_endpoint_data first to read before writing. AppVars can be injected via \"$_VAR_NAME\" syntax."
+        "description": "Creates or updates an endpoint. ⚠️ JS handler: use $_RETURN_DATA_ (not return) to output data. INSERT: omit idendpoint. UPDATE: include idendpoint UUID. Call read_endpoint_data first to read before writing. AppVars can be injected via \"$_VAR_NAME\" syntax."
       },
       "json_schema": {
         "in": {
@@ -1030,7 +1035,6 @@ export const system_app = {
                   "TEXT",
                   "MCP",
                   "TELEGRAM_BOT",
-                  "AGENT_IA",
                   "NA"
                 ],
                 "minLength": 1,
@@ -1090,7 +1094,7 @@ export const system_app = {
               "code": {
                 "type": "string",
                 "default": "",
-                "description": "Handler payload — convention depends on 'handler': JS → server-side JS source; CRITICAL: assign $_RETURN_DATA_ (NOT 'return') to produce output, e.g. '$_RETURN_DATA_ = { result: 42 };'. FUNCTION → internal function name (e.g. 'fnMyFunction'). FETCH → target URL string to proxy. TEXT → JSON string with 'content' and 'mime' fields. SQL → JSON with 'config' (DB) + 'query' (SQL). SQL_BULK_I → JSON with 'table_name' + 'config'. SOAP → JSON with 'wsdl', 'functionName', 'RequestArgs'. HANA/MONGODB → handler-specific JSON config."
+                "description": "Handler payload — convention depends on 'handler': JS → server-side JS source; CRITICAL: assign $_RETURN_DATA_ (NOT 'return') to produce output, e.g. '$_RETURN_DATA_ = { result: 42 };'. FUNCTION → internal function name (e.g. 'fnMyFunction'). FETCH → target URL string to proxy. TEXT → JSON string with 'content' and 'mime' fields. SQL → plain SQL query string; store connection settings in 'custom_data'. SQL_BULK_I → JSON with 'table_name' + 'config'. SOAP → JSON with 'wsdl', 'functionName', 'RequestArgs'. HANA/MONGODB/MCP/TELEGRAM_BOT → handler-specific JSON config."
               },
               "cors": {
                 "$ref": "#/$defs/jsonValue",
@@ -1276,7 +1280,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf01",
-      "rowkey": 389,
+      "rowkey": 909,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1311,7 +1315,7 @@ export const system_app = {
       "cors": {},
       "mcp": {
         "enabled": true,
-        "name": "Endpoint Change History",
+        "name": "endpoint_change_history",
         "title": "endpoint_change_history",
         "description": "Returns the change history of an endpoint. This information can be useful for reverting to a previous version."
       },
@@ -1395,7 +1399,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
-      "rowkey": 967,
+      "rowkey": 595,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1467,7 +1471,7 @@ export const system_app = {
         }
       },
       "idendpoint": "13f94d7d-6612-4c30-8202-286cbbe3da3e",
-      "rowkey": 471,
+      "rowkey": 460,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1514,20 +1518,10 @@ export const system_app = {
             "properties": {
               "handler": {
                 "type": "string",
-                "enum": [
-                  "JS",
-                  "FETCH",
-                  "SOAP",
-                  "SQL",
-                  "TEXT",
-                  "SQL_BULK_I",
-                  "HANA",
-                  "FUNCTION",
-                  "MONGODB",
-                  "MCP",
-                  "TELEGRAM_BOT"
-                ],
-                "description": "Type of handler used by the endpoint"
+                "minLength": 1,
+                "maxLength": 25,
+                "pattern": "^[A-Z_]+$",
+                "description": "Type of handler used by the endpoint. Recommended values: JS, FETCH, SOAP, SQL, TEXT, SQL_BULK_I, HANA, FUNCTION, MONGODB, MCP, TELEGRAM_BOT, NA."
               }
             },
             "additionalProperties": false,
@@ -1594,12 +1588,12 @@ export const system_app = {
           }
         },
         "last_response": {
-          "data": "{\n  \"label\": \"SQL\",\n  \"description\": \"It allows you to connect to the most popular databases (those supported by Sequelize) and perform the operations supported by the library.\",\n  \"markdown\": \"# SQL Handler – Universal Database Connector\\r\\n\\r\\nThe **SQL handler** allows OpenFusionAPI to execute SQL queries against various relational databases (MySQL, PostgreSQL, MSSQL, SQLite, etc.) using the Sequelize ORM.\\r\\n\\r\\n---\\r\\n\\r\\n<details>\\r\\n<summary>🧠 How It Works</summary>\\r\\n\\r\\nWhen an endpoint is configured with the **SQL** handler:\\r\\n1.  **Configuration**: It reads the connection details and SQL query from the endpoint's configuration.\\r\\n2.  **Connection Pooling**: It uses an internal Least Recently Used (LRU) mechanism to manage and reuse database connection pools, ensuring high performance and resource efficiency (limit: 50 active pools).\\r\\n3.  **Binding**: It safely binds parameters from the HTTP request (GET query params or POST body) to the SQL query to prevent SQL Injecti",
+          "data": "{\n  \"label\": \"SQL\",\n  \"description\": \"It allows you to connect to the most popular databases (those supported by Sequelize) and perform the operations supported by the library.\",\n  \"markdown\": \"# SQL Handler – Universal Database Connector\\r\\n\\r\\nThe **SQL handler** allows OpenFusionAPI to execute SQL queries against various relational databases (MySQL, PostgreSQL, MSSQL, SQLite, etc.) using the Sequelize ORM.\\r\\n\\r\\n---\\r\\n\\r\\n<details>\\r\\n<summary>🧠 How It Works</summary>\\r\\n\\r\\nWhen an endpoint is configured with the **SQL** handler:\\r\\n1.  **Configuration**: It reads the SQL query from the endpoint `code` and the database connection settings from `custom_data`.\\r\\n2.  **Connection Pooling**: It uses an internal Least Recently Used (LRU) mechanism to manage and reuse database connection pools, ensuring high performance and resource efficiency (limit: 50 active pools).\\r\\n3.  **Binding**: It safely binds parameters from the HTTP request (GET query params or POST body) to the SQL query to prevent SQL Injecti",
           "sizeKBResponse": "4.17"
         }
       },
       "idendpoint": "25ca7819-8823-4835-87c5-04b792bc594d",
-      "rowkey": 808,
+      "rowkey": 903,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1699,7 +1693,7 @@ export const system_app = {
         }
       },
       "idendpoint": "788e6e35-106d-45db-acb0-839db45c20f6",
-      "rowkey": 761,
+      "rowkey": 830,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1730,7 +1724,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908194",
-      "rowkey": 383,
+      "rowkey": 78,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1761,7 +1755,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
-      "rowkey": 737,
+      "rowkey": 439,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1792,7 +1786,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
-      "rowkey": 149,
+      "rowkey": 246,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1892,7 +1886,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d2fff88-66a6-43b5-9cab-11b5aec1a706",
-      "rowkey": 716,
+      "rowkey": 911,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1992,7 +1986,7 @@ export const system_app = {
         }
       },
       "idendpoint": "f57b01dc-a51c-4c23-ab4b-c890ca733e80",
-      "rowkey": 740,
+      "rowkey": 28,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2023,7 +2017,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 23,
+      "rowkey": 340,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2054,7 +2048,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 373,
+      "rowkey": 213,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2085,7 +2079,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ee",
-      "rowkey": 288,
+      "rowkey": 833,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2171,7 +2165,7 @@ export const system_app = {
         }
       },
       "idendpoint": "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
-      "rowkey": 592,
+      "rowkey": 574,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2200,7 +2194,7 @@ export const system_app = {
       "cors": {},
       "mcp": {
         "enabled": true,
-        "name": "Get App List Filters",
+        "name": "get_app_list_filters",
         "title": "Get App List Filters",
         "description": "It retrieves complete information about an application (app), including data such as endpoints and application variables. You can apply filters to obtain the data."
       },
@@ -2324,7 +2318,7 @@ export const system_app = {
         }
       },
       "idendpoint": "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
-      "rowkey": 50,
+      "rowkey": 708,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2402,7 +2396,7 @@ export const system_app = {
         }
       },
       "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
-      "rowkey": 754,
+      "rowkey": 382,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2537,7 +2531,7 @@ export const system_app = {
         }
       },
       "idendpoint": "20354d7a-e4fe-47af-8ff6-187bca92f3f9",
-      "rowkey": 185,
+      "rowkey": 734,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2644,7 +2638,7 @@ export const system_app = {
         }
       },
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 756,
+      "rowkey": 489,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2742,7 +2736,7 @@ export const system_app = {
         }
       },
       "idendpoint": "51316993-907c-4fd0-859f-7d2a0bc90dd3",
-      "rowkey": 300,
+      "rowkey": 310,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2771,7 +2765,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3ead2170-283d-4c6a-abc1-eddd217b6d01",
-      "rowkey": 889,
+      "rowkey": 720,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2800,7 +2794,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "047845ac-5367-48ed-9465-8e36ba6c7bae",
-      "rowkey": 960,
+      "rowkey": 645,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2910,7 +2904,7 @@ export const system_app = {
         }
       },
       "idendpoint": "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
-      "rowkey": 761,
+      "rowkey": 282,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3054,7 +3048,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cff35b3a-7ca0-4ef8-882d-d39815d55616",
-      "rowkey": 821,
+      "rowkey": 272,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3291,7 +3285,7 @@ export const system_app = {
         }
       },
       "idendpoint": "8bb911ac-374c-41c9-b93f-21d037abf330",
-      "rowkey": 382,
+      "rowkey": 546,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3377,7 +3371,7 @@ export const system_app = {
         }
       },
       "idendpoint": "bcf0e362-a454-4e47-85a0-772c4ddd3538",
-      "rowkey": 166,
+      "rowkey": 273,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3463,7 +3457,7 @@ export const system_app = {
         }
       },
       "idendpoint": "0b48cd44-09fe-40e7-b0a7-59fe01e054cc",
-      "rowkey": 942,
+      "rowkey": 111,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3532,7 +3526,7 @@ export const system_app = {
         }
       },
       "idendpoint": "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
-      "rowkey": 870,
+      "rowkey": 660,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3601,7 +3595,7 @@ export const system_app = {
         }
       },
       "idendpoint": "e753e2db-ca20-4607-82b7-34b70e435a0c",
-      "rowkey": 739,
+      "rowkey": 412,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3670,7 +3664,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34987a43-63e4-4926-824b-5254155b5c80",
-      "rowkey": 159,
+      "rowkey": 339,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3747,7 +3741,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34870b00-beb1-45d3-ada6-c164fc22cd7a",
-      "rowkey": 593,
+      "rowkey": 489,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3842,7 +3836,7 @@ export const system_app = {
         }
       },
       "idendpoint": "787a8ec2-b0d7-44ae-9214-2254f9d9d086",
-      "rowkey": 729,
+      "rowkey": 681,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3903,7 +3897,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
-      "rowkey": 826,
+      "rowkey": 907,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3934,7 +3928,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "12fb738c-7d1f-4eba-afb4-508a9fa9d06a",
-      "rowkey": 425,
+      "rowkey": 891,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4018,7 +4012,7 @@ export const system_app = {
         }
       },
       "idendpoint": "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
-      "rowkey": 650,
+      "rowkey": 295,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4049,7 +4043,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2fa0",
-      "rowkey": 979,
+      "rowkey": 634,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4080,7 +4074,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2faf",
-      "rowkey": 551,
+      "rowkey": 864,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4158,7 +4152,7 @@ export const system_app = {
         }
       },
       "idendpoint": "17c211d6-8c81-4274-b5c4-604126454ab0",
-      "rowkey": 361,
+      "rowkey": 348,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4193,8 +4187,8 @@ export const system_app = {
       "cors": {},
       "mcp": {
         "enabled": true,
-        "name": "availables_functions_modules",
-        "title": "availables_functions_modules",
+        "name": "available_functions_modules",
+        "title": "available_functions_modules",
         "description": "It retrieves the list of all available functions and modules that can be used within an endpoint when using the \"JS\" handler."
       },
       "json_schema": {
@@ -4259,7 +4253,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d3de358-681d-4b61-98dc-c1663db0c02c",
-      "rowkey": 257,
+      "rowkey": 492,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4353,7 +4347,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
-      "rowkey": 904,
+      "rowkey": 677,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4417,7 +4411,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "18731c87-9d59-44b6-8871-ecaa493008e5",
-      "rowkey": 143,
+      "rowkey": 203,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4510,7 +4504,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
-      "rowkey": 931,
+      "rowkey": 19,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4625,7 +4619,7 @@ export const system_app = {
         }
       },
       "idendpoint": "871cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 493,
+      "rowkey": 108,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4656,7 +4650,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "131cca3e-f835-4414-89ca-5ddbbec5ab89",
-      "rowkey": 258,
+      "rowkey": 181,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4687,7 +4681,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
-      "rowkey": 4,
+      "rowkey": 669,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4718,7 +4712,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 907,
+      "rowkey": 150,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4749,7 +4743,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908193",
-      "rowkey": 699,
+      "rowkey": 101,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4778,7 +4772,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
-      "rowkey": 411,
+      "rowkey": 36,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4809,7 +4803,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
-      "rowkey": 110,
+      "rowkey": 768,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4895,7 +4889,7 @@ export const system_app = {
         }
       },
       "idendpoint": "a0130d77-b779-4dea-a87f-6841520ffade",
-      "rowkey": 30,
+      "rowkey": 262,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",

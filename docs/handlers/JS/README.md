@@ -10,8 +10,8 @@ The **JS handler** enables the execution of raw JavaScript code on the server. T
 When an endpoint is configured with the **JS** handler:
 1.  **Sandboxing**: The code provided in the configuration is wrapped in an async function and executed within a Node.js VM context (using `createFunctionVM`).
 2.  **Context Injection**: The function receives a context object providing access to the HTTP request, response helpers, and environment variables.
-3.  **Execution**: The script runs, performs its logic, and returns a result object.
-4.  **Response**: The `data` property of the result is sent back as the HTTP response body. Headers can also be customized.
+3.  **Execution**: The script runs inside the VM sandbox with helper variables injected into scope.
+4.  **Response**: To send a response you must assign a value to `$_RETURN_DATA_`. Custom headers can be assigned to `$_CUSTOM_HEADERS_`.
 
 </details>
 
@@ -24,23 +24,23 @@ The configuration area accepts raw JavaScript code. The code must essentially fo
 
 **Available Context Variables**:
 You have access to a context object (implied) with helper functions injected via `functionsVars`:
--   `$_REQUEST_`: Access headers, body, query, and method.
+-   `request`: Access headers, body, query, and method.
 -   `endpointEnv`: Environment variables for the current endpoint environment.
+-   `$_RETURN_DATA_`: Response payload to send back to the client.
+-   `$_CUSTOM_HEADERS_`: Optional `Map` with custom response headers.
 
-**Expected Return**:
-Your code should return an object with:
--   `data`: The payload to send to the client (JSON object, string, etc.).
--   `headers`: (Optional) A `Map` or object of custom headers to set.
+**Response Contract**:
+-   Assign the payload to `$_RETURN_DATA_`.
+-   Optionally assign a `Map` to `$_CUSTOM_HEADERS_`.
+-   Do **not** use `return` as the response contract.
 
 **Simple Example**:
 ```javascript
 // Echo back the request body with a timestamp
-const body = $_REQUEST_.body || {};
+const body = request.body || {};
 body.processedAt = new Date().toISOString();
 
-return {
-  data: body
-};
+$_RETURN_DATA_ = body;
 ```
 
 </details>
@@ -63,7 +63,7 @@ The JS Handler environment often enables access to standard internal libraries. 
 
 ```javascript
 // Calculate total value from a list of items in the request
-const items = $_REQUEST_.body.items || [];
+const items = request.body.items || [];
 let total = 0;
 
 for (const item of items) {
@@ -74,15 +74,21 @@ for (const item of items) {
 let headers = new Map();
 headers.set('X-Calculated-Total', total.toString());
 
-return {
-  data: { 
-    count: items.length, 
-    totalValue: total, 
-    currency: "USD" 
-  },
-  headers: headers
+$_CUSTOM_HEADERS_ = headers;
+$_RETURN_DATA_ = {
+  count: items.length,
+  totalValue: total,
+  currency: "USD"
 };
 ```
+
+**Incorrect Example**
+
+```javascript
+return { ok: true };
+```
+
+The code above may execute, but it is not the supported response contract for this handler. Use `$_RETURN_DATA_` instead.
 
 </details>
 

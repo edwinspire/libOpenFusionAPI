@@ -8,7 +8,7 @@ The **SQL handler** allows OpenFusionAPI to execute SQL queries against various 
 <summary>🧠 How It Works</summary>
 
 When an endpoint is configured with the **SQL** handler:
-1.  **Configuration**: It reads the connection details and SQL query from the endpoint's configuration.
+1.  **Configuration**: It reads the SQL query from the endpoint `code` and the database connection settings from `custom_data`.
 2.  **Connection Pooling**: It uses an internal Least Recently Used (LRU) mechanism to manage and reuse database connection pools, ensuring high performance and resource efficiency (limit: 50 active pools).
 3.  **Binding**: It safely binds parameters from the HTTP request (GET query params or POST body) to the SQL query to prevent SQL Injection.
 4.  **Execution**: The query is executed via Sequelize.
@@ -21,9 +21,16 @@ When an endpoint is configured with the **SQL** handler:
 <details>
 <summary>⚙️ Endpoint Configuration</summary>
 
-The configuration must be a valid **JSON object** containing `config` (connection details) and `query`.
+For this handler:
+-   `code` stores the SQL query string.
+-   `custom_data` stores the database connection settings and optional SQL execution metadata.
 
-**Structure**:
+**`code` example**:
+```sql
+SELECT * FROM users WHERE id = :id
+```
+
+**`custom_data` example**:
 ```json
 {
   "config": {
@@ -33,15 +40,14 @@ The configuration must be a valid **JSON object** containing `config` (connectio
     "options": {
       "host": "localhost",
       "port": 5432,
-      "dialect": "postgres" // or 'mysql', 'mssql', 'sqlite'
+      "dialect": "postgres"
     }
   },
-  "query": "SELECT * FROM users WHERE id = :id",
-  "query_type": "SELECT" // Optional: SELECT, INSERT, UPDATE, DELETE
+  "query_type": "SELECT"
 }
 ```
 
-**Note**: Connection details can be dynamically merged from the request (see "Dynamic Connection" below) or stored in Application Variables.
+**Note**: Connection details can be dynamically merged from the request (see "Dynamic Connection" below) or stored in Application Variables. Avoid wrapping both `config` and `query` together inside `code` for new integrations.
 
 </details>
 
@@ -96,7 +102,25 @@ You can override or provide connection details at runtime by sending a `connecti
 
 **Simple Selection**
 
-Endpoint Config: `SELECT * FROM customers WHERE country = :country`
+Endpoint `code`: `SELECT * FROM customers WHERE country = :country`
+
+Endpoint `custom_data`:
+
+```json
+{
+  "config": {
+    "database": "crm",
+    "username": "readonly",
+    "password": "secret",
+    "options": {
+      "host": "db.internal",
+      "port": 5432,
+      "dialect": "postgres"
+    }
+  },
+  "query_type": "SELECT"
+}
+```
 
 ```bash
 curl -X GET "https://your-server.com/api/sql/customers?country=USA"

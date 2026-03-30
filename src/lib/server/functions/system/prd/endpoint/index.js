@@ -41,7 +41,7 @@ export async function fnEndpointGetById(params) {
         ? false
         : true;
 
-    r.data = await getEndpointById(params.request.query.idapp, raw);
+    r.data = await getEndpointById(params.request.query.idendpoint, raw);
     r.code = 200;
   } catch (error) {
     console.log(error);

@@ -108,6 +108,20 @@ export const CreateMCPHandler = async (app_name, environment) => {
     return {};
   };
 
+  const tryParseStructuredString = (value) => {
+    if (typeof value !== "string") return value;
+
+    const trimmed = value.trim();
+    if (!trimmed) return value;
+    if (!["{", "[", '"'].includes(trimmed[0])) return value;
+
+    try {
+      return JSON.parse(trimmed);
+    } catch (_error) {
+      return value;
+    }
+  };
+
   const buildExampleFromSchema = (schema, depth = 0) => {
     if (!schema || typeof schema !== "object") return null;
     if (depth > 5) return null;
@@ -163,13 +177,29 @@ export const CreateMCPHandler = async (app_name, environment) => {
   };
 
   const TOOL_DOC_OVERRIDES = {
-    get_endpoint_data: {
+    app_data: {
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
+    app_create_update: {
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
+    read_endpoint_data: {
       description:
-        "Returns detailed data for a specific endpoint, including its configuration, metadata and runtime-relevant fields. Use this tool to inspect endpoint settings before updating or debugging.",
+        "Returns detailed data for a specific endpoint by `idendpoint`, including its configuration, metadata and runtime-relevant fields. Use this tool to inspect endpoint settings before updating or debugging.",
       notes: [
-        "Send the application identifier in `idapp` exactly as defined in the input schema.",
+        "Send the endpoint identifier in `idendpoint` exactly as defined in the input schema.",
         "Use this response as a read-before-write step prior to endpoint_upsert changes.",
       ],
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
     },
     app_vars: {
       description:
@@ -178,22 +208,47 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "The parameter name is `idapp` (not `iadpp`).",
         "Values may be serialized depending on each variable `type`.",
       ],
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
     },
-    availables_functions_modules: {
+    available_functions_modules: {
       description:
         "Retrieves all available internal functions and modules that can be referenced by endpoints using the `JS` handler.",
       notes: [
         "Useful to validate allowed imports/helpers before publishing JS endpoints.",
         "Some legacy deployments may expose the internal path with historical typos; the MCP tool name remains stable.",
       ],
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
     },
     app_endpoints: {
       description:
         "Retrieves all endpoints associated with one application (`idapp`) with their key metadata.",
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
     },
     apps_list: {
       description:
         "Retrieves all applications with their application variables and related endpoints.",
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
     },
     endpoint_change_history: {
       description:
@@ -201,6 +256,13 @@ export const CreateMCPHandler = async (app_name, environment) => {
       notes: [
         "Entries are typically ordered by newest-first unless the backend configuration defines otherwise.",
       ],
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
     },
     get_app_list_filters: {
       description:
@@ -208,6 +270,13 @@ export const CreateMCPHandler = async (app_name, environment) => {
       notes: [
         "When multiple filters are sent, backends commonly evaluate them as AND conditions.",
       ],
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
     },
     appvar_upsert: {
       description:
@@ -215,6 +284,28 @@ export const CreateMCPHandler = async (app_name, environment) => {
       notes: [
         "`value` is sent as string in this contract; serialize JSON when storing structured data.",
       ],
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
+    endpoint_upsert: {
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
+    handler_documentation: {
+      outputSchema: {
+        type: "object",
+        properties: {
+          label: { type: "string" },
+          description: { type: "string" },
+          markdown: { type: "string" },
+        },
+        required: ["label", "description", "markdown"],
+        additionalProperties: true,
+      },
     },
     upsert_sql_endpoint_handler: {
       description:
@@ -326,7 +417,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
 
 ### INSERT vs UPDATE
 - **INSERT**: omit \`idendpoint\` — the server generates a new UUID automatically.
-- **UPDATE**: include a valid \`idendpoint\` UUID. Use \`get_endpoint_data\` first to read the current state before modifying.
+- **UPDATE**: include a valid \`idendpoint\` UUID. Use \`read_endpoint_data\` first to read the current state before modifying.
 
 ### Minimum Required Fields (all handlers)
 \`idapp\`, \`environment\` (dev|qa|prd), \`resource\` (e.g. \`/mypath\`), \`method\` (GET|POST|PUT|DELETE|PATCH), \`handler\`, \`access\`, \`title\`, \`description\`, \`code\`, \`timeout\` (default 30), \`cache_time\` (default 0).
@@ -346,14 +437,58 @@ export const CreateMCPHandler = async (app_name, environment) => {
 | \`FUNCTION\` | Internal function name, e.g. \`fnMyFunction\` |
 | \`FETCH\` | Target URL string to proxy, e.g. \`https://api.example.com/data\` |
 | \`TEXT\` | JSON string: \`{"content":"hello","mime":"text/plain"}\` |
-| \`SQL\` | Standard String SQL query (\`SELECT * FROM table\`). Connection config goes in \`custom_data\` (JSON string) |
+| \`SQL\` | Standard SQL query string. Connection config goes in \`custom_data\` |
 | \`SQL_BULK_I\` | JSON with \`table_name\`, \`config\`, optionally \`ignoreDuplicates\` |
 | \`SOAP\` | JSON with \`wsdl\`, \`functionName\`, \`RequestArgs\` |
 | \`HANA\` | JSON with HANA connection + SQL query |
 | \`MONGODB\` | JSON with Mongo config + VM logic |
+| \`MCP\` | Handler-specific configuration object |
+| \`TELEGRAM_BOT\` | Handler-specific bot configuration |
+| \`NA\` | Internal default/no-op handler. Avoid for new integrations |
+
+### Minimum examples by handler
+
+**JS**
+\`code\`: \`$_RETURN_DATA_ = { ok: true };\`
+
+**FUNCTION**
+\`code\`: \`fnMyFunction\`
+
+**FETCH**
+\`code\`: \`https://api.example.com/data\`
+
+**TEXT**
+\`code\`: \`{"content":"hello","mime":"text/plain"}\`
+
+**SQL**
+\`code\`: \`SELECT * FROM users WHERE id = :id\`
+
+\`custom_data\`:
+\`{"config":{"database":"app","username":"user","password":"pass","options":{"host":"localhost","port":5432,"dialect":"postgres"}},"query_type":"SELECT"}\`
+
+**SQL_BULK_I**
+\`code\`: \`{"table_name":"users","config":{"database":"app","username":"user","password":"pass","options":{"host":"localhost","dialect":"postgres"}}}\`
+
+**SOAP**
+\`code\`: \`{"wsdl":"https://example.com/service?wsdl","functionName":"GetUser","RequestArgs":{"request":{"id":1}}}\`
+
+**HANA**
+\`code\`: \`{"config":{"serverNode":"host:30015","uid":"user","pwd":"pass"},"query":"SELECT CURRENT_UTCTIMESTAMP FROM DUMMY"}\`
+
+**MONGODB**
+\`code\`: \`{"config":{"uri":"mongodb://127.0.0.1:27017/test","collection":"users"},"js":"$_RETURN_DATA_ = await collection.find({}).toArray();"}\`
+
+**MCP**
+\`code\`: \`{"server":"my_mcp_server","tool":"search_docs"}\`
+
+**TELEGRAM_BOT**
+\`code\`: \`{"commands":[{"command":"start","description":"Initialize bot"}],"js":"$_RETURN_DATA_ = { ok: true };"}\`
 
 ### ⚠️ SQL handler Binds
 For parametrized SQL, use named bindings prefixed with a colon (e.g. \`SELECT * FROM tbl WHERE id = :id\`). For GET, query params match automatically. For POST, send a JSON body with a \`bind\` object: \`{"bind": {"id": 1}}\`.
+
+### ⚠️ SQL custom_data
+For the \`SQL\` handler, keep the SQL query in \`code\` and store database connection parameters in \`custom_data\`. Do not wrap both pieces inside \`code\`.
 
 ### ⚠️ CRITICAL: JS handler — do NOT use \`return\`
 
@@ -392,9 +527,9 @@ $_CUSTOM_HEADERS_ = h;
 ### Recommended workflow
 
 1. Call \`handler_documentation\` with the chosen handler for extended docs.
-2. Build the \`code\` field following the table above.
+2. Build the \`code\` field following the table above and use \`custom_data\` for SQL connection settings.
 3. Run \`endpoint_upsert\` with all required fields.
-4. Call \`get_endpoint_data\` to verify the persisted structure.
+4. Call \`read_endpoint_data\` to verify the persisted structure.
 5. Test the endpoint via its HTTP URL before exposing it as an MCP tool.
 `;
   };
@@ -402,7 +537,7 @@ $_CUSTOM_HEADERS_ = h;
   const getEndpointUpsertDescriptionAddon = (endpoint) => {
     if (!isEndpointUpsertEndpoint(endpoint)) return "";
 
-    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is function identifier/string. JS => `code` is JavaScript source. SQL/FETCH/SOAP/HANA/MONGODB/TEXT/SQL_BULK_I => `code` is handler config object. MCP/TELEGRAM_BOT/AGENT_IA/NA => use only for those specialized integrations. Recommended agent workflow: choose handler first, then build payload structure for that handler.";
+    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is a function identifier string. JS => `code` is JavaScript source that must assign `$_RETURN_DATA_`. FETCH => `code` is the target URL. TEXT => `code` is a JSON string with `content` and `mime`. SQL => `code` is the SQL query and `custom_data` stores connection settings. SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => `code` uses handler-specific configuration. NA is an internal default/no-op handler and should be avoided in new integrations. Recommended agent workflow: choose handler first, then build payload structure for that handler.";
   };
 
   // Bug fix #1: Validar que app y app.endpoints existan antes de filtrar
@@ -443,7 +578,8 @@ $_CUSTOM_HEADERS_ = h;
     const mcpNameRaw = endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
       ? endpoint.mcp.name
       : toolName;
-    const safeToolName = sanitizeToolName(mcpNameRaw, toolName);
+    const legacyToolName = sanitizeToolName(mcpNameRaw, toolName);
+    const safeToolName = normalizeToolKey(legacyToolName);
 
     const inputSchema = endpoint?.json_schema?.in?.schema ?? {};
     const outputSchema = endpoint?.json_schema?.out?.schema ?? {};
@@ -456,14 +592,18 @@ $_CUSTOM_HEADERS_ = h;
     const generatedResponseExample = buildExampleFromSchema(outputSchema);
     const exampleRequest = rawExampleRequest ?? generatedRequestExample;
     const exampleResponse = rawExampleResponse ?? generatedResponseExample;
+    const parsedExampleResponse = tryParseStructuredString(rawExampleResponse);
     const inferredOutputSchemaFromExample =
-      (rawExampleResponse !== undefined && rawExampleResponse !== null)
-        ? inferSchemaFromExample(rawExampleResponse)
+      (parsedExampleResponse !== undefined && parsedExampleResponse !== null)
+        ? inferSchemaFromExample(parsedExampleResponse)
         : null;
-    const effectiveOutputSchema = isSchemaTooGeneric(outputSchema)
-      ? (inferredOutputSchemaFromExample ?? outputSchema)
-      : outputSchema;
+    const effectiveOutputSchema = override?.outputSchema ?? (
+      isSchemaTooGeneric(outputSchema)
+        ? (inferredOutputSchemaFromExample ?? outputSchema)
+        : outputSchema
+    );
     const outputSchemaWasInferred =
+      !override?.outputSchema &&
       isSchemaTooGeneric(outputSchema) &&
       inferredOutputSchemaFromExample &&
       !isSchemaTooGeneric(inferredOutputSchemaFromExample);
@@ -485,6 +625,11 @@ $_CUSTOM_HEADERS_ = h;
 
 **MCP Tool Name (safe)**
 ${safeToolName}
+
+${legacyToolName !== safeToolName ? `**Legacy Alias**
+${legacyToolName}
+
+` : ""}
 
 ### Description
 ${effectiveDescription}
@@ -581,6 +726,7 @@ ${toPrettyText(exampleResponse)}
   ${outputSchemaWasInferred ? "- Output schema was inferred from a real example response because the declared output schema is too generic." : "- Output schema is documented as declared by the endpoint contract."}
   ${varsDeprecated ? "- Field `vars` is deprecated (compatibility only). Use appvar_upsert for new app variables." : "- Validate required fields before sending the request."}
   ${(override?.notes ?? []).map((note) => `- ${note}`).join("\n  ")}
+  ${legacyToolName !== safeToolName ? `- Legacy alias \`${legacyToolName}\` remains registered for backward compatibility.` : ""}
 
 ${endpointUpsertHandlerGuide}
 `);
@@ -609,69 +755,71 @@ ${endpointUpsertHandlerGuide}
       }
     }
 
-    server.registerTool(
-      safeToolName,
-      {
-        title:
-          endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
-            ? endpoint?.mcp?.title
-            : endpoint.description,
-        description: `${endpoint.access == 0 ? "Public" : "Private"}  ${endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
-            ? (override?.description ?? endpoint?.mcp?.description)
-            : (override?.description ?? endpoint.description)
-          }${endpointUpsertDescriptionAddon} `,
+    const registerEndpointTool = (registeredToolName, descriptionPrefix = "") => {
+      server.registerTool(
+        registeredToolName,
+        {
+          title:
+            endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
+              ? endpoint?.mcp?.title
+              : endpoint.description,
+          description: `${descriptionPrefix}${endpoint.access == 0 ? "Public" : "Private"}  ${endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
+              ? (override?.description ?? endpoint?.mcp?.description)
+              : (override?.description ?? endpoint.description)
+            }${endpointUpsertDescriptionAddon} `,
 
-        inputSchema: zod_inputSchema,
-      },
+          inputSchema: zod_inputSchema,
+        },
 
-      async (data, _context) => {
-        // Los headers se leen del contexto compartido actualizado en cada request HTTP
-        const currentHeaders = requestContext.headers;
+        async (data, _context) => {
+          const currentHeaders = requestContext.headers;
 
-        try {
-          let AutoURL = new URLAutoEnvironment({
-            environment: endpoint.environment,
-          });
+          try {
+            let AutoURL = new URLAutoEnvironment({
+              environment: endpoint.environment,
+            });
 
-          let uF = AutoURL.auto(url_internal, true);
+            let uF = AutoURL.auto(url_internal, true);
 
-          // Bug fix #6: El método podría no existir en uF; se captura en el catch
-          let request_endpoint = await uF[endpoint.method.toUpperCase()]({
-            data: data,
-            headers: currentHeaders,
-          });
+            let request_endpoint = await uF[endpoint.method.toUpperCase()]({
+              data: data,
+              headers: currentHeaders,
+            });
 
-          // Bug fix #2: mimeType puede ser null si el header no está presente
-          const mimeType = request_endpoint.headers.get("content-type") ?? "text/plain";
+            const mimeType = request_endpoint.headers.get("content-type") ?? "text/plain";
+            const data_out = await request_endpoint.text();
 
-          // Bug fix #3: data_out se obtiene dentro del try para capturar errores
-          const data_out = await request_endpoint.text();
-
-          return {
-            content: [
-              {
-                type: "text",
-                mimeType: mimeType,
-                text: data_out,
-                statusCode: request_endpoint.status,
-              },
-            ],
-          };
-        } catch (error) {
-          console.error(`[MCP] Error al llamar al endpoint ${url_internal}: `, error);
-          return {
-            content: [
-              {
-                type: "text",
-                mimeType: "text/plain",
-                text: `Error: ${error?.message || "Error desconocido al llamar al endpoint."} `,
-                statusCode: 500,
-              },
-            ],
-          };
+            return {
+              content: [
+                {
+                  type: "text",
+                  mimeType: mimeType,
+                  text: data_out,
+                  statusCode: request_endpoint.status,
+                },
+              ],
+            };
+          } catch (error) {
+            console.error(`[MCP] Error al llamar al endpoint ${url_internal}: `, error);
+            return {
+              content: [
+                {
+                  type: "text",
+                  mimeType: "text/plain",
+                  text: `Error: ${error?.message || "Error desconocido al llamar al endpoint."} `,
+                  statusCode: 500,
+                },
+              ],
+            };
+          }
         }
-      }
-    );
+      );
+    };
+
+    registerEndpointTool(safeToolName);
+    if (legacyToolName !== safeToolName) {
+      registerEndpointTool(legacyToolName, "Legacy alias. ");
+    }
 
   }
 
