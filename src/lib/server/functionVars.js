@@ -561,22 +561,24 @@ $_RETURN_DATA_ = data;
     },
     uFetch: {
       fn: request && reply ? uFetch : undefined,
-      description: "Instance of the uFetch class. More information at universal-fetch",
+      description: "Class constructor. Recommended for making requests to external services/routes.",
       web: own_repo,
       return: "uFetch instance",
       example: `
-const req1  = await uFetch('https://jsonplaceholder.typicode.com/todos/1');
+const uF = new uFetch('https://jsonplaceholder.typicode.com/todos/1');
+const req1 = await uF.GET();
 const resp = await req1.json();
 $_RETURN_DATA_ = resp;
       `,
     },
     uFetchAutoEnv: {
       fn: request && reply ? fnUrlae : undefined,
-      description: `Create an instance of uFetch. The "auto" method receives the URL as a parameter; if this URL ends in "auto", this function will automatically replace it with the environment in which it is running.`,
+      description: `Recommended for consuming internal (own) endpoints. The "auto" method receives the URL; if it ends in "auto", it will be dynamically replaced with the current environment (e.g. "dev", "prd").`,
       web: "https://github.com/edwinspire/universal-fetch",
       example: `
-const uF = uFetchAutoEnv.auto('https://jsonplaceholder.typicode.com/todos/auto', true);
-const req1  = await uF.GET();
+// Automatically translates "auto" suffix to the current runtime environment
+const uF = uFetchAutoEnv.auto('http://127.0.0.1:3000/api/datetime_app/sum-array/auto');
+const req1  = await uF.POST({ data: { numbers: [4, 12, 9] } });
 const resp = await req1.json();
 $_RETURN_DATA_ = resp;
       `,

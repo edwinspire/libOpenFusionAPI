@@ -1,0 +1,26 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "endpoint_upsert",
+    "arguments": {
+      "idendpoint": "a3a5deb3-58ca-4d82-bfe2-3dfa43e69f51",
+      "idapp": "fc12c6e6-fb7b-4dec-8240-1741691c5538",
+      "environment": "prd",
+      "resource": "/sqrt-sum",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "Square Root from internal Sum endpoint",
+      "description": "Calculates the sum of an array using the internal sum-array endpoint and returns its square root.",
+      "code": "const body = request.body && request.body.json ? request.body.json : request.body;\nconst numbers = Array.isArray(body?.numbers) ? body.numbers : [];\n\nif (numbers.length === 0) {\n  $_EXCEPTION_(\"El array de entrada esta vacio\", body, 400);\n}\n\nconst uF = new uFetch('http://127.0.0.1:3000/api/datetime_app/sum-array/prd');\nconst req1 = await uF.POST({ data: { numbers: numbers } });\nconst resp = await req1.json();\n\nconst finalSum = resp.sum || 0;\nconst root = Math.sqrt(finalSum);\n\n$_RETURN_DATA_ = { numbers: numbers, sum: finalSum, root: root };",
+      "timeout": 30,
+      "cache_time": 0,
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "math square root internal endpoint fetch mcp"
+    }
+  }
+}

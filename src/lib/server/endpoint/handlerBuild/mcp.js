@@ -352,6 +352,9 @@ export const CreateMCPHandler = async (app_name, environment) => {
 | \`HANA\` | JSON with HANA connection + SQL query |
 | \`MONGODB\` | JSON with Mongo config + VM logic |
 
+### ⚠️ SQL handler Binds
+For parametrized SQL, use named bindings prefixed with a colon (e.g. \`SELECT * FROM tbl WHERE id = :id\`). For GET, query params match automatically. For POST, send a JSON body with a \`bind\` object: \`{"bind": {"id": 1}}\`.
+
 ### ⚠️ CRITICAL: JS handler — do NOT use \`return\`
 
 The JS handler runs inside a Node.js VM sandbox. To return data you MUST assign **\`$_RETURN_DATA_\`**.
