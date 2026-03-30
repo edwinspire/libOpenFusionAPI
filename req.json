@@ -1,0 +1,25 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "endpoint_upsert",
+    "arguments": {
+      "idapp": "fc12c6e6-fb7b-4dec-8240-1741691c5538",
+      "environment": "prd",
+      "resource": "/multiply",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "Multiply two numbers with validation",
+      "description": "Multiplies a and b, throws an exception if they are not numbers",
+      "code": "// Obtener el body de la peticion\nconst body = request.body && request.body.json ? request.body.json : request.body;\n\n// Extraer el array de numeros. Si no existe o no es array, usar uno vacio\nconst a = body?.a;\nconst b = body?.b;\n\n// Verificamos si son numeros validos\nif (typeof a !== 'number' || typeof b !== 'number' || isNaN(a) || isNaN(b)) {\n  // Lanzamos excepcion 400\n  $_EXCEPTION_('Los parametros a y b deben ser numeros', body, 400);\n}\n\n// Multiplicamos\nconst result = a * b;\n\n// Retornar el resultado devuelto en $_RETURN_DATA_\n$_RETURN_DATA_ = { a: a, b: b, result: result };",
+      "timeout": 30,
+      "cache_time": 0,
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "math multiply validation exception"
+    }
+  }
+}

@@ -322,38 +322,77 @@ export const CreateMCPHandler = async (app_name, environment) => {
     if (!isEndpointUpsertEndpoint(endpoint)) return "";
 
     return `
-## Handler-Specific Guide (endpoint_upsert)
+## How to use endpoint_upsert (Agent Guide)
 
-- This tool performs UPSERT on endpoint metadata. Use a stable \`idendpoint\` to update an existing endpoint; omit \`idendpoint\` to create a new one.
-- The field \`handler\` changes the meaning of \`code\` and related fields.
-- Validate the pair \`method\` + \`resource\` + \`environment\` to avoid accidental duplicates.
+### INSERT vs UPDATE
+- **INSERT**: omit \`idendpoint\` — the server generates a new UUID automatically.
+- **UPDATE**: include a valid \`idendpoint\` UUID. Use \`get_endpoint_data\` first to read the current state before modifying.
 
-### Common Required Fields
+### Minimum Required Fields (all handlers)
+\`idapp\`, \`environment\` (dev|qa|prd), \`resource\` (e.g. \`/mypath\`), \`method\` (GET|POST|PUT|DELETE|PATCH), \`handler\`, \`access\`, \`title\`, \`description\`, \`code\`, \`timeout\` (default 30), \`cache_time\` (default 0).
 
-- \`idapp\`, \`environment\`, \`timeout\`, \`resource\`, \`method\`, \`handler\`, \`access\`, \`title\`, \`description\`, \`code\`, \`cache_time\`.
+### access levels
+- \`0\` = Public (no authentication required)
+- \`1\` = Basic Auth
+- \`2\` = Bearer Token (default — recommended for private endpoints)
+- \`3\` = Basic + Token
+- \`4\` = Local only
 
-### Per-Handler Rules
+### Handler → code convention
 
-- \`FUNCTION\`: \`code\` must be the internal registered function name (example: \`fnMyFunction\`).
-- \`JS\`: \`code\` must be executable server-side JavaScript (async logic returning response data).
-- \`SQL\`: \`code\` should be a JSON object/string with DB \`config\` + SQL \`query\` (+ optional \`query_type\`).
-- \`SQL_BULK_I\`: \`code\` should define bulk insert config (for example \`table_name\`, \`config\`, optional \`ignoreDuplicates\`); request body sends row array.
-- \`FETCH\`: \`code\` is the target URL to proxy.
-- \`SOAP\`: \`code\` should define SOAP config (for example \`wsdl\`, \`functionName\`, \`RequestArgs\`, auth if needed).
-- \`HANA\`: \`code\` should define HANA connection + query configuration; parameters are sent in body (usually \`params\`).
-- \`MONGODB\`: \`code\` should define Mongo config + VM logic payload.
-- \`TEXT\`: \`code\` should define static payload and MIME type.
-- \`MCP\`: use for MCP gateway endpoints; ensure tool metadata in \`mcp\` object is coherent.
-- \`TELEGRAM_BOT\`: baseline webhook endpoint; keep logic minimal unless bot lifecycle is managed externally.
-- \`AGENT_IA\`: experimental handler; use only when your runtime explicitly supports it.
-- \`NA\`: not implemented for production behavior.
+| handler | What to put in \`code\` |
+|---------|----------------------|
+| \`JS\` | JavaScript source (see JS rules below) |
+| \`FUNCTION\` | Internal function name, e.g. \`fnMyFunction\` |
+| \`FETCH\` | Target URL string to proxy, e.g. \`https://api.example.com/data\` |
+| \`TEXT\` | JSON string: \`{"content":"hello","mime":"text/plain"}\` |
+| \`SQL\` | Standard String SQL query (\`SELECT * FROM table\`). Connection config goes in \`custom_data\` (JSON string) |
+| \`SQL_BULK_I\` | JSON with \`table_name\`, \`config\`, optionally \`ignoreDuplicates\` |
+| \`SOAP\` | JSON with \`wsdl\`, \`functionName\`, \`RequestArgs\` |
+| \`HANA\` | JSON with HANA connection + SQL query |
+| \`MONGODB\` | JSON with Mongo config + VM logic |
 
-### Recommended Agent Workflow
+### ⚠️ CRITICAL: JS handler — do NOT use \`return\`
 
-- Step 1: Select \`handler\` first.
-- Step 2: Build \`code\` with the handler contract above.
-- Step 3: Add \`json_schema\` and \`mcp\` metadata when the endpoint will be exposed as a tool.
-- Step 4: UPSERT and then read back the endpoint to verify persisted structure.
+The JS handler runs inside a Node.js VM sandbox. To return data you MUST assign **\`$_RETURN_DATA_\`**.
+Using \`return\` compiles silently but the endpoint always responds with \`{}\` (empty object).
+
+**✅ Correct JS code example:**
+\`\`\`javascript
+// Returns current ISO datetime
+$_RETURN_DATA_ = {
+  datetime: new Date().toISOString(),
+  timestamp: Date.now()
+};
+\`\`\`
+
+**❌ Wrong (produces empty {} response):**
+\`\`\`javascript
+return { datetime: new Date().toISOString() };
+\`\`\`
+
+**Reading request data in JS:**
+\`\`\`javascript
+const body    = request.body && request.body.json ? request.body.json : request.body; // POST/PUT body
+const query   = request.query;   // URL query params
+const headers = request.headers; // Request headers
+\`\`\`
+
+**Returning custom headers in JS:**
+\`\`\`javascript
+let h = new Map();
+h.set("X-My-Header", "value");
+$_RETURN_DATA_ = { result: 42 };
+$_CUSTOM_HEADERS_ = h;
+\`\`\`
+
+### Recommended workflow
+
+1. Call \`handler_documentation\` with the chosen handler for extended docs.
+2. Build the \`code\` field following the table above.
+3. Run \`endpoint_upsert\` with all required fields.
+4. Call \`get_endpoint_data\` to verify the persisted structure.
+5. Test the endpoint via its HTTP URL before exposing it as an MCP tool.
 `;
   };
 
@@ -561,7 +600,7 @@ ${endpointUpsertHandlerGuide}
           `[MCP] Schema no soportado para ${endpoint.method} ${endpoint.resource}. Se usa schema flexible.`,
           error?.message || error,
         );
-        zod_inputSchema = z.record(z.unknown()).describe(
+        zod_inputSchema = z.object({}).passthrough().describe(
           "Flexible input due to unsupported JSON Schema features.",
         );
       }

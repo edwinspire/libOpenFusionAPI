@@ -958,7 +958,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_upsert",
         "title": "Endpoint UPSERT",
-        "description": "Creates or updates the parameters of an endpoint according to the selected handler."
+        "description": "Creates or updates an endpoint. ⚠️ JS handler: use $_RETURN_DATA_ (not return) to output data. INSERT: omit idendpoint. UPDATE: include idendpoint UUID. Call get_endpoint_data first to read before writing. AppVars can be injected via \"$_VAR_NAME\" syntax."
       },
       "json_schema": {
         "in": {
@@ -1047,7 +1047,7 @@ export const system_app = {
                   4
                 ],
                 "default": 2,
-                "description": "0=Public, 1=Basic, 2=Token, 3=Basic and Token, 4=Local"
+                "description": "Access level: 0=Public (no auth), 1=Basic Auth, 2=Bearer Token (recommended default), 3=Basic+Token, 4=Local only."
               },
               "title": {
                 "type": "string",
@@ -1090,7 +1090,7 @@ export const system_app = {
               "code": {
                 "type": "string",
                 "default": "",
-                "description": "Main handler payload. FUNCTION expects an internal function name. JS expects executable code. SQL/FETCH/SOAP/HANA/MONGODB/TEXT/SQL_BULK_I usually expect serialized JSON configuration or handler-specific payload."
+                "description": "Handler payload — convention depends on 'handler': JS → server-side JS source; CRITICAL: assign $_RETURN_DATA_ (NOT 'return') to produce output, e.g. '$_RETURN_DATA_ = { result: 42 };'. FUNCTION → internal function name (e.g. 'fnMyFunction'). FETCH → target URL string to proxy. TEXT → JSON string with 'content' and 'mime' fields. SQL → JSON with 'config' (DB) + 'query' (SQL). SQL_BULK_I → JSON with 'table_name' + 'config'. SOAP → JSON with 'wsdl', 'functionName', 'RequestArgs'. HANA/MONGODB → handler-specific JSON config."
               },
               "cors": {
                 "$ref": "#/$defs/jsonValue",
@@ -1227,7 +1227,19 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "idapp": "<idapp-uuid>",
+              "environment": "prd",
+              "resource": "/my-endpoint",
+              "method": "GET",
+              "handler": "JS",
+              "access": 0,
+              "title": "My Endpoint",
+              "description": "What this endpoint does",
+              "timeout": 30,
+              "cache_time": 0,
+              "code": "$_RETURN_DATA_ = { result: 'ok', ts: new Date().toISOString() };"
+            }
           },
           "xml": {
             "code": ""
@@ -2427,7 +2439,7 @@ export const system_app = {
         "enabled": true,
         "name": "appvar_upsert",
         "title": "appvar_upsert",
-        "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp."
+        "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp. IMPORTANT: Variables must be named starting with $_VAR_ (e.g. $_VAR_MY_VAR) and when referenced in JSON payloads (like endpoint properties) they must be enclosed in quotes like \"$_VAR_MY_VAR\"."
       },
       "json_schema": {
         "in": {
