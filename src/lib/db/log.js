@@ -101,7 +101,7 @@ export const createLogEntriesBulk = async (logDataArray) => {
  * @param {number} options.offset - Offset para paginación
  * @param {string} options.order - Campo para ordenar (default: 'timestamp')
  * @param {string} options.orderDirection - Dirección del orden (ASC/DESC, default: 'DESC')
- * @param {boolean} options.trace_id - Indica si se desea obtener el trace_id 
+ * @param {string} options.trace_id - Clave de correlacion principal para rastrear una ejecucion y su cadena de errores extremo a extremo.
  * @returns {Promise<{data: Array, total: number, meta: Object}>}
  */
 export const getLogs = async (options = {}) => {
@@ -130,24 +130,62 @@ export const getLogs = async (options = {}) => {
 
     // === VALIDACIONES ===
 
+    const normalizedLimit = Number(limit);
+    const normalizedOffset = Number(offset);
+    const normalizedOrderDirection = String(orderDirection).toUpperCase().trim();
+    const normalizedOrder = typeof order === "string" ? order.trim() : "";
+
+    const validOrderFields = [
+      "id",
+      "timestamp",
+      "idapp",
+      "idendpoint",
+      "trace_id",
+      "url",
+      "method",
+      "status_code",
+      "log_level",
+      "user_agent",
+      "client",
+      "req_headers",
+      "res_headers",
+      "response_time",
+      "response_data",
+      "message",
+    ];
+
     // Validar límite
-    if (limit > 999999) {
+    if (!Number.isInteger(normalizedLimit)) {
+      throw new Error("El límite debe ser un número entero");
+    }
+
+    if (normalizedLimit > 999999) {
       throw new Error("El límite no puede ser mayor a 999999 registros");
     }
 
-    if (limit < 1) {
+    if (normalizedLimit < 1) {
       throw new Error("El límite debe ser mayor a 0");
     }
 
     // Validar offset
-    if (offset < 0) {
+    if (!Number.isInteger(normalizedOffset)) {
+      throw new Error("El offset debe ser un número entero");
+    }
+
+    if (normalizedOffset < 0) {
       throw new Error('El offset no puede ser negativo');
     }
 
     // Validar dirección de orden
     const validOrderDirections = ["ASC", "DESC"];
-    if (!validOrderDirections.includes(orderDirection.toUpperCase())) {
+    if (!validOrderDirections.includes(normalizedOrderDirection)) {
       throw new Error("La dirección de orden debe ser ASC o DESC");
+    }
+
+    if (!validOrderFields.includes(normalizedOrder)) {
+      throw new Error(
+        `order debe ser uno de: ${validOrderFields.join(", ")}`
+      );
     }
 
     // === CONSTRUCCIÓN DE CONDICIONES WHERE ===
@@ -177,10 +215,10 @@ export const getLogs = async (options = {}) => {
       dateFilter = {
         [Op.between]: [startDate, endDate],
       };
-    } else if (last_hours) {
-      let last_hours_int = parseInt(last_hours);
+    } else if (last_hours !== undefined && last_hours !== null) {
+      const last_hours_int = Number(last_hours);
       // Si se proporciona last_hours, calcular desde ahora hacia atrás
-      if (typeof last_hours_int !== "number" || last_hours_int <= 0) {
+      if (!Number.isInteger(last_hours_int) || last_hours_int <= 0) {
         throw new Error("last_hours debe ser un número positivo");
       }
       // TODO: Es posible que se deba usar Luxon para los calculos de fechas
@@ -189,7 +227,7 @@ export const getLogs = async (options = {}) => {
       // 1. Obtener la fecha y hora actual
       const ahora = DateTime.now();
       // 2. Restar 5 horas
-      const tiempoAtras = ahora.minus({ hours: last_hours || 1 });
+      const tiempoAtras = ahora.minus({ hours: last_hours_int });
 
       // 3. Convertir el resultado a un objeto Date de JavaScript
       const pastDate = tiempoAtras.toJSDate();
@@ -213,16 +251,26 @@ export const getLogs = async (options = {}) => {
 
     // Filtro por log_level
     if (log_level !== undefined && log_level !== null) {
-      if (!Number.isInteger(log_level) || log_level < 1 || log_level > 3) {
+      const normalizedLogLevel = Number(log_level);
+      if (
+        !Number.isInteger(normalizedLogLevel) ||
+        normalizedLogLevel < 1 ||
+        normalizedLogLevel > 3
+      ) {
         throw new Error(
           "log_level debe ser un entero entre 1 y 3 (SMALLINT)"
         );
       }
-      whereConditions.log_level = log_level;
+      whereConditions.log_level = normalizedLogLevel;
     }
 
-    if (trace_id) {
-      whereConditions.trace_id = trace_id;
+    if (trace_id !== undefined && trace_id !== null) {
+      if (typeof trace_id !== "string" || trace_id.trim().length === 0) {
+        throw new Error(
+          "trace_id debe ser una cadena de texto no vacia para poder rastrear la cadena de errores"
+        );
+      }
+      whereConditions.trace_id = trace_id.trim();
     }
 
     // Filtro por method
@@ -235,16 +283,17 @@ export const getLogs = async (options = {}) => {
 
     // Filtro por status_code
     if (status_code !== undefined && status_code !== null) {
+      const normalizedStatusCode = Number(status_code);
       if (
-        !Number.isInteger(status_code) ||
-        status_code < 100 ||
-        status_code > 599
+        !Number.isInteger(normalizedStatusCode) ||
+        normalizedStatusCode < 100 ||
+        normalizedStatusCode > 599
       ) {
         throw new Error(
           "status_code debe ser un entero positivo entre 100 y 599"
         );
       }
-      whereConditions.status_code = status_code;
+      whereConditions.status_code = normalizedStatusCode;
     }
 
     // Filtro por App o idendpoint
@@ -281,9 +330,9 @@ export const getLogs = async (options = {}) => {
         "message",
         
       ],
-      order: [[order, orderDirection.toUpperCase()]],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      order: [[normalizedOrder, normalizedOrderDirection]],
+      limit: normalizedLimit,
+      offset: normalizedOffset,
       raw: raw, // Devolver objetos planos si se solicita
     };
 

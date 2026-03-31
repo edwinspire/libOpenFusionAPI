@@ -178,12 +178,22 @@ export const CreateMCPHandler = async (app_name, environment) => {
 
   const TOOL_DOC_OVERRIDES = {
     app_data: {
+      description:
+        "Returns the main Application record for the provided `idapp`.",
+      exampleRequest: {
+        idapp: "00000000-0000-0000-0000-000000000001",
+      },
       outputSchema: {
         type: "object",
         additionalProperties: true,
       },
     },
     app_create_update: {
+      exampleRequest: {
+        app: "my_new_app",
+        enabled: true,
+        description: "Example application",
+      },
       outputSchema: {
         type: "object",
         additionalProperties: true,
@@ -192,6 +202,9 @@ export const CreateMCPHandler = async (app_name, environment) => {
     read_endpoint_data: {
       description:
         "Returns detailed data for a specific endpoint by `idendpoint`, including its configuration, metadata and runtime-relevant fields. Use this tool to inspect endpoint settings before updating or debugging.",
+      exampleRequest: {
+        idendpoint: "00000000-0000-0000-0000-000000000002",
+      },
       notes: [
         "Send the endpoint identifier in `idendpoint` exactly as defined in the input schema.",
         "Use this response as a read-before-write step prior to endpoint_upsert changes.",
@@ -204,6 +217,9 @@ export const CreateMCPHandler = async (app_name, environment) => {
     app_vars: {
       description:
         "Obtains the list of application variables for the given `idapp`.",
+      exampleRequest: {
+        idapp: "00000000-0000-0000-0000-000000000001",
+      },
       notes: [
         "The parameter name is `idapp` (not `iadpp`).",
         "Values may be serialized depending on each variable `type`.",
@@ -219,9 +235,18 @@ export const CreateMCPHandler = async (app_name, environment) => {
     available_functions_modules: {
       description:
         "Retrieves all available internal functions and modules that can be referenced by endpoints using the `JS` handler.",
+      exampleRequest: {},
+      exampleResponse: {
+        "$_RETURN_DATA_": {
+          description: "Assign endpoint output payload in JS handlers.",
+        },
+        "$_EXCEPTION_": {
+          description: "Raise controlled errors with status and details from JS handlers.",
+        },
+      },
       notes: [
         "Useful to validate allowed imports/helpers before publishing JS endpoints.",
-        "Some legacy deployments may expose the internal path with historical typos; the MCP tool name remains stable.",
+        "The response is metadata-oriented and may include helper globals, modules, or example snippets rather than a rigid fixed schema.",
       ],
       outputSchema: {
         type: "object",
@@ -231,6 +256,12 @@ export const CreateMCPHandler = async (app_name, environment) => {
     app_endpoints: {
       description:
         "Retrieves all endpoints associated with one application (`idapp`) with their key metadata.",
+      exampleRequest: {
+        idapp: "00000000-0000-0000-0000-000000000001",
+      },
+      notes: [
+        "Use this for lightweight endpoint discovery; call `read_endpoint_data` when you need the full configuration of one endpoint.",
+      ],
       outputSchema: {
         type: "array",
         items: {
@@ -242,6 +273,9 @@ export const CreateMCPHandler = async (app_name, environment) => {
     apps_list: {
       description:
         "Retrieves all applications with their application variables and related endpoints.",
+      notes: [
+        "This can be a large payload because it expands nested app variables and endpoints for every application.",
+      ],
       outputSchema: {
         type: "array",
         items: {
@@ -253,8 +287,12 @@ export const CreateMCPHandler = async (app_name, environment) => {
     endpoint_change_history: {
       description:
         "Returns the ordered change history of an endpoint, useful for audits and rollback analysis.",
+      exampleRequest: {
+        idendpoint: "00000000-0000-0000-0000-000000000002",
+      },
       notes: [
         "Entries are typically ordered by newest-first unless the backend configuration defines otherwise.",
+        "History rows are snapshots for inspection; restoring a version still requires an explicit write operation.",
       ],
       outputSchema: {
         type: "array",
@@ -267,8 +305,42 @@ export const CreateMCPHandler = async (app_name, environment) => {
     get_app_list_filters: {
       description:
         "Returns applications and nested endpoint data using the provided filters.",
+      exampleRequest: {
+        app: "my_app",
+        endpoint: {
+          environment: "prd",
+          enabled: true,
+        },
+      },
+      exampleResponse: [
+        {
+          idapp: "00000000-0000-0000-0000-000000000001",
+          app: "my_app",
+          enabled: true,
+          description: "Example application",
+          vrs: [
+            {
+              name: "MY_CONFIG",
+              type: "string",
+              environment: "prd",
+              value: "example-value",
+            },
+          ],
+          endpoints: [
+            {
+              idendpoint: "00000000-0000-0000-0000-000000000002",
+              resource: "/api/data",
+              method: "GET",
+              handler: "JS",
+              environment: "prd",
+              enabled: true,
+            },
+          ],
+        },
+      ],
       notes: [
         "When multiple filters are sent, backends commonly evaluate them as AND conditions.",
+        "The response is usually app-centric: each matched application may include nested variables and matched endpoints.",
       ],
       outputSchema: {
         type: "array",
@@ -281,8 +353,16 @@ export const CreateMCPHandler = async (app_name, environment) => {
     appvar_upsert: {
       description:
         "Creates or updates an application variable for a target `idapp` and `environment`.",
+      exampleRequest: {
+        idapp: "00000000-0000-0000-0000-000000000001",
+        name: "MY_CONFIG_VALUE",
+        type: "string",
+        environment: "prd",
+        value: "example-value",
+      },
       notes: [
         "`value` is sent as string in this contract; serialize JSON when storing structured data.",
+        "When an endpoint JSON payload needs to reference an AppVar placeholder, embed it as a string such as `\"$_VAR_NAME\"`.",
       ],
       outputSchema: {
         type: "object",
@@ -296,6 +376,14 @@ export const CreateMCPHandler = async (app_name, environment) => {
       },
     },
     handler_documentation: {
+      exampleRequest: {
+        handler: "JS",
+      },
+      exampleResponse: {
+        label: "JS",
+        description: "Executes JavaScript in a Node.js VM sandbox.",
+        markdown: "Full handler documentation is returned in this field when the tool is invoked.",
+      },
       outputSchema: {
         type: "object",
         properties: {
@@ -439,11 +527,11 @@ export const CreateMCPHandler = async (app_name, environment) => {
 | \`TEXT\` | JSON string: \`{"content":"hello","mime":"text/plain"}\` |
 | \`SQL\` | Standard SQL query string. Connection config goes in \`custom_data\` |
 | \`SQL_BULK_I\` | JSON with \`table_name\`, \`config\`, optionally \`ignoreDuplicates\` |
-| \`SOAP\` | JSON with \`wsdl\`, \`functionName\`, \`RequestArgs\` |
-| \`HANA\` | JSON with HANA connection + SQL query |
-| \`MONGODB\` | JSON with Mongo config + VM logic |
-| \`MCP\` | Handler-specific configuration object |
-| \`TELEGRAM_BOT\` | Handler-specific bot configuration |
+| \`SOAP\` | Handler-specific SOAP configuration payload |
+| \`HANA\` | Handler-specific SAP HANA configuration payload |
+| \`MONGODB\` | Handler-specific MongoDB configuration payload |
+| \`MCP\` | Handler-specific MCP configuration payload |
+| \`TELEGRAM_BOT\` | Handler-specific Telegram bot configuration payload |
 | \`NA\` | Internal default/no-op handler. Avoid for new integrations |
 
 ### Minimum examples by handler
@@ -461,34 +549,37 @@ export const CreateMCPHandler = async (app_name, environment) => {
 \`code\`: \`{"content":"hello","mime":"text/plain"}\`
 
 **SQL**
-\`code\`: \`SELECT * FROM users WHERE id = :id\`
+\`code\`: \`SELECT id, email, status FROM accounts WHERE account_id = $account_id\`
 
 \`custom_data\`:
-\`{"config":{"database":"app","username":"user","password":"pass","options":{"host":"localhost","port":5432,"dialect":"postgres"}},"query_type":"SELECT"}\`
+\`{"config":{"database":"main_db","username":"db_user","password":"db_password","options":{"host":"db.example.internal","port":1433,"dialect":"mssql"}},"query_type":"SELECT"}\`
 
 **SQL_BULK_I**
-\`code\`: \`{"table_name":"users","config":{"database":"app","username":"user","password":"pass","options":{"host":"localhost","dialect":"postgres"}}}\`
+\`code\`: \`{"table_name":"accounts","config":{"database":"main_db","username":"db_user","password":"db_password","options":{"host":"db.example.internal","dialect":"mssql"}}}\`
 
 **SOAP**
-\`code\`: \`{"wsdl":"https://example.com/service?wsdl","functionName":"GetUser","RequestArgs":{"request":{"id":1}}}\`
+\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`SOAP\` before writing the payload.
 
 **HANA**
-\`code\`: \`{"config":{"serverNode":"host:30015","uid":"user","pwd":"pass"},"query":"SELECT CURRENT_UTCTIMESTAMP FROM DUMMY"}\`
+\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`HANA\` before writing the payload.
 
 **MONGODB**
-\`code\`: \`{"config":{"uri":"mongodb://127.0.0.1:27017/test","collection":"users"},"js":"$_RETURN_DATA_ = await collection.find({}).toArray();"}\`
+\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`MONGODB\` before writing the payload.
 
 **MCP**
-\`code\`: \`{"server":"my_mcp_server","tool":"search_docs"}\`
+\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`MCP\` before writing the payload.
 
 **TELEGRAM_BOT**
-\`code\`: \`{"commands":[{"command":"start","description":"Initialize bot"}],"js":"$_RETURN_DATA_ = { ok: true };"}\`
+\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`TELEGRAM_BOT\` before writing the payload.
 
 ### ⚠️ SQL handler Binds
-For parametrized SQL, use named bindings prefixed with a colon (e.g. \`SELECT * FROM tbl WHERE id = :id\`). For GET, query params match automatically. For POST, send a JSON body with a \`bind\` object: \`{"bind": {"id": 1}}\`.
+Do not assume one placeholder syntax works for every SQL backend. Keep the SQL text in \`code\`, store connection settings in \`custom_data\`, and confirm the expected bind style with \`handler_documentation\` for \`SQL\` before publishing the endpoint.
 
 ### ⚠️ SQL custom_data
 For the \`SQL\` handler, keep the SQL query in \`code\` and store database connection parameters in \`custom_data\`. Do not wrap both pieces inside \`code\`.
+
+### ⚠️ Handler-specific JSON payloads
+For \`SOAP\`, \`HANA\`, \`MONGODB\`, \`MCP\`, and \`TELEGRAM_BOT\`, the exact JSON shape is runtime-specific. Call \`handler_documentation\` for the selected handler and build the payload from that contract instead of reusing examples from another handler.
 
 ### ⚠️ CRITICAL: JS handler — do NOT use \`return\`
 
@@ -526,24 +617,26 @@ $_CUSTOM_HEADERS_ = h;
 
 ### Recommended workflow
 
-1. Call \`handler_documentation\` with the chosen handler for extended docs.
-2. Build the \`code\` field following the table above and use \`custom_data\` for SQL connection settings.
-3. Run \`endpoint_upsert\` with all required fields.
-4. Call \`read_endpoint_data\` to verify the persisted structure.
-5. Test the endpoint via its HTTP URL before exposing it as an MCP tool.
+1. Choose the handler first.
+2. Call \`handler_documentation\` with the chosen handler whenever the handler expects a structured JSON payload or database-specific rules.
+3. Build the \`code\` field following the table above and use \`custom_data\` for SQL connection settings.
+4. If updating an existing endpoint, call \`read_endpoint_data\` first and modify the current structure instead of rebuilding it from memory.
+5. Run \`endpoint_upsert\` with all required fields.
+6. Call \`read_endpoint_data\` again to verify the persisted structure.
+7. Test the endpoint via its HTTP URL before exposing it as an MCP tool.
 `;
   };
 
   const getEndpointUpsertDescriptionAddon = (endpoint) => {
     if (!isEndpointUpsertEndpoint(endpoint)) return "";
 
-    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is a function identifier string. JS => `code` is JavaScript source that must assign `$_RETURN_DATA_`. FETCH => `code` is the target URL. TEXT => `code` is a JSON string with `content` and `mime`. SQL => `code` is the SQL query and `custom_data` stores connection settings. SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => `code` uses handler-specific configuration. NA is an internal default/no-op handler and should be avoided in new integrations. Recommended agent workflow: choose handler first, then build payload structure for that handler.";
+    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is a function identifier string. JS => `code` is JavaScript source that must assign `$_RETURN_DATA_`. FETCH => `code` is the target URL. TEXT => `code` is a JSON string with `content` and `mime`. SQL => `code` is the SQL query and `custom_data` stores connection settings. SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => `code` uses handler-specific configuration and should be built from `handler_documentation` for that handler. NA is an internal default/no-op handler and should be avoided in new integrations. Recommended agent workflow: choose handler first, inspect the handler contract, then build the payload.";
   };
 
-  // Bug fix #1: Validar que app y app.endpoints existan antes de filtrar
+  // Guard against missing endpoint collections when an app is partially configured.
   if (!app || !Array.isArray(app?.endpoints)) {
-    console.warn("[MCP] No se encontraron endpoints para la aplicación:", app_name);
-    // Retorna la factory aunque no haya tools, para no romper el flujo
+    console.warn("[MCP] No endpoints were found for application:", app_name);
+    // Return the factory even when no tools are available so the MCP flow remains stable.
     return (_headers) => {
       requestContext.headers = _headers ?? {};
       return server;
@@ -590,9 +683,9 @@ $_CUSTOM_HEADERS_ = h;
     const rawExampleResponse = endpoint?.data_test?.last_response?.data;
     const generatedRequestExample = buildExampleFromSchema(inputSchema);
     const generatedResponseExample = buildExampleFromSchema(outputSchema);
-    const exampleRequest = rawExampleRequest ?? generatedRequestExample;
-    const exampleResponse = rawExampleResponse ?? generatedResponseExample;
-    const parsedExampleResponse = tryParseStructuredString(rawExampleResponse);
+    const exampleRequest = override?.exampleRequest ?? rawExampleRequest ?? generatedRequestExample;
+    const exampleResponse = override?.exampleResponse ?? rawExampleResponse ?? generatedResponseExample;
+    const parsedExampleResponse = tryParseStructuredString(exampleResponse);
     const inferredOutputSchemaFromExample =
       (parsedExampleResponse !== undefined && parsedExampleResponse !== null)
         ? inferSchemaFromExample(parsedExampleResponse)

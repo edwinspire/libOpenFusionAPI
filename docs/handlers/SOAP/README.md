@@ -21,16 +21,25 @@ When an endpoint is configured with the **SOAP** handler:
 <details>
 <summary>⚙️ Endpoint Configuration</summary>
 
-The configuration must be a valid **JSON object**.
+The SOAP handler reads the **WSDL URL** (and optional settings) from the endpoint `code` field. Parameters for the SOAP call come from the HTTP request body.
 
-**Basic Structure**:
+**`code` field — Application Variable reference** _(recommended for production)_:
+
+Store the WSDL URL and any shared config as an Application Variable and reference it by name. The runtime resolves it at call time:
+
+```
+$_VAR_SOAP_SERVICE_WSDL
+```
+
+The AppVar value should contain the WSDL URL string. Credentials or extra options can be stored in the same variable if needed.
+
+**`code` field — Inline WSDL config**:
+
+For testing or simple integrations you can provide the config inline:
+
 ```json
 {
   "wsdl": "https://www.dataaccess.com/webservicesserver/NumberConversion.wso?WSDL",
-  "functionName": "NumberToWords",
-  "RequestArgs": {
-    "ubiNum": 500
-  },
   "options": {
     "wsdl_options": {
       "timeout": 5000
@@ -39,9 +48,22 @@ The configuration must be a valid **JSON object**.
 }
 ```
 
-**Override from Request**:
-If the HTTP Method is **GET**, `RequestArgs` are taken from the query string.
-If the HTTP Method is **POST**, `RequestArgs` are merged with the request body.
+**POST Request Body** — how to call a method at runtime:
+
+Send `functionName` and `RequestArgs` in the HTTP request body. `functionName` selects which SOAP method to invoke; `RequestArgs` maps to its input parameters:
+
+```json
+{
+  "functionName": "NumberToWords",
+  "RequestArgs": {
+    "ubiNum": 500
+  }
+}
+```
+
+Values in the request body override any defaults set in the `code` config, so you can fix `functionName` in config for single-method endpoints or leave it open for dynamic invocation.
+
+**`custom_data`** is currently unused by the SOAP handler. Use the `code` field for WSDL and options.
 
 </details>
 
@@ -89,7 +111,62 @@ This returns the client description (methods, inputs, and outputs) directly as t
 
 </details>
 
----
+
+<details>
+<summary>Real-World Example (MCP-enabled SOAP endpoint)</summary>
+
+This shows a production-ready SOAP endpoint pattern. The endpoint is also exposed as an MCP tool so an AI agent can call it.
+
+**Endpoint config**:
+- Method: `POST`
+- Handler: `SOAP`
+- Code: `$_VAR_SOAP_SERVICE_WSDL`
+- MCP enabled: yes, name `update_billing_cycle_day`
+- MCP description: `Use this tool to update the billing cycle day for a customer group in the external SOAP system.`
+
+**JSON Schema (input validation)**:
+```json
+{
+  "type": "object",
+  "required": ["functionName", "RequestArgs"],
+  "properties": {
+    "functionName": {
+      "type": "string",
+      "description": "SOAP method name to invoke"
+    },
+    "RequestArgs": {
+      "type": "object",
+      "required": ["groupId", "groupIdType", "billingCycleDay"],
+      "properties": {
+        "groupId": { "type": "string", "description": "Customer group identifier" },
+        "groupIdType": { "type": "string", "description": "Customer group identifier type" },
+        "billingCycleDay": { "type": "integer", "minimum": 1, "maximum": 31, "description": "New billing cycle day" }
+      }
+    }
+  }
+}
+```
+
+**HTTP call**:
+```bash
+curl -X POST https://your-server.com/api/myapp/groups/update_billing_cycle_day/qa \
+  -H "Content-Type: application/json" \
+  -d '{
+    "functionName": "UpdateBillingCycleDay",
+    "RequestArgs": {
+      "groupId": "GROUP-1001",
+      "groupIdType": "ACCOUNT",
+      "billingCycleDay": 15
+    }
+  }'
+```
+
+**What happens internally**:
+1. The SOAP client loads the WSDL from the `$_VAR_SOAP_SERVICE_WSDL` AppVar.
+2. It invokes the `UpdateBillingCycleDay` method with the `RequestArgs`.
+3. The XML response is automatically converted to JSON and returned.
+
+</details>
 
 <details>
 <summary>📊 Capability Summary</summary>
@@ -99,6 +176,7 @@ This returns the client description (methods, inputs, and outputs) directly as t
 | WSDL Parsing | ✅ |
 | Client Caching | ✅ (LRU & TTL) |
 | Basic Auth / Bearer Auth | ✅ |
+| Application Variable Reference | ✅ (`$_VAR_*` in code field) |
 | Dynamic Arguments | ✅ (From Body/Query) |
 | Header Forwarding | ✅ |
 | Describe / Introspect | ✅ |

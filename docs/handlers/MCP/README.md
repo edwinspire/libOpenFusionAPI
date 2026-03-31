@@ -30,8 +30,23 @@ Typically requires no specific code in the editor if using the default factory, 
 **Enabling Tools**:
 To make *other* endpoints visible to this MCP server, you must configure the **MCP** settings in their respective "Advanced" tabs:
 -   **Enable MCP**: Checked
--   **Name**: Unique tool name (e.g., `get_weather`).
--   **Description**: Description for the AI model to understand when to use this tool.
+-   **Name**: Unique tool name (e.g., `get_weather`). Must be unique within the application.
+-   **Description**: Natural language description helping the AI understand when and how to call this tool.
+
+**Architecture**:
+
+A typical app exposes one MCP gateway endpoint + N enabled endpoints (tools):
+
+```
+Your app
+├── /mcp/server        ← Handler: MCP  (gateway — the MCP server entry point)
+├── /db/user           ← Handler: SQL  (MCP enabled → tool: "get_user")
+├── /db/account        ← Handler: SQL  (MCP enabled → tool: "get_account")
+├── /team/members      ← Handler: JS   (MCP enabled → tool: "list_team_members")
+└── /notifications/send ← Handler: JS  (MCP enabled → tool: "send_notification_email")
+```
+
+An AI agent connecting to `/mcp/server` will automatically discover all N tools.
 
 </details>
 
@@ -49,6 +64,75 @@ The handler dynamically internalizes calls. When an AI invokes a tool:
 </details>
 
 ---
+
+<details>
+<summary>💡 Best Practices for Tool Configuration</summary>
+
+### `mcp.name` — Tool naming
+
+- Use `snake_case` (lowercase with underscores): `list_team_members`, `upsert_user_record`.
+- Prefer a `verb_noun` or `domain_action` pattern: `create_user`, `get_account`, `send_email`.
+- The name must be **unique within the application** — two tools with the same name will conflict.
+- Keep it short and descriptive. The AI will use this name when deciding to call the tool.
+
+### `mcp.description` — Writing effective descriptions
+
+The description is the most important field. The AI model reads it to decide **when** to call the tool. A good description answers:
+1. **What does it do?**
+2. **When should it be called?**
+3. **What key parameters does it require?** (especially non-obvious ones)
+4. **What does it return?**
+
+**Example quality comparison**:
+
+| Quality | Example |
+|---|---|
+| ✅ Good | `Returns the role assignments for a user within a specific account. Requires user_name and account_id. Use it when the caller needs the user's effective permissions.` |
+| ✅ Good | `Creates or updates an internal user profile. Omit id to create a new record; provide id to update an existing one. Returns the saved user record.` |
+| ⚠️ Weak | `Get user` — too vague, the AI may not know when to use it |
+| ⚠️ Weak | `Use UpdateBillingCycleDay` — useful hint, but missing the business purpose and required inputs |
+
+**Template for a good description**:
+```
+[What it does] [when to use it / trigger condition].
+Requires [key params].
+Returns [what comes back].
+```
+
+### `json_schema.in` — Input schema → MCP tool parameters
+
+Every property you define in `json_schema.in` becomes a **named parameter** the AI can fill when calling the tool. The `description` on each property directly informs the AI what to pass. Use it to:
+
+- Constrain string values with `enum` (e.g., `"enum": ["A", "I"]`).
+- Document units and formats in `description`.
+- Mark required fields in the `required` array.
+- Use `"additionalProperties": false` to prevent the AI from inventing extra fields.
+
+**Example**:
+```json
+{
+  "title": "AccountFilter",
+  "type": "object",
+  "required": ["account_id", "account_type"],
+  "additionalProperties": false,
+  "properties": {
+    "account_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique account identifier."
+    },
+    "account_type": {
+      "type": "string",
+      "enum": ["COMPANY", "PERSON", "PARTNER"],
+      "description": "Identifier category for the account."
+    }
+  }
+}
+```
+
+The AI will see two parameters: `account_id` (required string) and `account_type` (required enum), with the descriptions as hints when asking the user.
+
+</details>
 
 <details>
 <summary>📊 Capability Summary</summary>

@@ -5,7 +5,7 @@ export const system_app = {
   },
   "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
   "app": "system",
-  "rowkey": 155,
+  "rowkey": 207,
   "iduser": null,
   "enabled": true,
   "description": "App System",
@@ -62,7 +62,7 @@ export const system_app = {
         "enabled": true,
         "name": "app_data",
         "title": "Get Application data",
-        "description": "It obtains data from the Application (App)"
+        "description": "Returns the main Application record for the provided `idapp`."
       },
       "json_schema": {
         "in": {
@@ -109,7 +109,9 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "idapp": "00000000-0000-0000-0000-000000000001"
+            }
           },
           "xml": {
             "code": ""
@@ -146,7 +148,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff4",
-      "rowkey": 911,
+      "rowkey": 631,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -156,7 +158,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "It obtains data from the Application",
-      "description": "It obtains data from the Application (App)",
+      "description": "Returns the main Application record for the provided `idapp`.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -367,12 +369,9 @@ export const system_app = {
           "selection": 0,
           "json": {
             "code": {
-              "app": "mi_nueva_app",
+              "app": "my_new_app",
               "enabled": true,
-              "description": "App creada desde MCP",
-              "params": {
-                "users": []
-              }
+              "description": "Example application"
             }
           },
           "xml": {
@@ -410,7 +409,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff3",
-      "rowkey": 434,
+      "rowkey": 597,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -510,7 +509,7 @@ export const system_app = {
         }
       },
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
-      "rowkey": 481,
+      "rowkey": 33,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -547,7 +546,7 @@ export const system_app = {
         "enabled": true,
         "name": "app_endpoints",
         "title": "List endpoints of an app",
-        "description": "It retrieves the list of all endpoints associated with an application. It receives the idapp as a parameter. List endpoints of an app"
+        "description": "Returns all endpoints associated with one application identified by `idapp`."
       },
       "json_schema": {
         "in": {
@@ -590,7 +589,9 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "idapp": "00000000-0000-0000-0000-000000000001"
+            }
           },
           "xml": {
             "code": ""
@@ -626,7 +627,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff1",
-      "rowkey": 899,
+      "rowkey": 436,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -636,7 +637,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "Get Endpoint by App",
-      "description": "It retrieves the list of all endpoints associated with an application. It receives the idapp as a parameter. List endpoints of an app",
+      "description": "Returns all endpoints associated with one application identified by `idapp`.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -709,7 +710,7 @@ export const system_app = {
         }
       },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
-      "rowkey": 544,
+      "rowkey": 688,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -746,7 +747,7 @@ export const system_app = {
         "enabled": true,
         "name": "apps_list",
         "title": "List Apps",
-        "description": "It retrieves the list of all applications, with their application variables for each one and their respective endpoints."
+        "description": "Returns all applications with their application variables and related endpoints."
       },
       "json_schema": {
         "in": {
@@ -809,7 +810,7 @@ export const system_app = {
         }
       },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f6160",
-      "rowkey": 603,
+      "rowkey": 880,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -819,7 +820,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "App List",
-      "description": "Gets the list of all applications in the OpenFusionAPI system.",
+      "description": "Returns all applications with their application variables and related endpoints.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -828,6 +829,420 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.725Z",
       "updatedAt": "2025-11-22T00:11:42.110Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_client_error": 2,
+          "status_info": 1,
+          "status_redirect": 1,
+          "status_server_error": 3,
+          "status_success": 1
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "description": "Connects to a database using explicit Sequelize connection parameters, lists all tables (optional schema filter), and returns each table column structure.",
+        "enabled": true,
+        "name": "describe_all_tables",
+        "title": "Describe All Database Tables"
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "connection": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "database",
+                  "username",
+                  "password",
+                  "dialect",
+                  "host"
+                ],
+                "properties": {
+                  "database": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Database name."
+                  },
+                  "username": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Database username."
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Database password."
+                  },
+                  "dialect": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Sequelize dialect, for example `mssql`, `postgres`, `mysql` or `sqlite`."
+                  },
+                  "host": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Database server host or IP address."
+                  },
+                  "port": {
+                    "type": "integer",
+                    "description": "Database server port. Optional."
+                  },
+                  "appName": {
+                    "type": "string",
+                    "description": "Optional client/application name for the database connection."
+                  },
+                  "dialectOptions": {
+                    "type": "object",
+                    "description": "Optional Sequelize dialectOptions object.",
+                    "additionalProperties": true
+                  },
+                  "logging": {
+                    "description": "Optional Sequelize logging flag or function.",
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ]
+                  }
+                },
+                "description": "Explicit Sequelize connection object. Do not nest `host` or `dialect` under `options`."
+              },
+              "schema": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Optional schema name to restrict table enumeration."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "connection"
+            ]
+          }
+        },
+        "out": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "dialect": {
+                "type": "string"
+              },
+              "ok": {
+                "type": "boolean"
+              },
+              "schema": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "table_count": {
+                "type": "integer"
+              },
+              "tables": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Map of table name to schema and column definitions."
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": {
+          "selection": 0,
+          "form": [],
+          "json": {
+            "code": {
+              "connection": {
+                "database": "msdb",
+                "username": "sa",
+                "password": "sqlopenfusionapi",
+                "dialect": "mssql",
+                "host": "192.168.100.2",
+                "dialectOptions": {
+                  "options": {
+                    "requestTimeout": 600000
+                  }
+                }
+              }
+            }
+          },
+          "text": {
+            "value": ""
+          },
+          "urlencoded": [],
+          "xml": {
+            "code": ""
+          }
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "password": "",
+            "username": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "{\n  \"ok\": true,\n  \"dialect\": \"mssql\",\n  \"schema\": null,\n  \"table_count\": 22,\n  \"tables\": {\n    \"sysdiagrams\": {\n      \"schema\": \"dbo\",\n      \"columns\": {\n        \"name\": {\n          \"type\": \"NVARCHAR(128)\",\n          \"allowNull\": false,\n          \"defaultValue\": null,\n          \"primaryKey\": false,\n          \"autoIncrement\": false,\n          \"comment\": null\n        },\n        \"principal_id\": {\n          \"type\": \"INT\",\n          \"allowNull\": false,\n          \"defaultValue\": null,\n          \"primaryKey\": false,\n          \"autoIncrement\": false,\n          \"comment\": null\n        },\n        \"diagram_id\": {\n          \"type\": \"INT\",\n          \"allowNull\": false,\n          \"defaultValue\": null,\n          \"primaryKey\": true,\n          \"autoIncrement\": true,\n          \"comment\": null\n        },\n        \"version\": {\n          \"type\": \"INT\",\n          \"allowNull\": true,\n          \"defaultValue\": null,\n          \"primaryKey\": false,\n          \"autoIncrement\": false,\n          \"comment\": null\n     ",
+          "sizeKBResponse": "62.56"
+        }
+      },
+      "idendpoint": "18c23475-a6d1-4070-955b-685f3947fb62",
+      "rowkey": 48,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 60,
+      "resource": "/api/db/schema",
+      "method": "POST",
+      "handler": "JS",
+      "access": 2,
+      "title": "Describe All Database Tables",
+      "description": "Receives explicit Sequelize connection parameters in the request body and returns the column structure of every table in the database.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "sequelize,schema,tables,structure,metadata,all",
+      "code": "const rawPayload = request.body && request.body.json ? request.body.json : (request.body || {});\nconst payload = rawPayload && typeof rawPayload === \"object\" && rawPayload.code && typeof rawPayload.code === \"object\"\n  ? rawPayload.code\n  : rawPayload;\n\nconst connection = payload.connection;\nconst schema = payload.schema;\n\nconst requiredConnectionFields = [\"database\", \"username\", \"password\", \"dialect\", \"host\"];\n\nif (!payload || typeof payload !== \"object\" || Array.isArray(payload)) {\n  $_EXCEPTION_(\"Invalid request body for describe_all_tables.\", {\n    expected_body: {\n      connection: {\n        database: \"string\",\n        username: \"string\",\n        password: \"string\",\n        dialect: \"string\",\n        host: \"string\",\n        port: \"number (optional)\",\n        appName: \"string (optional)\",\n        dialectOptions: \"object (optional)\",\n        logging: \"boolean|function (optional)\"\n      },\n      schema: \"string (optional)\"\n    }\n  }, 400);\n}\n\nif (!connection || typeof connection !== \"object\" || Array.isArray(connection)) {\n  $_EXCEPTION_(\"Missing required 'connection' object in request body.\", {\n    expected_body: {\n      connection: {\n        database: \"string\",\n        username: \"string\",\n        password: \"string\",\n        dialect: \"string\",\n        host: \"string\",\n        port: \"number (optional)\"\n      },\n      schema: \"string (optional)\"\n    }\n  }, 400);\n}\n\nconst missingFields = requiredConnectionFields.filter((field) => {\n  const value = connection[field];\n  return typeof value !== \"string\" || value.trim().length === 0;\n});\n\nif (missingFields.length > 0) {\n  $_EXCEPTION_(\"Missing required connection fields for describe_all_tables.\", {\n    missing: missingFields.map((field) => `connection.${field}`),\n    expected_body: {\n      connection: {\n        database: \"string\",\n        username: \"string\",\n        password: \"string\",\n        dialect: \"string\",\n        host: \"string\",\n        port: \"number (optional)\",\n        appName: \"string (optional)\",\n        dialectOptions: \"object (optional)\",\n        logging: \"boolean|function (optional)\"\n      },\n      schema: \"string (optional)\"\n    }\n  }, 400);\n}\n\nif (schema !== undefined && (typeof schema !== \"string\" || schema.trim().length === 0)) {\n  $_EXCEPTION_(\"Invalid 'schema' value. When provided, it must be a non-empty string.\", {\n    received_type: typeof schema\n  }, 400);\n}\n\nconst sequelizeConfig = {\n  ...connection,\n  database: connection.database.trim(),\n  username: connection.username.trim(),\n  password: connection.password,\n  dialect: connection.dialect.trim(),\n  host: connection.host.trim()\n};\n\nconst db = new sequelize.Sequelize(\n  sequelizeConfig.database,\n  sequelizeConfig.username,\n  sequelizeConfig.password,\n  sequelizeConfig\n);\n\ntry {\n  await db.authenticate();\n  const queryInterface = db.getQueryInterface();\n  const normalizedSchema = typeof schema === \"string\" ? schema.trim() : null;\n\n  let tables;\n  if (typeof queryInterface.listTables === \"function\") {\n    tables = await queryInterface.listTables(normalizedSchema ? { schema: normalizedSchema } : {});\n  } else {\n    tables = await queryInterface.showAllTables();\n  }\n\n  const result = {};\n  for (const tableEntry of tables) {\n    const tableName = typeof tableEntry === \"string\"\n      ? tableEntry\n      : (tableEntry.tableName || tableEntry.table_name || String(tableEntry));\n    const tableSchema = typeof tableEntry === \"object\"\n      ? (tableEntry.schema || tableEntry.table_schema || normalizedSchema || null)\n      : (normalizedSchema || null);\n\n    try {\n      const tableRef = tableSchema ? { tableName, schema: tableSchema } : tableName;\n      const columns = await queryInterface.describeTable(tableRef);\n      result[tableName] = { schema: tableSchema, columns };\n    } catch (tableError) {\n      result[tableName] = {\n        schema: tableSchema,\n        error: tableError && tableError.message ? tableError.message : \"Failed to describe table\"\n      };\n    }\n  }\n\n  $_RETURN_DATA_ = {\n    ok: true,\n    dialect: db.getDialect(),\n    schema: normalizedSchema,\n    table_count: tables.length,\n    tables: result\n  };\n} catch (error) {\n  $_EXCEPTION_(\"Unable to retrieve database schema.\", {\n    message: error && error.message ? error.message : \"Unknown error\"\n  }, 500);\n} finally {\n  await db.close();\n}",
+      "cache_time": 30,
+      "createdAt": "2026-03-31T04:02:30.671Z",
+      "updatedAt": "2026-03-31T04:35:04.846Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "describe_table_structure",
+        "title": "Describe Table Structure",
+        "description": "Returns table column metadata using explicit Sequelize connection settings provided in the request body."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "connection": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "database",
+                  "username",
+                  "password",
+                  "dialect",
+                  "host"
+                ],
+                "properties": {
+                  "database": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Database name."
+                  },
+                  "username": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Database username."
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Database password."
+                  },
+                  "dialect": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Sequelize dialect, for example `mssql`, `postgres`, `mysql` or `sqlite`."
+                  },
+                  "host": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Database server host or IP address."
+                  },
+                  "port": {
+                    "type": "integer",
+                    "description": "Database server port. Optional."
+                  },
+                  "appName": {
+                    "type": "string",
+                    "description": "Optional client/application name for the database connection."
+                  },
+                  "dialectOptions": {
+                    "type": "object",
+                    "description": "Optional Sequelize dialectOptions object.",
+                    "additionalProperties": true
+                  },
+                  "logging": {
+                    "description": "Optional Sequelize logging flag or function.",
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ]
+                  }
+                },
+                "description": "Explicit Sequelize connection object. Do not nest `host` or `dialect` under `options`."
+              },
+              "table": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Target table name."
+              },
+              "schema": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Optional schema name for dialects that support schemas."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "connection",
+              "table"
+            ]
+          }
+        },
+        "out": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean"
+              },
+              "dialect": {
+                "type": "string"
+              },
+              "table": {
+                "type": "string"
+              },
+              "schema": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "columns": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "connection": {
+                "database": "msdb",
+                "username": "sa",
+                "password": "sqlopenfusionapi",
+                "dialect": "mssql",
+                "host": "192.168.100.2",
+                "dialectOptions": {
+                  "options": {
+                    "requestTimeout": 600000
+                  }
+                }
+              },
+              "table": "tbl_ClientesDatosExtra"
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "{\n  \"ok\": true,\n  \"dialect\": \"mssql\",\n  \"table\": \"tbl_ClientesDatosExtra\",\n  \"schema\": null,\n  \"columns\": {\n    \"cde_tipo_idcliente\": {\n      \"type\": \"VARCHAR(2)\",\n      \"allowNull\": false,\n      \"defaultValue\": \"S\",\n      \"primaryKey\": false,\n      \"autoIncrement\": false,\n      \"comment\": null\n    },\n    \"cde_numero_idcliente\": {\n      \"type\": \"VARCHAR(20)\",\n      \"allowNull\": false,\n      \"defaultValue\": null,\n      \"primaryKey\": false,\n      \"autoIncrement\": false,\n      \"comment\": null\n    },\n    \"cde_cupo_maximo_relacionados\": {\n      \"type\": \"DECIMAL\",\n      \"allowNull\": false,\n      \"defaultValue\": null,\n      \"primaryKey\": false,\n      \"autoIncrement\": false,\n      \"comment\": null\n    },\n    \"cde_caducidad_cedula\": {\n      \"type\": \"DATETIME\",\n      \"allowNull\": false,\n      \"defaultValue\": null,\n      \"primaryKey\": false,\n      \"autoIncrement\": false,\n      \"comment\": null\n    },\n    \"cde_validez_representante_legal\": {\n      \"type\": \"DATETIME\",\n      \"allowNull\": false,\n      ",
+          "sizeKBResponse": "1.34"
+        }
+      },
+      "idendpoint": "9a4e24c9-f563-42b2-b7db-b4bc4b03c5c1",
+      "rowkey": 143,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/db/table/structure",
+      "method": "POST",
+      "handler": "JS",
+      "access": 2,
+      "title": "Describe Database Table Structure",
+      "description": "Receives explicit Sequelize connection parameters in the request body and returns the structure of a target table.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "sequelize,table,structure,metadata",
+      "code": "const rawPayload = request.body && request.body.json ? request.body.json : (request.body || {});\nconst payload = rawPayload && typeof rawPayload === \"object\" && rawPayload.code && typeof rawPayload.code === \"object\"\n  ? rawPayload.code\n  : rawPayload;\n\nconst connection = payload.connection;\nconst table = payload.table;\nconst schema = payload.schema;\n\nconst requiredConnectionFields = [\"database\", \"username\", \"password\", \"dialect\", \"host\"];\n\nif (!payload || typeof payload !== \"object\" || Array.isArray(payload)) {\n  $_EXCEPTION_(\"Invalid request body for describe_table_structure.\", {\n    expected_body: {\n      connection: {\n        database: \"string\",\n        username: \"string\",\n        password: \"string\",\n        dialect: \"string\",\n        host: \"string\",\n        port: \"number (optional)\",\n        appName: \"string (optional)\",\n        dialectOptions: \"object (optional)\",\n        logging: \"boolean|function (optional)\"\n      },\n      table: \"string\",\n      schema: \"string (optional)\"\n    }\n  }, 400);\n}\n\nif (!connection || typeof connection !== \"object\" || Array.isArray(connection)) {\n  $_EXCEPTION_(\"Missing required 'connection' object in request body.\", {\n    expected_body: {\n      connection: {\n        database: \"string\",\n        username: \"string\",\n        password: \"string\",\n        dialect: \"string\",\n        host: \"string\",\n        port: \"number (optional)\"\n      },\n      table: \"string\",\n      schema: \"string (optional)\"\n    }\n  }, 400);\n}\n\nconst missingFields = requiredConnectionFields.filter((field) => {\n  const value = connection[field];\n  return typeof value !== \"string\" || value.trim().length === 0;\n});\n\nif (missingFields.length > 0) {\n  $_EXCEPTION_(\"Missing required connection fields for describe_table_structure.\", {\n    missing: missingFields.map((field) => `connection.${field}`),\n    expected_body: {\n      connection: {\n        database: \"string\",\n        username: \"string\",\n        password: \"string\",\n        dialect: \"string\",\n        host: \"string\",\n        port: \"number (optional)\",\n        appName: \"string (optional)\",\n        dialectOptions: \"object (optional)\",\n        logging: \"boolean|function (optional)\"\n      },\n      table: \"string\",\n      schema: \"string (optional)\"\n    }\n  }, 400);\n}\n\nif (typeof table !== \"string\" || table.trim().length === 0) {\n  $_EXCEPTION_(\"Missing required 'table' value in request body.\", {\n    expected_body: {\n      connection: {\n        database: \"string\",\n        username: \"string\",\n        password: \"string\",\n        dialect: \"string\",\n        host: \"string\"\n      },\n      table: \"string\",\n      schema: \"string (optional)\"\n    }\n  }, 400);\n}\n\nif (schema !== undefined && (typeof schema !== \"string\" || schema.trim().length === 0)) {\n  $_EXCEPTION_(\"Invalid 'schema' value. When provided, it must be a non-empty string.\", {\n    received_type: typeof schema\n  }, 400);\n}\n\nconst sequelizeConfig = {\n  ...connection,\n  database: connection.database.trim(),\n  username: connection.username.trim(),\n  password: connection.password,\n  dialect: connection.dialect.trim(),\n  host: connection.host.trim()\n};\n\nconst db = new sequelize.Sequelize(\n  sequelizeConfig.database,\n  sequelizeConfig.username,\n  sequelizeConfig.password,\n  sequelizeConfig\n);\n\ntry {\n  await db.authenticate();\n  const queryInterface = db.getQueryInterface();\n  const normalizedSchema = typeof schema === \"string\" ? schema.trim() : null;\n  const normalizedTable = table.trim();\n  const tableRef = normalizedSchema ? { tableName: normalizedTable, schema: normalizedSchema } : normalizedTable;\n  const columns = await queryInterface.describeTable(tableRef);\n\n  $_RETURN_DATA_ = {\n    ok: true,\n    dialect: db.getDialect(),\n    table: normalizedTable,\n    schema: normalizedSchema,\n    columns\n  };\n} catch (error) {\n  $_EXCEPTION_(\"Unable to describe table structure.\", {\n    message: error && error.message ? error.message : \"Unknown error\"\n  }, 500);\n} finally {\n  await db.close();\n}",
+      "cache_time": 30,
+      "createdAt": "2026-03-31T03:05:09.916Z",
+      "updatedAt": "2026-03-31T04:35:26.051Z"
     },
     {
       "ctrl": {
@@ -846,7 +1261,7 @@ export const system_app = {
         "enabled": true,
         "name": "read_endpoint_data",
         "title": "Read Endpoint Details",
-        "description": "Returns the data of an endpoint by passing the idendpoint as a parameter."
+        "description": "Returns detailed data for a specific endpoint by `idendpoint`, including configuration and runtime-relevant metadata."
       },
       "json_schema": {
         "in": {
@@ -889,7 +1304,9 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "idendpoint": "00000000-0000-0000-0000-000000000002"
+            }
           },
           "xml": {
             "code": ""
@@ -926,7 +1343,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf02",
-      "rowkey": 989,
+      "rowkey": 126,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -936,7 +1353,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "GET Endpoint Data",
-      "description": "Returns the data of an endpoint by passing the idendpoint as a parameter.",
+      "description": "Returns detailed data for a specific endpoint by `idendpoint`, including configuration and runtime-relevant metadata.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -963,7 +1380,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_upsert",
         "title": "Endpoint UPSERT",
-        "description": "Creates or updates an endpoint. ⚠️ JS handler: use $_RETURN_DATA_ (not return) to output data. INSERT: omit idendpoint. UPDATE: include idendpoint UUID. Call read_endpoint_data first to read before writing. AppVars can be injected via \"$_VAR_NAME\" syntax."
+        "description": "Creates or updates an endpoint. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads."
       },
       "json_schema": {
         "in": {
@@ -974,17 +1391,17 @@ export const system_app = {
               "idendpoint": {
                 "type": "string",
                 "format": "uuid",
-                "description": "Identificador del endpoint. Si no se envía, el modelo lo genera automáticamente."
+                "description": "Endpoint identifier. Omit for INSERT; provide a valid UUID for UPDATE."
               },
               "enabled": {
                 "type": "boolean",
                 "default": true,
-                "description": "Indica si el endpoint está habilitado."
+                "description": "Whether the endpoint is enabled."
               },
               "idapp": {
                 "type": "string",
                 "format": "uuid",
-                "description": "UUID de la aplicación asociada."
+                "description": "UUID of the application that owns the endpoint."
               },
               "environment": {
                 "type": "string",
@@ -994,19 +1411,19 @@ export const system_app = {
                   "prd"
                 ],
                 "default": "dev",
-                "description": "Ambiente donde estará disponible."
+                "description": "Target environment where the endpoint will be available."
               },
               "timeout": {
                 "type": "integer",
                 "minimum": 0,
                 "default": 30,
-                "description": "Tiempo máximo de ejecución del endpoint."
+                "description": "Maximum execution time in seconds."
               },
               "resource": {
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 300,
-                "description": "Ruta del endpoint."
+                "description": "HTTP resource path, for example `/users/search`."
               },
               "method": {
                 "type": "string",
@@ -1019,7 +1436,7 @@ export const system_app = {
                   "OPTIONS",
                   "HEAD"
                 ],
-                "description": "Método HTTP."
+                "description": "HTTP method exposed by the endpoint."
               },
               "handler": {
                 "type": "string",
@@ -1039,7 +1456,7 @@ export const system_app = {
                 ],
                 "minLength": 1,
                 "maxLength": 15,
-                "description": "Tipo de manejador del endpoint. The selected handler defines how `code` and related fields must be structured."
+                "description": "Endpoint handler type. The selected handler defines the required shape of `code` and related fields."
               },
               "access": {
                 "type": "integer",
@@ -1057,74 +1474,74 @@ export const system_app = {
                 "type": "string",
                 "maxLength": 200,
                 "default": "",
-                "description": "Descripción corta del endpoint."
+                "description": "Short human-readable title for the endpoint."
               },
               "description": {
                 "type": "string",
                 "default": "",
-                "description": "Descripción detallada."
+                "description": "Detailed purpose or behavior description."
               },
               "price_by_request": {
                 "type": "integer",
                 "minimum": 0,
                 "default": 1,
-                "description": "Costo por request en millicents."
+                "description": "Cost per request in millicents."
               },
               "price_kb_request": {
                 "type": "integer",
                 "minimum": 0,
                 "default": 1,
-                "description": "Costo por KB de request en millicents."
+                "description": "Cost per request KB in millicents."
               },
               "price_kb_response": {
                 "type": "integer",
                 "minimum": 0,
                 "default": 1,
-                "description": "Costo por KB de response en millicents."
+                "description": "Cost per response KB in millicents."
               },
               "keywords": {
                 "type": "string",
                 "default": "",
-                "description": "Palabras clave."
+                "description": "Keywords used for search or classification."
               },
               "ctrl": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "Controles adicionales. Users, Logs, etc."
+                "description": "Additional endpoint controls such as user restrictions or logging settings."
               },
               "code": {
                 "type": "string",
                 "default": "",
-                "description": "Handler payload — convention depends on 'handler': JS → server-side JS source; CRITICAL: assign $_RETURN_DATA_ (NOT 'return') to produce output, e.g. '$_RETURN_DATA_ = { result: 42 };'. FUNCTION → internal function name (e.g. 'fnMyFunction'). FETCH → target URL string to proxy. TEXT → JSON string with 'content' and 'mime' fields. SQL → plain SQL query string; store connection settings in 'custom_data'. SQL_BULK_I → JSON with 'table_name' + 'config'. SOAP → JSON with 'wsdl', 'functionName', 'RequestArgs'. HANA/MONGODB/MCP/TELEGRAM_BOT → handler-specific JSON config."
+                "description": "Handler payload. Convention depends on `handler`: JS => server-side JavaScript source and it must assign `$_RETURN_DATA_` instead of using `return`; FUNCTION => internal function name such as `fnMyFunction`; FETCH => target URL string; TEXT => JSON string with `content` and `mime`; SQL => SQL query string while connection settings live in `custom_data`; SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => handler-specific configuration payload."
               },
               "cors": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "Configuración CORS."
+                "description": "CORS configuration object."
               },
               "cache_time": {
                 "type": "integer",
                 "minimum": 0,
                 "default": 0,
-                "description": "Tiempo en caché. Cero desactiva caché."
+                "description": "Cache lifetime in seconds. Zero disables caching."
               },
               "mcp": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "Configuración MCP."
+                "description": "MCP exposure configuration."
               },
               "json_schema": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "JSON Schema asociado al endpoint."
+                "description": "JSON Schema associated with the endpoint request/response."
               },
               "custom_data": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "Datos personalizados."
+                "description": "Handler-specific auxiliary data, such as SQL connection settings."
               },
               "headers_test": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "Headers de prueba."
+                "description": "Saved test headers for the endpoint editor."
               },
               "data_test": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "Payload de prueba."
+                "description": "Saved test payload used by the endpoint editor."
               }
             },
             "additionalProperties": false,
@@ -1280,7 +1697,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf01",
-      "rowkey": 909,
+      "rowkey": 947,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1317,7 +1734,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_change_history",
         "title": "endpoint_change_history",
-        "description": "Returns the change history of an endpoint. This information can be useful for reverting to a previous version."
+        "description": "Returns the ordered change history of an endpoint, useful for audits and rollback analysis."
       },
       "json_schema": {
         "in": {
@@ -1328,6 +1745,7 @@ export const system_app = {
               "idendpoint": {
                 "type": "string",
                 "minLength": 1,
+                "description": "Endpoint identifier whose backup history should be returned.",
                 "example": "cfdf4ac3-bd98-463e-ae57-d331193ed416"
               }
             },
@@ -1362,7 +1780,9 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "idendpoint": "00000000-0000-0000-0000-000000000002"
+            }
           },
           "xml": {
             "code": ""
@@ -1399,7 +1819,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
-      "rowkey": 595,
+      "rowkey": 356,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1409,7 +1829,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "Endpoint Change History",
-      "description": "Returns the change history of an endpoint. This information can be useful for reverting to a previous version.",
+      "description": "Returns the ordered change history of an endpoint, useful for audits and rollback analysis.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -1471,7 +1891,7 @@ export const system_app = {
         }
       },
       "idendpoint": "13f94d7d-6612-4c30-8202-286cbbe3da3e",
-      "rowkey": 460,
+      "rowkey": 798,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1508,7 +1928,7 @@ export const system_app = {
         "enabled": true,
         "name": "handler_documentation",
         "title": "Handler Documentation",
-        "description": "Obtain documentation of supported handlers for endpoints."
+        "description": "Returns documentation for a supported endpoint handler."
       },
       "json_schema": {
         "in": {
@@ -1588,12 +2008,12 @@ export const system_app = {
           }
         },
         "last_response": {
-          "data": "{\n  \"label\": \"SQL\",\n  \"description\": \"It allows you to connect to the most popular databases (those supported by Sequelize) and perform the operations supported by the library.\",\n  \"markdown\": \"# SQL Handler – Universal Database Connector\\r\\n\\r\\nThe **SQL handler** allows OpenFusionAPI to execute SQL queries against various relational databases (MySQL, PostgreSQL, MSSQL, SQLite, etc.) using the Sequelize ORM.\\r\\n\\r\\n---\\r\\n\\r\\n<details>\\r\\n<summary>🧠 How It Works</summary>\\r\\n\\r\\nWhen an endpoint is configured with the **SQL** handler:\\r\\n1.  **Configuration**: It reads the SQL query from the endpoint `code` and the database connection settings from `custom_data`.\\r\\n2.  **Connection Pooling**: It uses an internal Least Recently Used (LRU) mechanism to manage and reuse database connection pools, ensuring high performance and resource efficiency (limit: 50 active pools).\\r\\n3.  **Binding**: It safely binds parameters from the HTTP request (GET query params or POST body) to the SQL query to prevent SQL Injecti",
-          "sizeKBResponse": "4.17"
+          "data": "{\"label\":\"JS\",\"description\":\"Executes JavaScript in a Node.js VM sandbox.\",\"markdown\":\"Full handler documentation is returned in this field when the tool is invoked.\"}",
+          "sizeKBResponse": "0.1"
         }
       },
       "idendpoint": "25ca7819-8823-4835-87c5-04b792bc594d",
-      "rowkey": 903,
+      "rowkey": 389,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1603,7 +2023,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 0,
       "title": "Handler Documentation",
-      "description": "Obtain documentation of supported handlers for endpoints.",
+      "description": "Returns documentation for a supported endpoint handler.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -1693,7 +2113,7 @@ export const system_app = {
         }
       },
       "idendpoint": "788e6e35-106d-45db-acb0-839db45c20f6",
-      "rowkey": 830,
+      "rowkey": 53,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1724,7 +2144,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908194",
-      "rowkey": 78,
+      "rowkey": 337,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1755,7 +2175,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
-      "rowkey": 439,
+      "rowkey": 426,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1786,7 +2206,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
-      "rowkey": 246,
+      "rowkey": 780,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1886,7 +2306,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d2fff88-66a6-43b5-9cab-11b5aec1a706",
-      "rowkey": 911,
+      "rowkey": 302,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1986,7 +2406,7 @@ export const system_app = {
         }
       },
       "idendpoint": "f57b01dc-a51c-4c23-ab4b-c890ca733e80",
-      "rowkey": 28,
+      "rowkey": 83,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2017,7 +2437,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 340,
+      "rowkey": 417,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2048,7 +2468,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 213,
+      "rowkey": 626,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2079,7 +2499,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ee",
-      "rowkey": 833,
+      "rowkey": 22,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2165,7 +2585,7 @@ export const system_app = {
         }
       },
       "idendpoint": "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
-      "rowkey": 574,
+      "rowkey": 293,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2196,7 +2616,7 @@ export const system_app = {
         "enabled": true,
         "name": "get_app_list_filters",
         "title": "Get App List Filters",
-        "description": "It retrieves complete information about an application (app), including data such as endpoints and application variables. You can apply filters to obtain the data."
+        "description": "Returns applications and nested endpoint data using the provided filters."
       },
       "json_schema": {
         "in": {
@@ -2206,22 +2626,22 @@ export const system_app = {
             "properties": {
               "idapp": {
                 "type": "string",
-                "description": "Identificador único de la aplicación (UUID o string)"
+                "description": "Application identifier to match."
               },
               "app": {
                 "type": "string",
-                "description": "Nombre de la aplicación (se normaliza a lowercase)"
+                "description": "Application name filter. Values are normalized to lowercase."
               },
               "enabled": {
                 "type": "boolean",
-                "description": "Estado de la aplicación"
+                "description": "Filter by application enabled state."
               },
               "endpoint": {
                 "type": "object",
                 "properties": {
                   "idendpoint": {
                     "type": "string",
-                    "description": "Identificador del endpoint"
+                    "description": "Endpoint identifier filter."
                   },
                   "method": {
                     "type": "string",
@@ -2232,23 +2652,23 @@ export const system_app = {
                       "DELETE",
                       "PATCH"
                     ],
-                    "description": "Método HTTP (se normaliza a uppercase)"
+                    "description": "Endpoint HTTP method filter. Values are normalized to uppercase."
                   },
                   "handler": {
                     "type": "string",
-                    "description": "Tipo de handler (se normaliza a uppercase)"
+                    "description": "Endpoint handler filter. Values are normalized to uppercase."
                   },
                   "environment": {
                     "type": "string",
-                    "description": "Ambiente (dev, qa, prd, etc.)"
+                    "description": "Endpoint environment filter such as `dev`, `qa`, or `prd`."
                   },
                   "resource": {
                     "type": "string",
-                    "description": "Recurso del endpoint"
+                    "description": "Endpoint resource path filter."
                   },
                   "enabled": {
                     "type": "boolean",
-                    "description": "Estado del endpoint"
+                    "description": "Filter by endpoint enabled state."
                   }
                 },
                 "additionalProperties": false
@@ -2282,7 +2702,13 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "app": "my_app",
+              "endpoint": {
+                "environment": "prd",
+                "enabled": true
+              }
+            }
           },
           "xml": {
             "code": ""
@@ -2313,12 +2739,12 @@ export const system_app = {
           }
         },
         "last_response": {
-          "data": "[\n  {\n    \"vars\": {},\n    \"params\": {\n      \"users\": []\n    },\n    \"idapp\": \"cfcd2084-95d5-65ef-66e7-dff9f98764da\",\n    \"app\": \"system\",\n    \"rowkey\": 493,\n    \"iduser\": null,\n    \"enabled\": true,\n    \"description\": \"App System\",\n    \"jwt_key\": \"a6c042e9-5516-484f-a502-051fa8906331\",\n    \"createdAt\": \"2025-11-21T22:04:52.650Z\",\n    \"updatedAt\": \"2025-11-22T00:11:41.979Z\",\n    \"vrs\": [\n      {\n        \"value\": \"\\\"ok\\\"\",\n        \"idvar\": \"d384f7ac-2dc1-4fa2-9b11-325e65d671c3\",\n        \"idapp\": \"cfcd2084-95d5-65ef-66e7-dff9f98764da\",\n        \"name\": \"zz_test_probe\",\n        \"type\": \"string\",\n        \"environment\": \"prd\",\n        \"createdAt\": \"2026-03-28T23:51:38.957Z\",\n        \"updatedAt\": \"2026-03-28T23:51:38.957Z\"\n      },\n      {\n        \"value\": \"\\\"ok\\\"\",\n        \"idvar\": \"1862a5f1-c691-4296-9e68-def58fbe2dbb\",\n        \"idapp\": \"cfcd2084-95d5-65ef-66e7-dff9f98764da\",\n        \"name\": \"zz_test_probe_cleanup\",\n        \"type\": \"string\",\n        \"environment\": \"qa\",\n        \"createdAt\": \"2",
-          "sizeKBResponse": "125.56"
+          "data": "[{\"idapp\":\"00000000-0000-0000-0000-000000000001\",\"app\":\"my_app\",\"enabled\":true,\"description\":\"Example application\",\"vrs\":[{\"name\":\"MY_CONFIG\",\"type\":\"string\",\"environment\":\"prd\",\"value\":\"example-value\"}],\"endpoints\":[{\"idendpoint\":\"00000000-0000-0000-0000-000000000002\",\"resource\":\"/api/data\",\"method\":\"GET\",\"handler\":\"JS\",\"environment\":\"prd\",\"enabled\":true}]}]",
+          "sizeKBResponse": "0.5"
         }
       },
       "idendpoint": "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
-      "rowkey": 708,
+      "rowkey": 166,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2328,7 +2754,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 3,
       "title": "Get Full App Data with Endpoints",
-      "description": "It retrieves complete information about an application (app), including data such as endpoints and application variables. You can apply filters to obtain the data.",
+      "description": "Returns applications and nested endpoint data using the provided filters.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -2396,7 +2822,7 @@ export const system_app = {
         }
       },
       "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
-      "rowkey": 382,
+      "rowkey": 397,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2433,7 +2859,7 @@ export const system_app = {
         "enabled": true,
         "name": "appvar_upsert",
         "title": "appvar_upsert",
-        "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp. IMPORTANT: Variables must be named starting with $_VAR_ (e.g. $_VAR_MY_VAR) and when referenced in JSON payloads (like endpoint properties) they must be enclosed in quotes like \"$_VAR_MY_VAR\"."
+        "description": "Creates or updates an application variable for a target `idapp` and `environment`. `value` is stored as a string in this contract. When an endpoint JSON payload needs an AppVar placeholder, embed it as the string `\"$_VAR_NAME\"`."
       },
       "json_schema": {
         "in": {
@@ -2443,30 +2869,30 @@ export const system_app = {
             "properties": {
               "idvar": {
                 "type": "string",
-                "description": "Identificador de la variable (UUID generado automáticamente)"
+                "description": "Variable identifier. Omit for INSERT; include it to update an existing variable."
               },
               "idapp": {
                 "type": "string",
-                "description": "Identificador de la aplicación"
+                "description": "Application identifier that owns the variable."
               },
               "name": {
                 "type": "string",
                 "maxLength": 50,
-                "description": "Nombre de la variable"
+                "description": "Variable name."
               },
               "type": {
                 "type": "string",
                 "maxLength": 25,
                 "default": "json",
-                "description": "Tipo de dato de la variable"
+                "description": "Declared variable type, for example `string`, `number`, or `json`."
               },
               "environment": {
                 "type": "string",
                 "maxLength": 10,
-                "description": "Ambiente (dev, qa, prd, etc.)"
+                "description": "Target environment such as `dev`, `qa`, or `prd`."
               },
               "value": {
-                "description": "Valor de la variable en formato JSON",
+                "description": "Serialized value to store. Send JSON as a string when persisting structured data.",
                 "type": "string"
               }
             },
@@ -2503,7 +2929,13 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "idapp": "00000000-0000-0000-0000-000000000001",
+              "name": "MY_CONFIG_VALUE",
+              "type": "string",
+              "environment": "prd",
+              "value": "example-value"
+            }
           },
           "xml": {
             "code": ""
@@ -2531,7 +2963,7 @@ export const system_app = {
         }
       },
       "idendpoint": "20354d7a-e4fe-47af-8ff6-187bca92f3f9",
-      "rowkey": 734,
+      "rowkey": 597,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2541,7 +2973,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "UPSERT App var",
-      "description": "Create or update an application variable according to the environment passed as a parameter and to the idapp.",
+      "description": "Creates or updates an application variable for a target `idapp` and `environment`.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -2568,7 +3000,7 @@ export const system_app = {
         "enabled": true,
         "name": "app_vars",
         "title": "app_vars",
-        "description": "It obtains the list of application variables by passing the application id as a parameter (iadpp)."
+        "description": "Returns the list of application variables for the provided `idapp`."
       },
       "json_schema": {
         "in": {
@@ -2610,7 +3042,9 @@ export const system_app = {
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": {
+              "idapp": "00000000-0000-0000-0000-000000000001"
+            }
           },
           "xml": {
             "code": ""
@@ -2638,7 +3072,7 @@ export const system_app = {
         }
       },
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 489,
+      "rowkey": 46,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2736,7 +3170,7 @@ export const system_app = {
         }
       },
       "idendpoint": "51316993-907c-4fd0-859f-7d2a0bc90dd3",
-      "rowkey": 310,
+      "rowkey": 296,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2765,7 +3199,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3ead2170-283d-4c6a-abc1-eddd217b6d01",
-      "rowkey": 720,
+      "rowkey": 589,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2794,7 +3228,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "047845ac-5367-48ed-9465-8e36ba6c7bae",
-      "rowkey": 645,
+      "rowkey": 987,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2904,7 +3338,7 @@ export const system_app = {
         }
       },
       "idendpoint": "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
-      "rowkey": 282,
+      "rowkey": 205,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3048,7 +3482,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cff35b3a-7ca0-4ef8-882d-d39815d55616",
-      "rowkey": 272,
+      "rowkey": 425,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3285,7 +3719,7 @@ export const system_app = {
         }
       },
       "idendpoint": "8bb911ac-374c-41c9-b93f-21d037abf330",
-      "rowkey": 546,
+      "rowkey": 994,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3371,7 +3805,7 @@ export const system_app = {
         }
       },
       "idendpoint": "bcf0e362-a454-4e47-85a0-772c4ddd3538",
-      "rowkey": 273,
+      "rowkey": 589,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3457,7 +3891,7 @@ export const system_app = {
         }
       },
       "idendpoint": "0b48cd44-09fe-40e7-b0a7-59fe01e054cc",
-      "rowkey": 111,
+      "rowkey": 98,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3526,7 +3960,7 @@ export const system_app = {
         }
       },
       "idendpoint": "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
-      "rowkey": 660,
+      "rowkey": 690,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3595,7 +4029,7 @@ export const system_app = {
         }
       },
       "idendpoint": "e753e2db-ca20-4607-82b7-34b70e435a0c",
-      "rowkey": 412,
+      "rowkey": 136,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3664,7 +4098,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34987a43-63e4-4926-824b-5254155b5c80",
-      "rowkey": 339,
+      "rowkey": 234,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3741,7 +4175,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34870b00-beb1-45d3-ada6-c164fc22cd7a",
-      "rowkey": 489,
+      "rowkey": 837,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3836,7 +4270,7 @@ export const system_app = {
         }
       },
       "idendpoint": "787a8ec2-b0d7-44ae-9214-2254f9d9d086",
-      "rowkey": 681,
+      "rowkey": 452,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3897,7 +4331,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
-      "rowkey": 907,
+      "rowkey": 480,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3928,7 +4362,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "12fb738c-7d1f-4eba-afb4-508a9fa9d06a",
-      "rowkey": 891,
+      "rowkey": 962,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4012,7 +4446,7 @@ export const system_app = {
         }
       },
       "idendpoint": "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
-      "rowkey": 295,
+      "rowkey": 220,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4043,7 +4477,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2fa0",
-      "rowkey": 634,
+      "rowkey": 857,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4074,7 +4508,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2faf",
-      "rowkey": 864,
+      "rowkey": 869,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4152,7 +4586,7 @@ export const system_app = {
         }
       },
       "idendpoint": "17c211d6-8c81-4274-b5c4-604126454ab0",
-      "rowkey": 348,
+      "rowkey": 173,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4189,7 +4623,7 @@ export const system_app = {
         "enabled": true,
         "name": "available_functions_modules",
         "title": "available_functions_modules",
-        "description": "It retrieves the list of all available functions and modules that can be used within an endpoint when using the \"JS\" handler."
+        "description": "Returns the internal functions and helper modules that can be referenced by endpoints using the `JS` handler."
       },
       "json_schema": {
         "in": {
@@ -4253,12 +4687,12 @@ export const system_app = {
         }
       },
       "idendpoint": "3d3de358-681d-4b61-98dc-c1663db0c02c",
-      "rowkey": 492,
+      "rowkey": 192,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
-      "resource": "/system/handler/js/funtions",
+      "resource": "/system/handler/js/functions",
       "method": "GET",
       "handler": "FUNCTION",
       "access": 2,
@@ -4287,14 +4721,104 @@ export const system_app = {
         }
       },
       "cors": {},
-      "mcp": {},
+      "mcp": {
+        "enabled": true,
+        "name": "get_system_logs",
+        "title": "Get System Logs",
+        "description": "Searches logs with optional filters. Prefer trace_id to follow a single execution trace across requests and errors."
+      },
       "json_schema": {
         "in": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
             "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "additionalProperties": false,
+            "properties": {
+              "idapp": {
+                "type": "string",
+                "description": "Application UUID. If provided, filters logs by app."
+              },
+              "last_hours": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Last N hours from now."
+              },
+              "start_date": {
+                "type": "string",
+                "description": "Start datetime (inclusive). Use together with end_date."
+              },
+              "end_date": {
+                "type": "string",
+                "description": "End datetime (inclusive). Use together with start_date."
+              },
+              "idendpoint": {
+                "type": "string",
+                "description": "Endpoint UUID. Ignored when idapp is provided."
+              },
+              "log_level": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3,
+                "description": "Log level filter (1..3)."
+              },
+              "method": {
+                "type": "string",
+                "description": "HTTP method (GET, POST, PUT, PATCH, DELETE)."
+              },
+              "status_code": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 599,
+                "description": "HTTP status code filter."
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 999999,
+                "default": 1000,
+                "description": "Maximum records to return."
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 0,
+                "description": "Pagination offset."
+              },
+              "order": {
+                "type": "string",
+                "default": "timestamp",
+                "description": "Field used for sorting."
+              },
+              "orderDirection": {
+                "type": "string",
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
+                "default": "DESC",
+                "description": "Sort direction."
+              },
+              "trace_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Primary correlation key for diagnostics. Use this to trace a full error chain and execution path for one request across endpoint interactions."
+              },
+              "raw": {
+                "type": "boolean",
+                "default": true,
+                "description": "Return plain objects instead of Sequelize instances."
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
           }
         }
       },
@@ -4347,7 +4871,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
-      "rowkey": 677,
+      "rowkey": 117,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4355,13 +4879,13 @@ export const system_app = {
       "resource": "/system/log",
       "method": "GET",
       "handler": "FUNCTION",
-      "access": 0,
-      "title": "",
-      "description": "",
+      "access": 2,
+      "title": "Get System Logs",
+      "description": "Returns logs with optional filters. Use trace_id for end-to-end troubleshooting and error-chain analysis.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "",
+      "keywords": "logs,trace_id,diagnostics,errors,monitoring,system",
       "code": "fnGetLogs",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.722Z",
@@ -4411,7 +4935,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "18731c87-9d59-44b6-8871-ecaa493008e5",
-      "rowkey": 203,
+      "rowkey": 34,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4504,7 +5028,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
-      "rowkey": 19,
+      "rowkey": 625,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4619,7 +5143,7 @@ export const system_app = {
         }
       },
       "idendpoint": "871cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 108,
+      "rowkey": 468,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4650,7 +5174,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "131cca3e-f835-4414-89ca-5ddbbec5ab89",
-      "rowkey": 181,
+      "rowkey": 997,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4681,7 +5205,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
-      "rowkey": 669,
+      "rowkey": 563,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4712,7 +5236,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 150,
+      "rowkey": 483,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4743,7 +5267,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908193",
-      "rowkey": 101,
+      "rowkey": 840,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4772,7 +5296,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
-      "rowkey": 36,
+      "rowkey": 764,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4803,7 +5327,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
-      "rowkey": 768,
+      "rowkey": 978,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4889,7 +5413,7 @@ export const system_app = {
         }
       },
       "idendpoint": "a0130d77-b779-4dea-a87f-6841520ffade",
-      "rowkey": 262,
+      "rowkey": 654,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
