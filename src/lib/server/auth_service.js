@@ -11,7 +11,7 @@ export class AuthService {
     } else if (data_aut?.Bearer?.data?.admin && handler.params) {
       let user = data_aut.Bearer.data.admin;
 
-      if (user.username == "superuser" && user.enabled) {
+      if ((user.username == "superopenfusionapi" || user.username == "superuser") && user.enabled) {
         check = true;
       } else if (handler.params.app == "system" && userCtrl.as_admin) {
         check = true;

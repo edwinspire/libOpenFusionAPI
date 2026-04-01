@@ -65,24 +65,25 @@ This keeps secrets out of endpoint configuration. Manage AppVars from the applic
 
 The handler supports two methods for passing parameters from the HTTP request to the SQL query:
 
-1.  **Bind Parameters (`$param`)** _(recommended for MSSQL / T-SQL)_:
-    The most common pattern in Microsoft SQL Server. Parameter values from the request are bound by name. Use `$param_name` as the placeholder directly inside `DECLARE` statements to safely receive values and leverage T-SQL type casting.
+1.  **Bind Parameters (`$param`)** _(recommended for MSSQL / T-SQL, also supported generically through Sequelize bind)_:
+  OpenFusion binds request values by name and passes them to `sequelize.query(...)` as named bind parameters. In practice, the safest pattern for MSSQL / T-SQL is to use `$param_name` directly in `WHERE`, `VALUES`, `SET`, `TRY_CONVERT`, `NULLIF`, etc. Avoid re-declaring T-SQL variables with the same names as bound fields when the request uses `bind`, because the handler may already inject those values internally and duplicate `DECLARE @param = $param` patterns can fail with errors like `Invalid pseudocolumn` or `variable already declared`.
+
+    **Recommended rule**:
+    - Use `$param` directly in SQL expressions.
+    - If you need local variables, use different names and only after validating that your exact handler/runtime supports that pattern.
+    - For POST requests to SQL endpoints, prefer sending parameters under `bind`.
 
     **SQL**:
     ```sql
   SET NOCOUNT ON;
 
-  DECLARE
-    @account_name NVARCHAR(100) = NULLIF(LTRIM(RTRIM($account_name)), ''),
-    @account_id   INT           = TRY_CONVERT(INT, NULLIF(LTRIM(RTRIM($account_id)), ''));
-
-  IF @account_name IS NULL
+  IF NULLIF(LTRIM(RTRIM($account_name)), '') IS NULL
     THROW 53001, 'The account_name parameter is required.', 1;
 
   SELECT *
   FROM dbo.accounts
-  WHERE account_name = @account_name
-    AND account_id = @account_id;
+  WHERE account_name = NULLIF(LTRIM(RTRIM($account_name)), '')
+    AND account_id = TRY_CONVERT(INT, NULLIF(LTRIM(RTRIM($account_id)), ''));
     ```
   **Request (GET)**: `?account_name=acme&account_id=1001`
   **Request (POST body)**: `{"account_name": "acme", "account_id": 1001}`
@@ -94,7 +95,9 @@ The handler supports two methods for passing parameters from the HTTP request to
     **Request**: `?category=electronics`
 
 **Payload Structure (POST)**:
-Use a `bind` wrapper object in your JSON body if your query expects nested parameter access, though flat bodies are automatically mapped at the top level.
+Choose the payload style that matches your SQL placeholder style:
+- If your SQL uses `$param`, send values in `bind`.
+- If your SQL uses `:param`, send values in `replacements`.
 
 ```json
 {
@@ -105,6 +108,34 @@ Use a `bind` wrapper object in your JSON body if your query expects nested param
 }
 ```
 In the SQL, access with `$account_name` and `$account_id`.
+
+```json
+{
+  "replacements": {
+    "account_name": "acme",
+    "account_id": 1001
+  }
+}
+```
+In the SQL, access with `:account_name` and `:account_id`.
+
+**Important compatibility note for agents and endpoint authors**:
+- The documented runtime failure for `DECLARE @field = $field` was reproduced with MSSQL / T-SQL endpoints executed through the generic SQL handler.
+- The SQL handler itself is generic: it chooses between Sequelize `bind` and `replacements` and then delegates to the configured dialect. Because of that, do not automatically assume identical behavior on PostgreSQL, MySQL, MariaDB, or SQLite without testing on that dialect.
+- If your POST body is `{ "bind": { ... } }`, do not assume you must also write `DECLARE @field = $field` in the SQL.
+- On MSSQL / T-SQL this can conflict with parameter preparation and produce runtime errors such as `Invalid pseudocolumn "$field"` or `The variable name '@field' has already been declared`.
+- Prefer direct usage like `WHERE col = $field`, `VALUES ($field, ...)`, or `TRY_CONVERT(INT, NULLIF($field, ''))`.
+
+**Practical portability rule**:
+- If you need the most portable examples across PostgreSQL, MySQL, MariaDB, and SQLite, prefer `:param` replacements.
+- If you are intentionally writing MSSQL / T-SQL and already validated the endpoint on that engine, `$param` with `bind` is the preferred pattern.
+- For any dialect-specific query, validate on the real engine before copying the example to another database.
+
+**Array and `IN (...)` rule (`bind` vs `replacements`)**:
+- In this SQL handler, list expansion for `IN (...)` is most predictable with `:param` and `replacements`.
+- Example (portable): `WHERE account_id IN (:account_ids)` with `{"replacements":{"account_ids":[1,2,3]}}`.
+- Avoid relying on `$param` list expansion semantics to be identical across all dialects.
+- For single scalar values, both styles can work; choose one style per endpoint and keep it consistent.
 
 </details>
 
@@ -172,6 +203,62 @@ curl -X GET "https://your-server.com/api/sql/customers?country=USA"
 
 ---
 
+**Portable POST Example (PostgreSQL / MySQL / MariaDB / SQLite)**
+
+If you want a cross-dialect pattern, prefer `:param` replacements and send values in `replacements`.
+
+Endpoint `code`:
+```sql
+SELECT
+  order_id,
+  customer_name,
+  status
+FROM sales_orders
+WHERE status = :status
+  AND country = :country;
+```
+
+**POST body**:
+```json
+{
+  "replacements": {
+    "status": "OPEN",
+    "country": "US"
+  }
+}
+```
+
+This avoids assuming MSSQL-specific behavior and is usually the safest starting point when the same documentation may be read by users of different Sequelize dialects.
+
+---
+
+**Portable `IN (...)` Example with Array (PostgreSQL / MySQL / MariaDB / SQLite)**
+
+Endpoint `code`:
+```sql
+SELECT
+  account_id,
+  account_name
+FROM accounts
+WHERE account_id IN (:account_ids)
+  AND status = :status;
+```
+
+```bash
+curl -X POST "https://your-server.com/api/sql/accounts/filter" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "replacements": {
+      "account_ids": [101, 102, 103],
+      "status": "A"
+    }
+  }'
+```
+
+This is the recommended cross-dialect approach when your query needs list expansion in `IN (...)`.
+
+---
+
 **MSSQL — Parameterized Query with Validation**
 
 Endpoint `custom_data`: `"$_VAR_MAIN_DB"`
@@ -180,15 +267,11 @@ Endpoint `code`:
 ```sql
 SET NOCOUNT ON;
 
-DECLARE
-  @user_name   NVARCHAR(100) = $user_name,
-  @account_id  INT           = $account_id;
-
 -- Mandatory parameter validation
-IF @user_name IS NULL OR LTRIM(RTRIM(@user_name)) = ''
+IF NULLIF(LTRIM(RTRIM($user_name)), '') IS NULL
   THROW 53001, 'The user_name parameter is required.', 1;
 
-IF @account_id IS NULL
+IF TRY_CONVERT(INT, NULLIF($account_id, '')) IS NULL
   THROW 53002, 'The account_id parameter is required.', 1;
 
 SELECT
@@ -198,8 +281,8 @@ SELECT
 FROM [AppDb].[dbo].[users] u WITH (NOLOCK)
 INNER JOIN [AppDb].[dbo].[account_users] a WITH (NOLOCK)
   ON u.user_id = a.user_id
-WHERE u.user_name = @user_name
-  AND a.account_id = @account_id;
+WHERE u.user_name = NULLIF(LTRIM(RTRIM($user_name)), '')
+  AND a.account_id = TRY_CONVERT(INT, NULLIF($account_id, ''));
 ```
 
 ```bash
@@ -227,19 +310,13 @@ SET XACT_ABORT ON;
 BEGIN TRY
     BEGIN TRAN;
 
-    DECLARE
-        @id        INT            = $id,  -- NULL triggers INSERT
-      @name      NVARCHAR(300)  = $name,
-      @status    CHAR(1)        = $status,
-      @actor     NVARCHAR(100)  = $updated_by;
-
-    IF @id IS NULL
+    IF TRY_CONVERT(INT, NULLIF($id, '')) IS NULL
       INSERT INTO [AppDb].[dbo].[entities] (name, status, created_by)
-      VALUES (@name, @status, @actor);
+      VALUES ($name, $status, $updated_by);
     ELSE
       UPDATE [AppDb].[dbo].[entities]
-      SET name = @name, status = @status, updated_by = @actor
-        WHERE id = @id;
+      SET name = $name, status = $status, updated_by = $updated_by
+        WHERE id = TRY_CONVERT(INT, NULLIF($id, ''));
 
     COMMIT TRAN;
 END TRY
@@ -270,18 +347,26 @@ END CATCH
 
 When writing T-SQL for production endpoints, these patterns improve correctness and safety:
 
-**Parameter normalization** — strip trailing whitespace and convert empty strings to `NULL`:
+**Parameter normalization** — when possible, normalize inline with `$param` expressions instead of re-declaring request-backed variables:
 ```sql
-DECLARE
-    @text_param  NVARCHAR(100) = NULLIF(LTRIM(RTRIM($text_param)), ''),
-    @int_param   INT           = TRY_CONVERT(INT, NULLIF(LTRIM(RTRIM($int_param)), ''));
+SELECT *
+FROM dbo.items
+WHERE code = NULLIF(LTRIM(RTRIM($text_param)), '')
+  AND id = TRY_CONVERT(INT, NULLIF(LTRIM(RTRIM($int_param)), ''));
 ```
 
 **Mandatory validation with `THROW`** — returns HTTP 500 with the message as `error`:
 ```sql
-IF @text_param IS NULL
+IF NULLIF(LTRIM(RTRIM($text_param)), '') IS NULL
   THROW 53001, 'The text_param parameter is required.', 1;
 ```
+
+**Avoid duplicate declarations for bound fields in MSSQL / T-SQL**:
+```sql
+-- Avoid patterns like this in T-SQL when using OpenFusion SQL bind payloads
+DECLARE @text_param NVARCHAR(100) = $text_param;
+```
+This failure was observed on MSSQL / T-SQL. Other Sequelize dialects may behave differently, so validate per engine before applying the same restriction universally.
 
 **Suppress row counts** to keep JSON output clean:
 ```sql
@@ -319,6 +404,7 @@ END CATCH
 | Multiple Dialects (PG, MySQL, MSSQL) | ✅ (Sequelize) |
 | Connection Pooling | ✅ (LRU Cache) |
 | Parameter Binding | ✅ (Replacements/Bind) |
+| MSSQL note on `DECLARE @x = $x` with `bind` | ⚠️ Reproduced issue |
 | Dynamic Connections | ✅ (Per-request override) |
 | Application Variable Reference | ✅ (`"$_VAR_*"` in custom_data) |
 | CRUD Operations | ✅ |

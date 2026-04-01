@@ -84,17 +84,17 @@ export const defaultUser = async () => {
   try {
     // Verificar si el usuario "admin" ya existe
     const existingUser = await User.findOne({
-      where: { username: "superuser" },
+      where: { username: "superopenfusionapi" },
     });
 
     if (!existingUser) {
-      // El usuario "superuser" no existe, se realiza la inserción
+      // El usuario "superopenfusionapi" no existe, se realiza la inserción
       await User.create({
-        username: "superuser",
-        password: EncryptPwd("superuser"),
+        username: "superopenfusionapi",
+        password: EncryptPwd("superopenfusionapi"),
         first_name: "super",
         last_name: "user",
-        email: "superuser@example.com",
+        email: "superopenfusionapi@example.com",
         ctrl: {},
       });
     }
@@ -104,13 +104,13 @@ export const defaultUser = async () => {
     });
 
     if (!existingClient) {
-      // El usuario "superuser" no existe, se realiza la inserción
+      // El usuario "superopenfusionapi" no existe, se realiza la inserción
       await User.create({
         username: "client_api",
         password: EncryptPwd("1234567890"),
         first_name: "client",
         last_name: "api",
-        email: "superuser@example.com",
+        email: "superopenfusionapi@example.com",
         ctrl: {},
       });
     }

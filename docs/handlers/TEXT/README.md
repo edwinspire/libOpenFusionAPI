@@ -29,7 +29,7 @@ The configuration must be a valid **JSON object** with the following properties:
 ```json
 {
   "mimeType": "text/csv",
-  "payload": "id,name,role\n1,Admin,Superuser\n2,User,Guest"
+  "payload": "id,name,role\n1,Admin,SuperOFAPI\n2,User,Guest"
 }
 ```
 
@@ -85,7 +85,7 @@ Content-Disposition: attachment; filename="1715091234567.csv"
 **Body**:
 ```csv
 id,name,role
-1,Admin,Superuser
+1,Admin,SuperOFAPI
 2,User,Guest
 ```
 

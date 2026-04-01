@@ -6,7 +6,7 @@ export const defaultUserProfile = async () => {
   try {
     // Verificar si el usuario "admin" ya existe
     const existingUser = await UserProfile.findOne({
-      where: { name: "superuser" },
+      where: { name: "superopenfusionapi" },
     });
 
     if (!existingUser) {
@@ -15,10 +15,10 @@ export const defaultUserProfile = async () => {
         "cfcd2084-95d5-65ef-66e7-dff9f98764da"
       );
 
-      // El usuario "superuser" no existe, se realiza la inserción
+      // El usuario "superopenfusionapi" no existe, se realiza la inserción
       await UserProfile.create({
         idprofile: "1768784ca4f5be1d24eafe05ce8183a4",
-        name: "superuser",
+        name: "superopenfusionapi",
         description: "Super user",
         enabled: true,
         environment: { dev: true, qa: true, prd: true },

@@ -1,5 +1,9 @@
 ## 🧭 Handler Documentation
 
+Scope note:
+- `SQL` is the generic relational handler backed by Sequelize and can target multiple dialects.
+- `HANA` is a separate dedicated handler based on `@sap/hana-client`; behavior documented for `SQL` should not be assumed to apply to `HANA` unless explicitly stated.
+
 - [FETCH](./FETCH/README.md)
 - [FUNCTION](./FUNCTION/README.md)
 - [HANA](./HANA/README.md)

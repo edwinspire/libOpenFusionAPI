@@ -75,6 +75,12 @@ If you send a parameter that is not present in the SQL you will receive an error
 - GET is suitable only for simple, parameterless queries or when parameters are passed as key/value pairs in the query string.  
 - POST (JSON body) is recommended for complex parameter sets and arrays.
 
+**Cross-dialect note**
+
+- The recent OpenFusion binding caveat about avoiding `DECLARE @field = $field` was reproduced in the generic SQL handler with MSSQL / T-SQL.
+- HANA does not use that generic Sequelize SQL path; it uses the dedicated `@sap/hana-client` handler and expands parameters with its own execution flow.
+- Do not assume the MSSQL-specific `DECLARE` issue applies to HANA unless it is reproduced with a real HANA endpoint.
+
 </details>
 
 ---
