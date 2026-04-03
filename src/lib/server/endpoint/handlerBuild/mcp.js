@@ -839,7 +839,7 @@ ${endpointUpsertHandlerGuide}
         }
       } catch (error) {
         console.warn(
-          `[MCP] Schema no soportado para ${endpoint.method} ${endpoint.resource}. Se usa schema flexible.`,
+          `[MCP] Schema no support to ${endpoint.method} ${endpoint.resource}. Se usa schema flexible.`,
           error?.message || error,
         );
         zod_inputSchema = z.object({}).passthrough().describe(
