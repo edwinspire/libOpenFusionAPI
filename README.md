@@ -57,6 +57,11 @@ OpenFusion API significantly **reduces API development time** by abstracting rep
 
 Each guide provides step-by-step instructions, screenshots, and best practices to ensure a smooth development experience.
 
+Important operational note:
+
+- Some bundled applications such as `demo` are restored from repository defaults on server startup. If you customize a seeded endpoint and need the change to survive restarts, update the corresponding default app definition in `src/lib/db/default/` as well.
+- For `TELEGRAM_BOT`, a successful HTTP response does not by itself confirm that the bot started correctly. Validate worker startup in server logs too.
+
 ## 🧑‍💻 Ideal For
 
 - Backend developers

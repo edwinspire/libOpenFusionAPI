@@ -1,0 +1,15 @@
+{
+  "handler": "AGENT_IA",
+  "label": "AGENT IA",
+  "status": "experimental",
+  "summary": "Experimental documentation folder for a planned AI agent handler.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "Not implemented in the current runtime registry.",
+    "custom_data": "Not implemented in the current runtime registry."
+  }
+}

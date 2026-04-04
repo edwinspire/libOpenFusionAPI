@@ -1,0 +1,15 @@
+{
+  "handler": "HANA",
+  "label": "HANA",
+  "status": "active",
+  "summary": "Executes SQL queries against SAP HANA using the dedicated client.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "Handler-specific SQL or JSON configuration documented for the HANA runtime.",
+    "custom_data": "HANA connection settings and execution metadata."
+  }
+}

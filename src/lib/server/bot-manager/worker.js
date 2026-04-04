@@ -48,7 +48,8 @@ parentPort.on("message", async (message) => {
       const wrappedCode = `
                
 // Instantiate the bot.
-const $BOT = new grammy.Bot($BOT_TOKEN);
+    globalThis.$BOT = new grammy.Bot($BOT_TOKEN);
+    const $BOT = globalThis.$BOT;
 
 ${code}
 

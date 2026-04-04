@@ -1,0 +1,15 @@
+{
+  "handler": "MONGODB",
+  "label": "MongoDB",
+  "status": "active",
+  "summary": "Runs MongoDB operations and custom logic against MongoDB databases.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "Handler-specific JSON or JavaScript configuration for MongoDB operations.",
+    "custom_data": "MongoDB connection settings and operation metadata."
+  }
+}

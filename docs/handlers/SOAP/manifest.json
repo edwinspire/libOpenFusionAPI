@@ -1,0 +1,15 @@
+{
+  "handler": "SOAP",
+  "label": "SOAP",
+  "status": "active",
+  "summary": "Invokes SOAP web services from a WSDL endpoint.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "WSDL URL or handler-specific JSON configuration for the SOAP client.",
+    "custom_data": "Unused by the current SOAP handler implementation."
+  }
+}

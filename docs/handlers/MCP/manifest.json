@@ -1,0 +1,15 @@
+{
+  "handler": "MCP",
+  "label": "MCP",
+  "status": "active",
+  "summary": "Exposes enabled endpoints as MCP tools for AI agents.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "Handler-specific configuration for the MCP gateway endpoint.",
+    "custom_data": "Optional runtime metadata for the MCP transport or server behavior."
+  }
+}

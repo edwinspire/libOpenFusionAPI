@@ -1,0 +1,15 @@
+{
+  "handler": "FETCH",
+  "label": "Fetch",
+  "status": "active",
+  "summary": "Proxies HTTP requests to external services.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "Target URL to call, optionally with environment placeholders.",
+    "custom_data": "Not used by the base FETCH handler."
+  }
+}

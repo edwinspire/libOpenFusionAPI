@@ -3,7 +3,7 @@ export const demo_app = {
   "params": {},
   "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
   "app": "demo",
-  "rowkey": 194,
+  "rowkey": 795,
   "iduser": null,
   "enabled": true,
   "description": "App DEMO",
@@ -37,7 +37,7 @@ export const demo_app = {
       "type": "string",
       "environment": "dev",
       "createdAt": "2025-11-22T00:04:44.615Z",
-      "updatedAt": "2025-11-24T04:07:40.239Z"
+      "updatedAt": "2026-04-04T03:19:45.126Z"
     },
     {
       "value": {
@@ -366,7 +366,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "b04920b7-393d-4c67-aba2-89af14541963",
-      "rowkey": 284,
+      "rowkey": 618,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -466,7 +466,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "e1b3c3bf-d8e7-4778-a286-f592f6cf5e6b",
-      "rowkey": 708,
+      "rowkey": 102,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -585,7 +585,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "ebc0db68-8063-40ab-8832-c380f6971df9",
-      "rowkey": 170,
+      "rowkey": 490,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -696,7 +696,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "69eb0045-b5e4-49b2-b70c-170ca59842fc",
-      "rowkey": 566,
+      "rowkey": 536,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -786,7 +786,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "bb87e424-4ef3-4e5a-83ea-b5c719a34288",
-      "rowkey": 871,
+      "rowkey": 793,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -872,7 +872,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "ae8726f7-36ec-4c70-8183-85837b783698",
-      "rowkey": 246,
+      "rowkey": 838,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -936,7 +936,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "82b0a799-21b0-4b95-8d58-43cfa44f7c47",
-      "rowkey": 541,
+      "rowkey": 305,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -984,7 +984,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "dedb3546-3bf8-4973-8c8a-5c7308338ba5",
-      "rowkey": 167,
+      "rowkey": 57,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1032,7 +1032,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "0d488251-6e49-4239-8c85-be101619aa1f",
-      "rowkey": 552,
+      "rowkey": 719,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1080,7 +1080,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "82fdbae6-5180-4ddd-ae75-c31dc60cf641",
-      "rowkey": 676,
+      "rowkey": 336,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1128,7 +1128,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "fda286e7-d51f-40ec-a239-35edcbf364eb",
-      "rowkey": 334,
+      "rowkey": 383,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1230,7 +1230,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "1243bf72-7a66-4366-91d4-0925a6bd4523",
-      "rowkey": 933,
+      "rowkey": 502,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1249,6 +1249,2093 @@ export const demo_app = {
       "cache_time": 0,
       "createdAt": "2025-11-29T15:32:57.392Z",
       "updatedAt": "2025-11-29T15:32:57.392Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_bot_ping_v1",
+        "title": "demo_bot_ping_v1",
+        "description": "Minimal TELEGRAM_BOT example. It is useful only to validate that the bot lifecycle can load an endpoint, not to model a real grammY bot."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {
+        "token": "demo-token-not-used"
+      },
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-bot-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": {},
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "6666cbb1-e90c-40ea-b302-508e5de3e941",
+      "rowkey": 853,
+      "enabled": false,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/bot/ping",
+      "method": "GET",
+      "handler": "TELEGRAM_BOT",
+      "access": 0,
+      "title": "Bot ping example",
+      "description": "Minimal TELEGRAM_BOT endpoint kept as a lifecycle smoke test. Real bots should store grammY code in `code`, provide a token in `custom_data.token`, and let the runtime start `$BOT` automatically.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,telegram_bot",
+      "code": "$BOT.command(\"start\", async (ctx) => {\n  await ctx.reply(\"Demo bot ping activo\");\n});\n",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:01:18.630Z",
+      "updatedAt": "2026-04-04T03:01:18.630Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_bot_ping_v2",
+        "title": "demo_bot_ping_v2",
+        "description": "Second minimal TELEGRAM_BOT smoke-test endpoint used only to exercise lifecycle loading."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {
+        "token": "demo-token-not-used-2"
+      },
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-bot-q2"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": {},
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "29b0b5d2-7619-465f-947b-fbd6db872e7e",
+      "rowkey": 832,
+      "enabled": false,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/bot/ping2",
+      "method": "GET",
+      "handler": "TELEGRAM_BOT",
+      "access": 0,
+      "title": "Bot ping example 2",
+      "description": "Second minimal TELEGRAM_BOT endpoint for lifecycle smoke testing. Prefer `/api/demo/bot/qa` as a real grammY example and let the runtime start `$BOT` automatically.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,telegram_bot",
+      "code": "$BOT.on(\"message:text\", async (ctx) => {\n  await ctx.reply(\"Demo bot ping 2 activo\");\n});\n",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:04:26.443Z",
+      "updatedAt": "2026-04-04T03:04:26.443Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_fetch_github_repos_v1",
+        "title": "demo_fetch_github_repos_v1",
+        "description": "Fetch the public GitHub repositories for edwinspire through the demo FETCH endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-repos-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-repos-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "1ee6fb18-c5be-4dfe-a8e8-bf0276d37aea",
+      "rowkey": 955,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/fetch/github_repos",
+      "method": "GET",
+      "handler": "FETCH",
+      "access": 0,
+      "title": "Fetch github repos",
+      "description": "Example FETCH handler endpoint that proxies the GitHub repositories list.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,fetch",
+      "code": "https://api.github.com/users/edwinspire/repos",
+      "cache_time": 60,
+      "createdAt": "2026-04-04T03:07:00.616Z",
+      "updatedAt": "2026-04-04T03:07:00.616Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_fetch_github_user_v1",
+        "title": "demo_fetch_github_user_v1",
+        "description": "Fetch the public GitHub profile for edwinspire through the demo FETCH endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-gh-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-gh-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "5b864fbd-9fa3-4f20-a1e0-57795ae67132",
+      "rowkey": 589,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/fetch/github_user",
+      "method": "GET",
+      "handler": "FETCH",
+      "access": 0,
+      "title": "Fetch github user",
+      "description": "Example FETCH handler endpoint that proxies the GitHub user profile.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,fetch",
+      "code": "https://api.github.com/users/edwinspire",
+      "cache_time": 60,
+      "createdAt": "2026-04-04T02:54:40.345Z",
+      "updatedAt": "2026-04-04T02:54:40.345Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_fetch_github_user_v1_20260403215552",
+        "title": "demo_fetch_github_user_v1",
+        "description": "Fetch the public GitHub profile for edwinspire through the demo FETCH endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-gh-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-gh-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "50b65764-6b8a-43f1-b8d2-bc7888deed02",
+      "rowkey": 806,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/fetch/github_user",
+      "method": "GET",
+      "handler": "FETCH",
+      "access": 0,
+      "title": "Fetch github user",
+      "description": "Example FETCH handler endpoint that proxies the GitHub user profile.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,fetch",
+      "code": "https://api.github.com/users/edwinspire",
+      "cache_time": 60,
+      "createdAt": "2026-04-04T02:55:52.726Z",
+      "updatedAt": "2026-04-04T02:55:52.726Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_fetch_github_user_v1_20260403215712",
+        "title": "demo_fetch_github_user_v1",
+        "description": "Fetch the public GitHub profile for edwinspire through the demo FETCH endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-gh-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-gh-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "f671031e-36bf-4181-9b00-b6361fa918b4",
+      "rowkey": 130,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/fetch/github_user",
+      "method": "GET",
+      "handler": "FETCH",
+      "access": 0,
+      "title": "Fetch github user",
+      "description": "Example FETCH handler endpoint that proxies the GitHub user profile.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,fetch",
+      "code": "https://api.github.com/users/edwinspire",
+      "cache_time": 60,
+      "createdAt": "2026-04-04T02:57:12.485Z",
+      "updatedAt": "2026-04-04T02:57:12.485Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_fetch_store_carts_v1",
+        "title": "demo_fetch_store_carts_v1",
+        "description": "Fetch the fake store carts list through the demo FETCH endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-carts-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-carts-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "fd3cf5d4-1696-45a4-b967-b638202efa5d",
+      "rowkey": 842,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/fetch/store_carts",
+      "method": "GET",
+      "handler": "FETCH",
+      "access": 0,
+      "title": "Fetch store carts",
+      "description": "Example FETCH handler endpoint that proxies the fake store carts API via app variable.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,fetch",
+      "code": "$_VAR_FETCH",
+      "cache_time": 60,
+      "createdAt": "2026-04-04T03:02:27.701Z",
+      "updatedAt": "2026-04-04T03:02:27.701Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_fetch_store_products_v1",
+        "title": "demo_fetch_store_products_v1",
+        "description": "Fetch the fake store products list through the demo FETCH endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-products-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fetch-products-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "b6124380-c17c-4dee-901b-fe78c75a595d",
+      "rowkey": 357,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/fetch/store_products",
+      "method": "GET",
+      "handler": "FETCH",
+      "access": 0,
+      "title": "Fetch store products",
+      "description": "Example FETCH handler endpoint that proxies the fake store products API using a direct URL.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,fetch",
+      "code": "https://fakestoreapi.com/products",
+      "cache_time": 60,
+      "createdAt": "2026-04-04T03:06:18.912Z",
+      "updatedAt": "2026-04-04T03:06:18.912Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_function_add_v1",
+        "title": "demo_function_add_v1",
+        "description": "Add num_a and num_b using the public demo function fnPublicAdd."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "num_a": {
+                "type": "number",
+                "description": "First number"
+              },
+              "num_b": {
+                "type": "number",
+                "description": "Second number"
+              }
+            },
+            "required": [
+              "num_a",
+              "num_b"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "num_a",
+            "value": "4",
+            "internal_hash_row": "demo-fn-add-q1"
+          },
+          {
+            "enabled": true,
+            "key": "num_b",
+            "value": "8",
+            "internal_hash_row": "demo-fn-add-q2"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fn-add-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "969daeb5-033d-4517-998d-bd6caa4e74eb",
+      "rowkey": 370,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/function/add",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Function add",
+      "description": "Example FUNCTION handler endpoint that adds num_a and num_b using fnPublicAdd.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,function",
+      "code": "fnPublicAdd",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T02:54:40.374Z",
+      "updatedAt": "2026-04-04T02:54:40.374Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_function_add_v1_20260403215818",
+        "title": "demo_function_add_v1",
+        "description": "Add query parameters a and b using the public demo function fnPublicAdd."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "a": {
+                "type": "number",
+                "description": "First number"
+              },
+              "b": {
+                "type": "number",
+                "description": "Second number"
+              }
+            },
+            "required": [
+              "a",
+              "b"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "a",
+            "value": "4",
+            "internal_hash_row": "demo-fn-add-q1a"
+          },
+          {
+            "enabled": true,
+            "key": "b",
+            "value": "8",
+            "internal_hash_row": "demo-fn-add-q2b"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fn-add-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "cbaf857b-7bf5-450c-96cd-0e036ab26384",
+      "rowkey": 810,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/function/add",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Function add",
+      "description": "Example FUNCTION handler endpoint that adds query parameters a and b using fnPublicAdd.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,function",
+      "code": "fnPublicAdd",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T02:58:18.820Z",
+      "updatedAt": "2026-04-04T03:05:59.695Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_function_demo_v1",
+        "title": "demo_function_demo_v1",
+        "description": "Call the public demo function fnPublicDemo."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fn-demo-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-fn-demo-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "c635d954-f724-48ab-8389-d9ef591bb82b",
+      "rowkey": 811,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/function/demo",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Function demo",
+      "description": "Example FUNCTION handler endpoint that calls fnPublicDemo.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,function",
+      "code": "fnPublicDemo",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:04:49.169Z",
+      "updatedAt": "2026-04-04T03:04:49.169Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_js_echo_name_v2",
+        "title": "demo_js_echo_name_v2",
+        "description": "Return the provided name from the demo JS example endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name to echo back"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "name",
+            "value": "Edwin",
+            "internal_hash_row": "demo-js-echo-dev-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-echo-dev-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "26750a33-bdc4-4a91-adf1-49ade4930777",
+      "rowkey": 163,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/js/echo_name",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS echo name",
+      "description": "Example JS handler endpoint that echoes the name query parameter.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js",
+      "code": "$_RETURN_DATA_ = { name: request.query.name ?? 'world' };",
+      "cache_time": 30,
+      "createdAt": "2026-04-04T02:54:40.335Z",
+      "updatedAt": "2026-04-04T02:54:40.335Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_js_echo_name_v2_20260403215534",
+        "title": "demo_js_echo_name_v2",
+        "description": "Return the provided name from the demo JS example endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name to echo back"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "name",
+            "value": "Edwin",
+            "internal_hash_row": "demo-js-echo-dev-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-echo-dev-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "a1fa386e-1837-4682-884f-394ea188f737",
+      "rowkey": 178,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/js/echo_name",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS echo name",
+      "description": "Example JS handler endpoint that echoes the name query parameter.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js",
+      "code": "$_RETURN_DATA_ = { name: request.query.name ?? 'world' };",
+      "cache_time": 30,
+      "createdAt": "2026-04-04T02:55:34.048Z",
+      "updatedAt": "2026-04-04T02:55:34.048Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_js_sum_numbers_v1",
+        "title": "demo_js_sum_numbers_v1",
+        "description": "Add query parameters a and b and return the numeric result."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "a": {
+                "type": "number",
+                "description": "First number"
+              },
+              "b": {
+                "type": "number",
+                "description": "Second number"
+              }
+            },
+            "required": [
+              "a",
+              "b"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "a",
+            "value": "4",
+            "internal_hash_row": "demo-js-sum-q1"
+          },
+          {
+            "enabled": true,
+            "key": "b",
+            "value": "5",
+            "internal_hash_row": "demo-js-sum-q2"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-sum-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "8561bed4-f9af-475a-a48e-aab44f4806d8",
+      "rowkey": 2,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/js/sum_numbers",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS sum numbers",
+      "description": "Example JS handler endpoint that sums query parameters a and b.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js",
+      "code": "$_RETURN_DATA_ = { result: Number(request.query.a ?? 0) + Number(request.query.b ?? 0) };",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:02:12.676Z",
+      "updatedAt": "2026-04-04T03:02:12.676Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_soap_number_to_dollars_v1",
+        "title": "demo_soap_number_to_dollars_v1",
+        "description": "Convert the query parameter dNum to a words/dollars string using the demo SOAP service."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "dNum": {
+                "type": "number",
+                "description": "Number to convert through the SOAP service"
+              }
+            },
+            "required": [
+              "dNum"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "dNum",
+            "value": "3.65",
+            "internal_hash_row": "demo-soap-q1"
+          }
+        ],
+        "body": {
+          "selection": 0
+        },
+        "headers": {},
+        "auth": {
+          "selection": 0
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "d3467b77-9832-49ae-983b-b335f086fcb1",
+      "rowkey": 355,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/soap/number_to_dollars",
+      "method": "GET",
+      "handler": "SOAP",
+      "access": 0,
+      "title": "SOAP number to dollars",
+      "description": "Example SOAP handler endpoint that converts a number to words using the demo SOAP variable.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,soap",
+      "code": "$_VAR_SOAP_TEST",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T02:59:57.300Z",
+      "updatedAt": "2026-04-04T02:59:57.300Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_soap_number_to_words_v1",
+        "title": "demo_soap_number_to_words_v1",
+        "description": "Convert the query parameter ubiNum to words using the demo SOAP service."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "ubiNum": {
+                "type": "integer",
+                "description": "Integer number to convert to words"
+              }
+            },
+            "required": [
+              "ubiNum"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "ubiNum",
+            "value": "42",
+            "internal_hash_row": "demo-soap-words-q1"
+          }
+        ],
+        "body": {
+          "selection": 0
+        },
+        "headers": {},
+        "auth": {
+          "selection": 0
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "d8537afb-e8ae-4703-9402-196bf7e6a834",
+      "rowkey": 545,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/soap/number_to_words",
+      "method": "GET",
+      "handler": "SOAP",
+      "access": 0,
+      "title": "SOAP number to words",
+      "description": "Example SOAP handler endpoint that converts an integer to words using inline SOAP configuration.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,soap",
+      "code": "{\"wsdl\":\"https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL\",\"functionName\":\"NumberToWords\"}",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:03:28.606Z",
+      "updatedAt": "2026-04-04T03:03:28.606Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_sql_constant_v1",
+        "title": "demo_sql_constant_v1",
+        "description": "Return a constant value from a SQL query over the demo SQLite config."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": "$_VAR_SQLITE",
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-sql-const-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "797cd17f-d1bf-49e5-ad8c-df1d8892f5fd",
+      "rowkey": 621,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/sql/constant",
+      "method": "GET",
+      "handler": "SQL",
+      "access": 0,
+      "title": "SQL constant example",
+      "description": "Example SQL handler endpoint that returns a constant value using the SQLite app variable.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,sql",
+      "code": "SELECT 1097 AS test_sql;",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:02:41.396Z",
+      "updatedAt": "2026-04-04T03:02:41.396Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_sql_echo_name_v1",
+        "title": "demo_sql_echo_name_v1",
+        "description": "Return the provided name using a parameterized SQL query over the demo SQLite config."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name to return from the SQL query"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": "$_VAR_SQLITE",
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "name",
+            "value": "edwinspire",
+            "internal_hash_row": "demo-sql-echo-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "c1ba57a3-bd6d-4cd6-abfc-bb999ab9d426",
+      "rowkey": 926,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/sql/echo_name",
+      "method": "GET",
+      "handler": "SQL",
+      "access": 0,
+      "title": "SQL echo name",
+      "description": "Example SQL handler endpoint that returns the provided name using the SQLite app variable.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,sql",
+      "code": "SELECT :name as nombre;",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T02:59:11.081Z",
+      "updatedAt": "2026-04-04T02:59:11.081Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_text_plain_v1",
+        "title": "demo_text_plain_v1",
+        "description": "Return a plain text example from the demo TEXT handler."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {
+        "mimeType": "text/plain"
+      },
+      "headers_test": {},
+      "data_test": {
+        "body": {
+          "selection": 0
+        },
+        "auth": {
+          "selection": 0,
+          "basic": {},
+          "bearer": {}
+        },
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-text-q1"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-text-h1"
+          }
+        ],
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "6989f056-c458-4a50-bac1-5de5fb7d351d",
+      "rowkey": 195,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/text/plain",
+      "method": "GET",
+      "handler": "TEXT",
+      "access": 0,
+      "title": "Text plain example",
+      "description": "Example TEXT handler endpoint that returns plain text content.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,text",
+      "code": "Hello from demo TEXT handler",
+      "cache_time": 30,
+      "createdAt": "2026-04-04T03:00:22.752Z",
+      "updatedAt": "2026-04-04T03:00:22.752Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_text_plain_v1_20260403220103",
+        "title": "demo_text_plain_v1",
+        "description": "Return a plain text example from the demo TEXT handler."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {
+        "mimeType": "text/plain"
+      },
+      "headers_test": {},
+      "data_test": {
+        "body": {
+          "selection": 0
+        },
+        "auth": {
+          "selection": 0,
+          "basic": {},
+          "bearer": {}
+        },
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-text-q1"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-text-h1"
+          }
+        ],
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "71e002c6-1c69-4080-b1eb-587d66d6d2d9",
+      "rowkey": 756,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/text/plain",
+      "method": "GET",
+      "handler": "TEXT",
+      "access": 0,
+      "title": "Text plain example",
+      "description": "Example TEXT handler endpoint that returns plain text content.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,text",
+      "code": "Hello from demo TEXT handler",
+      "cache_time": 30,
+      "createdAt": "2026-04-04T03:01:03.010Z",
+      "updatedAt": "2026-04-04T03:01:03.010Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_text_xml_v1",
+        "title": "demo_text_xml_v1",
+        "description": "Return an XML example from the demo TEXT handler."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {
+        "mimeType": "text/xml"
+      },
+      "headers_test": {},
+      "data_test": {
+        "body": {
+          "selection": 0
+        },
+        "auth": {
+          "selection": 0,
+          "basic": {},
+          "bearer": {}
+        },
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-text-xml-q1"
+          }
+        ],
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-text-xml-h1"
+          }
+        ],
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "ec61d50d-3145-4139-a9f1-b73bd8efaed9",
+      "rowkey": 556,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 30,
+      "resource": "/ofapi/examples/text/xml",
+      "method": "GET",
+      "handler": "TEXT",
+      "access": 0,
+      "title": "Text xml example",
+      "description": "Example TEXT handler endpoint that returns XML content.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,text",
+      "code": "<hello>demo xml</hello>",
+      "cache_time": 30,
+      "createdAt": "2026-04-04T03:04:11.560Z",
+      "updatedAt": "2026-04-04T03:04:11.560Z"
     },
     {
       "ctrl": {
@@ -1320,7 +3407,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "5c874c8c-36dd-467b-8935-6776c5a6b595",
-      "rowkey": 998,
+      "rowkey": 719,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1410,7 +3497,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "f1143955-f3e5-4127-b764-8cabe3c0c105",
-      "rowkey": 208,
+      "rowkey": 303,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1488,7 +3575,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "45cf84b5-d82f-4aca-ad16-85a25ed6f387",
-      "rowkey": 115,
+      "rowkey": 974,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1578,7 +3665,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "bb7d57e9-3efe-4c6b-92c9-6c586ba7e177",
-      "rowkey": 900,
+      "rowkey": 59,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1655,7 +3742,7 @@ export const demo_app = {
         "headers": {}
       },
       "idendpoint": "01ca8730-091d-4dce-b2bf-b0325df4dcef",
-      "rowkey": 541,
+      "rowkey": 177,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1722,7 +3809,7 @@ export const demo_app = {
         "headers": {}
       },
       "idendpoint": "73ade868-1616-42e4-bd6e-0de1a55b4e9b",
-      "rowkey": 95,
+      "rowkey": 629,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1788,7 +3875,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "28c0bf52-57d6-4974-bd74-d58fec8c205f",
-      "rowkey": 227,
+      "rowkey": 441,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1843,7 +3930,7 @@ export const demo_app = {
         "auth": {}
       },
       "idendpoint": "5509b6b9-5d52-4b33-a20f-c372c739575d",
-      "rowkey": 394,
+      "rowkey": 10,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1858,7 +3945,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "let uf = uFetchAutoEnv.create('/api/demo/ofapi/javascript/example03/auto');\nlet r1 = await uf.GET();\n\n$_RETURN_DATA_ = await r1.json();\n",
+      "code": "let uf = uFetchAutoEnv.create('/api/demo/ofapi/javascript/example03/auto');\nlet r1 = await uf.get();\n\n$_RETURN_DATA_ = await r1.json();\n",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.792Z",
       "updatedAt": "2025-11-22T00:11:42.278Z"
@@ -1919,7 +4006,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "e909e080-35e2-4250-b799-da4770589e3f",
-      "rowkey": 411,
+      "rowkey": 589,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -1934,7 +4021,7 @@ export const demo_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "",
-      "code": "let uf = uFetchAutoEnv.create(\"/api/demo/ofapi/javascript/example03/auto\");\nlet uf2 = uFetchAutoEnv.create(\"/api/demo/ofapi/soap/example01/auto\");\n\nlet r1 = await uf.GET();\nlet r1j = await r1.json();\n\n// Second fetch with Secuential Promise\nlet rblock = await sequentialPromises.ByBlocks(\n  async (data) => {\n    let val = data.value1 + data.value2;\n\n    let r2 = await uf2.GET({ data: { dNum: val } });\n    let r2j = await r2.json();\n\n    return r2j;\n  },\n\n  2,\n  r1j,\n);\n\n$_RETURN_DATA_ = await rblock;\n",
+      "code": "let uf = uFetchAutoEnv.create(\"/api/demo/ofapi/javascript/example03/auto\");\nlet uf2 = uFetchAutoEnv.create(\"/api/demo/ofapi/soap/example01/auto\");\n\nlet r1 = await uf.get();\nlet r1j = await r1.json();\n\n// Second fetch with Secuential Promise\nlet rblock = await sequentialPromises.ByBlocks(\n  async (data) => {\n    let val = data.value1 + data.value2;\n\n    let r2 = await uf2.get({ data: { dNum: val } });\n    let r2j = await r2.json();\n\n    return r2j;\n  },\n\n  2,\n  r1j,\n);\n\n$_RETURN_DATA_ = await rblock;\n",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.791Z",
       "updatedAt": "2025-11-22T00:11:42.275Z"
@@ -2010,7 +4097,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "90879480-8348-44e8-9985-b91e05b32041",
-      "rowkey": 640,
+      "rowkey": 635,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -2076,7 +4163,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "134b1b86-ee20-4210-9948-5ecac5c6d7d6",
-      "rowkey": 14,
+      "rowkey": 629,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -2155,7 +4242,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "87ec2f9a-64fc-4818-9a93-e47bf3d8b0dd",
-      "rowkey": 447,
+      "rowkey": 420,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -2222,7 +4309,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "20c6fb54-f048-44ad-88e4-6aca76a62aec",
-      "rowkey": 520,
+      "rowkey": 986,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -2268,7 +4355,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "9e461698-df3c-4420-ad5b-1811c9937c2c",
-      "rowkey": 725,
+      "rowkey": 82,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -2347,7 +4434,7 @@ export const demo_app = {
         ]
       },
       "idendpoint": "f5f42a0a-d2f1-4356-bb51-323014fbc9fb",
-      "rowkey": 475,
+      "rowkey": 293,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -2396,7 +4483,7 @@ export const demo_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "9b7200b4-c77c-42a4-a8c0-85bb963b4644",
-      "rowkey": 529,
+      "rowkey": 57,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "dev",
@@ -2415,6 +4502,249 @@ export const demo_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.791Z",
       "updatedAt": "2025-11-22T00:11:42.273Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "79b6e016-2642-4aa7-bd47-09f762e196c6",
+      "rowkey": 972,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/ofapi/examples/function/demo_prd",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Function demo prd",
+      "description": "FUNCTION example using fnPublicDemo from public/prd.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,function",
+      "code": "fnPublicDemo",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:37:45.253Z",
+      "updatedAt": "2026-04-04T03:37:45.253Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "7e8053c2-7f58-424a-ad25-0862512cb3a3",
+      "rowkey": 210,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/ofapi/examples/function/demo_prd",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Function demo prd",
+      "description": "FUNCTION example using fnPublicDemo from public/prd.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,function",
+      "code": "fnPublicDemo",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:38:33.319Z",
+      "updatedAt": "2026-04-04T03:38:33.319Z"
+    },
+    {
+      "ctrl": {},
+      "cors": {},
+      "mcp": {},
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {},
+      "idendpoint": "35a37608-33f0-434c-8385-882bd5524b88",
+      "rowkey": 999,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/ofapi/examples/function/demo_prd",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Function demo prd",
+      "description": "FUNCTION example using fnPublicDemo from public/prd.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,function",
+      "code": "fnPublicDemo",
+      "cache_time": 0,
+      "createdAt": "2026-04-04T03:38:45.901Z",
+      "updatedAt": "2026-04-04T03:38:45.901Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "demo_js_echo_name",
+        "title": "demo_js_echo_name",
+        "description": "Return the provided name from the demo JS example endpoint."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name to echo back"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "name",
+            "value": "Edwin",
+            "internal_hash_row": "demo-js-echo-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-echo-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "5e879d9a-1a25-4480-ae11-d9e3d1a2be1b",
+      "rowkey": 771,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/ofapi/examples/js/echo_name",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS echo name",
+      "description": "Example JS handler endpoint that echoes the name query parameter.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js",
+      "code": "$_RETURN_DATA_ = { name: request.query.name ?? 'world' };",
+      "cache_time": 30,
+      "createdAt": "2026-04-04T02:52:12.668Z",
+      "updatedAt": "2026-04-04T02:52:12.668Z"
     },
     {
       "ctrl": {
@@ -2454,7 +4784,7 @@ export const demo_app = {
         }
       },
       "custom_data": {
-        "token": "123456789:AAHP10u-kkWAXgxLGDjrN46XzLZFiBkijGY"
+        "token": "1702232983:AAFmNpYVuKXQQEwmT0Qr8NouVOi-B3B_YXY"
       },
       "headers_test": {},
       "data_test": {
@@ -2496,7 +4826,7 @@ export const demo_app = {
         }
       },
       "idendpoint": "f7d8e356-e06c-47cc-92a1-9946761b5751",
-      "rowkey": 53,
+      "rowkey": 539,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
       "environment": "qa",
@@ -2505,13 +4835,13 @@ export const demo_app = {
       "method": "POST",
       "handler": "TELEGRAM_BOT",
       "access": 0,
-      "title": "bot",
-      "description": "Telegram Bot test",
+      "title": "Telegram grammY bot example",
+      "description": "Example TELEGRAM_BOT endpoint that stores grammY code using the injected `$BOT` instance, including commands and callback handlers. The runtime starts the bot automatically after loading the script.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "bot",
-      "code": "\n// Comando /start\n$BOT.command(\"start\", async (ctx) => {\n  await ctx.reply(\"¿Deseas continuar?\", {\n    reply_markup: {\n      inline_keyboard: [\n        [\n          { text: \"✅ Aceptar\", callback_data: \"aceptar\" },\n          { text: \"❌ Cancelar\", callback_data: \"cancelar\" },\n        ],\n      ],\n    },\n  });\n});\n\n// Manejo de botones\n$BOT.on(\"callback_query:data\", async (ctx) => {\n  const action = ctx.callbackQuery.data;\n\n  if (action === \"aceptar\") {\n    await ctx.answerCallbackQuery({ text: \"✅ Has aceptado.\" });\n    await ctx.editMessageText(\"¡Gracias por aceptar! 🎉\", {\n      reply_markup: { inline_keyboard: [] },\n    });\n  } else if (action === \"cancelar\") {\n    await ctx.answerCallbackQuery({ text: \"❌ Has cancelado.\" });\n    await ctx.editMessageText(\"Operación cancelada. 😢\", {\n      reply_markup: { inline_keyboard: [] },\n    });\n  }\n});\n\n$BOT.start();\nconsole.log(\"Bot listo! 🤖\");",
+      "keywords": "bot,telegram,grammy,example",
+      "code": "\n// Comando /start\n$BOT.command(\"start\", async (ctx) => {\n  await ctx.reply(\"¿Deseas continuar?\", {\n    reply_markup: {\n      inline_keyboard: [\n        [\n          { text: \"✅ Aceptar\", callback_data: \"aceptar\" },\n          { text: \"❌ Cancelar\", callback_data: \"cancelar\" },\n        ],\n      ],\n    },\n  });\n});\n\n// Manejo de botones\n$BOT.on(\"callback_query:data\", async (ctx) => {\n  const action = ctx.callbackQuery.data;\n\n  if (action === \"aceptar\") {\n    await ctx.answerCallbackQuery({ text: \"✅ Has aceptado.\" });\n    await ctx.editMessageText(\"¡Gracias por aceptar! 🎉\", {\n      reply_markup: { inline_keyboard: [] },\n    });\n  } else if (action === \"cancelar\") {\n    await ctx.answerCallbackQuery({ text: \"❌ Has cancelado.\" });\n    await ctx.editMessageText(\"Operación cancelada. 😢\", {\n      reply_markup: { inline_keyboard: [] },\n    });\n  }\n});\n\nconsole.log(\"Bot listo! 🤖\");",
       "cache_time": 10,
       "createdAt": "2026-02-07T04:09:57.824Z",
       "updatedAt": "2026-02-07T04:09:57.824Z"

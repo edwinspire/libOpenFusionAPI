@@ -1511,7 +1511,7 @@ export const system_app = {
               "code": {
                 "type": "string",
                 "default": "",
-                "description": "Handler payload. Convention depends on `handler`: JS => server-side JavaScript source and it must assign `$_RETURN_DATA_` instead of using `return`; FUNCTION => internal function name such as `fnMyFunction`; FETCH => target URL string; TEXT => JSON string with `content` and `mime`; SQL => SQL query string while connection settings live in `custom_data`; SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => handler-specific configuration payload."
+                "description": "Handler payload. Convention depends on `handler`: JS => server-side JavaScript source and it must assign `$_RETURN_DATA_` instead of using `return`; FUNCTION => internal function name such as `fnMyFunction`; FETCH => target URL string; TEXT => JSON string with `content` and `mime`; SQL => SQL query string while connection settings live in `custom_data`; SQL_BULK_I/SOAP/HANA/MONGODB/MCP => handler-specific configuration payload; TELEGRAM_BOT => JavaScript source that configures the injected grammY bot instance available as `$BOT`, while the Telegram token is normally provided in `custom_data.token`. Do not instantiate the bot manually and do not call `$BOT.start()` because the runtime starts it automatically."
               },
               "cors": {
                 "$ref": "#/$defs/jsonValue",
@@ -3734,7 +3734,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "sql,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.POST({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-03-17T16:03:50.532Z",
       "updatedAt": "2026-03-17T16:03:50.532Z"

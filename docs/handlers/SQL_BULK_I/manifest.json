@@ -1,0 +1,15 @@
+{
+  "handler": "SQL_BULK_I",
+  "label": "SQL Bulk Insert",
+  "status": "active",
+  "summary": "Performs efficient bulk inserts through Sequelize-backed relational engines.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "Handler-specific JSON configuration for bulk insertion behavior.",
+    "custom_data": "Database connection settings and bulk insert options."
+  }
+}

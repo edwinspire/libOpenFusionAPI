@@ -38,6 +38,47 @@ if (!process.env.JWT_KEY) {
 }
 export const JWTKEY = JWT_KEY ?? 'oy8632rcv"$/8';
 
+const sanitizeNodemailerMailOptions = (mailOptions) => {
+  if (!mailOptions || typeof mailOptions !== "object") {
+    return mailOptions;
+  }
+
+  if (
+    mailOptions.envelope &&
+    typeof mailOptions.envelope === "object" &&
+    Object.hasOwn(mailOptions.envelope, "size")
+  ) {
+    const safeEnvelope = { ...mailOptions.envelope };
+    delete safeEnvelope.size;
+    return { ...mailOptions, envelope: safeEnvelope };
+  }
+
+  return mailOptions;
+};
+
+const wrapNodemailerTransport = (transporter) => {
+  if (!transporter || typeof transporter.sendMail !== "function") {
+    return transporter;
+  }
+
+  return {
+    ...transporter,
+    sendMail(mailOptions, ...args) {
+      return transporter.sendMail(
+        sanitizeNodemailerMailOptions(mailOptions),
+        ...args
+      );
+    },
+  };
+};
+
+const nodemailerSafe = {
+  ...nodemailer,
+  createTransport(...args) {
+    return wrapNodemailerTransport(nodemailer.createTransport(...args));
+  },
+};
+
 /**
  * @param {any} data
  */
@@ -353,31 +394,49 @@ export const listFunctionsVars = (request, reply, environment) => {
   return {
     OpenAI: {
       fn: request && reply ? OpenAI : undefined,
-      description: "This library provides convenient access to the OpenAI REST API from TypeScript or JavaScript.",
+      description: "Official OpenAI SDK for calling language, reasoning, and multimodal models from JS handlers.",
       web: "https://github.com/openai/openai-node",
-      return: "Any functions or objects",
+      return: "OpenAI client instance",
+      notes: [
+        "Requires a valid API key, typically injected through App Vars or environment variables.",
+        "Outbound network access must be available from the server running the JS handler.",
+      ],
+      agentGuidance: [
+        "Use this when the endpoint must call an external OpenAI model directly instead of delegating to another internal endpoint.",
+        "Return only the relevant subset of the SDK response unless the caller explicitly needs raw provider metadata.",
+      ],
       example: `
 const client = new OpenAI({
-  apiKey: process.env['OPENAI_API_KEY'], // This is the default and can be omitted
+  apiKey: endpointEnv.OPENAI_API_KEY,
 });
 
-const completion = await client.chat.completions.create({
-  model: 'gpt-5.2',
-  messages: [
-    { role: 'developer', content: 'Talk like a pirate.' },
-    { role: 'user', content: 'Are semicolons optional in JavaScript?' },
-  ],
+const response = await client.responses.create({
+  model: 'gpt-4.1-mini',
+  input: 'Summarize in one sentence what OpenFusionAPI does.',
 });
 
-console.log(completion.choices[0].message.content);
-$_RETURN_DATA_ = completion;
+$_RETURN_DATA_ = {
+  text: response.output_text,
+  id: response.id,
+};
       `,
     },
     ofapi: {
       fn: request && reply ? ofapi : undefined,
-      description: "Utilities and services of OpenFusionAPI. Contains server info, token generator, and exception thrower.",
+      description: "OpenFusionAPI runtime helpers exposed to JS handlers.",
       web: own_repo,
-      return: "Any funtions or objects",
+      return: {
+        type: "object",
+        description: "Utility object with server context and helper methods.",
+        object: [
+          { name: "server", type: "object", description: "Runtime server information when available." },
+          { name: "genToken", type: "function", description: "Signs a JWT token for OpenFusionAPI usage." },
+          { name: "throw", type: "function", description: "Throws a controlled HTTP exception." },
+        ],
+      },
+      notes: [
+        "Use ofapi.throw when you need a structured HTTP error from JS handler code.",
+      ],
     },
     xmlCrypto: {
       fn: request && reply ? xmlCrypto : undefined,
@@ -407,12 +466,15 @@ $_RETURN_DATA_ = signedXml;
     },
     xmlFormatter: {
       fn: request && reply ? xmlFormatter : undefined,
-      description: "Read documentationConverts XML into a human readable format (pretty print) while respecting the xml:space attribute. Reciprocally, the xml-formatter package can minify pretty printed XML.",
+      description: "Formats XML into a readable, pretty-printed string.",
       web: "https://github.com/chrisbottin/xml-formatter",
-      return: "",
+      return: "Formatted XML string",
+      notes: [
+        "Useful for debugging SOAP/XML payloads before returning them or saving them to logs.",
+      ],
       example: `
 const xml = '<root><child>Hello</child></root>';
-const formattedXml = xmlFormatter.format(xml);
+const formattedXml = xmlFormatter(xml, { indentation: '  ' });
 $_RETURN_DATA_ = formattedXml;
       `,
     },
@@ -462,22 +524,37 @@ $_RETURN_DATA_ = pem;
     },
     json_to_xlsx_buffer: {
       fn: request && reply ? json_to_xlsx_buffer : undefined,
-      description: "Converts an array of JSON objects to an XLSX buffer. Each object represents a sheet with its data.",
+      description: "Builds an XLSX workbook in memory and returns the binary buffer plus download metadata.",
       web: own_repo,
       params: [
         {
           name: "data",
-          info: "An object with the filename and an array of sheets. Each sheet is an object with a name and data. { filename: 'file', sheets: [{ sheet: Sheet1', data: [] }] }",
+          info: "Workbook definition. Example: { filename: 'report.xlsx', sheets: [{ sheet: 'Sheet1', data: [{ id: 1 }] }] }",
           type: "object",
         },
       ],
-      return: "Buffer with the XLSX file content and ContentType",
+      return: {
+        type: "object",
+        description: "Workbook binary and download metadata.",
+        object: [
+          { name: "buffer", type: "Buffer", description: "XLSX binary content." },
+          { name: "filename", type: "string", description: "Suggested filename." },
+          { name: "contentDisposition", type: "string", description: "Download header value." },
+          { name: "ContentType", type: "string", description: "MIME type for XLSX." },
+        ],
+      },
+      notes: [
+        "This helper does not send the file by itself; you still need to assign headers and return the buffer.",
+      ],
+      agentGuidance: [
+        "If the endpoint should download a file, set $_CUSTOM_HEADERS_ from the returned metadata and assign only result.buffer to $_RETURN_DATA_.",
+      ],
       example: `
 const data = {
-  filename: 'file',
+  filename: 'users.xlsx',
   sheets: [
     {
-      sheet: 'Sheet1',
+      sheet: 'Users',
       data: [
         { name: 'John', age: 30 },
         { name: 'Jane', age: 25 },
@@ -486,24 +563,41 @@ const data = {
   ],
 };
 
-$_CUSTOM_HEADERS_.set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-$_CUSTOM_HEADERS_.set(
-  "Content-Disposition",
-  'attachment; filename="file.xlsx"',
-);
+const result = json_to_xlsx_buffer(data);
 
-const buffer = json_to_xlsx_buffer(data);
-$_RETURN_DATA_ = buffer;
+$_CUSTOM_HEADERS_.set('Content-Type', result.ContentType);
+$_CUSTOM_HEADERS_.set('Content-Disposition', result.contentDisposition);
+
+$_RETURN_DATA_ = result.buffer;
       `,
     },
     request_xlsx_body_to_json: {
       fn: request && reply ? xlsx_body_to_json : undefined,
-      description: "Converts the body of a request to a JSON object. It supports multipart/form-data with Excel files.",
+      description: "Reads uploaded XLSX files from a multipart/form-data request and converts their sheets into JSON rows.",
       web: own_repo,
+      params: [
+        {
+          name: "request",
+          description: "Fastify request object containing multipart form-data files.",
+          required: true,
+          type: "object",
+        },
+      ],
       return: "Array of objects with the data of each sheet of each Excel file.",
+      notes: [
+        "Only multipart file fields are processed; regular text fields remain available on request.body.",
+      ],
+      agentGuidance: [
+        "Use this helper only when the endpoint receives an uploaded spreadsheet; do not use it for plain JSON requests.",
+      ],
       example: `
-      const data = await request_xlsx_body_to_json(request);
-      $_RETURN_DATA_ = data;
+const files = await request_xlsx_body_to_json(request);
+const firstWorkbook = files[0];
+
+$_RETURN_DATA_ = {
+  filename: firstWorkbook?.filename,
+  sheets: firstWorkbook?.sheets,
+};
       `
     },
     crypto: {
@@ -520,18 +614,30 @@ $_RETURN_DATA_ = hex;
     },
     $_RETURN_DATA_: {
       fn: {},
-      description: "Value or object that will be returned by the endpoint.",
+      description: "Primary output slot for JS handlers. Assign the final payload here instead of using return.",
       web: own_repo,
       return: "Any values",
+      notes: [
+        "This is the supported JS handler response contract.",
+      ],
+      agentGuidance: [
+        "Prefer assigning to $_RETURN_DATA_ over calling reply.send() directly unless you need low-level Fastify control.",
+      ],
       example: `
 $_RETURN_DATA_ = { name: 'John', age: 30 };
       `,
     },
     $_CUSTOM_HEADERS_: {
       fn: new Map(),
-      description: "Custom headers to send in the reply.",
+      description: "Map of custom response headers to send together with $_RETURN_DATA_.",
       web: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
       return: "Map object with custom headers",
+      notes: [
+        "Useful for downloads, custom content types, caching headers, and content disposition.",
+      ],
+      agentGuidance: [
+        "Set headers here before assigning binary or special response payloads to $_RETURN_DATA_.",
+      ],
       example: `
 $_CUSTOM_HEADERS_.set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 $_CUSTOM_HEADERS_.set(
@@ -542,75 +648,96 @@ $_CUSTOM_HEADERS_.set(
     },
     reply: {
       fn: request && reply ? reply : undefined,
-      description: "Fastify Reply. Is the object used to send a response to the client.",
+      description: "Fastify Reply object for low-level response control.",
       web: "https://fastify.dev/docs/latest/Reference/Reply/#introduction",
       return: "Fastify Reply object",
+      notes: [
+        "Once you send a response manually with reply.send(), avoid also assigning a different value to $_RETURN_DATA_.",
+      ],
+      agentGuidance: [
+        "Use reply directly only when $_RETURN_DATA_ and $_CUSTOM_HEADERS_ are not enough for the desired response behavior.",
+      ],
       example: `
 reply.code(200).send({ name: 'John', age: 30 });
       `,
     },
     request: {
       fn: request && reply ? request : undefined,
-      description: "Fastify Request. Stores all information about the request",
+      description: "Fastify Request object with body, query, headers, params, and request metadata.",
       web: "https://fastify.dev/docs/latest/Reference/Request/",
       return: "Fastify Request object",
+      notes: [
+        "For GET endpoints, use request.query. For JSON POST endpoints, use request.body.",
+      ],
       example: `
-const data = request.body;
-$_RETURN_DATA_ = data;
+$_RETURN_DATA_ = {
+  query: request.query,
+  body: request.body,
+  headers: request.headers,
+};
       `,
     },
     uFetch: {
       fn: request && reply ? uFetch : undefined,
-      description: "Class constructor. Recommended for making requests to external services/routes.",
+      description: "HTTP client constructor for calling external or fully-qualified URLs.",
       web: own_repo,
       return: "uFetch instance",
+      notes: [
+        "Use uFetch when the target URL is absolute or belongs to another system.",
+        "uFetch evolves frequently, so validate method names and request options against the official documentation or the installed version before publishing new examples or endpoint code.",
+      ],
+      agentGuidance: [
+        "For internal OpenFusionAPI endpoints in the same instance, prefer uFetchAutoEnv instead of hardcoding dev/qa/prd URLs.",
+        "Do not assume older aliases such as uppercase GET or POST remain the preferred API; confirm the current library contract first.",
+      ],
       example: `
 const uF = new uFetch('https://jsonplaceholder.typicode.com/todos/1');
-const req1 = await uF.GET();
-const resp = await req1.json();
-$_RETURN_DATA_ = resp;
+const response = await uF.get();
+$_RETURN_DATA_ = await response.json();
       `,
     },
     uFetchAutoEnv: {
       fn: request && reply ? fnUrlae : undefined,
-      description: `Recommended for consuming internal (own) endpoints. The "auto" method receives the URL; if it ends in "auto", it will be dynamically replaced with the current environment (e.g. "dev", "prd").`,
+      description: `HTTP helper specialized for calling endpoints in the same OpenFusionAPI instance while preserving the current environment.`,
       web: "https://github.com/edwinspire/universal-fetch",
+      notes: [
+        "If the path ends in /auto or /env, the helper replaces that suffix with the current runtime environment.",
+        "Because this helper wraps universal-fetch, confirm the current upstream request API before relying on older snippets.",
+      ],
+      agentGuidance: [
+        "Prefer relative internal URLs such as /api/myapp/resource/auto instead of hardcoded localhost URLs.",
+        "When editing seeded endpoints or documentation, keep method casing aligned with the installed universal-fetch version.",
+      ],
       example: `
-// Automatically translates "auto" suffix to the current runtime environment
-const uF = uFetchAutoEnv.auto('http://127.0.0.1:3000/api/datetime_app/sum-array/auto');
-const req1  = await uF.POST({ data: { numbers: [4, 12, 9] } });
-const resp = await req1.json();
-$_RETURN_DATA_ = resp;
+const uF = uFetchAutoEnv.auto('/api/datetime_app/sum-array/auto');
+const response = await uF.post({ data: { numbers: [4, 12, 9] } });
+
+$_RETURN_DATA_ = await response.json();
       `,
     },
     PromiseSequence: {
       fn: request && reply ? PromiseSequence : undefined,
-      description: "PromiseSequence class. More information at sequential-promises.",
+      description: "Utility for processing async tasks sequentially or in controlled batches.",
       web: "https://github.com/edwinspire/sequential-promises",
+      notes: [
+        "Useful when you must avoid flooding an external API or database with too many parallel calls.",
+      ],
+      agentGuidance: [
+        "Use this when order matters or when downstream systems require throttled execution.",
+      ],
       example: `
-
-// Función de ejemplo que simula una tarea costosa
 function processBlock(block) {
-
   return new Promise((resolve) => {
-
     setTimeout(() => {
-
-      console.log('Block: ', block);
       resolve({ data: block * 2 });
-    }, 2500
-    + (Math.floor(Math.random() * 1000) + 1)
-    );
+    }, 250);
   });
 }
 
-// Lista de datos que queremos procesar
-const data = Array.from({ length: 20 }, (_, i) => i + 1); // Genera una matriz de números del 1 al 20
+const data = [1, 2, 3, 4, 5];
+const batchSize = 2;
 
-// Número de bloques en los que deseamos dividir los datos
-const numeroItems = 10;
-
-let result = await PromiseSequence.ByItems(processBlock, numeroItems, data);
+const result = await PromiseSequence.ByItems(processBlock, batchSize, data);
 $_RETURN_DATA_ = result;
       `,
     },
@@ -625,15 +752,24 @@ $_RETURN_DATA_ = result_uuid;
     },
     mongoose: {
       fn: request && reply ? mongoose : undefined,
-      description: " Mongoose provides a straight-forward, schema-based solution to model your MongoDB.",
+      description: "MongoDB ODM for defining schemas, models, and queries with validation support.",
       web: "https://mongoosejs.com",
+      notes: [
+        "Long-lived connections should be reused carefully; close temporary connections when the job is done.",
+      ],
+      agentGuidance: [
+        "Prefer MONGODB handlers for direct data access endpoints; use mongoose in JS handlers when you need schema logic, orchestration, or mixed business rules.",
+      ],
       example: `
-mongoose.connect('mongodb://127.0.0.1:27017/test');
+await mongoose.connect('mongodb://127.0.0.1:27017/test');
 
 const Cat = mongoose.model('Cat', { name: String });
+await Cat.create({ name: 'Zildjian' });
 
-const kitty = new Cat({ name: 'Zildjian' });
-kitty.save().then(() => console.log('meow'));
+const cats = await Cat.find().lean();
+await mongoose.disconnect();
+
+$_RETURN_DATA_ = cats;
       `,
     },
     $_EXCEPTION_: {
@@ -710,16 +846,32 @@ $_EXCEPTION_("User not found", { userId: 123 }, 404);`,
     },
     pdfjs: {
       fn: request && reply ? pdfjs : undefined,
-      description: "PDF.js is a Portable Document Format (PDF) viewer that is built with HTML5.",
+      description: "PDF parsing library for reading text, metadata, and page structure from PDF documents.",
       web: "https://mozilla.github.io/pdf.js/",
+      notes: [
+        "This is useful for extraction and inspection, not for generating PDFs.",
+      ],
+      agentGuidance: [
+        "Use this when the endpoint must inspect uploaded or downloaded PDFs; do not use it for PDF generation workflows.",
+      ],
       example: `
-      
+const fileResponse = await fetch('https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf');
+const fileBuffer = Buffer.from(await fileResponse.arrayBuffer());
+
+const doc = await pdfjs.getDocument({ data: fileBuffer }).promise;
+const page = await doc.getPage(1);
+const content = await page.getTextContent();
+
+$_RETURN_DATA_ = {
+  pages: doc.numPages,
+  firstPageTextItems: content.items.length,
+};
       `
     },
 
     createImageFromHTML: {
       fn: request && reply ? createImageFromHTML : undefined,
-      description: "Create a Image from HTML code or URL",
+      description: "Renders HTML content or a URL into an image buffer.",
       web: own_repo,
       params: [
         {
@@ -759,16 +911,22 @@ $_EXCEPTION_("User not found", { userId: 123 }, 404);`,
         },
       ],
       return: "NodeJS.ArrayBufferView",
+      notes: [
+        "Pass either html or url. If both are provided, your wrapper implementation defines precedence.",
+      ],
+      agentGuidance: [
+        "Use this when the endpoint must return a screenshot-like image artifact generated on demand.",
+      ],
       example: `
+const image = await createImageFromHTML('<html><body><h1>Hello</h1></body></html>', '', 'png');
 
-      $_CUSTOM_HEADERS_.set("Content-Type", "image/png");
+$_CUSTOM_HEADERS_.set("Content-Type", "image/png");
 $_CUSTOM_HEADERS_.set(
   "Content-Disposition",
   'attachment; filename="file.png"',
 );
 
-      const image = await createImageFromHTML("https://example.com/image.html");
-      $_RETURN_DATA_ = image;
+$_RETURN_DATA_ = image;
       `,
     },
 
@@ -821,15 +979,22 @@ $_CUSTOM_HEADERS_.set(
         },
       ],
       return: "NodeJS.ArrayBufferView",
+      notes: [
+        "Pass either html or url depending on whether the content is already available in memory.",
+      ],
+      agentGuidance: [
+        "Use this for report exports, tickets, or printable documents assembled inside the handler.",
+      ],
       example: `
-      $_CUSTOM_HEADERS_.set("Content-Type", "application/pdf");
+const pdf = await createPDFFromHTML('<html><body><h1>Monthly Report</h1></body></html>');
+
+$_CUSTOM_HEADERS_.set("Content-Type", "application/pdf");
 $_CUSTOM_HEADERS_.set(
   "Content-Disposition",
   'attachment; filename="file.pdf"',
 );
-      const pdf = await createPDFFromHTML("https://example.com/mypage.html");
-      $_
-      $_RETURN_DATA_ = pdf;
+
+$_RETURN_DATA_ = pdf;
       `,
     },
 
@@ -837,62 +1002,63 @@ $_CUSTOM_HEADERS_.set(
       fn: request && reply ? sequelize : undefined,
       description: "Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more.",
       web: "https://sequelize.org/",
+      notes: [
+        "Useful for ad hoc relational DB operations inside JS handlers, but prefer the SQL handler when the endpoint is mostly a database proxy.",
+      ],
+      agentGuidance: [
+        "Choose sequelize here only when you need transactions, model logic, or multi-step orchestration in JS instead of a single SQL statement.",
+      ],
       example: `
-// Crear conexión a SQLite en memoria
 const seq = new sequelize.Sequelize({
   dialect: "sqlite",
   storage: ":memory:",
   logging: false,
 });
 
-  try {
-    // Probar conexión
-    await seq.authenticate();
-    console.log("Conectado a SQLite en memoria.");
+try {
+  await seq.authenticate();
+  await seq.query("CREATE TABLE users (iduser INTEGER PRIMARY KEY, name TEXT, email TEXT);");
+  await seq.query("INSERT INTO users (iduser, name, email) VALUES (1, 'Juan', 'juan@mail.com'), (2, 'Ana', 'ana@mail.com');");
 
-    // (Opcional) Crear tabla y datos de ejemplo
-    await seq.query("CREATE TABLE users (iduser INTEGER PRIMARY KEY, name TEXT, email TEXT);");
-
-    await seq.query("INSERT INTO users (iduser, name, email) VALUES (1, 'Juan', 'juan@mail.com'), (2, 'Ana', 'ana@mail.com');");
-
-    // Query con parámetro
-    const sql = "SELECT * FROM users WHERE iduser = $iduser";
-
-    const result = await seq.query(sql, {
+  const result = await seq.query(
+    "SELECT * FROM users WHERE iduser = $iduser",
+    {
       bind: { iduser: 1 },
-      type: QueryTypes.SELECT,
-    });
+      type: sequelize.QueryTypes.SELECT,
+    }
+  );
 
-    //console.log("Resultado:", result);
-
-    $_RETURN_DATA_ = result;
-
-  } catch (error) {
-    console.error("Error:", error);
-  } finally {
-    await seq.close();
-  }
+  $_RETURN_DATA_ = result;
+} finally {
+  await seq.close();
+}
 
       `
     },
     z: {
       fn: request && reply ? Zod : undefined,
-      description: "Zod is a TypeScript-first schema declaration and validation library. ",
+      description: "Zod schema builder and validator, exposed in the JS handler as the variable z.",
       web: "https://zod.dev/?id=introduction",
+      notes: [
+        "The runtime key is z, even though the imported module is named Zod in this source file.",
+      ],
       example: `
-      const schema = z.object({
-        name: z.string(),
-        age: z.number(),
-      });
-      const data = { name: "John", age: 30 };
-      const result = schema.parse(data);
-      $_RETURN_DATA_ = result;
+const schema = z.object({
+  name: z.string(),
+  age: z.number().int().nonnegative(),
+});
+
+const result = schema.parse({ name: 'John', age: 30 });
+$_RETURN_DATA_ = result;
       `
     },
     nodemailer: {
-      fn: request && reply ? nodemailer : undefined,
+      fn: request && reply ? nodemailerSafe : undefined,
       description: "Nodemailer makes sending email from a Node.js application straightforward and secure, without pulling in a single runtime dependency.",
       web: "https://nodemailer.com/",
+      notes: [
+        "The runtime wrapper strips mailOptions.envelope.size before sendMail() so untrusted request bodies cannot inject that SMTP parameter.",
+      ],
       example: `
       const transporter = nodemailer.createTransport({
         host: 'smtp.example.com',
@@ -917,60 +1083,50 @@ const seq = new sequelize.Sequelize({
       fn: request && reply ? XLSX : undefined,
       description: "SheetJS Community Edition offers battle-tested open-source solutions for extracting useful data from almost any complex spreadsheet and generating new spreadsheets that will work with legacy and modern software alike.",
       web: "https://docs.sheetjs.com/docs/",
+      agentGuidance: [
+        "Use xlsx when you need direct workbook/worksheet operations. Use json_to_xlsx_buffer when you only need a quick downloadable XLSX file.",
+      ],
       example: `
-  /* fetch JSON data and parse */
-  const url = "https://docs.sheetjs.com/executive.json";
-  const raw_data = await (await fetch(url)).json();
+const rows = [
+  { name: 'John', age: 30 },
+  { name: 'Jane', age: 25 },
+];
 
-  /* filter for the Presidents */
-  const prez = raw_data.filter(row => row.terms.some(term => term.type === "prez"));
+const worksheet = xlsx.utils.json_to_sheet(rows);
+const workbook = xlsx.utils.book_new();
+xlsx.utils.book_append_sheet(workbook, worksheet, 'Users');
 
-  /* sort by first presidential term */
-  prez.forEach(row => row.start = row.terms.find(term => term.type === "prez").start);
-  prez.sort((l,r) => l.start.localeCompare(r.start));
+const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
-  /* flatten objects */
-  const rows = prez.map(row => ({
-    name: row.name.first + " " + row.name.last,
-    birthday: row.bio.birthday
-  }));
-
-  /* generate worksheet and workbook */
-  const worksheet = xlsx.utils.json_to_sheet(rows);
-  const workbook = xlsx.utils.book_new();
-  xlsx.utils.book_append_sheet(workbook, worksheet, "Dates");
-
-  /* fix headers */
-  xlsx.utils.sheet_add_aoa(worksheet, [["Name", "Birthday"]], { origin: "A1" });
-
-  /* calculate column width */
-  const max_width = rows.reduce((w, r) => Math.max(w, r.name.length), 10);
-  worksheet["!cols"] = [ { wch: max_width } ];
-
+$_CUSTOM_HEADERS_.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+$_CUSTOM_HEADERS_.set('Content-Disposition', 'attachment; filename="users.xlsx"');
+$_RETURN_DATA_ = Buffer.from(buffer);
       `
     },
     xlsx_style: {
       fn: request && reply ? xlsx_style : undefined,
-      description: "SheetJS with Style! Create Excel spreadsheets with basic styling options using JavaScript.",
+      description: "Styled XLSX builder based on SheetJS, useful when the exported workbook needs fonts, fills, borders, or alignment.",
       web: "https://github.com/gitbrent/xlsx-js-style",
+      notes: [
+        "Prefer xlsx_style over xlsx when presentation matters in the generated spreadsheet.",
+      ],
       example: `
-  // STEP 1: Create a new workbook
 const wb = xlsx_style.utils.book_new();
 
-// STEP 2: Create data rows and styles
 let row = [
 	{ v: "Courier: 24", t: "s", s: { font: { name: "Courier", sz: 24 } } },
 	{ v: "bold & color", t: "s", s: { font: { bold: true, color: { rgb: "FF0000" } } } },
 	{ v: "fill: color", t: "s", s: { fill: { fgColor: { rgb: "E9E9E9" } } } },
 	{ v: "line\nbreak", t: "s", s: { alignment: { wrapText: true } } },
 ];
-
-// STEP 3: Create worksheet with rows; Add worksheet to workbook
 const ws = xlsx_style.utils.aoa_to_sheet([row]);
-xlsx_style.utils.book_append_sheet(wb, ws, "readme demo");
+xlsx_style.utils.book_append_sheet(wb, ws, "Styled Demo");
 
-// STEP 4: Write Excel file to browser
-xlsx_style.writeFile(wb, "xlsx-js-style-demo.xlsx");
+const buffer = xlsx_style.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+$_CUSTOM_HEADERS_.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+$_CUSTOM_HEADERS_.set('Content-Disposition', 'attachment; filename="styled-demo.xlsx"');
+$_RETURN_DATA_ = Buffer.from(buffer);
       `
     },
   };

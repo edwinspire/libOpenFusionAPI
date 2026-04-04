@@ -78,15 +78,16 @@ export const fetchFunction = async (context) => {
     const FData = new uFetch();
     //  console.log('method -------> ', paramsFetch.method );
     const httpMethod = request.method.toUpperCase();
+    const fetchMethod = request.method.toLowerCase();
 
     // @ts-ignore
-    if (typeof FData[httpMethod] !== "function") {
+    if (typeof FData[fetchMethod] !== "function") {
       sendHandlerError(reply, 405, `Method ${httpMethod} not allowed/supported`);
       return;
     }
 
     // @ts-ignore
-    let resp = await FData[httpMethod](init);
+    let resp = await FData[fetchMethod](init);
 
     // Forward Headers from Upstream
     const headersToForward = [

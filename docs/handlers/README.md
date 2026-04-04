@@ -1,20 +1,43 @@
-## 🧭 Handler Documentation
+# Handler Documentation
 
-Scope note:
-- `SQL` is the generic relational handler backed by Sequelize and can target multiple dialects.
-- `HANA` is a separate dedicated handler based on `@sap/hana-client`; behavior documented for `SQL` should not be assumed to apply to `HANA` unless explicitly stated.
+This directory now follows a per-handler documentation contract.
 
-- [FETCH](./FETCH/README.md)
-- [FUNCTION](./FUNCTION/README.md)
-- [HANA](./HANA/README.md)
-- [JS](./JS/README.md)
-- [MCP](./MCP/README.md)
-- [MONGODB](./MONGODB/README.md)
-- [NA](./NA/README.md)
-- [SOAP](./SOAP/README.md)
-- [SQL](./SQL/README.md)
-- [SQL_BULK_I](./SQL_BULK_I/README.md)
-- [TEXT](./TEXT/README.md)
+## Contract
 
-`NA` is internal default/no-op documentation for compatibility and migration guidance, not a target for new integrations.
+Each active handler must keep its material inside its own folder:
+
+- `README.md`: canonical human guide.
+- `manifest.json`: structured metadata used by tooling and runtime documentation endpoints.
+- `examples.md` or `examples.json`: optional examples for real payloads and workflows.
+- `api.generated.md`: optional generated reference for helpers or runtime-exposed APIs.
+
+## Runtime Handlers
+
+| Handler | Label | Status | Extra Files |
+|---|---|---|---|
+| [FETCH](./FETCH/README.md) | Fetch | active | - |
+| [FUNCTION](./FUNCTION/README.md) | Function | active | - |
+| [HANA](./HANA/README.md) | HANA | active | - |
+| [JS](./JS/README.md) | JavaScript | active | api.generated.md |
+| [MCP](./MCP/README.md) | MCP | active | - |
+| [MONGODB](./MONGODB/README.md) | MongoDB | active | - |
+| [NA](./NA/README.md) | Not Assigned | internal | - |
+| [SOAP](./SOAP/README.md) | SOAP | active | - |
+| [SQL](./SQL/README.md) | SQL | active | - |
+| [SQL_BULK_I](./SQL_BULK_I/README.md) | SQL Bulk Insert | active | - |
+| [TELEGRAM_BOT](./TELEGRAM_BOT/README.md) | Telegram Bot | active | examples.md |
+| [TEXT](./TEXT/README.md) | Text | active | - |
+
+## Non-runtime Folders
+
+These folders are documented but are not currently registered in the runtime handler registry:
+
+- [AGENT_IA](./AGENT_IA/README.md)
+
+## Operational Notes
+
+- If a handler endpoint belongs to a seeded app such as `demo`, repository defaults can restore its metadata on startup. Persisted changes may require updating `src/lib/db/default/` too.
+- For [TELEGRAM_BOT](./TELEGRAM_BOT/README.md), treat HTTP validation and worker startup validation as separate checks.
+
+> Auto-generated from `src/lib/handler/handler.js` and per-handler `manifest.json` files.
 

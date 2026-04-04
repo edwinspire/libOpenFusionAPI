@@ -3,6 +3,9 @@
 The **FETCH handler** enables OpenFusionAPI to act as a robust HTTP proxy, forwarding requests to external services while managing headers, caching, and response transformation.  
 Internally it uses `@edwinspire/universal-fetch` to perform standardized HTTP requests.
 
+Agent note:
+- `@edwinspire/universal-fetch` may evolve frequently. Before updating FETCH behavior, examples, or helper snippets, confirm the current official documentation or the installed package contract.
+
 ---
 
 <details>

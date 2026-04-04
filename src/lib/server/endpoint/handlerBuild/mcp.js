@@ -176,6 +176,83 @@ export const CreateMCPHandler = async (app_name, environment) => {
     return sanitizeToolName(name ?? "", "").toLowerCase();
   };
 
+  const getTopLevelProperties = (schema) => {
+    if (!schema || typeof schema !== "object") return [];
+    if (!schema.properties || typeof schema.properties !== "object") return [];
+    return Object.keys(schema.properties);
+  };
+
+  const getRequiredFields = (schema) => {
+    if (!schema || typeof schema !== "object") return [];
+    return Array.isArray(schema.required) ? schema.required : [];
+  };
+
+  const isStrictObjectSchema = (schema) => {
+    return schema?.type === "object" && schema?.additionalProperties === false;
+  };
+
+  const schemaHasNoDeclaredTopLevelFields = (schema) => {
+    return getTopLevelProperties(schema).length === 0;
+  };
+
+  const schemaAllowsAdditionalProperties = (schema) => {
+    return schema?.type === "object" && schema?.additionalProperties === true;
+  };
+
+  const hasStructuredRuntimeSpecificPayload = (handler) => {
+    return ["SOAP", "HANA", "MONGODB", "MCP", "TELEGRAM_BOT", "SQL_BULK_I"].includes(handler);
+  };
+
+  const buildAgentToolDescription = ({
+    endpoint,
+    safeToolName,
+    effectiveDescription,
+    inputSchema,
+    exampleRequest,
+    endpointUpsertDescriptionAddon,
+  }) => {
+    const topLevelProperties = getTopLevelProperties(inputSchema);
+    const requiredFields = getRequiredFields(inputSchema);
+    const fallbackDescription = `Calls ${endpoint.method} ${endpoint.resource} for application ${app_name} in ${endpoint.environment}.`;
+    const purpose = (effectiveDescription && effectiveDescription.trim().length > 0)
+      ? effectiveDescription.trim()
+      : fallbackDescription;
+    const accessLabel = endpoint.access == 0 ? "public" : "private";
+    const strictSchema = isStrictObjectSchema(inputSchema);
+    const minimalPayload = toPrettyText(exampleRequest, "No example available.");
+
+    const lines = [
+      `Purpose: ${purpose}`,
+      `Tool name: ${safeToolName}`,
+      `Access: ${accessLabel}`,
+      `HTTP target: ${endpoint.method} ${endpoint.resource}`,
+      `Environment: ${endpoint.environment}`,
+      `Required fields: ${requiredFields.length > 0 ? requiredFields.join(", ") : "none"}`,
+      `Top-level input fields: ${topLevelProperties.length > 0 ? topLevelProperties.join(", ") : "none declared"}`,
+      `Additional properties: ${strictSchema ? "not allowed" : "allowed or unspecified"}`,
+      `Minimal example payload: ${minimalPayload}`,
+      "Agent guidance: send only fields defined by the input schema unless the schema explicitly allows additional properties.",
+    ];
+
+    if (hasStructuredRuntimeSpecificPayload(endpoint.handler)) {
+      lines.push(`Agent guidance: this handler uses runtime-specific payload structure; call handler_documentation with handler=${endpoint.handler} before composing complex payloads.`);
+    }
+
+    if (normalizeToolKey(safeToolName) === "endpoint_upsert") {
+      lines.push("Agent guidance: call read_endpoint_data before updating an existing endpoint, and verify the saved structure after endpoint_upsert.");
+    }
+
+    if (endpoint.access != 0) {
+      lines.push("Agent guidance: this tool requires MCP server credentials; do not assume anonymous access.");
+    }
+
+    if (endpointUpsertDescriptionAddon && endpointUpsertDescriptionAddon.trim().length > 0) {
+      lines.push(endpointUpsertDescriptionAddon.trim());
+    }
+
+    return lines.join("\n");
+  };
+
   const TOOL_DOC_OVERRIDES = {
     app_data: {
       description:
@@ -273,6 +350,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
     apps_list: {
       description:
         "Retrieves all applications with their application variables and related endpoints.",
+      exampleRequest: {},
       notes: [
         "This can be a large payload because it expands nested app variables and endpoints for every application.",
       ],
@@ -350,6 +428,25 @@ export const CreateMCPHandler = async (app_name, environment) => {
         },
       },
     },
+    get_system_logs: {
+      exampleRequest: {
+        trace_id: "trace-id-example",
+        limit: 50,
+        orderDirection: "DESC",
+      },
+      notes: [
+        "Prefer `trace_id` as the first filter when investigating one failing execution path.",
+        "When using date windows, send `start_date` and `end_date` together to keep the range explicit.",
+        "Use `last_hours` for quick recent searches and reserve broad unfiltered scans for exceptional cases because log volume can be high.",
+      ],
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
+    },
     appvar_upsert: {
       description:
         "Creates or updates an application variable for a target `idapp` and `environment`.",
@@ -380,18 +477,64 @@ export const CreateMCPHandler = async (app_name, environment) => {
         handler: "JS",
       },
       exampleResponse: {
-        label: "JS",
+        label: "JavaScript",
         description: "Executes JavaScript in a Node.js VM sandbox.",
-        markdown: "Full handler documentation is returned in this field when the tool is invoked.",
+        markdown: "Canonical handler guide in markdown format.",
+        manifest: {
+          handler: "JS",
+          label: "JavaScript",
+          status: "active",
+          summary: "Executes JavaScript in a Node.js VM sandbox.",
+        },
+        generated: [
+          {
+            file: "api.generated.md",
+            markdown: "Generated API reference for helper functions available in the JS handler runtime.",
+          },
+        ],
+        examples: [],
+        files: {
+          main: "README.md",
+          manifest: "manifest.json",
+          generated: ["api.generated.md"],
+          examples: [],
+          existing: ["README.md", "manifest.json", "api.generated.md"],
+        },
       },
+      notes: [
+        "Use this tool before composing payloads for handlers with runtime-specific JSON structure.",
+        "The response may include canonical markdown, structured manifest metadata, generated reference files, and example files when available.",
+      ],
       outputSchema: {
         type: "object",
         properties: {
           label: { type: "string" },
           description: { type: "string" },
           markdown: { type: "string" },
+          manifest: {
+            type: "object",
+            additionalProperties: true,
+          },
+          generated: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+          examples: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+          files: {
+            type: "object",
+            additionalProperties: true,
+          },
         },
-        required: ["label", "description", "markdown"],
+        required: ["label", "description"],
         additionalProperties: true,
       },
     },
@@ -426,6 +569,13 @@ export const CreateMCPHandler = async (app_name, environment) => {
       return JSON.stringify(value, null, 2);
     }
     return String(value);
+  };
+
+  const toPrettyExampleText = (value, { allowEmptyObject = false } = {}) => {
+    if (allowEmptyObject && value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0) {
+      return "{}";
+    }
+    return toPrettyText(value);
   };
 
   const sanitizeToolName = (name, fallback = "tool") => {
@@ -531,7 +681,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
 | \`HANA\` | Handler-specific SAP HANA configuration payload |
 | \`MONGODB\` | Handler-specific MongoDB configuration payload |
 | \`MCP\` | Handler-specific MCP configuration payload |
-| \`TELEGRAM_BOT\` | Handler-specific Telegram bot configuration payload |
+| \`TELEGRAM_BOT\` | JavaScript source that configures the injected \`$BOT\` grammY instance; token usually goes in \`custom_data.token\`, and the runtime starts the bot automatically |
 | \`NA\` | Internal default/no-op handler. Avoid for new integrations |
 
 ### Minimum examples by handler
@@ -570,7 +720,14 @@ export const CreateMCPHandler = async (app_name, environment) => {
 \`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`MCP\` before writing the payload.
 
 **TELEGRAM_BOT**
-\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`TELEGRAM_BOT\` before writing the payload.
+\`code\`: JavaScript source that configures the injected grammY bot instance available as \`$BOT\`. Store the Telegram token in \`custom_data.token\`. Do not instantiate the bot yourself and do not call \`$BOT.start()\`; the runtime starts it after evaluating the script. This handler is used to persist and run bot logic in the background, not to return business data from the HTTP response.
+
+Operational notes for agents:
+- An HTTP \`200\` only confirms the route handled the request. It does not prove the bot started successfully.
+- Real startup happens in the background worker. Validate worker logs separately.
+- Repeated startup failures can auto-disable the endpoint.
+- In this repository, seeded apps such as \`demo\` can be restored on server startup, so persistent TELEGRAM_BOT changes may also require updating the default app definition.
+- Typical Telegram startup failures: \`401 Unauthorized\` means invalid or revoked token; \`404 Not Found\` usually means Telegram does not recognize that bot token.
 
 ### ⚠️ SQL handler Binds
 Do not assume one placeholder syntax works for every SQL backend. Keep the SQL text in \`code\`, store connection settings in \`custom_data\`, and confirm the expected bind style with \`handler_documentation\` for \`SQL\` before publishing the endpoint.
@@ -579,7 +736,7 @@ Do not assume one placeholder syntax works for every SQL backend. Keep the SQL t
 For the \`SQL\` handler, keep the SQL query in \`code\` and store database connection parameters in \`custom_data\`. Do not wrap both pieces inside \`code\`.
 
 ### ⚠️ Handler-specific JSON payloads
-For \`SOAP\`, \`HANA\`, \`MONGODB\`, \`MCP\`, and \`TELEGRAM_BOT\`, the exact JSON shape is runtime-specific. Call \`handler_documentation\` for the selected handler and build the payload from that contract instead of reusing examples from another handler.
+For \`SOAP\`, \`HANA\`, \`MONGODB\`, and \`MCP\`, the exact JSON shape is runtime-specific. Call \`handler_documentation\` for the selected handler and build the payload from that contract instead of reusing examples from another handler. For \`TELEGRAM_BOT\`, write JavaScript code for \`$BOT\`, provide the token in \`custom_data.token\`, let the runtime start the bot automatically, and verify startup in logs instead of relying only on the HTTP response.
 
 ### ⚠️ CRITICAL: JS handler — do NOT use \`return\`
 
@@ -624,6 +781,7 @@ $_CUSTOM_HEADERS_ = h;
 5. Run \`endpoint_upsert\` with all required fields.
 6. Call \`read_endpoint_data\` again to verify the persisted structure.
 7. Test the endpoint via its HTTP URL before exposing it as an MCP tool.
+8. For \`TELEGRAM_BOT\`, also inspect worker startup logs and re-check whether the endpoint stayed enabled after startup.
 `;
   };
 
@@ -679,6 +837,9 @@ $_CUSTOM_HEADERS_ = h;
     const inputSchemaNormalized = normalizeSchemaForZod(inputSchema);
     const schemaWasNormalized = stringifySafe(inputSchemaNormalized) !== stringifySafe(inputSchema);
     const override = getToolDocOverride(safeToolName);
+    const hasExplicitExampleRequest = Boolean(
+      override && Object.prototype.hasOwnProperty.call(override, "exampleRequest")
+    );
     const rawExampleRequest = endpoint?.data_test?.body?.json?.code;
     const rawExampleResponse = endpoint?.data_test?.last_response?.data;
     const generatedRequestExample = buildExampleFromSchema(inputSchema);
@@ -708,6 +869,18 @@ $_CUSTOM_HEADERS_ = h;
       ? endpoint?.mcp?.description
       : endpoint.description;
     const effectiveDescription = override?.description ?? baseDescription;
+    const noDeclaredInputFields = schemaHasNoDeclaredTopLevelFields(inputSchema);
+    const inputAllowsExtraFields = schemaAllowsAdditionalProperties(inputSchema);
+    const isArgumentlessTool = noDeclaredInputFields && !inputAllowsExtraFields;
+    const isEffectivelyNoArgTool = noDeclaredInputFields;
+    const agentToolDescription = buildAgentToolDescription({
+      endpoint,
+      safeToolName,
+      effectiveDescription,
+      inputSchema,
+      exampleRequest,
+      endpointUpsertDescriptionAddon,
+    });
 
     // Bug fix #5: Uso de optional chaining para evitar TypeError si mcp.title/description no existen
     markdown_api_docs.push(`##
@@ -772,7 +945,7 @@ ${stringifySafe(inputSchema)}
 
 \`\`\` json
 
-${toPrettyText(exampleRequest)}
+${toPrettyExampleText(exampleRequest, { allowEmptyObject: hasExplicitExampleRequest || isEffectivelyNoArgTool })}
 
 \`\`\`
 
@@ -812,12 +985,16 @@ ${toPrettyText(exampleResponse)}
 
 # Behavior Notes(for AI Agents)
 
-  - Use this tool only with fields defined in the input schema.
+  ${isArgumentlessTool
+      ? "- This tool does not require input arguments; call it with an empty object `{}`."
+      : isEffectivelyNoArgTool
+        ? "- This tool is typically called with an empty object `{}`; additional fields are not required unless explicitly documented elsewhere."
+        : "- Use this tool only with fields defined in the input schema."}
   - If schema marks a field as deprecated, avoid it for new integrations.
   - Access level above indicates if credentials are required.
   ${schemaWasNormalized ? "- Internal runtime validation schema was normalized for MCP compatibility (unsupported JSON Schema keywords removed)." : "- Runtime validation uses the published JSON schema directly."}
   ${outputSchemaWasInferred ? "- Output schema was inferred from a real example response because the declared output schema is too generic." : "- Output schema is documented as declared by the endpoint contract."}
-  ${varsDeprecated ? "- Field `vars` is deprecated (compatibility only). Use appvar_upsert for new app variables." : "- Validate required fields before sending the request."}
+  ${varsDeprecated ? "- Field `vars` is deprecated (compatibility only). Use appvar_upsert for new app variables." : isEffectivelyNoArgTool ? "- No required fields are declared for this tool." : "- Validate required fields before sending the request."}
   ${(override?.notes ?? []).map((note) => `- ${note}`).join("\n  ")}
   ${legacyToolName !== safeToolName ? `- Legacy alias \`${legacyToolName}\` remains registered for backward compatibility.` : ""}
 
@@ -855,11 +1032,8 @@ ${endpointUpsertHandlerGuide}
           title:
             endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
               ? endpoint?.mcp?.title
-              : endpoint.description,
-          description: `${descriptionPrefix}${endpoint.access == 0 ? "Public" : "Private"}  ${endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
-              ? (override?.description ?? endpoint?.mcp?.description)
-              : (override?.description ?? endpoint.description)
-            }${endpointUpsertDescriptionAddon} `,
+              : (endpoint.title || endpoint.description || safeToolName),
+          description: `${descriptionPrefix}${agentToolDescription}`,
 
           inputSchema: zod_inputSchema,
         },
@@ -951,7 +1125,13 @@ server.registerTool(
   sanitizeToolName("list_api_endpoints_" + app_name, "list_api_endpoints"),
   {
     title: "List API endpoints for " + app_name + " on " + environment + " environment",
-    description: "Return documentation for all API endpoints for application '" + app_name + "' on '" + environment + "' environment.",
+    description: [
+      `Purpose: return documentation for all API endpoints for application '${app_name}' on '${environment}' environment.`,
+      "Required fields: none.",
+      "Top-level input fields: none.",
+      "Output: markdown text containing endpoint-by-endpoint API documentation, example payloads, schemas, and behavior notes.",
+      "Agent guidance: use this tool for discovery before calling unfamiliar tools or when you need a broader map of the application API.",
+    ].join("\n"),
     inputSchema: z.object({}),
     annotations: { readOnlyHint: true },
   },

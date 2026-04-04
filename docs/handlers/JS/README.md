@@ -33,6 +33,10 @@ You have access to a context object (implied) with helper functions injected via
 -   `uFetchAutoEnv` — Built-in helper for calling other endpoints within the same OpenFusionAPI instance.
 -   `request_xlsx_body_to_json(request)` — Built-in async helper that parses a multipart/form-data XLSX upload into a JSON array.
 
+`uFetch` / `uFetchAutoEnv` note:
+- `@edwinspire/universal-fetch` changes over time. Before creating or editing endpoint code that depends on it, verify the current official documentation or the installed package version.
+- Do not assume legacy aliases such as `GET()` or `POST()` are still the preferred API.
+
 **Response Contract**:
 -   Assign the payload to `$_RETURN_DATA_`.
 -   Optionally assign a `Map` to `$_CUSTOM_HEADERS_`.
@@ -44,7 +48,7 @@ You have access to a context object (implied) with helper functions injected via
 const { user_name, account_id } = request.query;
 
 const uF = uFetchAutoEnv.auto("/api/myapp/db/user/auto", true);
-const resp = await uF.GET({ data: { user_name, account_id } });
+const resp = await uF.get({ data: { user_name, account_id } });
 $_RETURN_DATA_ = await resp.json();
 ```
 
@@ -54,7 +58,7 @@ $_RETURN_DATA_ = await resp.json();
 const { name, status } = request.body;
 
 const uF = uFetchAutoEnv.auto("/api/myapp/db/entity/auto", true);
-const resp = await uF.POST({ data: { bind: { name, status } } });
+const resp = await uF.post({ data: { bind: { name, status } } });
 $_RETURN_DATA_ = await resp.json();
 ```
 
@@ -119,7 +123,7 @@ if (Array.isArray(sheets) && sheets.length > 0) {
 
   // Process rows and call downstream endpoint
   const uF = uFetchAutoEnv.auto("/api/myapp/data/import/auto", true);
-  const resp = await uF.POST({
+  const resp = await uF.post({
     data: { groupIdType, groupId, rows }
   });
   $_RETURN_DATA_ = await resp.json();
@@ -171,8 +175,8 @@ const uF1 = uFetchAutoEnv.auto(urlAccountSummary, true);
 const uF2 = uFetchAutoEnv.auto(urlTeamMembers, true);
 
 const [resp1, resp2] = await Promise.all([
-  uF1.GET({ data: request.query }),
-  uF2.GET({ data: request.query }),
+  uF1.get({ data: request.query }),
+  uF2.get({ data: request.query }),
 ]);
 
 const accountSummary = await resp1.json();
@@ -214,6 +218,7 @@ The code above may execute, but it is not the supported response contract for th
 
 -   **Sandboxing**: Code runs in a VM, but infinite loops or heavy computations can impact server performance.
 -   **Timeouts**: Execution is typically bounded by a timeout (default or configured per endpoint) to prevent hanging processes.
+-   **Library drift**: If your script depends on `uFetch` or `uFetchAutoEnv`, verify the current upstream API before copying older snippets from seeds or previous docs.
 </details>
 
 ---

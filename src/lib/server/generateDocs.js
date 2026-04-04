@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const OUTPUT_FILE = path.resolve(__dirname, "../../../docs/JS_HANDLER_API.md");
+const OUTPUT_FILE = path.resolve(__dirname, "../../../docs/handlers/JS/api.generated.md");
 
 /**
  * Normalizes the metadata object to a standard schema.
@@ -52,6 +52,8 @@ function normalizeMetadata(key, raw) {
         url: raw.url || raw.web || null,
         deprecated: raw.deprecated || false,
         params: params,
+        notes: Array.isArray(raw.notes) ? raw.notes : [],
+        agentGuidance: Array.isArray(raw.agentGuidance) ? raw.agentGuidance : [],
         returns: raw.return
             ? typeof raw.return === "object"
                 ? raw.return
@@ -99,6 +101,22 @@ function generateMarkdown(functions) {
         }
 
         md += `${meta.description}\n\n`;
+
+        if (meta.notes.length > 0) {
+            md += `**Notes**\n\n`;
+            meta.notes.forEach((note) => {
+                md += `- ${note}\n`;
+            });
+            md += `\n`;
+        }
+
+        if (meta.agentGuidance.length > 0) {
+            md += `**Agent Guidance**\n\n`;
+            meta.agentGuidance.forEach((note) => {
+                md += `- ${note}\n`;
+            });
+            md += `\n`;
+        }
 
         if (meta.params.length > 0) {
             meta.params.forEach((p) => {
@@ -151,6 +169,7 @@ async function main() {
 
         const markdown = generateMarkdown(functions);
 
+        await fs.mkdir(path.dirname(OUTPUT_FILE), { recursive: true });
         await fs.writeFile(OUTPUT_FILE, markdown, "utf-8");
         console.log(`Documentation generated at: ${OUTPUT_FILE}`);
     } catch (error) {
@@ -160,3 +179,4 @@ async function main() {
 }
 
 main();
+

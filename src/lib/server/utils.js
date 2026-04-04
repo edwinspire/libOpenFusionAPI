@@ -59,7 +59,7 @@ export async function emitHook(data) {
     const fnUrlae = new URLAutoEnvironment({ environment: "prd", port: PORT });
     const uF = fnUrlae.create(internal_url_post_hooks, false);
 
-    let r = await uF.POST({ data: data });
+    let r = await uF.post({ data: data });
     let resp = await r.json();
     return resp;
   } catch (error) {

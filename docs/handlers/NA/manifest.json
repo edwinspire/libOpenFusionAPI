@@ -1,0 +1,15 @@
+{
+  "handler": "NA",
+  "label": "Not Assigned",
+  "status": "internal",
+  "summary": "Internal default or no-op handler kept for compatibility.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "Not applicable.",
+    "custom_data": "Not applicable."
+  }
+}

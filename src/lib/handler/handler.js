@@ -9,17 +9,9 @@ import { sqlFunctionInsertBulk } from "./sqlFunctionInsertBulk.js";
 import { mongodbFunction } from "./mongoDB.js";
 import { mcpFunction } from "./mcpFunction.js";
 import { botTelegramFunction } from "./botTelegramFunction.js";
-import fs from 'fs/promises';
-import path from "path";
-import { fileURLToPath } from "url";
 import { replyException } from "./utils.js";
 import { listFunctionsVars } from "../server/functionVars.js";
-
-// Obtiene la ruta del archivo actual (__filename)
-const __filename = fileURLToPath(import.meta.url);
-
-// Obtiene el directorio (__dirname)
-const __dirname = path.dirname(__filename);
+import { readHandlerDocBundle } from "../server/handlerDocs.js";
 
 export const Handlers = {
   JS: {
@@ -123,19 +115,12 @@ export const getHandlerDoc = async (handler) => {
     try {
       doc.label = h.label;
       doc.description = h.description;
-
-      // Obtener la ruta absoluta del archivo
-      const mdPath = path.resolve(
-        `${__dirname}/../../../docs/handlers/${handler}/README.md`
-      );
-
-      // fs.readFileSync() → BLOQUEA el event loop
-      // Leer contenido como string
-      //const jsDoc = fs.readFileSync(mdPath, "utf8");
-      const markdown = await fs.readFile(mdPath, "utf8");
-
-      doc.markdown = markdown;
-      //console.log(jsDoc);
+      const bundle = await readHandlerDocBundle(handler);
+      doc.markdown = bundle.markdown;
+      doc.manifest = bundle.manifest;
+      doc.generated = bundle.generated;
+      doc.examples = bundle.examples;
+      doc.files = bundle.files;
     } catch (error) {
       console.error(error);
     }

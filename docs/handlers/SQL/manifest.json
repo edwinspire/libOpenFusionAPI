@@ -1,0 +1,15 @@
+{
+  "handler": "SQL",
+  "label": "SQL",
+  "status": "active",
+  "summary": "Runs SQL queries through Sequelize against supported relational engines.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "SQL query text using bind or replacement placeholders.",
+    "custom_data": "Connection settings and optional query metadata."
+  }
+}

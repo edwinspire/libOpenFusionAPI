@@ -1,0 +1,15 @@
+{
+  "handler": "TEXT",
+  "label": "Text",
+  "status": "active",
+  "summary": "Returns static text or file-like content from endpoint configuration.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "JSON string with payload and mime type metadata.",
+    "custom_data": "Not used by the base TEXT handler."
+  }
+}

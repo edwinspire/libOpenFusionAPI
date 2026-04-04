@@ -1,0 +1,17 @@
+{
+  "handler": "JS",
+  "label": "JavaScript",
+  "status": "active",
+  "summary": "Executes JavaScript in a Node.js VM sandbox.",
+  "docs": {
+    "main": "README.md",
+    "generated": [
+      "api.generated.md"
+    ],
+    "examples": []
+  },
+  "configuration": {
+    "code": "JavaScript source code. Use $_RETURN_DATA_ as the response contract.",
+    "custom_data": "Unused by the base JS handler unless a deployment-specific extension documents otherwise."
+  }
+}

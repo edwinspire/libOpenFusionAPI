@@ -1,0 +1,15 @@
+{
+  "handler": "FUNCTION",
+  "label": "Function",
+  "status": "active",
+  "summary": "Calls a custom server-side function registered on the runtime.",
+  "docs": {
+    "main": "README.md",
+    "generated": [],
+    "examples": []
+  },
+  "configuration": {
+    "code": "Function identifier or runtime function name to invoke.",
+    "custom_data": "Optional function-specific metadata defined by the server implementation."
+  }
+}
