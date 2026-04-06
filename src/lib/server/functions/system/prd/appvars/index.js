@@ -2,6 +2,7 @@ import {
   upsertAppVar,
   deleteAppVar,
   getAppVarsByIdApp,
+  getAppVarsCatalogByIdApp,
 } from "../../../../../db/appvars.js";
 
 export async function fnUpsertAppVar(params) {
@@ -33,6 +34,20 @@ export async function fnGetAppVarsByIdApp(params) {
   let r = { code: 200, data: undefined };
   try {
     r.data = await getAppVarsByIdApp(params.request.query.idapp);
+    r.code = 200;
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnGetAppVarsCatalogByIdApp(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await getAppVarsCatalogByIdApp(params?.request?.body || {});
     r.code = 200;
   } catch (error) {
     console.log(error);

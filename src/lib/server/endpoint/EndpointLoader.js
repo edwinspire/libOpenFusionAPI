@@ -231,6 +231,7 @@ export class EndpointLoader {
   }
 
   async _initVmHandler(returnHandler, appvars_obj) {
+    returnHandler.params.app_vars = appvars_obj;
     returnHandler.params.jsFn = await this._vmFactory(
       returnHandler.params.code,
       appvars_obj,

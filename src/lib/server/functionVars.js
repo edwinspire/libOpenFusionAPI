@@ -13,6 +13,7 @@ import Zod from "zod";
 import * as XLSX from "xlsx";
 //import * as xlsx_style from "xlsx-js-style";
 import xlsx_style from "xlsx-js-style";
+import { askIAWithMCP, listMcpTools } from "./askIAWithMCP.js";
 
 import {
   createImage as createImageFromHTML,
@@ -101,22 +102,22 @@ export function GenTokenJWT(data, startAt, endAt, key = JWTKEY) {
   const start = startAt ? new Date(startAt) : now;
   const end = endAt ? new Date(endAt) : new Date(start.getTime() + 3600 * 1000);
 
-  // Validaciones
+  // Validations
   if (isNaN(start.getTime())) {
-    throw new Error("startAt no es una fecha válida");
+    throw new Error("startAt is not a valid date");
   }
 
   if (isNaN(end.getTime())) {
-    throw new Error("endAt no es una fecha válida");
+    throw new Error("endAt is not a valid date");
   }
 
   if (end <= start) {
-    throw new Error("endAt debe ser mayor que startAt");
+    throw new Error("endAt must be greater than startAt");
   }
 
   const iat = Math.floor(start.getTime() / 1000);
   const exp = Math.floor(end.getTime() / 1000);
-  const nbf = iat; // inicio de validez real
+  const nbf = iat; // actual validity start
 
   return jwt.sign(
     {
@@ -230,7 +231,7 @@ export const json_to_xlsx_buffer = (
         const jsonData = sheetInfo.data || [];
         // Convertir el array de objetos a una hoja de cálculo (worksheet)
         // - `json_to_sheet` convierte automáticamente los objetos a una hoja.
-        // - Los nombres de las propiedades (a, b) serán los encabezados de las columnas.
+        // - Property names (a, b) become the column headers.
         const worksheet = XLSX.utils.json_to_sheet(jsonData);
 
         // Definir los estilos
@@ -1102,6 +1103,236 @@ $_CUSTOM_HEADERS_.set('Content-Type', 'application/vnd.openxmlformats-officedocu
 $_CUSTOM_HEADERS_.set('Content-Disposition', 'attachment; filename="users.xlsx"');
 $_RETURN_DATA_ = Buffer.from(buffer);
       `
+    },
+    askIAWithMCP: {
+      fn: request && reply ? askIAWithMCP : undefined,
+      description: "Runs a chat completion against an OpenAI-compatible provider and can connect the model to MCP servers so it can discover and invoke tools during the conversation.",
+      web: own_repo,
+      params: [
+        {
+          name: "options.ai",
+          description: "AI provider configuration. Must include at least `model`. Use `baseUrl` for local Ollama or another OpenAI-compatible host, and `apiKey` when the provider requires authentication.",
+          required: true,
+          type: "object",
+        },
+        {
+          name: "options.ai.modelProvider",
+          description: "Provider label for diagnostics or routing conventions, for example `ollama` or `openai-compatible`.",
+          required: false,
+          type: "string",
+        },
+        {
+          name: "options.ai.model",
+          description: "Exact model name to invoke. This field is required.",
+          required: true,
+          type: "string",
+        },
+        {
+          name: "options.ai.baseUrl|baseURL",
+          description: "Optional OpenAI-compatible base URL. Example: `http://localhost:11434` for Ollama.",
+          required: false,
+          type: "string",
+        },
+        {
+          name: "options.ai.apiKey|api_key",
+          description: "Provider API key when required. If omitted and `baseUrl` is present, the helper uses a placeholder key for local OpenAI-compatible servers.",
+          required: false,
+          type: "string",
+        },
+        {
+          name: "options.ai.temperature",
+          description: "Sampling temperature sent to the provider.",
+          required: false,
+          type: "number",
+        },
+        {
+          name: "options.ai.maxTokens|max_tokens",
+          description: "Maximum output tokens for the completion.",
+          required: false,
+          type: "integer",
+        },
+        {
+          name: "options.ai.toolChoice|tool_choice",
+          description: "Optional tool selection policy passed to the provider when MCP tools are available.",
+          required: false,
+          type: "string|object",
+        },
+        {
+          name: "options.ai.headers",
+          description: "Optional extra HTTP headers sent to the AI provider.",
+          required: false,
+          type: "object",
+        },
+        {
+          name: "options.ai.organization",
+          description: "Optional provider organization identifier.",
+          required: false,
+          type: "string",
+        },
+        {
+          name: "options.ai.project",
+          description: "Optional provider project identifier.",
+          required: false,
+          type: "string",
+        },
+        {
+          name: "options.ai.timeout",
+          description: "HTTP timeout in milliseconds for provider requests.",
+          required: false,
+          type: "integer",
+          default: 60000,
+        },
+        {
+          name: "options.prompts",
+          description: "Prompt input. Accepts a string, an array of strings, or an array of chat messages like `{ role, content }`. Structured messages are preferred when system instructions or multi-turn context matter.",
+          required: true,
+          type: "string|array",
+        },
+        {
+          name: "options.mcpServers",
+          description: "Optional MCP server definitions. Each item can include `name`, `url`, `headers`, `timeout`, and `transportPriority`.",
+          required: false,
+          type: "array<object>",
+          default: [],
+        },
+        {
+          name: "options.mcpServers[].name",
+          description: "Friendly MCP server name used in diagnostics and tool aliases.",
+          required: false,
+          type: "string",
+        },
+        {
+          name: "options.mcpServers[].url",
+          description: "HTTP endpoint of the MCP server. Required for each server entry.",
+          required: true,
+          type: "string",
+        },
+        {
+          name: "options.mcpServers[].headers",
+          description: "Optional headers for authenticating against the MCP server.",
+          required: false,
+          type: "object",
+        },
+        {
+          name: "options.mcpServers[].timeout",
+          description: "Optional timeout in milliseconds for fallback RPC requests.",
+          required: false,
+          type: "integer",
+        },
+        {
+          name: "options.mcpServers[].transportPriority",
+          description: "Optional ordered list of transport strategies, typically `['streamable-http', 'legacy-sse-http']`.",
+          required: false,
+          type: "array<string>",
+        },
+        {
+          name: "options.maxToolRounds",
+          description: "Maximum number of tool-execution rounds before forcing a final answer.",
+          required: false,
+          type: "integer",
+          default: 6,
+        },
+        {
+          name: "options.includeDiagnostics",
+          description: "When true, returns execution metadata including tool calls, messages, and resolved MCP server info.",
+          required: false,
+          type: "boolean",
+          default: false,
+        },
+        {
+          name: "options.signal",
+          description: "Optional AbortSignal used to cancel the provider request.",
+          required: false,
+          type: "AbortSignal",
+        },
+      ],
+      return: {
+        type: "string|object",
+        description: "Returns the assistant text by default. When `includeDiagnostics` is true, returns an object with `text`, `provider`, `model`, `messages`, `tools`, `toolExecutions`, and `mcpServers`.",
+      },
+      notes: [
+        "This helper is intended to be called from the JS handler. It is no longer tied to a dedicated handler.",
+        "For local Ollama, a common config is `{ modelProvider: 'ollama', model: 'qwen2.5-coder:1.5b', baseUrl: 'http://localhost:11434', temperature: 0.1, timeout: 1800000 }`.",
+        "If `baseUrl` is present and `apiKey` is omitted, the helper injects a placeholder key so local OpenAI-compatible servers can still be called.",
+        "MCP tools are exposed to the model as OpenAI function tools. The helper will connect, list tools, execute tool calls, and continue the conversation until it reaches a final answer or the round limit.",
+        "Prompt roles should normally be `system`, `user`, `assistant`, and the helper itself manages `tool` messages internally during tool rounds.",
+        "For GET endpoints, prompt arrays usually arrive as a JSON string in `request.query.prompts`, so parse them before calling this helper.",
+        "When the output looks inconsistent, enable `includeDiagnostics` and inspect `messages`, `tools`, and `toolExecutions` before assuming hidden state.",
+      ],
+      agentGuidance: [
+        "Use this helper when the endpoint needs an AI response and may need tool access through one or more MCP servers.",
+        "Prefer passing prompts as structured messages when system or multi-turn context matters.",
+        "If MCP capabilities are unknown, call `listMcpTools` first and only then call `askIAWithMCP` with the chosen servers.",
+        "For JS endpoints that rely on Application Variables, prefer `$_APP_VARS_['$_VAR_NAME']` in generated code because it is explicit and avoids scope-name ambiguity.",
+        "If the task is informational, provide only read-only MCP servers or read-only tools when possible.",
+      ],
+      example: `
+const result = await askIAWithMCP({
+  ai: {
+    modelProvider: 'ollama',
+    model: 'qwen2.5-coder:1.5b',
+    baseUrl: 'http://localhost:11434',
+    temperature: 0.1,
+    timeout: 1800000,
+  },
+  mcpServers: [
+    {
+      name: 'openfusion_system_remote_prd',
+      url: 'https://example.com/api/system/mcp/server/prd',
+    },
+  ],
+  prompts: [
+    {
+      role: 'user',
+      content: 'List the available applications using MCP tools if needed.',
+    },
+  ],
+  includeDiagnostics: true,
+});
+
+$_RETURN_DATA_ = result;
+      `,
+    },
+    listMcpTools: {
+      fn: request && reply ? listMcpTools : undefined,
+      description: "Connects to one or more MCP servers and returns the discovered tools without running an AI conversation.",
+      web: own_repo,
+      params: [
+        {
+          name: "options.mcpServers",
+          description: "List of MCP server definitions to inspect.",
+          required: true,
+          type: "array<object>",
+        },
+        {
+          name: "options.clientName",
+          description: "Optional MCP client name used during connection.",
+          required: false,
+          type: "string",
+        },
+        {
+          name: "options.clientVersion",
+          description: "Optional MCP client version used during connection.",
+          required: false,
+          type: "string",
+        },
+      ],
+      return: "Array of MCP server descriptors with their resolved tool list.",
+      notes: [
+        "Use this for diagnostics, capability discovery, or to verify that a remote MCP server exposes the expected tools before calling askIAWithMCP.",
+      ],
+      example: `
+const tools = await listMcpTools({
+  mcpServers: [
+    {
+      name: 'openfusion_system_remote_prd',
+      url: 'https://example.com/api/system/mcp/server/prd',
+    },
+  ],
+});
+
+$_RETURN_DATA_ = tools;
+      `,
     },
     xlsx_style: {
       fn: request && reply ? xlsx_style : undefined,

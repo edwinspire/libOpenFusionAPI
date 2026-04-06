@@ -59,6 +59,53 @@ export const getAppVarsByIdApp = async (
   }
 };
 
+export const getAppVarsCatalogByIdApp = async (filters = {}) => {
+  const { idapp, environment, include_values, limit, offset } = filters;
+
+  try {
+    const where = {};
+
+    if (idapp) {
+      where.idapp = idapp;
+    }
+
+    if (typeof environment === "string" && environment.trim() !== "") {
+      where.environment = environment;
+    }
+
+    const attributes = [
+      "idvar",
+      "idapp",
+      "name",
+      "type",
+      "environment",
+      "createdAt",
+      "updatedAt",
+    ];
+
+    if (include_values === true) {
+      attributes.push("value");
+    }
+
+    const parsedLimit = Number(limit);
+    const parsedOffset = Number(offset);
+
+    return await AppVars.findAll({
+      where,
+      attributes,
+      order: [
+        ["environment", "ASC"],
+        ["name", "ASC"],
+      ],
+      ...(Number.isFinite(parsedLimit) && parsedLimit > 0 ? { limit: parsedLimit } : {}),
+      ...(Number.isFinite(parsedOffset) && parsedOffset >= 0 ? { offset: parsedOffset } : {}),
+    });
+  } catch (error) {
+    console.error("Error retrieving app vars catalog:", error);
+    throw error;
+  }
+};
+
 export const bulkCreateAppVars = (
   /** @type {readonly import("sequelize").Optional<any, string>[]} */ list_AppVars
 ) => {

@@ -3,6 +3,12 @@
 This guide explains how to **create an application** and **set up application variables** in the platform.  
 All images are embedded directly in this file using Base64 encoding, so there is no need for external hosting.
 
+Recommended order:
+
+1. Create the application first.
+2. Add reusable application variables for `dev`, `qa`, and `prd`.
+3. Create endpoints afterward and reuse those variables from any endpoint in the same application.
+
 ---
 
 ## 🧱 Step 1: Selecting an Application
@@ -98,6 +104,9 @@ To create a variable:
 
 - Applications group related endpoints.  
 - Variables can be set per environment.  
+- The available environments are `dev`, `qa`, and `prd`.
+- Application variables are shared configuration and can be reused across endpoints in the same application.
+- The recommended build order is: create application, create variables, then create endpoints.
 - All naming should follow lowercase and URL-safe conventions.  
 - After configuration, use **Save & Deploy** to make the application available.
 

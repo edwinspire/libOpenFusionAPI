@@ -76,7 +76,7 @@ export class OpenFusionWebsocketClient extends EventEmitter {
     this.ws.on("close", (code, reason) => {
       console.log(
         `🔌 Conexión cerrada ${this.url} (code=${code}, reason=${
-          reason.toString() || "ninguna"
+          reason.toString() || "none"
         })`
       );
       this.cleanupHeartbeat();

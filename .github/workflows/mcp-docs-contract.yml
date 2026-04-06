@@ -1,0 +1,28 @@
+name: MCP Docs Contract
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  mcp-docs-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run MCP docs contract test
+        run: npm run test:mcp-docs

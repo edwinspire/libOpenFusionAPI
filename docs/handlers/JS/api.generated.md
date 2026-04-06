@@ -147,7 +147,7 @@ Official OpenAI SDK for calling language, reasoning, and multimodal models from 
 ```javascript
 
 const client = new OpenAI({
-  apiKey: endpointEnv.OPENAI_API_KEY,
+  apiKey: $_APP_VARS_['$_VAR_OPENAI_API_KEY'],
 });
 
 const response = await client.responses.create({

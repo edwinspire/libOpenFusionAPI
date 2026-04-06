@@ -2,6 +2,8 @@ import {
   upsertEndpoint,
   getEndpointById,
   getEndpointByIdApp,
+  getEndpointCatalogByIdApp,
+  getEndpointSourceSummaryById,
 } from "../../../../../db/endpoint.js";
 
 import { getEndpointBackupByIdEndpoint } from "../../../../../db/endpoint_backup.js";
@@ -62,6 +64,34 @@ export async function fnEndpointGetByIdApp(params) {
 
     r.data = await getEndpointByIdApp(params.request.query.idapp, raw);
     r.code = 200;
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnEndpointCatalogByIdApp(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await getEndpointCatalogByIdApp(params?.request?.body || {});
+    r.code = 200;
+  } catch (error) {
+    console.log(error);
+
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnEndpointSourceSummaryById(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    r.data = await getEndpointSourceSummaryById(params?.request?.body || {});
+    r.code = r.data ? 200 : 404;
   } catch (error) {
     console.log(error);
 

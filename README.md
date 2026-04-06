@@ -76,6 +76,18 @@ Important operational note:
 2. Create or select an application.
 3. Configure your endpoints using the available handlers.
 4. Deploy with a single click.
+
+## 🔄 Recommended Creation Flow
+
+Use this order when creating a new integration:
+
+1. Create the application first.
+2. Define reusable application variables for the environments `dev`, `qa`, and `prd`.
+3. Create one or more endpoints inside that application.
+4. For each endpoint, choose the handler and HTTP method explicitly.
+5. Reuse application variables from any endpoint in the same application instead of hardcoding repeated values.
+
+This is the safest flow for both human operators and MCP / AI agents because the application is the root container, variables are shared configuration, and endpoints are attached to that application afterward.
  
 ---
 

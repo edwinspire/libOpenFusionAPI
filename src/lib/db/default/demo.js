@@ -268,6 +268,40 @@ export const demo_app = {
       "environment": "dev",
       "createdAt": "2026-02-23T21:59:05.815Z",
       "updatedAt": "2026-02-23T21:59:05.815Z"
+    },
+    {
+      "value": {
+        "modelProvider": "ollama",
+        "model": "qwen2.5-coder:1.5b",
+        "baseUrl": "http://localhost:11434",
+        "temperature": 0.1,
+        "timeout": 1800000
+      },
+      "idvar": "fbe4ebcc-c5aa-4bf7-a391-c4cb5a213111",
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "name": "$_VAR_AI_DEFAULTS",
+      "type": "json",
+      "environment": "dev",
+      "createdAt": "2026-04-05T22:40:00.000Z",
+      "updatedAt": "2026-04-05T22:40:00.000Z"
+    },
+    {
+      "value": [
+        {
+          "type": "http",
+          "url": "http://localhost:3000/api/demo/mcp/server/dev",
+          "headers": {
+            "Authorization": "Bearer OFAPI_KEY@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImFwaWtleSI6eyJpZGFwcCI6ImNmY2QyMDg0LTk1ZDUtNjVlZi02NmU3LWRmZjlmOTg3NjRkYSIsImlkY2xpZW50IjoiODA1OGI2OWMtZmJlNi00YjJlLTg5NjQtOTljMzhkMGEyOTMzIn19LCJleHAiOjE3NzczMzQ0MDAsIm5iZiI6MTc3NDY1NjAwMCwiaWF0IjoxNzc0NzE5ODYzfQ.DHPTnXREmh5NMMUWpD_8xMebRLjnpubnKaaIpVLhvXY"
+          }
+        }
+      ],
+      "idvar": "2db18efc-89b3-4cbb-b0a1-a146bf6b3111",
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "name": "$_VAR_MCP_SERVERS_DEMO_DEV",
+      "type": "json",
+      "environment": "dev",
+      "createdAt": "2026-04-05T22:40:00.000Z",
+      "updatedAt": "2026-04-05T22:40:00.000Z"
     }
   ],
   "endpoints": [
@@ -2049,6 +2083,760 @@ export const demo_app = {
       "cache_time": 60,
       "createdAt": "2026-04-04T03:06:18.912Z",
       "updatedAt": "2026-04-04T03:06:18.912Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "ai": {
+                "type": "object",
+                "description": "Optional AI provider config override.",
+                "additionalProperties": true
+              },
+              "prompts": {
+                "description": "Prompt string or chat messages.",
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array"
+                  }
+                ]
+              },
+              "mcpServers": {
+                "type": "array",
+                "description": "Optional MCP servers exposed as tools to the model.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "includeDiagnostics": {
+                "type": "boolean"
+              },
+              "maxToolRounds": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "ai": {
+                "modelProvider": "ollama",
+                "model": "qwen2.5-coder:1.5b",
+                "baseUrl": "http://localhost:11434",
+                "temperature": 0.1,
+                "timeout": 1800000
+              },
+              "prompts": [
+                {
+                  "role": "user",
+                  "content": "Que es javascript."
+                }
+              ],
+              "includeDiagnostics": true,
+              "mcpServers": []
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "dd8d7098-cd91-4f17-a091-7f5b65b7c97c",
+      "rowkey": 964,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_with_mcp",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIAWithMCP",
+      "description": "Example JS handler endpoint that calls askIAWithMCP using AI defaults from application variables and optional request overrides, with optional MCP servers provided in the request body.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,mcp,ollama",
+      "code": "const body = request.body || {};\n\nconst aiDefaults = $_APP_VARS_['$_VAR_AI_DEFAULTS'];\nif (!aiDefaults || typeof aiDefaults !== 'object') {\n  $_EXCEPTION_('Application variable $_VAR_AI_DEFAULTS is required and must be an object.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst aiOverrides = body.ai && typeof body.ai === 'object' ? body.ai : {};\nconst ai = {\n  ...aiDefaults,\n  ...aiOverrides,\n};\n\nconst prompts = body.prompts ?? body.prompt ?? body.messages ?? [\n  {\n    role: 'user',\n    content: 'Di hola desde OpenFusionAPI.',\n  },\n];\n\nconst result = await askIAWithMCP({\n  ai,\n  mcpServers: Array.isArray(body.mcpServers) ? body.mcpServers : [],\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 6,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T22:10:00.000Z",
+      "updatedAt": "2026-04-05T22:10:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "prompt",
+            "value": "Que es javascript.",
+            "internal_hash_row": "demo-js-ai-get-q1"
+          },
+          {
+            "enabled": false,
+            "key": "includeDiagnostics",
+            "value": "true",
+            "internal_hash_row": "demo-js-ai-get-q2"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-get-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "3ec6b9a1-e7fb-4f75-ae2d-4765a3f7e111",
+      "rowkey": 965,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_with_mcp_get",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIAWithMCP GET",
+      "description": "Example JS handler endpoint that reads the prompt from GET query params and calls askIAWithMCP using AI defaults from application variables plus optional query overrides.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,mcp,ollama,get",
+      "code": "const query = request.query || {};\n\nconst promptInput = query.prompts ?? query.prompt ?? query.messages;\nif (!promptInput) {\n  $_EXCEPTION_('The query parameter prompt, prompts, or messages is required.', { query }, 400);\n}\n\nlet prompts = promptInput;\nif (typeof prompts === 'string') {\n  try {\n    const parsed = JSON.parse(prompts);\n    if (Array.isArray(parsed) || (parsed && typeof parsed === 'object')) {\n      prompts = parsed;\n    }\n  } catch (error) {}\n}\n\nconst aiDefaults = $_APP_VARS_['$_VAR_AI_DEFAULTS'];\nif (!aiDefaults || typeof aiDefaults !== 'object') {\n  $_EXCEPTION_('Application variable $_VAR_AI_DEFAULTS is required and must be an object.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst ai = {\n  ...aiDefaults,\n  ...(query.modelProvider != null ? { modelProvider: query.modelProvider } : {}),\n  ...(query.model != null ? { model: query.model } : {}),\n  ...(query.baseUrl != null ? { baseUrl: query.baseUrl } : {}),\n  ...(query.temperature != null ? { temperature: Number(query.temperature) } : {}),\n  ...(query.timeout != null ? { timeout: Number(query.timeout) } : {}),\n  ...(query.apiKey != null ? { apiKey: query.apiKey } : {}),\n};\n\nconst result = await askIAWithMCP({\n  ai,\n  prompts,\n  includeDiagnostics: String(query.includeDiagnostics ?? 'true').toLowerCase() === 'true',\n  maxToolRounds: query.maxToolRounds != null ? Number(query.maxToolRounds) : 6,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T22:20:00.000Z",
+      "updatedAt": "2026-04-05T22:20:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "prompts": {
+                "description": "Prompt string or chat messages received in the POST body.",
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array"
+                  }
+                ]
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "messages": {
+                "type": "array"
+              },
+              "ai": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "mcpServers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "includeDiagnostics": {
+                "type": "boolean"
+              },
+              "maxToolRounds": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-post-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "prompts": [
+                {
+                  "role": "user",
+                  "content": "Que es javascript."
+                }
+              ],
+              "includeDiagnostics": true,
+              "mcpServers": []
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-post-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "6aeb4b14-ef3a-4f7f-a4df-8f8f6bb3a222",
+      "rowkey": 966,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_with_mcp_post",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIAWithMCP POST",
+      "description": "Example JS handler endpoint that requires prompts in the POST body and calls askIAWithMCP using AI defaults from application variables plus optional request overrides.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,mcp,ollama,post",
+      "code": "const body = request.body || {};\n\nconst prompts = body.prompts ?? body.prompt ?? body.messages;\nif (!prompts) {\n  $_EXCEPTION_('The request body must include prompts, prompt, or messages.', { body }, 400);\n}\n\nconst aiDefaults = $_APP_VARS_['$_VAR_AI_DEFAULTS'];\nif (!aiDefaults || typeof aiDefaults !== 'object') {\n  $_EXCEPTION_('Application variable $_VAR_AI_DEFAULTS is required and must be an object.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst aiOverrides = body.ai && typeof body.ai === 'object' ? body.ai : {};\nconst ai = {\n  ...aiDefaults,\n  ...aiOverrides,\n};\n\nconst result = await askIAWithMCP({\n  ai,\n  mcpServers: Array.isArray(body.mcpServers) ? body.mcpServers : [],\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 6,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T22:25:00.000Z",
+      "updatedAt": "2026-04-05T22:25:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "ai": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "includeDiagnostics": {
+                "type": "boolean"
+              },
+              "maxToolRounds": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-mcp-sum-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "includeDiagnostics": true,
+              "maxToolRounds": 6
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-mcp-sum-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "3c0ec9c6-7b9f-4031-8cad-44f6b4c1a333",
+      "rowkey": 967,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_with_mcp_sum_demo_server",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIAWithMCP MCP Sum Demo",
+      "description": "Example JS handler endpoint that calls askIAWithMCP with AI and MCP defaults from application variables and asks the model to sum 2445 + 9776 using an available MCP tool.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,mcp,ollama,tools,sum",
+      "code": "const body = request.body || {};\n\nconst aiDefaults = $_APP_VARS_['$_VAR_AI_DEFAULTS'];\nconst mcpServers = $_APP_VARS_['$_VAR_MCP_SERVERS_DEMO_DEV'];\n\nif (!aiDefaults || typeof aiDefaults !== 'object') {\n  $_EXCEPTION_('Application variable $_VAR_AI_DEFAULTS is required and must be an object.', { appVars: $_APP_VARS_ }, 500);\n}\n\nif (!Array.isArray(mcpServers)) {\n  $_EXCEPTION_('Application variable $_VAR_MCP_SERVERS_DEMO_DEV is required and must be an array.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst aiOverrides = body.ai && typeof body.ai === 'object' ? body.ai : {};\nconst ai = {\n  ...aiDefaults,\n  ...aiOverrides,\n};\n\nconst prompts = [\n  {\n    role: 'user',\n    content: 'Suma 2445 + 9776 usando alguna herramienta MCP disponible',\n  },\n];\n\nconst result = await askIAWithMCP({\n  ai,\n  mcpServers,\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 6,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T22:35:00.000Z",
+      "updatedAt": "2026-04-05T22:35:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "prompts": {
+                "description": "Prompt string or chat messages received in the POST body.",
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array"
+                  }
+                ]
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "messages": {
+                "type": "array"
+              },
+              "includeDiagnostics": {
+                "type": "boolean"
+              },
+              "maxToolRounds": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-app-vars-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "prompts": [
+                {
+                  "role": "user",
+                  "content": "Suma 2445 + 9776 usando alguna herramienta MCP disponible"
+                }
+              ],
+              "includeDiagnostics": true,
+              "maxToolRounds": 6
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-app-vars-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "5fb7e91e-c503-474c-8f8b-4f8340f5a444",
+      "rowkey": 968,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_with_mcp_app_vars",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIAWithMCP App Vars",
+      "description": "Example JS handler endpoint that loads the AI API configuration and MCP server list from application variables before calling askIAWithMCP.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,mcp,app vars,ollama",
+      "code": "const body = request.body || {};\n\nconst prompts = body.prompts ?? body.prompt ?? body.messages;\nif (!prompts) {\n  $_EXCEPTION_('The request body must include prompts, prompt, or messages.', { body }, 400);\n}\n\nconst ai = $_APP_VARS_['$_VAR_AI_DEFAULTS'];\nconst mcpServers = $_APP_VARS_['$_VAR_MCP_SERVERS_DEMO_DEV'];\n\nif (!ai || typeof ai !== 'object') {\n  $_EXCEPTION_('Application variable $_VAR_AI_DEFAULTS is required and must be an object.', { appVars: $_APP_VARS_ }, 500);\n}\n\nif (!Array.isArray(mcpServers)) {\n  $_EXCEPTION_('Application variable $_VAR_MCP_SERVERS_DEMO_DEV is required and must be an array.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst result = await askIAWithMCP({\n  ai,\n  mcpServers,\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 6,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T22:45:00.000Z",
+      "updatedAt": "2026-04-05T22:45:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "prompt",
+            "value": "Suma 2445 + 9776 usando alguna herramienta MCP disponible",
+            "internal_hash_row": "demo-js-ai-app-vars-get-q1"
+          },
+          {
+            "enabled": false,
+            "key": "includeDiagnostics",
+            "value": "true",
+            "internal_hash_row": "demo-js-ai-app-vars-get-q2"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-app-vars-get-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "1f9fce6d-b246-4e75-bc8c-55cc0f4dd555",
+      "rowkey": 969,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_with_mcp_app_vars_get",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIAWithMCP App Vars GET",
+      "description": "Example JS handler endpoint that reads prompts from GET query params and loads the AI API configuration and MCP server list from application variables before calling askIAWithMCP.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,mcp,app vars,ollama,get",
+      "code": "const query = request.query || {};\n\nconst promptInput = query.prompts ?? query.prompt ?? query.messages;\nif (!promptInput) {\n  $_EXCEPTION_('The query parameter prompt, prompts, or messages is required.', { query }, 400);\n}\n\nlet prompts = promptInput;\nif (typeof prompts === 'string') {\n  try {\n    const parsed = JSON.parse(prompts);\n    if (Array.isArray(parsed) || (parsed && typeof parsed === 'object')) {\n      prompts = parsed;\n    }\n  } catch (error) {}\n}\n\nconst ai = $_APP_VARS_['$_VAR_AI_DEFAULTS'];\nconst mcpServers = $_APP_VARS_['$_VAR_MCP_SERVERS_DEMO_DEV'];\n\nif (!ai || typeof ai !== 'object') {\n  $_EXCEPTION_('Application variable $_VAR_AI_DEFAULTS is required and must be an object.', { appVars: $_APP_VARS_ }, 500);\n}\n\nif (!Array.isArray(mcpServers)) {\n  $_EXCEPTION_('Application variable $_VAR_MCP_SERVERS_DEMO_DEV is required and must be an array.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst result = await askIAWithMCP({\n  ai,\n  mcpServers,\n  prompts,\n  includeDiagnostics: String(query.includeDiagnostics ?? 'true').toLowerCase() === 'true',\n  maxToolRounds: query.maxToolRounds != null ? Number(query.maxToolRounds) : 6,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T22:50:00.000Z",
+      "updatedAt": "2026-04-05T22:50:00.000Z"
     },
     {
       "ctrl": {

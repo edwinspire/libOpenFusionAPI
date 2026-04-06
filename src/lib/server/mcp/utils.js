@@ -77,7 +77,7 @@ function makeNotRequiredConstraint(requiredKeys, description) {
   let out = z.record(z.unknown()).refine(
     (obj) => !requiredKeys.every((key) => Object.prototype.hasOwnProperty.call(obj, key)),
     {
-      message: description || `Las propiedades [${requiredKeys.join(", ")}] no deben existir simultaneamente.`,
+      message: description || `Properties [${requiredKeys.join(", ")}] must not exist at the same time.`,
     }
   );
 
@@ -85,7 +85,7 @@ function makeNotRequiredConstraint(requiredKeys, description) {
 }
 
 /* ---------------------------------------------------------
-   ENUM — soporta valores mixtos (string, number, boolean, null)
+  ENUM - supports mixed values (string, number, boolean, null)
 --------------------------------------------------------- */
 function makeEnum(values) {
   // z.enum() en Zod v4 solo acepta arrays de strings

@@ -1,13 +1,36 @@
+Microsoft Windows [Versi¢n 10.0.19045.6093]
+(c) Microsoft Corporation. Todos los derechos reservados.
+
+D:\edwinspire\OtrosProyectos\libOpenFusionAPI>
+
+D:\edwinspire\OtrosProyectos\libOpenFusionAPI>/d/edwinspire/OtrosProyectos/libOpenFusionAPI
+docs
+fn
+index.js
+LICENSE
+node_modules
+package.json
+package-lock.json
+README.md
+scripts
+set_version.js
+src
+temporales
+temporales.validate_new_mcp_tools_live.err
+temporales.validate_new_mcp_tools_live.out
+test.sqlite
+tmp_list_mcp.mjs
+tmp_test.mjs
+www
+
+--- package.json scripts/deps ---
 {
   "name": "@edwinspire/libopenfusionapi",
   "version": "1.9.31",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./test/index.js",
-    "test:mcp-docs": "node ./test/mcp_tool_descriptions.js",
     "test:smoke": "node ./test/smoke_runtime.js",
-    "system:check": "node ./scripts/system_sync.mjs --check-only",
-    "system:sync": "node ./scripts/system_sync.mjs",
     "docs:js-api": "node ./src/lib/server/generateDocs.js",
     "docs:handlers:index": "node ./src/lib/server/generateHandlerIndex.js",
     "docs:handlers:validate": "node ./src/lib/server/validateHandlerDocs.js",
@@ -96,3 +119,5 @@
     "tar": ">=7.5.8"
   }
 }
+
+D:\edwinspire\OtrosProyectos\libOpenFusionAPI>

@@ -25,7 +25,7 @@ const schema_ws_message = {
     },
     recipients: {
       description:
-        "Opcional; si está presente debe ser un arreglo (puede estar vacío).",
+        "Optional; if present it must be an array (it may be empty).",
       type: "array",
     },
   },

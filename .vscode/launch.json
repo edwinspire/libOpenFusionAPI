@@ -5,21 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "command": "npm start",
-            "name": "Run npm start",
-            "request": "launch",
-            "type": "node-terminal"
-        },
-    
-    
-        {
+            "name": "Debug npm start",
             "type": "node",
             "request": "launch",
-            "name": "Iniciar el programa",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "start"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
             "skipFiles": [
                 "<node_internals>/**"
+            ]
+        },
+        {
+            "name": "Debug src/server.js",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "--max-old-space-size=4096"
             ],
-            "program": "${workspaceFolder} node --max-old-space-size=4096 ./src/server.js"
+            "program": "${workspaceFolder}/src/server.js",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ]
 }

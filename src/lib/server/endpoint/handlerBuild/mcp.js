@@ -291,6 +291,21 @@ export const CreateMCPHandler = async (app_name, environment) => {
         additionalProperties: true,
       },
     },
+    endpoint_source_summary: {
+      description:
+        "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload.",
+      exampleRequest: {
+        idendpoint: "00000000-0000-0000-0000-000000000002",
+        preview_lines: 40,
+      },
+      notes: [
+        "Prefer this over `read_endpoint_data` when the agent only needs a quick code preview or wants to estimate source size before requesting the full endpoint configuration.",
+      ],
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
     app_vars: {
       description:
         "Obtains the list of application variables for the given `idapp`.",
@@ -347,12 +362,69 @@ export const CreateMCPHandler = async (app_name, environment) => {
         },
       },
     },
+    app_endpoints_catalog: {
+      description:
+        "Retrieves a lightweight catalog of endpoints for one application. By default it excludes endpoint source code.",
+      exampleRequest: {
+        idapp: "00000000-0000-0000-0000-000000000001",
+        environment: "prd",
+        include_code: false,
+      },
+      notes: [
+        "Prefer this over `app_endpoints` for discovery workflows because it avoids large `code` payloads unless explicitly requested.",
+      ],
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
+    },
+    app_vars_catalog: {
+      description:
+        "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested.",
+      exampleRequest: {
+        idapp: "00000000-0000-0000-0000-000000000001",
+        environment: "prd",
+        include_values: false,
+      },
+      notes: [
+        "Prefer this over `app_vars` for discovery workflows because it avoids returning variable values unless explicitly requested.",
+      ],
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
+    },
     apps_list: {
       description:
         "Retrieves all applications with their application variables and related endpoints.",
       exampleRequest: {},
       notes: [
         "This can be a large payload because it expands nested app variables and endpoints for every application.",
+      ],
+      outputSchema: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
+    },
+    apps_catalog: {
+      description:
+        "Retrieves a lightweight catalog of applications without nested endpoints or application variables.",
+      exampleRequest: {
+        enabled: true,
+        limit: 50,
+        offset: 0,
+      },
+      notes: [
+        "Prefer this over `apps_list` for initial discovery because the payload is smaller and excludes nested endpoint trees.",
       ],
       outputSchema: {
         type: "array",
@@ -449,7 +521,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
     },
     appvar_upsert: {
       description:
-        "Creates or updates an application variable for a target `idapp` and `environment`.",
+        "Creates or updates a reusable application variable for a target `idapp` and `environment`. Use this after creating the application and before creating endpoints when configuration must be shared across multiple endpoints. Supported environments commonly used by agents are `dev`, `qa`, and `prd`.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
         name: "MY_CONFIG_VALUE",
@@ -459,6 +531,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
       },
       notes: [
         "`value` is sent as string in this contract; serialize JSON when storing structured data.",
+        "Recommended workflow: create the application first, store shared configuration with appvar_upsert, and then create endpoints that reuse those variables.",
         "When an endpoint JSON payload needs to reference an AppVar placeholder, embed it as a string such as `\"$_VAR_NAME\"`.",
       ],
       outputSchema: {

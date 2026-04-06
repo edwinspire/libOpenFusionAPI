@@ -185,7 +185,7 @@ export const system_app = {
         "enabled": true,
         "name": "app_create_update",
         "title": "Create or Update Application",
-        "description": "Creates or updates the main Application record only. Does NOT create endpoints or AppVars. Use 'appvar_upsert' for per-environment variables and 'endpoint_upsert' to add endpoints. Operation mode: omit 'idapp' for INSERT; include a valid UUID in 'idapp' for UPDATE. The 'app' name is normalized to lowercase, must be unique, and must match [a-zA-Z0-9_~.-] (max 50 chars)."
+        "description": "Creates or updates the main Application record only. This is the first step in the recommended workflow: create the application, then create shared AppVars with 'appvar_upsert', then attach endpoints with 'endpoint_upsert'. Does NOT create endpoints or AppVars by itself. Operation mode: omit 'idapp' for INSERT; include a valid UUID in 'idapp' for UPDATE. The 'app' name is normalized to lowercase, must be unique, and must match [a-zA-Z0-9_~.-] (max 50 chars)."
       },
       "json_schema": {
         "in": {
@@ -651,6 +651,139 @@ export const system_app = {
       "ctrl": {
         "admin": true,
         "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "app_endpoints_catalog",
+        "title": "List endpoint catalog of an app",
+        "description": "Returns a lightweight catalog of endpoints for one application. Endpoint source code is excluded unless explicitly requested."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idapp": {
+                "type": "string"
+              },
+              "environment": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string"
+              },
+              "handler": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "include_code": {
+                "type": "boolean"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idapp"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "kfdmaw1hj",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "00000000-0000-0000-0000-000000000001",
+              "include_code": false
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "c0c4f621-02ea-4ea6-a79a-a9b5d7c4a101",
+      "rowkey": 981,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/app/endpoints/catalog",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get Endpoint Catalog by App",
+      "description": "Returns a lightweight catalog of endpoints for one application. Endpoint source code is excluded unless explicitly requested.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "endpoint,catalog,lightweight",
+      "code": "fnEndpointCatalogByIdApp",
+      "cache_time": 0,
+      "createdAt": "2026-04-06T01:10:00.000Z",
+      "updatedAt": "2026-04-06T01:10:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
         "log": {}
       },
       "cors": {},
@@ -729,6 +862,125 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.725Z",
       "updatedAt": "2025-11-22T00:11:42.110Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "apps_catalog",
+        "title": "List application catalog",
+        "description": "Returns a lightweight catalog of applications without nested endpoints or application variables."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "app": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "p58z5v6tq",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "enabled": true,
+              "limit": 50,
+              "offset": 0
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "5a0dd410-6f0e-4839-b630-bebba38f9102",
+      "rowkey": 982,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/apps/catalog",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get Apps Catalog",
+      "description": "Returns a lightweight catalog of applications without nested endpoints or application variables.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "app,catalog,lightweight",
+      "code": "fnGetAppsCatalog",
+      "cache_time": 0,
+      "createdAt": "2026-04-06T01:10:00.000Z",
+      "updatedAt": "2026-04-06T01:10:00.000Z"
     },
     {
       "ctrl": {
@@ -1378,9 +1630,131 @@ export const system_app = {
       "cors": {},
       "mcp": {
         "enabled": true,
+        "name": "endpoint_source_summary",
+        "title": "Get endpoint source summary",
+        "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idendpoint": {
+                "type": "string"
+              },
+              "preview_lines": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idendpoint"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "sy3qevh9r",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idendpoint": "00000000-0000-0000-0000-000000000002",
+              "preview_lines": 20
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "cuv7rmczz",
+            "type": 1
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "0f9b28e3-5412-45dd-82f6-c5bf1778d104",
+      "rowkey": 984,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint/source/summary",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get Endpoint Source Summary",
+      "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "endpoint,source,summary,preview",
+      "code": "fnEndpointSourceSummaryById",
+      "cache_time": 0,
+      "createdAt": "2026-04-06T01:40:00.000Z",
+      "updatedAt": "2026-04-06T01:40:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
         "name": "endpoint_upsert",
         "title": "Endpoint UPSERT",
-        "description": "Creates or updates an endpoint. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads."
+        "description": "Creates or updates an endpoint attached to an existing application. Recommended workflow: create the application first, define reusable AppVars per environment (`dev`, `qa`, `prd`) with `appvar_upsert`, then create endpoints with this tool by choosing both the handler and the HTTP method explicitly. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads."
       },
       "json_schema": {
         "in": {
@@ -2859,7 +3233,7 @@ export const system_app = {
         "enabled": true,
         "name": "appvar_upsert",
         "title": "appvar_upsert",
-        "description": "Creates or updates an application variable for a target `idapp` and `environment`. `value` is stored as a string in this contract. When an endpoint JSON payload needs an AppVar placeholder, embed it as the string `\"$_VAR_NAME\"`."
+        "description": "Creates or updates a reusable application variable for a target `idapp` and `environment`. Use this after creating the application and before creating endpoints when configuration must be shared across multiple endpoints. Supported environments commonly used by agents are `dev`, `qa`, and `prd`. `value` is stored as a string in this contract. When an endpoint JSON payload needs an AppVar placeholder, embed it as the string `\"$_VAR_NAME\"`."
       },
       "json_schema": {
         "in": {
@@ -2973,7 +3347,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "UPSERT App var",
-      "description": "Creates or updates an application variable for a target `idapp` and `environment`.",
+      "description": "Creates or updates a reusable application variable for a target `idapp` and `environment`. Use this after creating the application and before creating endpoints when configuration must be shared across multiple endpoints. Supported environments commonly used by agents are `dev`, `qa`, and `prd`.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -3091,6 +3465,130 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.724Z",
       "updatedAt": "2025-11-22T00:11:42.106Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "app_vars_catalog",
+        "title": "List application variable catalog",
+        "description": "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idapp": {
+                "type": "string"
+              },
+              "environment": {
+                "type": "string"
+              },
+              "include_values": {
+                "type": "boolean"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idapp"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "c7z1y4l0n",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "00000000-0000-0000-0000-000000000001",
+              "include_values": false
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "2f8d3d77-d6fa-4de7-8623-4e1cf5e5a103",
+      "rowkey": 983,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/app/vars/catalog",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get Application Variable Catalog",
+      "description": "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "app,var,catalog,lightweight",
+      "code": "fnGetAppVarsCatalogByIdApp",
+      "cache_time": 0,
+      "createdAt": "2026-04-06T01:25:00.000Z",
+      "updatedAt": "2026-04-06T01:25:00.000Z"
     },
     {
       "ctrl": {

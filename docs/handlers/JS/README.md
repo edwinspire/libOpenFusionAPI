@@ -27,11 +27,19 @@ You have access to a context object (implied) with helper functions injected via
 -   `request.query` — Query string parameters for GET endpoints (object).
 -   `request.body` — Parsed JSON body for POST endpoints; also used for multipart form-data fields.
 -   `request.headers` — Incoming HTTP headers.
--   `endpointEnv` — Resolved Application Variables for the current environment. App Vars referenced as `$_VAR_NAME_` in other handlers are accessed directly here (e.g., `endpointEnv.VAR_EMAIL_TRANSPORT`).
+-   `$_APP_VARS_` — Object containing all resolved Application Variables for the current environment.
+-   App Vars are also injected directly into the sandbox using their exact names, so `$_VAR_EMAIL_TRANSPORT` can be referenced directly when that App Var exists.
 -   `$_RETURN_DATA_` — Assign any JSON-serializable value here to send it as the response body.
 -   `$_CUSTOM_HEADERS_` — Optional `Map<string, string>` with custom response headers (e.g., for file downloads).
 -   `uFetchAutoEnv` — Built-in helper for calling other endpoints within the same OpenFusionAPI instance.
 -   `request_xlsx_body_to_json(request)` — Built-in async helper that parses a multipart/form-data XLSX upload into a JSON array.
+-   `askIAWithMCP(options)` — Built-in async helper for AI chats with optional MCP tool usage.
+-   `listMcpTools(options)` — Built-in async helper that lists the tools exposed by one or more MCP servers.
+
+**App Vars Access Recommendation**:
+-   Prefer `$_APP_VARS_['$_VAR_NAME']` in documentation, agents, and reusable snippets because it is explicit and avoids ambiguity.
+-   Direct access like `$_VAR_NAME` is supported and convenient, but it depends on the exact App Var name being present in the sandbox scope.
+-   The dual exposure is intentional. It does not duplicate values in storage; it only creates two access paths to the same runtime data.
 
 `uFetch` / `uFetchAutoEnv` note:
 - `@edwinspire/universal-fetch` changes over time. Before creating or editing endpoint code that depends on it, verify the current official documentation or the installed package version.
@@ -60,6 +68,149 @@ const { name, status } = request.body;
 const uF = uFetchAutoEnv.auto("/api/myapp/db/entity/auto", true);
 const resp = await uF.post({ data: { bind: { name, status } } });
 $_RETURN_DATA_ = await resp.json();
+```
+
+**AI Chat Example with MCP support**:
+```javascript
+const result = await askIAWithMCP({
+  ai: {
+    modelProvider: "ollama",
+    model: "qwen2.5-coder:1.5b",
+    baseUrl: "http://localhost:11434",
+    temperature: 0.1,
+    timeout: 1800000,
+  },
+  mcpServers: [
+    {
+      name: "openfusion_system_remote_prd",
+      url: "https://example.com/api/system/mcp/server/prd",
+    },
+  ],
+  prompts: [
+    {
+      role: "user",
+      content: "Lista las aplicaciones disponibles usando las herramientas MCP si hace falta.",
+    },
+  ],
+  includeDiagnostics: true,
+});
+
+$_RETURN_DATA_ = result;
+```
+
+`askIAWithMCP(options)` contract:
+- `options.ai` is required and must include at least `model`.
+- `options.prompts` is required and accepts a string, an array of strings, or an array of `{ role, content }` messages.
+- `options.mcpServers` is optional and accepts items with `name`, `url`, optional `headers`, optional `timeout`, and optional `transportPriority`.
+- `options.maxToolRounds` is optional and defaults to `6`.
+- `options.includeDiagnostics` is optional and returns execution details when set to `true`.
+- When `includeDiagnostics` is `false`, the helper returns only the final assistant text. When it is `true`, it returns an object with `text`, `provider`, `model`, `messages`, `tools`, `toolExecutions`, and `mcpServers`.
+
+Prompt normalization guidance:
+- For new endpoints, prefer a single canonical input field named `prompts`.
+- For compatibility-oriented endpoints, a practical precedence is `body.prompts ?? body.prompt ?? body.messages` for POST and `query.prompts ?? query.prompt ?? query.messages` for GET.
+- Prefer structured chat messages like `{ role, content }` when system instructions or multi-turn context matter.
+- For GET endpoints, `query.prompts` often arrives as a JSON string, so parse it before calling `askIAWithMCP` when the caller sends an array or message objects.
+
+Recommended MCP workflow for agents:
+- If the available tools are unknown, call `listMcpTools` first to discover the server capabilities.
+- Then call `askIAWithMCP` with the selected MCP servers.
+- When the result looks inconsistent, enable `includeDiagnostics` and inspect `result.messages`, `result.tools`, and `result.toolExecutions` before assuming hidden state or prompt reuse.
+
+Recommended `request.body` convention for AI endpoints:
+
+```json
+{
+  "ai": {
+    "modelProvider": "ollama",
+    "model": "qwen2.5-coder:1.5b",
+    "baseUrl": "http://localhost:11434",
+    "temperature": 0.1,
+    "timeout": 1800000
+  },
+  "mcpServers": [
+    {
+      "name": "openfusion_system_remote_prd",
+      "url": "https://example.com/api/system/mcp/server/prd"
+    }
+  ],
+  "prompts": [
+    {
+      "role": "user",
+      "content": "Explica que aplicaciones hay disponibles."
+    }
+  ],
+  "includeDiagnostics": false,
+  "maxToolRounds": 6
+}
+```
+
+Reusable JS endpoint snippet:
+
+```javascript
+const body = request.body || {};
+
+const ai = {
+  modelProvider: body.ai?.modelProvider ?? "ollama",
+  model: body.ai?.model ?? "qwen2.5-coder:1.5b",
+  baseUrl: body.ai?.baseUrl ?? "http://localhost:11434",
+  temperature: body.ai?.temperature ?? 0.1,
+  timeout: body.ai?.timeout ?? 1800000,
+  apiKey: body.ai?.apiKey,
+};
+
+const result = await askIAWithMCP({
+  ai,
+  mcpServers: Array.isArray(body.mcpServers) ? body.mcpServers : [],
+  prompts: body.prompts ?? body.prompt ?? body.messages,
+  includeDiagnostics: body.includeDiagnostics ?? false,
+  maxToolRounds: body.maxToolRounds ?? 6,
+});
+
+$_RETURN_DATA_ = result;
+```
+
+Reusable JS endpoint snippet using App Vars for AI and MCP configuration:
+
+```javascript
+const body = request.body || {};
+const prompts = body.prompts ?? body.prompt ?? body.messages;
+
+if (!prompts) {
+  $_EXCEPTION_("The request body must include prompts, prompt, or messages.", { body }, 400);
+}
+
+const ai = $_APP_VARS_["$_VAR_AI_DEFAULTS"];
+const mcpServers = $_APP_VARS_["$_VAR_MCP_SERVERS_DEFAULT"] ?? [];
+
+if (!ai || typeof ai !== "object") {
+  $_EXCEPTION_("Application variable $_VAR_AI_DEFAULTS is required and must be an object.", { appVars: $_APP_VARS_ }, 500);
+}
+
+const result = await askIAWithMCP({
+  ai,
+  mcpServers,
+  prompts,
+  includeDiagnostics: body.includeDiagnostics ?? true,
+  maxToolRounds: body.maxToolRounds ?? 6,
+});
+
+$_RETURN_DATA_ = result;
+```
+
+Seed/runtime note:
+- Updating `src/lib/db/default/*.js` only changes the default seed artifacts in the repository.
+- Existing endpoint records already stored in a database will not automatically inherit those documentation or payload changes.
+- If runtime behavior does not match the updated seed file, verify the persisted endpoint/App Var data before debugging the helper itself.
+
+Discovery-only snippet for MCP servers:
+
+```javascript
+const tools = await listMcpTools({
+  mcpServers: request.body?.mcpServers ?? [],
+});
+
+$_RETURN_DATA_ = tools;
 ```
 
 </details>

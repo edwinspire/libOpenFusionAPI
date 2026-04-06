@@ -107,6 +107,50 @@ export const getEndpointById = async (
   }
 };
 
+export const getEndpointSourceSummaryById = async (filters = {}) => {
+  const { idendpoint, preview_lines } = filters;
+
+  try {
+    const endpoint = await Endpoint.findByPk(idendpoint);
+
+    if (!endpoint) {
+      return null;
+    }
+
+    const data = endpoint.toJSON ? endpoint.toJSON() : endpoint;
+    const source = typeof data.code === "string"
+      ? data.code
+      : data.code == null
+        ? ""
+        : JSON.stringify(data.code, null, 2);
+    const lines = source.length > 0 ? source.split(/\r?\n/g) : [];
+    const previewLines = Number.isFinite(Number(preview_lines)) && Number(preview_lines) > 0
+      ? Math.floor(Number(preview_lines))
+      : 40;
+
+    return {
+      idendpoint: data.idendpoint,
+      idapp: data.idapp,
+      resource: data.resource,
+      method: data.method,
+      handler: data.handler,
+      environment: data.environment,
+      enabled: data.enabled,
+      title: data.title,
+      description: data.description,
+      keywords: data.keywords,
+      codeLength: source.length,
+      codeLines: lines.length,
+      previewLines,
+      codePreview: lines.slice(0, previewLines).join("\n"),
+      hasMoreCode: lines.length > previewLines,
+    };
+  } catch (error) {
+    console.error("Error retrieving endpoint source summary:", error);
+    throw error;
+  }
+};
+
 export const getAllEndpoints = async () => {
   try {
     const endpoints = await Endpoint.findAll();
@@ -160,6 +204,83 @@ export const getEndpointByIdApp = async (
     return endpoints;
   } catch (error) {
     console.error("Error retrieving user:", error);
+    throw error;
+  }
+};
+
+export const getEndpointCatalogByIdApp = async (filters = {}) => {
+  const {
+    idapp,
+    environment,
+    method,
+    handler,
+    enabled,
+    include_code,
+    limit,
+    offset,
+  } = filters;
+
+  try {
+    const where = {};
+
+    if (idapp) {
+      where.idapp = idapp;
+    }
+
+    if (typeof environment === "string" && environment.trim() !== "") {
+      where.environment = environment;
+    }
+
+    if (typeof method === "string" && method.trim() !== "") {
+      where.method = method.toUpperCase();
+    }
+
+    if (typeof handler === "string" && handler.trim() !== "") {
+      where.handler = handler.toUpperCase();
+    }
+
+    if (enabled !== null && enabled !== undefined) {
+      where.enabled = enabled;
+    }
+
+    const attributes = [
+      "idendpoint",
+      "idapp",
+      "enabled",
+      "access",
+      "environment",
+      "resource",
+      "method",
+      "handler",
+      "title",
+      "description",
+      "keywords",
+      "cache_time",
+      "mcp",
+      "createdAt",
+      "updatedAt",
+    ];
+
+    if (include_code === true) {
+      attributes.push("code");
+    }
+
+    const parsedLimit = Number(limit);
+    const parsedOffset = Number(offset);
+
+    return await Endpoint.findAll({
+      where,
+      attributes,
+      order: [
+        ["resource", "ASC"],
+        ["environment", "ASC"],
+        ["method", "ASC"],
+      ],
+      ...(Number.isFinite(parsedLimit) && parsedLimit > 0 ? { limit: parsedLimit } : {}),
+      ...(Number.isFinite(parsedOffset) && parsedOffset >= 0 ? { offset: parsedOffset } : {}),
+    });
+  } catch (error) {
+    console.error("Error retrieving endpoint catalog:", error);
     throw error;
   }
 };

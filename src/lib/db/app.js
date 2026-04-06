@@ -8,7 +8,7 @@ import { getAppVarsByIdApp, upsertAppVar } from "./appvars.js";
 import { default_apps } from "./default/index.js";
 import { v4 as uuidv4 } from "uuid";
 import { system_app } from "./default/system.js";
-import { EOF } from "node:dns";
+
 
 function replaceUFETCH(str) {
   if (typeof str !== "string") str = String(str);
@@ -156,6 +156,43 @@ export const getAllApps = async () => {
     return apps;
   } catch (error) {
     console.error("Error retrieving apps:", error);
+    throw error;
+  }
+};
+
+export const getAppsCatalog = async (filters = {}) => {
+  const { app, enabled, limit, offset } = filters;
+
+  try {
+    const where = {};
+
+    if (typeof app === "string" && app.trim() !== "") {
+      where.app = app.toLowerCase();
+    }
+
+    if (enabled !== null && enabled !== undefined) {
+      where.enabled = enabled;
+    }
+
+    const parsedLimit = Number(limit);
+    const parsedOffset = Number(offset);
+
+    return await Application.findAll({
+      where,
+      attributes: [
+        "idapp",
+        "app",
+        "enabled",
+        "description",
+        "createdAt",
+        "updatedAt",
+      ],
+      order: [["app", "ASC"]],
+      ...(Number.isFinite(parsedLimit) && parsedLimit > 0 ? { limit: parsedLimit } : {}),
+      ...(Number.isFinite(parsedOffset) && parsedOffset >= 0 ? { offset: parsedOffset } : {}),
+    });
+  } catch (error) {
+    console.error("Error retrieving apps catalog:", error);
     throw error;
   }
 };
@@ -419,6 +456,15 @@ function ValidateEndpoint(default_endpoints, system_endpoints) {
       if (element.resource !== dif.resource) {
         field_diff.push("resource");
       }
+      if (element.title !== dif.title) {
+        field_diff.push("title");
+      }
+      if (element.description !== dif.description) {
+        field_diff.push("description");
+      }
+      if (element.keywords !== dif.keywords) {
+        field_diff.push("keywords");
+      }
       if (element.method !== dif.method) {
         field_diff.push("method");
       }
@@ -428,6 +474,15 @@ function ValidateEndpoint(default_endpoints, system_endpoints) {
       }
       if (element.access !== dif.access) {
         field_diff.push("access");
+      }
+      if (JSON.stringify(element.ctrl) !== JSON.stringify(dif.ctrl)) {
+        field_diff.push("ctrl");
+      }
+      if (JSON.stringify(element.cors) !== JSON.stringify(dif.cors)) {
+        field_diff.push("cors");
+      }
+      if (JSON.stringify(element.mcp) !== JSON.stringify(dif.mcp)) {
+        field_diff.push("mcp");
       }
       if (JSON.stringify(element.code) !== JSON.stringify(dif.code)) {
         field_diff.push("code");

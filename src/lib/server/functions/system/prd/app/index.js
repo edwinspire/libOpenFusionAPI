@@ -1,5 +1,6 @@
 import {
   getAllApps,
+  getAppsCatalog,
   getAppById,
   getAppFullById,
   upsertApp,
@@ -31,6 +32,19 @@ export async function fnGetApps(params) {
     const apps = await getAllApps();
 
     r.data = apps;
+    r.code = 200;
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnGetAppsCatalog(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    const filters = params?.request?.body || {};
+    r.data = await getAppsCatalog(filters);
     r.code = 200;
   } catch (error) {
     r.data = error;

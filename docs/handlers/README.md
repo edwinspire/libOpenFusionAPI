@@ -28,12 +28,6 @@ Each active handler must keep its material inside its own folder:
 | [TELEGRAM_BOT](./TELEGRAM_BOT/README.md) | Telegram Bot | active | examples.md |
 | [TEXT](./TEXT/README.md) | Text | active | - |
 
-## Non-runtime Folders
-
-These folders are documented but are not currently registered in the runtime handler registry:
-
-- [AGENT_IA](./AGENT_IA/README.md)
-
 ## Operational Notes
 
 - If a handler endpoint belongs to a seeded app such as `demo`, repository defaults can restore its metadata on startup. Persisted changes may require updating `src/lib/db/default/` too.

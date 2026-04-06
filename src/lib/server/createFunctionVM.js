@@ -19,13 +19,13 @@ export const createFunctionVM = async (
      */
     const wrappedCode = `
       (async () => {
-        // El timeout ahora controla el AbortController, no la VM
+        // The timeout now controls the AbortController, not the VM itself.
         const controller = new AbortController();
         const signal = controller.signal;
 
-        // Si el codigo tarda mas del timeout permitido (timeoutVM + 1s), abortamos.
+        // If the code exceeds the allowed timeout (timeoutVM + 1s), abort it.
         const to = setTimeout(() => {
-          console.log("Timeout alcanzado, abortando vm...");
+          console.log("Timeout reached, aborting VM...");
           controller.abort();
         }, ${timeoutVM + 1000});
 
@@ -78,6 +78,9 @@ export const createFunctionVM = async (
       const sandbox = {
         ...customVarsAndFunctions,
         ...defaults,
+        // App Vars are intentionally exposed twice:
+        // 1. spread directly for ergonomic access like `$_VAR_NAME`
+        // 2. grouped under `$_APP_VARS_` for enumeration and collision-safe access
         ...app_vars,
         $_APP_VARS_: app_vars,
       };
