@@ -36,7 +36,7 @@ export const mcpFunction = async (context) => {
         jsonrpc: "2.0",
         error: {
           code: -32603,
-          message: "MCP: Internal server error",
+          message: "MCP: Internal server error. " + error.message,
         },
         id: null,
       });
