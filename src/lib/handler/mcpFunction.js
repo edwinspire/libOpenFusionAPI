@@ -37,6 +37,7 @@ export const mcpFunction = async (context) => {
         error: {
           code: -32603,
           message: "MCP: Internal server error. " + error.message,
+          stack: error.stack
         },
         id: null,
       });
