@@ -16,14 +16,14 @@ export const CreateMCPHandler = async (app_name, environment) => {
     },
   });
 
-  // FIX CRITICO: El server se crea UNA SOLA VEZ aquí, fuera de la factory (headers) =>.
-  // Antes estaba dentro, lo que creaba un nuevo McpServer en cada request HTTP,
-  // perdiendo las tools registradas en requests anteriores → respuesta vacía al llamar tools.
-  const server = getServer();
-
-  // Objeto mutable compartido: cada request HTTP actualiza los headers aquí,
-  // y las tool callbacks los leen en tiempo de ejecución (closure por referencia).
-  const requestContext = { headers: {} };
+  // Fix 6: Las tools y los recursos se registran en variables locales y se añaden a un
+  // nuevo McpServer en la función factory devuelta. De esta forma, cada request HTTP tiene
+  // su propia instancia desconectada de transport permitiendo concurrencia, sin usar
+  // cierres que sobrescriban variables globales como en requestContext.headers.
+  const _mcpConfig = {
+    tools: [],
+    resources: []
+  };
 
   const getAccessLevelLabel = (access) => {
     switch (access) {
@@ -869,8 +869,7 @@ $_CUSTOM_HEADERS_ = h;
     console.warn("[MCP] No endpoints were found for application:", app_name);
     // Return the factory even when no tools are available so the MCP flow remains stable.
     return (_headers) => {
-      requestContext.headers = _headers ?? {};
-      return server;
+      return getServer();
     };
   }
 
@@ -1099,9 +1098,9 @@ ${endpointUpsertHandlerGuide}
     }
 
     const registerEndpointTool = (registeredToolName, descriptionPrefix = "") => {
-      server.registerTool(
-        registeredToolName,
-        {
+      _mcpConfig.tools.push({
+        name: registeredToolName,
+        info: {
           title:
             endpoint?.mcp?.title && endpoint?.mcp?.title.length > 0
               ? endpoint?.mcp?.title
@@ -1111,8 +1110,7 @@ ${endpointUpsertHandlerGuide}
           inputSchema: zod_inputSchema,
         },
 
-        async (data, _context) => {
-          const currentHeaders = requestContext.headers;
+        handler: async (data, _context, currentHeaders) => {
 
           try {
             let AutoURL = new URLAutoEnvironment({
@@ -1153,7 +1151,7 @@ ${endpointUpsertHandlerGuide}
             };
           }
         }
-      );
+      });
     };
 
     registerEndpointTool(safeToolName);
@@ -1173,14 +1171,14 @@ ${markdown_api_docs.join("\n")}
 
     `;
 
-  server.registerResource(
-    "api-docs-" + app_name,
-    resourceURI,
-    {
+  _mcpConfig.resources.push({
+    name: "api-docs-" + app_name,
+    uri: resourceURI,
+    info: {
       description: "API Documentation for " + app_name + " on " + environment + " environment",
       mimeType: "text/markdown",
     },
-    async (_uri, _extra) => {
+    handler: async (_uri, _extra) => {
 
       return {
         contents: [
@@ -1192,11 +1190,11 @@ ${markdown_api_docs.join("\n")}
         ]
       }
     }
-  )
+  });
 
-server.registerTool(
-  sanitizeToolName("list_api_endpoints_" + app_name, "list_api_endpoints"),
-  {
+_mcpConfig.tools.push({
+  name: sanitizeToolName("list_api_endpoints_" + app_name, "list_api_endpoints"),
+  info: {
     title: "List API endpoints for " + app_name + " on " + environment + " environment",
     description: [
       `Purpose: return documentation for all API endpoints for application '${app_name}' on '${environment}' environment.`,
@@ -1208,7 +1206,7 @@ server.registerTool(
     inputSchema: z.object({}),
     annotations: { readOnlyHint: true },
   },
-  async () => ({
+  handler: async () => ({
     content: [
       {
         type: "text",
@@ -1216,11 +1214,26 @@ server.registerTool(
       },
     ],
   })
-);
+});
 
-  // La factory devuelta solo actualiza los headers por request — el server ya tiene las tools registradas
+  // Re-creates the McpServer object for the current request (allowing individual transport connect)
+  // and injects the current HTTP request headers so concurrent requests are safely isolated.
   return (headers) => {
-    requestContext.headers = headers ?? {};
+    const server = getServer();
+    const currentHeaders = headers ?? {};
+
+    for (const res of _mcpConfig.resources) {
+      server.registerResource(res.name, res.uri, res.info, async (uri, extra) => {
+        return await res.handler(uri, extra, currentHeaders);
+      });
+    }
+
+    for (const t of _mcpConfig.tools) {
+      server.registerTool(t.name, t.info, async (data, context) => {
+        return await t.handler(data, context, currentHeaders);
+      });
+    }
+
     return server;
   };
 };
