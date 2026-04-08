@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "checkedTools": [
+    "app_create_update",
+    "endpoint_upsert",
+    "appvar_upsert"
+  ],
+  "port": 3101
+}

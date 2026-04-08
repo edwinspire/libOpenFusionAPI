@@ -79,6 +79,7 @@ const result = await askIAWithMCP({
     baseUrl: "http://localhost:11434",
     temperature: 0.1,
     timeout: 1800000,
+    responseTimeout: 120000,
   },
   mcpServers: [
     {
@@ -104,6 +105,7 @@ $_RETURN_DATA_ = result;
 - `options.mcpServers` is optional and accepts items with `name`, `url`, optional `headers`, optional `timeout`, and optional `transportPriority`.
 - `options.maxToolRounds` is optional and defaults to `6`.
 - `options.includeDiagnostics` is optional and returns execution details when set to `true`.
+- `options.ai.timeout` controls the provider client's HTTP timeout, while `options.ai.responseTimeout|responseTimeoutMs|runTimeout` can be used as a hard deadline for waiting on the AI response.
 - When `includeDiagnostics` is `false`, the helper returns only the final assistant text. When it is `true`, it returns an object with `text`, `provider`, `model`, `messages`, `tools`, `toolExecutions`, and `mcpServers`.
 
 Prompt normalization guidance:
@@ -126,7 +128,8 @@ Recommended `request.body` convention for AI endpoints:
     "model": "qwen2.5-coder:1.5b",
     "baseUrl": "http://localhost:11434",
     "temperature": 0.1,
-    "timeout": 1800000
+    "timeout": 1800000,
+    "responseTimeout": 120000
   },
   "mcpServers": [
     {
@@ -156,6 +159,7 @@ const ai = {
   baseUrl: body.ai?.baseUrl ?? "http://localhost:11434",
   temperature: body.ai?.temperature ?? 0.1,
   timeout: body.ai?.timeout ?? 1800000,
+  responseTimeout: body.ai?.responseTimeout ?? body.ai?.responseTimeoutMs ?? body.ai?.runTimeout ?? 120000,
   apiKey: body.ai?.apiKey,
 };
 

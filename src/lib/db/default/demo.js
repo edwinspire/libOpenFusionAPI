@@ -2846,6 +2846,452 @@ export const demo_app = {
       },
       "cors": {},
       "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "prompts": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "array" }
+                ]
+              },
+              "prompt": { "type": "string" },
+              "messages": { "type": "array" },
+              "includeDiagnostics": { "type": "boolean" },
+              "maxToolRounds": { "type": "integer", "minimum": 1 },
+              "timeout": { "type": "integer", "minimum": 1 },
+              "responseTimeout": { "type": "integer", "minimum": 1 }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-azure-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "prompts": [
+                {
+                  "role": "user",
+                  "content": "Responde exactamente con OK desde Azure OpenAI."
+                }
+              ],
+              "includeDiagnostics": true,
+              "maxToolRounds": 4
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-azure-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": { "username": "", "password": "" },
+          "bearer": { "token": "" }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "8f2f8b5b-4fd5-4b1d-986f-5c7f0a7a9701",
+      "rowkey": 970,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_azure_openai",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIA Azure OpenAI",
+      "description": "Example JS handler endpoint that calls askIAWithProviderMCP directly with Azure OpenAI. Requires application variable $_VAR_AZURE_OPENAI_API_KEY.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,azure,openai,provider",
+      "code": "const body = request.body || {};\n\nconst prompts = body.prompts ?? body.prompt ?? body.messages ?? [\n  {\n    role: 'user',\n    content: 'Responde exactamente con OK desde Azure OpenAI.',\n  },\n];\n\nconst azureApiKey = $_APP_VARS_['$_VAR_AZURE_OPENAI_API_KEY'];\nif (typeof azureApiKey !== 'string' || azureApiKey.trim() === '') {\n  $_EXCEPTION_('Application variable $_VAR_AZURE_OPENAI_API_KEY is required.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst result = await askIAWithProviderMCP({\n  provider: {\n    provider: 'azure-openai',\n    model: body.model ?? 'gpt-4o-mini',\n    baseUrl: body.baseUrl ?? 'https://diegomperezcentralus-resource.cognitiveservices.azure.com/openai',\n    apiVersion: body.apiVersion ?? '2025-01-01-preview',\n    azureApiKey,\n    temperature: body.temperature ?? 0,\n    timeout: body.timeout ?? 1800000,\n    responseTimeout: body.responseTimeout ?? 120000,\n  },\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 4,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T22:55:00.000Z",
+      "updatedAt": "2026-04-05T22:55:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "prompts": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "array" }
+                ]
+              },
+              "prompt": { "type": "string" },
+              "messages": { "type": "array" },
+              "includeDiagnostics": { "type": "boolean" },
+              "maxToolRounds": { "type": "integer", "minimum": 1 }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-ollama-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "prompts": [
+                {
+                  "role": "user",
+                  "content": "Responde exactamente con OK desde Ollama."
+                }
+              ],
+              "includeDiagnostics": true,
+              "maxToolRounds": 4
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-ollama-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": { "username": "", "password": "" },
+          "bearer": { "token": "" }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "00b82245-e2a0-4a86-a2e5-5e7af4509702",
+      "rowkey": 971,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_ollama",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIA Ollama",
+      "description": "Example JS handler endpoint that calls askIAWithProviderMCP directly with a local Ollama model.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,ollama,provider",
+      "code": "const body = request.body || {};\n\nconst prompts = body.prompts ?? body.prompt ?? body.messages ?? [\n  {\n    role: 'user',\n    content: 'Responde exactamente con OK desde Ollama.',\n  },\n];\n\nconst result = await askIAWithProviderMCP({\n  provider: {\n    provider: 'ollama',\n    model: body.model ?? 'qwen2.5-coder:1.5b',\n    baseUrl: body.baseUrl ?? 'http://localhost:11434',\n    temperature: body.temperature ?? 0,\n    timeout: body.timeout ?? 1800000,\n    responseTimeout: body.responseTimeout ?? 120000,\n  },\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 4,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T23:00:00.000Z",
+      "updatedAt": "2026-04-05T23:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "prompts": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "array" }
+                ]
+              },
+              "prompt": { "type": "string" },
+              "messages": { "type": "array" },
+              "includeDiagnostics": { "type": "boolean" },
+              "maxToolRounds": { "type": "integer", "minimum": 1 }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-openai-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "prompts": [
+                {
+                  "role": "user",
+                  "content": "Responde exactamente con OK desde OpenAI."
+                }
+              ],
+              "includeDiagnostics": true,
+              "maxToolRounds": 4
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-openai-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": { "username": "", "password": "" },
+          "bearer": { "token": "" }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "ef55f8f5-8ec6-42d9-a7da-44ab271e9703",
+      "rowkey": 972,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_openai",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIA OpenAI",
+      "description": "Example JS handler endpoint that calls askIAWithProviderMCP directly with OpenAI. Requires application variable $_VAR_OPENAI_API_KEY.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,openai,provider",
+      "code": "const body = request.body || {};\n\nconst prompts = body.prompts ?? body.prompt ?? body.messages ?? [\n  {\n    role: 'user',\n    content: 'Responde exactamente con OK desde OpenAI.',\n  },\n];\n\nconst apiKey = $_APP_VARS_['$_VAR_OPENAI_API_KEY'];\nif (typeof apiKey !== 'string' || apiKey.trim() === '') {\n  $_EXCEPTION_('Application variable $_VAR_OPENAI_API_KEY is required.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst result = await askIAWithProviderMCP({\n  provider: {\n    provider: 'openai',\n    model: body.model ?? 'gpt-4o-mini',\n    apiKey,\n    temperature: body.temperature ?? 0,\n    timeout: body.timeout ?? 1800000,\n    responseTimeout: body.responseTimeout ?? 120000,\n  },\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 4,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T23:05:00.000Z",
+      "updatedAt": "2026-04-05T23:05:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "prompts": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "array" }
+                ]
+              },
+              "prompt": { "type": "string" },
+              "messages": { "type": "array" },
+              "includeDiagnostics": { "type": "boolean" },
+              "maxToolRounds": { "type": "integer", "minimum": 1 }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-anthropic-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "prompts": [
+                {
+                  "role": "user",
+                  "content": "Responde exactamente con OK desde Anthropic."
+                }
+              ],
+              "includeDiagnostics": true,
+              "maxToolRounds": 4
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-anthropic-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": { "username": "", "password": "" },
+          "bearer": { "token": "" }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "6f7ba0cc-4c28-4f6d-b177-dc0642a99704",
+      "rowkey": 973,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_anthropic",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIA Anthropic",
+      "description": "Example JS handler endpoint that calls askIAWithProviderMCP directly with native Anthropic. Requires application variable $_VAR_ANTHROPIC_API_KEY.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,anthropic,claude,provider",
+      "code": "const body = request.body || {};\n\nconst prompts = body.prompts ?? body.prompt ?? body.messages ?? [\n  {\n    role: 'user',\n    content: 'Responde exactamente con OK desde Anthropic.',\n  },\n];\n\nconst apiKey = $_APP_VARS_['$_VAR_ANTHROPIC_API_KEY'];\nif (typeof apiKey !== 'string' || apiKey.trim() === '') {\n  $_EXCEPTION_('Application variable $_VAR_ANTHROPIC_API_KEY is required.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst result = await askIAWithProviderMCP({\n  provider: {\n    provider: 'anthropic',\n    model: body.model ?? 'claude-3-7-sonnet-latest',\n    apiKey,\n    temperature: body.temperature ?? 0,\n    timeout: body.timeout ?? 1800000,\n    responseTimeout: body.responseTimeout ?? 120000,\n  },\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 4,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-05T23:10:00.000Z",
+      "updatedAt": "2026-04-05T23:10:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
         "enabled": true,
         "name": "demo_function_add_v1",
         "title": "demo_function_add_v1",
