@@ -572,6 +572,165 @@ const parseAssistantToolIntent = (content) => {
 	};
 };
 
+const isLikelyToolCatalogDump = (content, availableTools = []) => {
+	if (typeof content !== "string" || content.trim() === "") {
+		return false;
+	}
+
+	const normalizedContent = content.toLowerCase();
+	const hasCatalogMarker = normalizedContent.includes("<tools>")
+		|| normalizedContent.includes('"type": "function"')
+		|| normalizedContent.includes('"type":"function"');
+
+	if (!hasCatalogMarker) {
+		return false;
+	}
+
+	const availableNames = normalizeArray(availableTools)
+		.map((tool) => tool?.function?.name)
+		.filter((name) => typeof name === "string" && name.trim() !== "");
+
+	if (availableNames.length === 0) {
+		return false;
+	}
+
+	return availableNames.some((name) => content.includes(name));
+};
+
+const getRequiredToolParameters = (toolEntry) => {
+	return Array.isArray(toolEntry?.inputSchema?.required)
+		? toolEntry.inputSchema.required.filter((value) => typeof value === "string" && value.trim() !== "")
+		: [];
+};
+
+const getToolSchemaProperties = (toolEntry) => {
+	return isPlainObject(toolEntry?.inputSchema?.properties)
+		? toolEntry.inputSchema.properties
+		: {};
+};
+
+const extractLastUserMessageText = (messages = []) => {
+	for (let index = messages.length - 1; index >= 0; index -= 1) {
+		const message = messages[index];
+		if (message?.role !== "user") {
+			continue;
+		}
+
+		const text = normalizeMessageContentToString(message.content);
+		if (text) {
+			return text;
+		}
+	}
+
+	return "";
+};
+
+const extractFirstUrl = (text) => {
+	if (typeof text !== "string") {
+		return undefined;
+	}
+
+	const match = text.match(/https?:\/\/[^\s)"']+/i);
+	return match?.[0];
+};
+
+const inferAutomaticReadOnlyToolCall = ({ toolEntries = [], messages = [], round = 0 } = {}) => {
+	const promptText = extractLastUserMessageText(messages);
+	if (!promptText) {
+		return null;
+	}
+
+	const normalizedPrompt = promptText.toLowerCase();
+	const promptUrl = extractFirstUrl(promptText);
+	const candidates = [];
+
+	for (const toolEntry of normalizeArray(toolEntries)) {
+		if (!toolEntry || isLikelyMutatingTool(toolEntry)) {
+			continue;
+		}
+
+		const required = getRequiredToolParameters(toolEntry);
+		const properties = getToolSchemaProperties(toolEntry);
+		const descriptor = [toolEntry.toolName, toolEntry.title, toolEntry.description]
+			.filter((value) => typeof value === "string" && value.trim() !== "")
+			.join(" ")
+			.toLowerCase();
+
+		let argumentsValue;
+		let score = 0;
+
+		const queryOnlyShape = required.every((name) => ["query", "numResults", "maxResults"].includes(name))
+			&& Object.prototype.hasOwnProperty.call(properties, "query");
+		if (queryOnlyShape) {
+			argumentsValue = {
+				query: promptText,
+			};
+
+			if (Object.prototype.hasOwnProperty.call(properties, "numResults")) {
+				argumentsValue.numResults = 5;
+			}
+
+			if (Object.prototype.hasOwnProperty.call(properties, "maxResults")) {
+				argumentsValue.maxResults = 5;
+			}
+
+			score += 3;
+			if (/(busca|buscar|search|find|internet|web|who is|quien es|lookup|investiga)/.test(normalizedPrompt)) {
+				score += 3;
+			}
+			if (/(search|find|lookup|web)/.test(descriptor)) {
+				score += 2;
+			}
+		}
+
+		const singleUrlShape = promptUrl
+			&& required.every((name) => ["url", "urls", "maxCharacters"].includes(name))
+			&& (
+				Object.prototype.hasOwnProperty.call(properties, "url")
+				|| Object.prototype.hasOwnProperty.call(properties, "urls")
+			);
+		if (!argumentsValue && singleUrlShape) {
+			argumentsValue = Object.prototype.hasOwnProperty.call(properties, "urls")
+				? { urls: [promptUrl] }
+				: { url: promptUrl };
+
+			if (Object.prototype.hasOwnProperty.call(properties, "maxCharacters")) {
+				argumentsValue.maxCharacters = 3000;
+			}
+
+			score += 3;
+			if (/(fetch|read|url|webpage|page)/.test(descriptor)) {
+				score += 2;
+			}
+		}
+
+		if (!argumentsValue || score <= 0) {
+			continue;
+		}
+
+		candidates.push({
+			toolEntry,
+			arguments: argumentsValue,
+			score,
+		});
+	}
+
+	if (candidates.length === 0) {
+		return null;
+	}
+
+	candidates.sort((left, right) => right.score - left.score);
+	if (candidates.length > 1 && candidates[0].score === candidates[1].score) {
+		return null;
+	}
+
+	return {
+		id: `automatic_tool_fallback_${round + 1}`,
+		name: candidates[0].toolEntry.alias,
+		arguments: candidates[0].arguments,
+	};
+};
+
 const isAzureOpenAIConfig = (providerConfig = {}) => {
 	const providerKey = normalizeProviderKey(
 		providerConfig.provider
@@ -1155,6 +1314,8 @@ class OpenAICompatibleAdapter extends BaseProviderAdapter {
 			? Math.max(1, Number(maxToolRounds))
 			: DEFAULT_MAX_TOOL_ROUNDS;
 		const tools = runtime.getOpenAITools();
+		let toolCatalogRetryUsed = false;
+		let automaticToolFallbackUsed = false;
 
 		for (let round = 0; round < roundsLimit; round += 1) {
 			const requestSignal = this.createRequestSignal(signal);
@@ -1207,13 +1368,69 @@ class OpenAICompatibleAdapter extends BaseProviderAdapter {
 					: [];
 
 			if (toolCalls.length === 0) {
+					const assistantText = normalizeMessageContentToString(assistantMessage.content);
+				const assistantLooksLikeToolCatalog = isLikelyToolCatalogDump(assistantText, tools);
+
+					if (
+						tools.length > 0
+						&& round < roundsLimit - 1
+						&& !toolCatalogRetryUsed
+					&& assistantLooksLikeToolCatalog
+					) {
+						toolCatalogRetryUsed = true;
+						messages.push({
+							role: "user",
+							content: [
+								"You described the available tools instead of using one.",
+								"Do not enumerate or explain tools.",
+								"If external information is needed, call exactly one relevant tool now.",
+								"If no tool is needed, answer directly in plain text.",
+							].join(" "),
+						});
+						continue;
+					}
+
+					if (
+						tools.length > 0
+						&& round < roundsLimit - 1
+						&& !automaticToolFallbackUsed
+						&& (assistantLooksLikeToolCatalog || toolCatalogRetryUsed)
+					) {
+						const automaticToolCall = inferAutomaticReadOnlyToolCall({
+							toolEntries: runtime.toolEntries,
+							messages,
+							round,
+						});
+
+						if (automaticToolCall) {
+							automaticToolFallbackUsed = true;
+							const executions = await runtime.executeToolCalls([automaticToolCall]);
+
+							for (const execution of executions) {
+								messages.push({
+									role: "tool",
+									tool_call_id: execution.callId,
+									content: [
+										"Automatic read-only tool fallback executed because the assistant described tools instead of calling one directly.",
+										"Use this result to answer the user and do not describe the tool catalog again.",
+										execution.textResult || JSON.stringify(execution.rawResult),
+									].join("\n\n"),
+								});
+							}
+
+							continue;
+						}
+					}
+
 				return this.buildDiagnostics(includeDiagnostics, {
-					text: normalizeMessageContentToString(assistantMessage.content),
+						text: assistantText,
 					provider: this.provider,
 					model: this.model,
 					messages,
 					toolExecutions: runtime.executionLog,
 					mcpServers: runtime.getDiagnosticsServers(),
+					assistantDumpedToolCatalog: toolCatalogRetryUsed && assistantLooksLikeToolCatalog,
+					automaticToolFallbackUsed,
 				});
 			}
 
@@ -1790,6 +2007,8 @@ export const askIAWithMCP = async ({
 
 export const __internalIAForTests = Object.freeze({
 	parseAssistantToolIntent,
+	isLikelyToolCatalogDump,
+	inferAutomaticReadOnlyToolCall,
 	buildToolUsageGuidance,
 	buildToolCallFingerprint,
 	resolveResponseTimeoutMs,

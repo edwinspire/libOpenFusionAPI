@@ -13,7 +13,7 @@ import Zod from "zod";
 import * as XLSX from "xlsx";
 //import * as xlsx_style from "xlsx-js-style";
 import xlsx_style from "xlsx-js-style";
-import { askAIWithTools, askIAWithMCP, askIAWithProviderMCP, listMcpTools } from "./ia.js";
+import { askAIWithTools, askIAWithMCP, askIAWithProviderMCP, createAIProviderMCPClient, listMcpTools } from "./ia.js";
 
 import {
   createImage as createImageFromHTML,
@@ -1263,6 +1263,61 @@ const result = await askIAWithProviderMCP({
 });
 
 $_RETURN_DATA_ = result;
+      `,
+    },
+    createAIProviderMCPClient: {
+      fn: request && reply ? createAIProviderMCPClient : undefined,
+      description: "Low-level MCP-aware AI client factory. Use this when you need explicit connect/list/run/close control instead of a single helper call.",
+      web: own_repo,
+      params: [
+        {
+          name: "options.provider",
+          description: "Provider configuration with the same shape accepted by askIAWithProviderMCP.",
+          required: true,
+          type: "object",
+        },
+        {
+          name: "options.mcpServers",
+          description: "MCP server list to connect before running or listing tools.",
+          required: false,
+          type: "array<object>",
+          default: [],
+        },
+      ],
+      return: {
+        type: "AIProviderMCPClient",
+        description: "Client instance with connect(), listTools(), run(), close(), and runtime access for advanced flows.",
+      },
+      notes: [
+        "This is for advanced handler logic such as custom retries, preflight tool inspection, or manual MCP fallback execution.",
+        "Always close the client in a finally block to release MCP transports cleanly.",
+      ],
+      agentGuidance: [
+        "Prefer askIAWithProviderMCP for normal one-shot AI+MCP calls.",
+        "Use this client only when the handler must inspect tool catalogs, retry with custom logic, or execute a fallback flow after a model fails to use tools correctly.",
+      ],
+      example: `
+const client = createAIProviderMCPClient({
+  provider: {
+    provider: 'ollama',
+    model: 'qwen2.5-coder:1.5b',
+    baseUrl: 'http://localhost:11434',
+  },
+  mcpServers: [{ name: 'exa', url: 'https://mcp.exa.ai/mcp' }],
+});
+
+try {
+  await client.connect();
+  const tools = await client.listTools();
+  const result = await client.run({
+    prompts: [{ role: 'user', content: 'Usa MCP si hace falta.' }],
+    includeDiagnostics: true,
+  });
+
+  $_RETURN_DATA_ = { tools, result };
+} finally {
+  await client.close();
+}
       `,
     },
     askIAWithMCP: {

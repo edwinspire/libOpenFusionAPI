@@ -1270,7 +1270,7 @@ export const demo_app = {
       "environment": "dev",
       "timeout": 30,
       "resource": "/mcp/server",
-      "method": "POST",
+      "method": "GET",
       "handler": "MCP",
       "access": 0,
       "title": "",
@@ -2218,7 +2218,7 @@ export const demo_app = {
       "environment": "dev",
       "timeout": 1800,
       "resource": "/ofapi/examples/js/ask_ia_with_mcp",
-      "method": "POST",
+      "method": "GET",
       "handler": "JS",
       "access": 0,
       "title": "JS askIAWithMCP",
@@ -3283,6 +3283,121 @@ export const demo_app = {
       "cache_time": 0,
       "createdAt": "2026-04-05T23:10:00.000Z",
       "updatedAt": "2026-04-05T23:10:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "ai": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "includeDiagnostics": {
+                "type": "boolean"
+              },
+              "maxToolRounds": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-exa-edwinspire-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "includeDiagnostics": true,
+              "maxToolRounds": 6
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-exa-edwinspire-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "d6207238-50eb-42e2-a2d3-11fb59709705",
+      "rowkey": 974,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_exa_search_edwinspire",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIA Exa Search Edwinspire",
+      "description": "Example JS handler endpoint that uses the MCP server https://mcp.exa.ai/mcp to search the internet for who edwinspire is and answer in one sentence. Designed to work directly via GET.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,mcp,exa,internet,search,edwinspire",
+      "code": "const query = request.query || {};\n\nconst aiDefaults = $_APP_VARS_['$_VAR_AI_DEFAULTS'];\nif (!aiDefaults || typeof aiDefaults !== 'object') {\n  $_EXCEPTION_('Application variable $_VAR_AI_DEFAULTS is required and must be an object.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst ai = {\n  ...aiDefaults,\n  ...(query.modelProvider != null ? { modelProvider: query.modelProvider } : {}),\n  ...(query.model != null ? { model: query.model } : {}),\n  ...(query.baseUrl != null ? { baseUrl: query.baseUrl } : {}),\n  ...(query.temperature != null ? { temperature: Number(query.temperature) } : {}),\n  ...(query.timeout != null ? { timeout: Number(query.timeout) } : {}),\n  ...(query.responseTimeout != null ? { responseTimeout: Number(query.responseTimeout) } : {}),\n  ...(query.apiKey != null ? { apiKey: query.apiKey } : {}),\n};\n\nconst includeDiagnostics = String(query.includeDiagnostics ?? 'false').toLowerCase() === 'true';\nconst maxToolRounds = query.maxToolRounds != null ? Number(query.maxToolRounds) : 6;\nconst mcpServers = [\n  {\n    url: 'https://mcp.exa.ai/mcp',\n    name: 'exa_search',\n  },\n];\nconst searchPrompt = 'Busca en internet quien es edwinspire usando las herramientas MCP disponibles y responde en una sola frase en espanol.';\nconst normalizeSingleSentence = (value) => {\n  const compact = String(value ?? '').replace(/\\s+/g, ' ').trim();\n  if (!compact) {\n    return compact;\n  }\n\n  const match = compact.match(/.+?[.!?](?=\\s|$)/);\n  return (match ? match[0] : compact).trim();\n};\n\nlet result = await askIAWithProviderMCP({\n  provider: ai,\n  mcpServers,\n  prompts: [\n    {\n      role: 'user',\n      content: searchPrompt,\n    },\n  ],\n  includeDiagnostics,\n  maxToolRounds,\n});\n\nif (result && typeof result === 'object' && typeof result.text === 'string') {\n  result = {\n    ...result,\n    text: normalizeSingleSentence(result.text),\n  };\n}\n\n$_RETURN_DATA_ = includeDiagnostics ? result : normalizeSingleSentence(result?.text ?? result);",
+      "cache_time": 0,
+      "createdAt": "2026-04-08T12:00:00.000Z",
+      "updatedAt": "2026-04-08T12:00:00.000Z"
     },
     {
       "ctrl": {
