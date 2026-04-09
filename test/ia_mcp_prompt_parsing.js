@@ -88,6 +88,40 @@ assert.deepEqual(
 	},
 );
 
+assert.deepEqual(
+	inferAutomaticReadOnlyToolCall({
+		toolEntries: [{
+			alias: "exa__web_search_exa",
+			toolName: "web_search_exa",
+			title: "Web Search",
+			description: "Search the web for current information.",
+			inputSchema: {
+				type: "object",
+				properties: {
+					query: { type: "string" },
+					numResults: { type: "number" },
+				},
+				required: ["query"],
+			},
+		}],
+		messages: [
+			{ role: "user", content: "Busca en internet quien es edwinspire" },
+			{ role: "assistant", content: "<tools>...</tools>" },
+			{ role: "user", content: "You described the available tools instead of using one." },
+		],
+		promptText: "Busca en internet quien es edwinspire",
+		round: 2,
+	}),
+	{
+		id: "automatic_tool_fallback_3",
+		name: "exa__web_search_exa",
+		arguments: {
+			query: "Busca en internet quien es edwinspire",
+			numResults: 5,
+		},
+	},
+);
+
 const guidance = buildToolUsageGuidance([
 	{
 		serverName: "exa",
@@ -266,6 +300,123 @@ assert.equal(retryExecutionCount, 1);
 assert.equal(retryResult.text, "Edwin De La Cruz es un desarrollador de software en Quito, Ecuador.");
 assert.equal(retryResult.assistantDumpedToolCatalog, false);
 assert.equal(retryResult.automaticToolFallbackUsed, true);
+
+const lowConfidenceRetryAdapter = new OpenAICompatibleAdapter({
+	provider: "ollama",
+	model: "qwen2.5-coder:1.5b",
+	baseUrl: "http://localhost:11434",
+	responseTimeout: 5000,
+});
+
+let lowConfidenceCompletionCount = 0;
+let lowConfidenceExecutionCount = 0;
+const lowConfidenceQueries = [];
+
+lowConfidenceRetryAdapter.client = {
+	chat: {
+		completions: {
+			create: async () => {
+				lowConfidenceCompletionCount += 1;
+
+				if (lowConfidenceCompletionCount === 1) {
+					return {
+						choices: [{
+							message: {
+								tool_calls: [{
+									id: "tool-call-1",
+									function: {
+										name: "exa__web_search_exa",
+										arguments: JSON.stringify({ query: "Busca quien es edwinspire" }),
+									},
+								}],
+								content: "",
+							},
+						}],
+					};
+				}
+
+				if (lowConfidenceCompletionCount === 2) {
+					return {
+						choices: [{
+							message: {
+								content: 'The website is for sale! Search Resources and Information. The URL is: https://www.busca.es/edwinspire/',
+							},
+						}],
+					};
+				}
+
+				return {
+					choices: [{
+						message: {
+							content: "Edwinspire es el alias de Edwin De La Cruz, desarrollador de software.",
+						},
+					}],
+				};
+			},
+		},
+	},
+};
+
+const lowConfidenceRuntime = {
+	getToolUsageGuidance: () => "Use the MCP tool when external data is required.",
+	toolEntries: [{
+		alias: "exa__web_search_exa",
+		toolName: "web_search_exa",
+		title: "Web Search",
+		description: "Search the web for information.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				query: { type: "string" },
+				numResults: { type: "number" },
+			},
+			required: ["query"],
+		},
+	}],
+	getOpenAITools: () => [{
+		type: "function",
+		function: {
+			name: "exa__web_search_exa",
+			description: "Search Exa",
+			parameters: { type: "object", properties: {} },
+		},
+	}],
+	executionLog: [],
+	getDiagnosticsServers: () => [{ name: "exa", url: "https://mcp.exa.ai/mcp", tools: ["web_search_exa"] }],
+	executeToolCalls: async (toolCalls) => {
+		lowConfidenceExecutionCount += toolCalls.length;
+		for (const toolCall of toolCalls) {
+			lowConfidenceQueries.push(toolCall.arguments.query);
+		}
+
+		return toolCalls.map((toolCall) => ({
+			callId: toolCall.id,
+			toolAlias: "exa__web_search_exa",
+			toolName: "web_search_exa",
+			serverName: "exa",
+			serverUrl: "https://mcp.exa.ai/mcp",
+			arguments: toolCall.arguments,
+			textResult: "Edwin De La Cruz (@edwinspire) - GitHub profile and software projects.",
+			rawResult: { content: "Edwin De La Cruz (@edwinspire) - GitHub profile and software projects." },
+			isError: false,
+			deduplicated: false,
+		}));
+	},
+};
+
+const lowConfidenceResult = await lowConfidenceRetryAdapter.run({
+	prompts: [{ role: "user", content: "Busca quien es edwinspire" }],
+	runtime: lowConfidenceRuntime,
+	includeDiagnostics: true,
+	maxToolRounds: 4,
+});
+
+assert.equal(lowConfidenceCompletionCount, 3);
+assert.equal(lowConfidenceExecutionCount, 2);
+assert.equal(lowConfidenceQueries[0], "Busca quien es edwinspire");
+assert.match(lowConfidenceQueries[1], /fuentes oficiales|perfiles verificables/i);
+assert.equal(lowConfidenceResult.text, "Edwinspire es el alias de Edwin De La Cruz, desarrollador de software.");
+assert.equal(lowConfidenceResult.lowConfidenceWebRetryUsed, true);
 
 await assert.rejects(
 	runWithAbortSignal(

@@ -634,8 +634,10 @@ const extractFirstUrl = (text) => {
 	return match?.[0];
 };
 
-const inferAutomaticReadOnlyToolCall = ({ toolEntries = [], messages = [], round = 0 } = {}) => {
-	const promptText = extractLastUserMessageText(messages);
+const inferAutomaticReadOnlyToolCall = ({ toolEntries = [], messages = [], promptText: preferredPromptText, round = 0 } = {}) => {
+	const promptText = typeof preferredPromptText === "string" && preferredPromptText.trim() !== ""
+		? preferredPromptText.trim()
+		: extractLastUserMessageText(messages);
 	if (!promptText) {
 		return null;
 	}
@@ -729,6 +731,53 @@ const inferAutomaticReadOnlyToolCall = ({ toolEntries = [], messages = [], round
 		name: candidates[0].toolEntry.alias,
 		arguments: candidates[0].arguments,
 	};
+};
+
+const LOW_CONFIDENCE_WEB_PATTERNS = [
+	/website\s+is\s+for\s+sale/i,
+	/domain\s+(?:is\s+)?for\s+sale/i,
+	/buy\s+this\s+domain/i,
+	/search\s+resources\s+and\s+information/i,
+	/related\s+searches/i,
+	/domain\s+parking/i,
+	/this\s+domain\s+may\s+be\s+for\s+sale/i,
+	/parkingcrew/i,
+	/sedo/i,
+	/afternic/i,
+];
+
+const looksLikeLowConfidenceWebText = (text) => {
+	if (typeof text !== "string" || text.trim() === "") {
+		return false;
+	}
+
+	return LOW_CONFIDENCE_WEB_PATTERNS.some((pattern) => pattern.test(text));
+};
+
+const hasSuccessfulToolExecution = (executionLog = []) => {
+	return normalizeArray(executionLog).some((execution) => execution && execution.isError !== true);
+};
+
+const inferLowConfidenceReadOnlyRetryToolCall = ({ toolEntries = [], messages = [], promptText: preferredPromptText, round = 0 } = {}) => {
+	const promptText = typeof preferredPromptText === "string" && preferredPromptText.trim() !== ""
+		? preferredPromptText.trim()
+		: extractLastUserMessageText(messages);
+	if (!promptText) {
+		return null;
+	}
+
+	return inferAutomaticReadOnlyToolCall({
+		toolEntries,
+		messages: [{
+			role: "user",
+			content: [
+				promptText,
+				"Prioriza fuentes oficiales o perfiles verificables.",
+				"Ignora dominios en venta, paginas de parking, directorios SEO y resultados ambiguos.",
+			].join(" "),
+		}],
+		round,
+	});
 };
 
 const isAzureOpenAIConfig = (providerConfig = {}) => {
@@ -1305,6 +1354,8 @@ class OpenAICompatibleAdapter extends BaseProviderAdapter {
 			throw new Error("At least one prompt/message is required.");
 		}
 
+		const originalUserPromptText = extractLastUserMessageText(messages);
+
 		const toolGuidance = runtime.getToolUsageGuidance();
 		if (toolGuidance) {
 			messages.unshift({ role: "system", content: toolGuidance });
@@ -1316,6 +1367,7 @@ class OpenAICompatibleAdapter extends BaseProviderAdapter {
 		const tools = runtime.getOpenAITools();
 		let toolCatalogRetryUsed = false;
 		let automaticToolFallbackUsed = false;
+		let lowConfidenceWebRetryUsed = false;
 
 		for (let round = 0; round < roundsLimit; round += 1) {
 			const requestSignal = this.createRequestSignal(signal);
@@ -1368,62 +1420,109 @@ class OpenAICompatibleAdapter extends BaseProviderAdapter {
 					: [];
 
 			if (toolCalls.length === 0) {
-					const assistantText = normalizeMessageContentToString(assistantMessage.content);
+				const assistantText = normalizeMessageContentToString(assistantMessage.content);
 				const assistantLooksLikeToolCatalog = isLikelyToolCatalogDump(assistantText, tools);
+				const assistantLooksLowConfidence = hasSuccessfulToolExecution(runtime.executionLog)
+					&& looksLikeLowConfidenceWebText(assistantText);
 
-					if (
-						tools.length > 0
-						&& round < roundsLimit - 1
-						&& !toolCatalogRetryUsed
+				if (
+					tools.length > 0
+					&& round < roundsLimit - 1
+					&& !toolCatalogRetryUsed
 					&& assistantLooksLikeToolCatalog
-					) {
-						toolCatalogRetryUsed = true;
-						messages.push({
-							role: "user",
-							content: [
-								"You described the available tools instead of using one.",
-								"Do not enumerate or explain tools.",
-								"If external information is needed, call exactly one relevant tool now.",
-								"If no tool is needed, answer directly in plain text.",
-							].join(" "),
-						});
+				) {
+					toolCatalogRetryUsed = true;
+					messages.push({
+						role: "user",
+						content: [
+							"You described the available tools instead of using one.",
+							"Do not enumerate or explain tools.",
+							"If external information is needed, call exactly one relevant tool now.",
+							"If no tool is needed, answer directly in plain text.",
+						].join(" "),
+					});
+					continue;
+				}
+
+				if (
+					tools.length > 0
+					&& round < roundsLimit - 1
+					&& !automaticToolFallbackUsed
+					&& (assistantLooksLikeToolCatalog || toolCatalogRetryUsed)
+				) {
+					const automaticToolCall = inferAutomaticReadOnlyToolCall({
+						toolEntries: runtime.toolEntries,
+						messages,
+						promptText: originalUserPromptText,
+						round,
+					});
+
+					if (automaticToolCall) {
+						automaticToolFallbackUsed = true;
+						const executions = await runtime.executeToolCalls([automaticToolCall]);
+
+						for (const execution of executions) {
+							messages.push({
+								role: "tool",
+								tool_call_id: execution.callId,
+								content: [
+									"Automatic read-only tool fallback executed because the assistant described tools instead of calling one directly.",
+									"Use this result to answer the user and do not describe the tool catalog again.",
+									execution.textResult || JSON.stringify(execution.rawResult),
+								].join("\n\n"),
+							});
+						}
+
+						continue;
+					}
+				}
+
+				if (
+					tools.length > 0
+					&& round < roundsLimit - 1
+					&& !lowConfidenceWebRetryUsed
+					&& assistantLooksLowConfidence
+				) {
+					lowConfidenceWebRetryUsed = true;
+					const retryToolCall = inferLowConfidenceReadOnlyRetryToolCall({
+						toolEntries: runtime.toolEntries,
+						messages,
+						promptText: originalUserPromptText,
+						round,
+					});
+
+					if (retryToolCall) {
+						const executions = await runtime.executeToolCalls([retryToolCall]);
+
+						for (const execution of executions) {
+							messages.push({
+								role: "tool",
+								tool_call_id: execution.callId,
+								content: [
+									"Automatic read-only tool retry executed because the previous answer looked grounded on low-confidence web results.",
+									"Ignore parked domains, domain-sale pages, SEO placeholders, and ambiguous pages.",
+									"Answer only with information supported by clearly relevant sources. If the evidence stays weak, say that you could not verify it reliably.",
+									execution.textResult || JSON.stringify(execution.rawResult),
+								].join("\n\n"),
+							});
+						}
+
 						continue;
 					}
 
-					if (
-						tools.length > 0
-						&& round < roundsLimit - 1
-						&& !automaticToolFallbackUsed
-						&& (assistantLooksLikeToolCatalog || toolCatalogRetryUsed)
-					) {
-						const automaticToolCall = inferAutomaticReadOnlyToolCall({
-							toolEntries: runtime.toolEntries,
-							messages,
-							round,
-						});
-
-						if (automaticToolCall) {
-							automaticToolFallbackUsed = true;
-							const executions = await runtime.executeToolCalls([automaticToolCall]);
-
-							for (const execution of executions) {
-								messages.push({
-									role: "tool",
-									tool_call_id: execution.callId,
-									content: [
-										"Automatic read-only tool fallback executed because the assistant described tools instead of calling one directly.",
-										"Use this result to answer the user and do not describe the tool catalog again.",
-										execution.textResult || JSON.stringify(execution.rawResult),
-									].join("\n\n"),
-								});
-							}
-
-							continue;
-						}
-					}
+					messages.push({
+						role: "user",
+						content: [
+							"Your previous answer appears to rely on low-confidence or low-quality web results.",
+							"Ignore parked domains, domain-sale pages, SEO placeholders, and unrelated pages.",
+							"If you cannot verify the answer from reliable evidence already available, say so clearly.",
+						].join(" "),
+					});
+					continue;
+				}
 
 				return this.buildDiagnostics(includeDiagnostics, {
-						text: assistantText,
+					text: assistantText,
 					provider: this.provider,
 					model: this.model,
 					messages,
@@ -1431,6 +1530,7 @@ class OpenAICompatibleAdapter extends BaseProviderAdapter {
 					mcpServers: runtime.getDiagnosticsServers(),
 					assistantDumpedToolCatalog: toolCatalogRetryUsed && assistantLooksLikeToolCatalog,
 					automaticToolFallbackUsed,
+					lowConfidenceWebRetryUsed,
 				});
 			}
 
