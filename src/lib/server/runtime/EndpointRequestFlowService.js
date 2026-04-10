@@ -48,7 +48,7 @@ export class EndpointRequestFlowService {
       this.endpoints.saveLog(request, reply);
 
       let handler_param = request?.openfusionapi?.handler?.params || {};
-      if (handler_param?.idendpoint) {
+      if (handler_param?.idendpoint && handler_param?.cache_time > 0) {
         this.endpoints.setCache(handler_param?.url_key, request, reply);
       }
       handler_param.statusCode = reply.statusCode;

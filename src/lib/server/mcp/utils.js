@@ -6,32 +6,40 @@ import { z } from "zod";
  * @param {object} schema JSON Schema
  * @param {object} [root] Schema raíz (para resolver $ref)
  */
-export function jsonSchemaToZod(schema, root = null) {
+export function jsonSchemaToZod(schema, root = null, context = null) {
   root = root || schema;
+  context = context || {
+    refCache: new Map(),
+    activeRefs: new Set(),
+  };
+
+  if (!schema || typeof schema !== "object") {
+    return z.unknown();
+  }
 
   // Manejo de $ref
   if (schema.$ref) {
-    return jsonSchemaToZod(resolveRef(schema.$ref, root), root);
+    return resolveRefSchema(schema.$ref, root, context);
   }
 
   // type como array: e.g. ["string", "null"] → z.union
   if (Array.isArray(schema.type)) {
-    const types = schema.type.map(t => jsonSchemaToZod({ ...schema, type: t }, root));
+    const types = schema.type.map((typeName) => jsonSchemaToZod({ ...schema, type: typeName }, root, context));
     return types.length === 1 ? types[0] : z.union(types);
   }
 
   // Manejo de combinadores
   if (schema.oneOf) {
-    return z.union(schema.oneOf.map(s => jsonSchemaToZod(s, root)));
+    return z.union(schema.oneOf.map((item) => jsonSchemaToZod(item, root, context)));
   }
 
   if (schema.anyOf) {
-    return z.union(schema.anyOf.map(s => jsonSchemaToZod(s, root)));
+    return z.union(schema.anyOf.map((item) => jsonSchemaToZod(item, root, context)));
   }
 
   if (schema.allOf) {
     return schema.allOf
-      .map(s => jsonSchemaToZod(s, root))
+      .map((item) => jsonSchemaToZod(item, root, context))
       .reduce((acc, cur) => acc.and(cur));
   }
 
@@ -51,22 +59,22 @@ export function jsonSchemaToZod(schema, root = null) {
       return makeNumber(schema);
 
     case "boolean":
-      return z.boolean();
+      return schema.nullable ? z.boolean().nullable() : z.boolean();
 
     case "null":
       return z.null();
 
     case "array":
-      return makeArray(schema, root);
+      return makeArray(schema, root, context);
 
     case "object":
-      return makeObject(schema, root);
+      return makeObject(schema, root, context);
 
     case undefined:
-      // Puede ser enum-only, const-only o combinators
+      // En JSON Schema, ausencia de `type` implica esquema abierto/anotativo.
       if (schema.enum !== undefined) return makeEnum(schema.enum);
       if (schema.const !== undefined) return z.literal(schema.const);
-      throw new Error("JSON Schema inválido o no soportado: " + JSON.stringify(schema));
+      return schema.nullable ? z.unknown().nullable() : z.unknown();
 
     default:
       throw new Error("Tipo JSON Schema no soportado: " + schema.type);
@@ -147,17 +155,17 @@ function makeNumber(schema) {
 /* ---------------------------------------------------------
    ARRAY
 --------------------------------------------------------- */
-function makeArray(schema, root) {
+function makeArray(schema, root, context) {
   // Sin items: array de elementos desconocidos
   if (!schema.items) return z.array(z.unknown());
 
   // Soporte de tuplas: items como array de schemas
   if (Array.isArray(schema.items)) {
-    const items = schema.items.map(s => jsonSchemaToZod(s, root));
+    const items = schema.items.map((item) => jsonSchemaToZod(item, root, context));
     return z.tuple(items);
   }
 
-  let out = z.array(jsonSchemaToZod(schema.items, root));
+  let out = z.array(jsonSchemaToZod(schema.items, root, context));
 
   if (schema.minItems != null) out = out.min(schema.minItems);
   if (schema.maxItems != null) out = out.max(schema.maxItems);
@@ -170,14 +178,14 @@ function makeArray(schema, root) {
 /* ---------------------------------------------------------
    OBJECT
 --------------------------------------------------------- */
-function makeObject(schema, root) {
+function makeObject(schema, root, context) {
   const shape = {};
 
   const props = schema.properties || {};
   const required = schema.required || [];
 
   for (const [key, value] of Object.entries(props)) {
-    let zProp = jsonSchemaToZod(value, root);
+    let zProp = jsonSchemaToZod(value, root, context);
 
     if (!required.includes(key)) zProp = zProp.optional();
 
@@ -186,9 +194,41 @@ function makeObject(schema, root) {
 
   let out = z.object(shape);
 
+  if (schema.additionalProperties === false) {
+    out = out.strict();
+  } else if (schema.additionalProperties === true) {
+    out = out.passthrough();
+  } else if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+    out = out.catchall(jsonSchemaToZod(schema.additionalProperties, root, context));
+  }
+
   if (schema.nullable) out = out.nullable();
 
   return out;
+}
+
+function resolveRefSchema(ref, root, context) {
+  const cached = context.refCache.get(ref);
+  if (cached) {
+    return cached;
+  }
+
+  const lazyRef = z.lazy(() => context.refCache.get(ref) || z.unknown());
+  context.refCache.set(ref, lazyRef);
+
+  if (context.activeRefs.has(ref)) {
+    return lazyRef;
+  }
+
+  context.activeRefs.add(ref);
+
+  try {
+    const resolved = jsonSchemaToZod(resolveRef(ref, root), root, context);
+    context.refCache.set(ref, resolved);
+    return resolved;
+  } finally {
+    context.activeRefs.delete(ref);
+  }
 }
 
 /* ---------------------------------------------------------

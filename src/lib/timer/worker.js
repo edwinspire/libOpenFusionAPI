@@ -44,7 +44,7 @@ async function runFetchTask(task) {
 
     if (task.method && task.url) {
       const uF = fetchOFAPI.create(task.url, false);
-      const resp_task = await uF[task.method]({
+      const resp_task = await uF[task.method.toLowerCase()]({
         //url: task.url,
         data: task.params,
       });

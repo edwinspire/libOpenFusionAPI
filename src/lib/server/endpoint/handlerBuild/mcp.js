@@ -668,17 +668,11 @@ export const CreateMCPHandler = async (app_name, environment) => {
       "if",
       "then",
       "else",
-      "anyOf",
-      "allOf",
-      "oneOf",
-      "not",
       "dependentSchemas",
       "unevaluatedProperties",
       "patternProperties",
       "prefixItems",
       "contains",
-      "$defs",
-      "definitions",
     ]);
 
     const visit = (node) => {
@@ -1119,7 +1113,7 @@ ${endpointUpsertHandlerGuide}
 
             let uF = AutoURL.auto(url_internal, true);
 
-            let request_endpoint = await uF[endpoint.method.toUpperCase()]({
+            let request_endpoint = await uF[endpoint.method.toLowerCase()]({
               data: data,
               headers: currentHeaders,
             });
