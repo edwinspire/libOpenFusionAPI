@@ -2,14 +2,15 @@
   "handler": "SOAP",
   "label": "SOAP",
   "status": "active",
-  "summary": "Invokes SOAP web services from a WSDL endpoint.",
+  "summary": "Invokes SOAP web services from a WSDL document and supports deterministic operation discovery for agent workflows.",
   "docs": {
     "main": "README.md",
     "generated": [],
     "examples": []
   },
   "configuration": {
-    "code": "WSDL URL or handler-specific JSON configuration for the SOAP client.",
-    "custom_data": "Unused by the current SOAP handler implementation."
+    "code": "JSON configuration containing at least a WSDL URL and optionally functionName, auth, and SOAP client options. The WSDL URL must return XML metadata, not an HTML runtime/status page.",
+    "custom_data": "Unused by the current SOAP handler implementation.",
+    "agentGuidance": "Agents should validate that the WSDL URL returns XML, use describe() to discover the callable operation name, and avoid assuming the SOAP body root element matches functionName."
   }
 }

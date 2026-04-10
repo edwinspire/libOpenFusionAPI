@@ -23,6 +23,14 @@ When an endpoint is configured with the **SOAP** handler:
 
 The SOAP handler reads the **WSDL URL** (and optional settings) from the endpoint `code` field. Parameters for the SOAP call come from the HTTP request body.
 
+The `wsdl` value must return an actual WSDL XML document. A runtime SOAP endpoint or SAP `MessageServlet` status page is not enough, even if it responds with HTTP `200`.
+
+For AI agents, this distinction is critical:
+- A SOAP runtime URL is the endpoint that receives SOAP envelopes.
+- A WSDL URL is the metadata document that `node-soap` must download and parse first.
+- These URLs may be different.
+- If the WSDL document contains a `soap:address location="..."`, that `location` is usually the runtime endpoint, not the WSDL URL itself.
+
 **`code` field — Application Variable reference** _(recommended for production)_:
 
 Store the WSDL URL and any shared config as an Application Variable and reference it by name. The runtime resolves it at call time:
@@ -63,6 +71,35 @@ Send `functionName` and `RequestArgs` in the HTTP request body. `functionName` s
 
 Values in the request body override any defaults set in the `code` config, so you can fix `functionName` in config for single-method endpoints or leave it open for dynamic invocation.
 
+**How to choose `functionName` correctly**:
+
+Do not assume the XML body root name is the callable operation name. In many enterprise WSDLs, the method exposed by `node-soap` is the **port operation name**, while the body payload uses a different element name.
+
+Recommended workflow:
+1. Use `"describe()": true` with the WSDL.
+2. Read the service → port → operation structure returned by the handler.
+3. Use that operation name as `functionName`.
+4. Use `RequestArgs` with the fields expected by the operation input.
+
+Generic example of a mismatch that can confuse agents:
+
+```json
+{
+  "ExampleService": {
+    "ExamplePort": {
+      "SubmitOrder": {
+        "input": "orderRequest",
+        "output": "orderResponse"
+      }
+    }
+  }
+}
+```
+
+In that case:
+- Correct `functionName`: `SubmitOrder`
+- Incorrect `functionName`: `orderRequest`
+
 **`custom_data`** is currently unused by the SOAP handler. Use the `code` field for WSDL and options.
 
 </details>
@@ -83,6 +120,22 @@ The handler supports common SOAP security standards via configuration:
   }
 }
 ```
+
+When `BasicAuthSecurity` or `BearerSecurity` is configured, the same credential is now used in both places:
+- WSDL download and parsing
+- SOAP operation execution
+
+This matters for enterprise integrations where the WSDL itself is protected and returns `401 Unauthorized` unless the metadata request is authenticated.
+
+If the URL responds with HTML instead of WSDL XML, the handler will fail during client creation. In practice this usually means one of these cases:
+- the URL is the SOAP runtime endpoint, not the WSDL metadata URL
+- the service redirects to a login or status page
+- the WSDL fetch requires different credentials than the SOAP operation itself
+
+Generic signs that the URL is **not** a real WSDL URL:
+- the response starts with `<html>` instead of `<wsdl:definitions>` or `<definitions>`
+- the response is a status page, login page, or gateway error page
+- adding common WSDL suffixes still returns HTML instead of XML metadata
 
 **Bearer Token**:
 ```json
@@ -108,6 +161,69 @@ To inspect a SOAP service and see available methods and inputs, you can include 
 ```
 
 This returns the client description (methods, inputs, and outputs) directly as the response.
+
+For agents, `describe()` should be the default first step whenever the callable method name is not already verified from a known-good contract.
+
+</details>
+
+---
+
+<details>
+<summary>🧭 Agent Workflow</summary>
+
+Recommended deterministic workflow for AI agents:
+
+1. Validate that the configured `wsdl` URL returns XML WSDL, not HTML.
+2. If the upstream WSDL is unavailable but the XML contract is available as a file, publish that WSDL from a local static endpoint first.
+3. Call the SOAP handler with `"describe()": true` to discover the real operation name.
+4. Fix `functionName` in endpoint config when the integration is single-purpose.
+5. Keep only business fields inside `RequestArgs`.
+6. Validate with one representative request before enabling MCP exposure or wider automation.
+
+This sequence reduces the most common agent errors:
+- confusing runtime URL with WSDL URL
+- choosing the body element name instead of the WSDL operation name
+- assuming credentials are only needed for the SOAP call and not for the WSDL fetch
+- attempting integration against HTML or status pages
+
+</details>
+
+---
+
+<details>
+<summary>🧩 Local WSDL Strategy</summary>
+
+When the real service exposes a valid SOAP runtime endpoint but does not expose a directly consumable WSDL URL, a practical strategy is:
+
+1. Store or obtain the WSDL XML document separately.
+2. Publish that WSDL from a local endpoint.
+3. Point the SOAP handler `wsdl` to the local WSDL URL.
+4. Let the WSDL's internal `soap:address` drive the real remote invocation.
+
+Generic example:
+
+**Local WSDL publishing endpoint**:
+```json
+{
+  "resource": "/soap/contracts/order-service/wsdl",
+  "method": "GET",
+  "handler": "TEXT"
+}
+```
+
+**SOAP endpoint config using the local WSDL**:
+```json
+{
+  "wsdl": "https://your-server.example/api/demo/soap/contracts/order-service/wsdl/prd",
+  "functionName": "SubmitOrder",
+  "BasicAuthSecurity": {
+    "User": "service_user",
+    "Password": "service_password"
+  }
+}
+```
+
+This approach is especially useful when agents have the contract file but not a reliable WSDL metadata URL.
 
 </details>
 
@@ -180,6 +296,7 @@ curl -X POST https://your-server.com/api/myapp/groups/update_billing_cycle_day/q
 | Dynamic Arguments | ✅ (From Body/Query) |
 | Header Forwarding | ✅ |
 | Describe / Introspect | ✅ |
+| Local WSDL publishing strategy | ✅ |
 
 </details>
 

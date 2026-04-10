@@ -345,11 +345,23 @@ export const restoreAppFromBackup = async (app) => {
               try {
                 // Este bloque permite subir un backup de un endpoint TEXT de una version anterior
                 let params = JSON.parse(ep.code);
-                ep.code = params.payload;
-                ep.custom_data = {mimeType: params.mimeType};
+                ep.code = typeof params.payload === "string"
+                  ? params.payload
+                  : typeof params.content === "string"
+                    ? params.content
+                    : ep.code;
+                ep.custom_data = {
+                  ...(ep.custom_data && typeof ep.custom_data === "object" ? ep.custom_data : {}),
+                  ...(typeof params.mimeType === "string" && params.mimeType.length > 0
+                    ? { mimeType: params.mimeType }
+                    : {}),
+                  ...(typeof params.mime === "string" && params.mime.length > 0
+                    ? { mimeType: params.mime }
+                    : {}),
+                };
               } catch (error) {
-                // Deja como está porque se debe estar usando una variable de aplicación
-                console.log("Backup Endpoint TEXT Error parsing code. Only by old version. Error:", error);
+                // Deja como está porque puede tratarse del formato actual: code=texto, custom_data=config
+                console.debug("[migration] TEXT endpoint code is not JSON (expected for current raw-text endpoints):", error.message);
               }
             }else if(ep.handler == "SQL_BULK_I"){
               try {

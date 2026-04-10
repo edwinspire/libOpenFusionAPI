@@ -7,6 +7,17 @@ import { URLAutoEnvironment } from "../../functionVars.js";
 
 export const CreateMCPHandler = async (app_name, environment) => {
 
+  const UNSUPPORTED_JSON_SCHEMA_KEYS = new Set([
+    "if",
+    "then",
+    "else",
+    "dependentSchemas",
+    "unevaluatedProperties",
+    "patternProperties",
+    "prefixItems",
+    "contains",
+  ]);
+
   let app = await getApplicationTreeByFilters({
     app: app_name,
     enabled: true,
@@ -51,6 +62,11 @@ export const CreateMCPHandler = async (app_name, environment) => {
     }
   };
 
+  const toCompactText = (value, fallback = "") => {
+    if (value === undefined || value === null) return fallback;
+    return String(value);
+  };
+
   const isEmptyObject = (value) => {
     return (
       value &&
@@ -58,6 +74,176 @@ export const CreateMCPHandler = async (app_name, environment) => {
       !Array.isArray(value) &&
       Object.keys(value).length === 0
     );
+  };
+
+  const collectUnsupportedKeywordPaths = (schema, currentPath = "$", results = []) => {
+    if (Array.isArray(schema)) {
+      schema.forEach((item, index) => {
+        collectUnsupportedKeywordPaths(item, `${currentPath}[${index}]`, results);
+      });
+      return results;
+    }
+
+    if (!schema || typeof schema !== "object") {
+      return results;
+    }
+
+    for (const [key, value] of Object.entries(schema)) {
+      const nextPath = `${currentPath}.${key}`;
+      if (UNSUPPORTED_JSON_SCHEMA_KEYS.has(key)) {
+        results.push(nextPath);
+      }
+      collectUnsupportedKeywordPaths(value, nextPath, results);
+    }
+
+    return results;
+  };
+
+  const summarizeSerializedSchema = (schema) => {
+    if (!schema || typeof schema !== "object") {
+      return {
+        rootKind: "unknown",
+        topLevelFields: [],
+      };
+    }
+
+    const topLevelFields = schema.properties && typeof schema.properties === "object"
+      ? Object.keys(schema.properties)
+      : [];
+
+    return {
+      rootKind:
+        schema.type
+        ?? (Array.isArray(schema.allOf) ? "allOf" : null)
+        ?? (Array.isArray(schema.anyOf) ? "anyOf" : null)
+        ?? (Array.isArray(schema.oneOf) ? "oneOf" : null)
+        ?? "unknown",
+      topLevelFields,
+    };
+  };
+
+  const buildJsonSchemaOperationalReport = (input = {}) => {
+    const report = {
+      valid: false,
+      compatible: false,
+      summary: "Schema is not compatible with OpenFusionAPI MCP.",
+      stages: {
+        parseInput: false,
+        normalize: false,
+        zodConversion: false,
+        mcpSerialization: false,
+      },
+      errors: [],
+      warnings: [],
+      details: {
+        parsedFromString: false,
+        normalizationChanged: false,
+        removedUnsupportedKeywords: [],
+        zodSchemaType: null,
+        serializedRootKind: null,
+        serializedTopLevelFields: [],
+      },
+      recommendation: "Call this tool again after adjusting the schema until compatible=true.",
+    };
+
+    let candidateSchema = input?.schema;
+
+    if (candidateSchema === undefined && typeof input?.schema_text === "string") {
+      candidateSchema = input.schema_text;
+    }
+
+    if (typeof candidateSchema === "string") {
+      try {
+        candidateSchema = JSON.parse(candidateSchema);
+        report.details.parsedFromString = true;
+      } catch (error) {
+        report.errors.push(`schema_text is not valid JSON: ${error?.message || error}`);
+        return report;
+      }
+    }
+
+    if (!candidateSchema || typeof candidateSchema !== "object" || Array.isArray(candidateSchema)) {
+      report.errors.push("Input field `schema` must be a JSON Schema object.");
+      return report;
+    }
+
+    report.stages.parseInput = true;
+
+    const removedUnsupportedKeywords = collectUnsupportedKeywordPaths(candidateSchema);
+    const normalizedSchema = normalizeSchemaForZod(candidateSchema);
+    report.stages.normalize = true;
+    report.details.removedUnsupportedKeywords = removedUnsupportedKeywords;
+    report.details.normalizationChanged = stringifySafe(candidateSchema) !== stringifySafe(normalizedSchema);
+
+    if (removedUnsupportedKeywords.length > 0) {
+      report.warnings.push(
+        `OpenFusionAPI normalization removes unsupported JSON Schema keywords at: ${removedUnsupportedKeywords.join(", ")}.`,
+      );
+    }
+
+    if (
+      Array.isArray(candidateSchema.required) &&
+      candidateSchema.required.length > 0 &&
+      (!candidateSchema.properties || typeof candidateSchema.properties !== "object")
+    ) {
+      report.warnings.push(
+        "The schema declares required fields without top-level properties. MCP agents may lose parameter guidance.",
+      );
+    }
+
+    if (isSchemaTooGeneric(normalizedSchema)) {
+      report.warnings.push(
+        "The schema is very generic after normalization. MCP agents may not get useful field-level guidance.",
+      );
+    }
+
+    let zodSchema;
+    try {
+      zodSchema = jsonSchemaToZod(normalizedSchema);
+      report.stages.zodConversion = true;
+      report.details.zodSchemaType = zodSchema?.constructor?.name ?? typeof zodSchema;
+    } catch (error) {
+      report.errors.push(`jsonSchemaToZod failed: ${error?.message || error}`);
+      return finalizeJsonSchemaOperationalReport(report, input, normalizedSchema, null);
+    }
+
+    let serializedSchema = null;
+    try {
+      serializedSchema = z.toJSONSchema(zodSchema);
+      report.stages.mcpSerialization = true;
+      const serializedSummary = summarizeSerializedSchema(serializedSchema);
+      report.details.serializedRootKind = serializedSummary.rootKind;
+      report.details.serializedTopLevelFields = serializedSummary.topLevelFields;
+    } catch (error) {
+      report.errors.push(`MCP serialization failed: ${error?.message || error}`);
+      return finalizeJsonSchemaOperationalReport(report, input, normalizedSchema, null);
+    }
+
+    report.valid = true;
+    report.compatible = true;
+    report.recommendation = report.warnings.length > 0
+      ? "Review the warnings before using this schema in endpoint_upsert or any OpenFusionAPI endpoint json_schema field."
+      : "The schema is compatible with OpenFusionAPI MCP and is ready to be used in endpoint json_schema fields.";
+
+    return finalizeJsonSchemaOperationalReport(report, input, normalizedSchema, serializedSchema);
+  };
+
+  const finalizeJsonSchemaOperationalReport = (report, input, normalizedSchema, serializedSchema) => {
+    report.summary = report.compatible
+      ? (report.warnings.length > 0
+        ? "Schema is compatible with OpenFusionAPI MCP, but warnings should be reviewed."
+        : "Schema is compatible with OpenFusionAPI MCP.")
+      : "Schema is not compatible with OpenFusionAPI MCP.";
+
+    if (input?.include_normalized_schema === true) {
+      report.normalizedSchema = normalizedSchema;
+    }
+
+    if (input?.include_serialized_schema === true) {
+      report.serializedSchema = serializedSchema;
+    }
+
+    return report;
   };
 
   const isSchemaTooGeneric = (schema) => {
@@ -174,6 +360,40 @@ export const CreateMCPHandler = async (app_name, environment) => {
 
   const normalizeToolKey = (name) => {
     return sanitizeToolName(name ?? "", "").toLowerCase();
+  };
+
+  const isZodSchemaLike = (value) => {
+    return Boolean(value && typeof value === "object" && value._zod);
+  };
+
+  const ensureSerializableToolSchema = (schema, { endpoint, toolName }) => {
+    try {
+      z.toJSONSchema(schema);
+      return schema;
+    } catch (error) {
+      console.warn(
+        `[MCP] Tool schema serialization failed for ${toolName} (${endpoint.method} ${endpoint.resource}). Se usa schema flexible.`,
+        error?.message || error,
+      );
+      return z.object({}).passthrough().describe(
+        "Flexible input because the generated schema could not be serialized for MCP tool listing.",
+      );
+    }
+  };
+
+  const isObjectLikeSerializedSchema = (schema) => {
+    try {
+      const jsonSchema = z.toJSONSchema(schema);
+      if (jsonSchema?.type === "object") {
+        return true;
+      }
+
+      return [jsonSchema?.allOf, jsonSchema?.anyOf, jsonSchema?.oneOf].some(
+        (collection) => Array.isArray(collection) && collection.length > 0,
+      );
+    } catch (_error) {
+      return false;
+    }
   };
 
   const getTopLevelProperties = (schema) => {
@@ -664,24 +884,13 @@ export const CreateMCPHandler = async (app_name, environment) => {
   const normalizeSchemaForZod = (schema) => {
     if (!schema || typeof schema !== "object") return schema;
 
-    const UNSUPPORTED_KEYS = new Set([
-      "if",
-      "then",
-      "else",
-      "dependentSchemas",
-      "unevaluatedProperties",
-      "patternProperties",
-      "prefixItems",
-      "contains",
-    ]);
-
     const visit = (node) => {
       if (Array.isArray(node)) return node.map(visit);
       if (!node || typeof node !== "object") return node;
 
       const out = {};
       for (const [key, value] of Object.entries(node)) {
-        if (UNSUPPORTED_KEYS.has(key)) continue;
+        if (UNSUPPORTED_JSON_SCHEMA_KEYS.has(key)) continue;
         out[key] = visit(value);
       }
 
@@ -741,7 +950,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
 | \`JS\` | JavaScript source (see JS rules below) |
 | \`FUNCTION\` | Internal function name, e.g. \`fnMyFunction\` |
 | \`FETCH\` | Target URL string to proxy, e.g. \`https://api.example.com/data\` |
-| \`TEXT\` | JSON string: \`{"content":"hello","mime":"text/plain"}\` |
+| \`TEXT\` | Raw text content. Put the MIME type in \`custom_data.mimeType\`. |
 | \`SQL\` | Standard SQL query string. Connection config goes in \`custom_data\` |
 | \`SQL_BULK_I\` | JSON with \`table_name\`, \`config\`, optionally \`ignoreDuplicates\` |
 | \`SOAP\` | Handler-specific SOAP configuration payload |
@@ -763,7 +972,10 @@ export const CreateMCPHandler = async (app_name, environment) => {
 \`code\`: \`https://api.example.com/data\`
 
 **TEXT**
-\`code\`: \`{"content":"hello","mime":"text/plain"}\`
+\`code\`: raw text such as \`hello\`
+
+\`custom_data\`:
+\`{"mimeType":"text/plain"}\`
 
 **SQL**
 \`code\`: \`SELECT id, email, status FROM accounts WHERE account_id = $account_id\`
@@ -843,19 +1055,20 @@ $_CUSTOM_HEADERS_ = h;
 
 1. Choose the handler first.
 2. Call \`handler_documentation\` with the chosen handler whenever the handler expects a structured JSON payload or database-specific rules.
-3. Build the \`code\` field following the table above and use \`custom_data\` for SQL connection settings.
-4. If updating an existing endpoint, call \`read_endpoint_data\` first and modify the current structure instead of rebuilding it from memory.
-5. Run \`endpoint_upsert\` with all required fields.
-6. Call \`read_endpoint_data\` again to verify the persisted structure.
-7. Test the endpoint via its HTTP URL before exposing it as an MCP tool.
-8. For \`TELEGRAM_BOT\`, also inspect worker startup logs and re-check whether the endpoint stayed enabled after startup.
+3. When you create a JSON Schema that will be stored in OpenFusionAPI, call \`validate_json_schema_for_mcp\` before publishing it.
+4. Build the \`code\` field following the table above and use \`custom_data\` for SQL connection settings.
+5. If updating an existing endpoint, call \`read_endpoint_data\` first and modify the current structure instead of rebuilding it from memory.
+6. Run \`endpoint_upsert\` with all required fields.
+7. Call \`read_endpoint_data\` again to verify the persisted structure.
+8. Test the endpoint via its HTTP URL before exposing it as an MCP tool.
+9. For \`TELEGRAM_BOT\`, also inspect worker startup logs and re-check whether the endpoint stayed enabled after startup.
 `;
   };
 
   const getEndpointUpsertDescriptionAddon = (endpoint) => {
     if (!isEndpointUpsertEndpoint(endpoint)) return "";
 
-    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is a function identifier string. JS => `code` is JavaScript source that must assign `$_RETURN_DATA_`. FETCH => `code` is the target URL. TEXT => `code` is a JSON string with `content` and `mime`. SQL => `code` is the SQL query and `custom_data` stores connection settings. SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => `code` uses handler-specific configuration and should be built from `handler_documentation` for that handler. NA is an internal default/no-op handler and should be avoided in new integrations. Recommended agent workflow: choose handler first, inspect the handler contract, then build the payload.";
+    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is a function identifier string. JS => `code` is JavaScript source that must assign `$_RETURN_DATA_`. FETCH => `code` is the target URL. TEXT => `code` is the raw text content and MIME metadata goes in `custom_data.mimeType`. SQL => `code` is the SQL query and `custom_data` stores connection settings. SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => `code` uses handler-specific configuration and should be built from `handler_documentation` for that handler. NA is an internal default/no-op handler and should be avoided in new integrations. Recommended agent workflow: choose handler first, inspect the handler contract, then build the payload.";
   };
 
   // Guard against missing endpoint collections when an app is partially configured.
@@ -876,6 +1089,7 @@ $_CUSTOM_HEADERS_ = h;
   });
 
   let markdown_api_docs = [];
+  let markdown_api_catalog_rows = [];
 
   for (let index2 = 0; index2 < mcp_endpoint_tools.length; index2++) {
     const endpoint = mcp_endpoint_tools[index2];
@@ -947,6 +1161,15 @@ $_CUSTOM_HEADERS_ = h;
       exampleRequest,
       endpointUpsertDescriptionAddon,
     });
+
+    markdown_api_catalog_rows.push([
+      endpoint?.mcp?.name && endpoint?.mcp?.name.length > 0
+        ? endpoint?.mcp?.name
+        : toolName,
+      endpoint.method,
+      endpoint.resource,
+      endpoint.handler,
+    ]);
 
     // Bug fix #5: Uso de optional chaining para evitar TypeError si mcp.title/description no existen
     markdown_api_docs.push(`##
@@ -1068,17 +1291,31 @@ ${endpointUpsertHandlerGuide}
 `);
 
     let zod_inputSchema = z.object({}).describe("Data to send to the endpoint.");
+    const requiresPassthroughToolInput = isEndpointUpsertEndpoint(endpoint);
 
-    if (
+    if (requiresPassthroughToolInput) {
+      zod_inputSchema = z.object({}).passthrough().describe(
+        "Structured input preserved as-is for endpoint_upsert because recursive and conditional endpoint payloads are not safely represented by the MCP validator.",
+      );
+    } else if (
       endpoint?.json_schema?.in?.enabled &&
       endpoint?.json_schema?.in?.schema
     ) {
       try {
         const zodSchema = jsonSchemaToZod(inputSchemaNormalized);
-        if (zodSchema instanceof z.ZodObject) {
+        if (zodSchema instanceof z.ZodObject || isObjectLikeSerializedSchema(zodSchema)) {
           zod_inputSchema = zodSchema;
+        } else if (isZodSchemaLike(zodSchema)) {
+          zod_inputSchema = z.object({ value: zodSchema }).describe(
+            "Structured single-value input wrapped for MCP compatibility.",
+          );
         } else {
-          zod_inputSchema = z.object({ value: zodSchema });
+          console.warn(
+            `[MCP] Schema conversion returned an invalid Zod schema for ${endpoint.method} ${endpoint.resource}. Se usa schema flexible.`,
+          );
+          zod_inputSchema = z.object({}).passthrough().describe(
+            "Flexible input because schema conversion did not produce a valid Zod schema.",
+          );
         }
       } catch (error) {
         console.warn(
@@ -1090,6 +1327,11 @@ ${endpointUpsertHandlerGuide}
         );
       }
     }
+
+    zod_inputSchema = ensureSerializableToolSchema(zod_inputSchema, {
+      endpoint,
+      toolName: safeToolName,
+    });
 
     const registerEndpointTool = (registeredToolName, descriptionPrefix = "") => {
       _mcpConfig.tools.push({
@@ -1158,10 +1400,25 @@ ${endpointUpsertHandlerGuide}
   // URI con path explícito: new URL("api://docs/demo").toString() === "api://docs/demo"
   // Si el URI no tiene path (ej: "api://docs-demo"), new URL() añade "/" final → no coincide con la clave registrada
   const resourceURI = "api://docs/" + app_name;
+  const catalogResourceURI = "api://docs/catalog/" + app_name;
   const md_resource = `
 # API Documentation for ${app_name} on ${environment} environment
 
 ${markdown_api_docs.join("\n")}
+
+    `;
+  const md_catalog_resource = `
+# API Endpoint Catalog for ${app_name} on ${environment} environment
+
+This is a lightweight endpoint catalog for quick discovery. It intentionally excludes per-endpoint schemas, examples, and long behavior notes.
+
+| MCP Tool Name | Method | Resource | Handler |
+|---|---|---|---|
+${markdown_api_catalog_rows
+  .map((row) => `| ${row.map((cell) => toCompactText(cell, "-").replace(/\|/g, "\\|")).join(" | ")} |`)
+  .join("\n")}
+
+Use \`list_api_endpoints_${app_name}\` only when you need the full endpoint-by-endpoint documentation dump.
 
     `;
 
@@ -1186,6 +1443,86 @@ ${markdown_api_docs.join("\n")}
     }
   });
 
+  _mcpConfig.resources.push({
+    name: "api-docs-catalog-" + app_name,
+    uri: catalogResourceURI,
+    info: {
+      description: "Lightweight API endpoint catalog for " + app_name + " on " + environment + " environment",
+      mimeType: "text/markdown",
+    },
+    handler: async (_uri, _extra) => {
+
+      return {
+        contents: [
+          {
+            uri: catalogResourceURI,
+            mimeType: "text/markdown",
+            text: md_catalog_resource
+          }
+        ]
+      }
+    }
+  });
+
+_mcpConfig.tools.push({
+  name: "validate_json_schema_for_mcp",
+  info: {
+    title: "Validate JSON Schema For MCP",
+    description: [
+      "Purpose: validate whether a JSON Schema is operationally compatible with OpenFusionAPI MCP.",
+      "Required fields: schema.",
+      "Top-level input fields: schema, schema_text, include_normalized_schema, include_serialized_schema.",
+      "Output: JSON report with compatibility status, stage-by-stage results, warnings, errors, and recommendations.",
+      "Agent guidance: use this tool before publishing any json_schema that will be stored or exposed through OpenFusionAPI.",
+      "Agent guidance: this validation is OpenFusionAPI-specific. It checks normalization, jsonSchemaToZod conversion, and MCP serialization behavior instead of only generic JSON Schema validity.",
+    ].join("\n"),
+    inputSchema: {
+      schema: z.unknown().describe("JSON Schema object to validate for OpenFusionAPI MCP compatibility."),
+      schema_text: z.string().optional().describe("Optional JSON string form of the schema when the caller cannot send an object directly."),
+      include_normalized_schema: z.boolean().optional().describe("When true, include the normalized schema used by OpenFusionAPI before conversion."),
+      include_serialized_schema: z.boolean().optional().describe("When true, include the serialized JSON Schema generated from the converted Zod schema."),
+    },
+    annotations: { readOnlyHint: true },
+  },
+  handler: async (data) => {
+    const report = buildJsonSchemaOperationalReport(data || {});
+
+    return {
+      content: [
+        {
+          type: "text",
+          mimeType: "application/json",
+          text: JSON.stringify(report, null, 2),
+        },
+      ],
+    };
+  }
+});
+
+_mcpConfig.tools.push({
+  name: sanitizeToolName("list_api_endpoints_catalog_" + app_name, "list_api_endpoints_catalog"),
+  info: {
+    title: "List API endpoint catalog for " + app_name + " on " + environment + " environment",
+    description: [
+      `Purpose: return a lightweight endpoint catalog for application '${app_name}' on '${environment}' environment.`,
+      "Required fields: none.",
+      "Top-level input fields: none.",
+      "Output: compact markdown table with MCP tool name, HTTP method, resource path, and handler.",
+      "Agent guidance: prefer this tool for discovery because it avoids sending full schemas, examples, and long endpoint documentation blocks.",
+    ].join("\n"),
+    inputSchema: {},
+    annotations: { readOnlyHint: true },
+  },
+  handler: async () => ({
+    content: [
+      {
+        type: "text",
+        text: md_catalog_resource,
+      },
+    ],
+  })
+});
+
 _mcpConfig.tools.push({
   name: sanitizeToolName("list_api_endpoints_" + app_name, "list_api_endpoints"),
   info: {
@@ -1195,9 +1532,9 @@ _mcpConfig.tools.push({
       "Required fields: none.",
       "Top-level input fields: none.",
       "Output: markdown text containing endpoint-by-endpoint API documentation, example payloads, schemas, and behavior notes.",
-      "Agent guidance: use this tool for discovery before calling unfamiliar tools or when you need a broader map of the application API.",
+      `Agent guidance: prefer list_api_endpoints_catalog_${app_name} for initial discovery and call this full dump only when you need detailed schemas, examples, or behavior notes for many endpoints at once.`,
     ].join("\n"),
-    inputSchema: z.object({}),
+    inputSchema: {},
     annotations: { readOnlyHint: true },
   },
   handler: async () => ({

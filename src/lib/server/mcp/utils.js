@@ -22,31 +22,29 @@ export function jsonSchemaToZod(schema, root = null, context = null) {
     return resolveRefSchema(schema.$ref, root, context);
   }
 
+  const combinatorSchema = combineCombinatorsIfNeeded(schema, root, context);
+  if (combinatorSchema) {
+    return combinatorSchema;
+  }
+
   // type como array: e.g. ["string", "null"] → z.union
   if (Array.isArray(schema.type)) {
     const types = schema.type.map((typeName) => jsonSchemaToZod({ ...schema, type: typeName }, root, context));
     return types.length === 1 ? types[0] : z.union(types);
   }
 
-  // Manejo de combinadores
-  if (schema.oneOf) {
-    return z.union(schema.oneOf.map((item) => jsonSchemaToZod(item, root, context)));
-  }
-
-  if (schema.anyOf) {
-    return z.union(schema.anyOf.map((item) => jsonSchemaToZod(item, root, context)));
-  }
-
-  if (schema.allOf) {
-    return schema.allOf
-      .map((item) => jsonSchemaToZod(item, root, context))
-      .reduce((acc, cur) => acc.and(cur));
-  }
-
   // Soporte de negación de requeridos: { not: { required: ["field"] } }
   // Útil para reglas condicionales tipo INSERT/UPDATE en anyOf.
   if (schema.not && Array.isArray(schema.not.required)) {
     return makeNotRequiredConstraint(schema.not.required, schema.description);
+  }
+
+  if (!schema.type && !schema.properties && Array.isArray(schema.required) && schema.required.length > 0) {
+    const requiredShape = Object.fromEntries(
+      schema.required.map((key) => [key, z.unknown()]),
+    );
+
+    return z.object(requiredShape).passthrough();
   }
 
   // Tipos primitivos
@@ -81,8 +79,74 @@ export function jsonSchemaToZod(schema, root = null, context = null) {
   }
 }
 
+function combineCombinatorsIfNeeded(schema, root, context) {
+  const hasAnyOf = Array.isArray(schema?.anyOf) && schema.anyOf.length > 0;
+  const hasOneOf = Array.isArray(schema?.oneOf) && schema.oneOf.length > 0;
+  const hasAllOf = Array.isArray(schema?.allOf) && schema.allOf.length > 0;
+
+  if (!hasAnyOf && !hasOneOf && !hasAllOf) {
+    return null;
+  }
+
+  const { anyOf, oneOf, allOf, ...baseCandidate } = schema;
+  const baseSchema = hasMeaningfulValidationKeywords(baseCandidate)
+    ? jsonSchemaToZod(baseCandidate, root, context)
+    : null;
+
+  if (baseSchema instanceof z.ZodObject && (schema?.type === "object" || schema?.properties || schema?.required)) {
+    return baseSchema;
+  }
+
+  let combinedSchema = null;
+
+  if (hasAllOf) {
+    combinedSchema = allOf
+      .map((item) => jsonSchemaToZod(item, root, context))
+      .reduce((acc, cur) => acc.and(cur));
+  }
+
+  if (hasOneOf) {
+    const oneOfUnion = buildUnionSchema(oneOf, root, context);
+    combinedSchema = combinedSchema ? combinedSchema.and(oneOfUnion) : oneOfUnion;
+  }
+
+  if (hasAnyOf) {
+    const anyOfUnion = buildUnionSchema(anyOf, root, context);
+    combinedSchema = combinedSchema ? combinedSchema.and(anyOfUnion) : anyOfUnion;
+  }
+
+  if (baseSchema && combinedSchema) {
+    return baseSchema.and(combinedSchema);
+  }
+
+  return baseSchema || combinedSchema || null;
+}
+
+function buildUnionSchema(items, root, context) {
+  const schemas = items.map((item) => jsonSchemaToZod(item, root, context));
+  return schemas.length === 1 ? schemas[0] : z.union(schemas);
+}
+
+function hasMeaningfulValidationKeywords(schema) {
+  const ignoredKeys = new Set([
+    "$id",
+    "$schema",
+    "$defs",
+    "title",
+    "description",
+    "default",
+    "deprecated",
+    "examples",
+    "example",
+    "readOnly",
+    "writeOnly",
+  ]);
+
+  return Object.keys(schema || {}).some((key) => !ignoredKeys.has(key));
+}
+
 function makeNotRequiredConstraint(requiredKeys, description) {
-  let out = z.record(z.unknown()).refine(
+  let out = z.object({}).passthrough().refine(
     (obj) => !requiredKeys.every((key) => Object.prototype.hasOwnProperty.call(obj, key)),
     {
       message: description || `Properties [${requiredKeys.join(", ")}] must not exist at the same time.`,

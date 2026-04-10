@@ -2,6 +2,7 @@
   "ok": true,
   "checkedTools": [
     "app_create_update",
+    "validate_json_schema_for_mcp",
     "endpoint_upsert",
     "appvar_upsert"
   ],

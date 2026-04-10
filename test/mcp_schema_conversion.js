@@ -35,7 +35,7 @@ assert.equal(describeAllTablesParsed.success, true, "describe_all_tables schema 
 
 const endpointUpsertSchema = jsonSchemaToZod(endpointUpsert.json_schema.in.schema);
 const endpointUpsertParsed = endpointUpsertSchema.safeParse({
-  idapp: "00000000-0000-0000-0000-000000000001",
+  idapp: "11111111-1111-4111-8111-111111111111",
   environment: "prd",
   timeout: 30,
   resource: "/numero/a-texto-es",

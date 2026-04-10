@@ -50,6 +50,75 @@ const SOAP_BLOCKED_HEADERS = new Set([
   "referer",
 ]);
 
+const toBasicAuthHeader = (security) => {
+  if (!security?.User) {
+    return undefined;
+  }
+
+  return `Basic ${Buffer.from(
+    `${security.User}:${security.Password || ""}`,
+  ).toString("base64")}`;
+};
+
+const getWsdlAuthorizationHeader = (SOAPParameters) => {
+  if (SOAPParameters?.BasicAuthSecurity?.User) {
+    return toBasicAuthHeader(SOAPParameters.BasicAuthSecurity);
+  }
+
+  if (SOAPParameters?.BearerSecurity) {
+    return `Bearer ${SOAPParameters.BearerSecurity}`;
+  }
+
+  return undefined;
+};
+
+const buildSoapClientOptions = (SOAPParameters) => {
+  const baseOptions =
+    SOAPParameters?.options && typeof SOAPParameters.options === "object"
+      ? JSON.parse(JSON.stringify(SOAPParameters.options))
+      : {};
+
+  const authorization = getWsdlAuthorizationHeader(SOAPParameters);
+
+  if (!authorization) {
+    return baseOptions;
+  }
+
+  baseOptions.wsdl_headers = {
+    ...(baseOptions.wsdl_headers || {}),
+    Authorization: authorization,
+  };
+
+  baseOptions.wsdl_options = {
+    ...(baseOptions.wsdl_options || {}),
+    headers: {
+      ...(baseOptions.wsdl_options?.headers || {}),
+      Authorization: authorization,
+    },
+  };
+
+  return baseOptions;
+};
+
+const normalizeSoapError = (error) => {
+  if (!(error instanceof Error)) {
+    return error;
+  }
+
+  const message = error.message || "";
+  const lowerMessage = message.toLowerCase();
+
+  if (
+    lowerMessage.includes("root element of wsdl was <html>") ||
+    lowerMessage.includes("invalid wsdl url")
+  ) {
+    error.message =
+      "The configured WSDL URL did not return a valid WSDL XML document. The upstream response was HTML, which usually means the URL points to a SOAP runtime/status page instead of a WSDL, or that the WSDL request still requires different authentication.";
+  }
+
+  return error;
+};
+
 /**
  * Obtiene un cliente SOAP del caché o crea uno nuevo.
  * Implementa LRU (Least Recently Used) y TTL (Time To Live).
@@ -157,7 +226,7 @@ export const soapFunction = async (context) => {
 
     reply.code(200).send(soap_response);
   } catch (error) {
-    replyException(request, reply, error);
+    replyException(request, reply, normalizeSoapError(error));
   }
 
   ////
@@ -188,10 +257,8 @@ export const SOAPGenericClient = async (
   }
 
   if (describe || validate_schema_input_genericSOAP(SOAPParameters)) {
-    let client = await getSoapClient(
-      SOAPParameters.wsdl,
-      SOAPParameters.options
-    );
+    const clientOptions = buildSoapClientOptions(SOAPParameters);
+    let client = await getSoapClient(SOAPParameters.wsdl, clientOptions);
 
     // Forward request headers to the SOAP client, excluding those that cause errors.
     // SOAP_BLOCKED_HEADERS (Set) handles exact matches in O(1).

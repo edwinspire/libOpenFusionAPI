@@ -6,9 +6,14 @@
 
 ## 🚀 Overview
 
-**OpenFusion API** is a modern and extensible platform designed to simplify and accelerate the creation and deployment of API endpoints.  
-Its primary goal is to reduce development time while maintaining flexibility and control for developers.  
-This project is aimed at **technical teams**, **software developers**, and **system integrators** who need to build scalable, maintainable, and secure APIs rapidly.
+**OpenFusion API** is a modern and extensible platform designed to simplify and accelerate the creation, governance, and deployment of API endpoints.  
+Its core goal is to reduce delivery time without sacrificing structure, validation, security, or operational control.  
+It is built for **technical teams**, **software developers**, **system integrators**, and increasingly for **AI agents** that need to assemble production-ready services quickly.
+
+OpenFusionAPI is not only a framework for writing APIs faster. It is also an execution model where endpoints can be described, validated, and deployed through configuration and handler selection instead of repetitive manual coding.  
+In practice, this means a human operator or an AI agent can create useful endpoints with very little friction, and in many cases without writing custom source code at all.
+
+For AI-driven workflows, this is one of the strongest advantages of the platform: an agent can create applications, define reusable variables, choose handlers, shape contracts with JSON Schema, and publish endpoints by itself. That makes service deployment extremely fast, especially for internal tools, integrations, automation endpoints, and MCP-compatible interfaces.
 
 ## 🧠 Why OpenFusion API?
 
@@ -16,6 +21,7 @@ Building and deploying APIs often involves repetitive and error-prone tasks such
 OpenFusion API eliminates most of this overhead by providing:
 
 - ⚡ **Rapid Endpoint Creation:** Easily configure endpoints without writing boilerplate code.
+- 🤖 **Agent-Native API Creation:** AI agents can create and update endpoints autonomously by using the platform's MCP tooling and endpoint contracts.
 - 🧰 **Flexible Handlers:** Integrates with multiple data sources (SQL, NoSQL, SOAP, MCP, etc.).
 - 🔐 **Access Control:** Built-in mechanisms to manage public, private, and bearer access levels.
 - 🧭 **MCP Tooling:** Seamless integration with AI and automation pipelines.
@@ -30,8 +36,9 @@ OpenFusion API eliminates most of this overhead by providing:
 - ❌ Managing different environments can become complex.  
 - ❌ Maintaining consistent security and data validation adds overhead.  
 - ❌ Many teams waste time on infrastructure instead of business logic.
+- ❌ Most AI agents can generate code, but they still need a deployment surface and a reliable operational model to turn that code into working services.
 
-✅ OpenFusion API centralizes and standardizes these processes, allowing teams to focus on delivering value rather than reinventing infrastructure.
+✅ OpenFusion API centralizes and standardizes these processes, allowing teams and AI agents to focus on describing the service they need instead of rebuilding infrastructure every time.
 
 ## 🧱 Key Features
 
@@ -41,6 +48,18 @@ OpenFusion API eliminates most of this overhead by providing:
 - **JSON Schema validation** for structured, predictable data exchange.
 - **MCP (Model Control Protocol)** integration for AI-driven tools.
 - **Application-level variables** for consistent environment management.
+- **Low-code / no-boilerplate delivery path** for many integrations and service endpoints.
+
+## 🤖 Built For Humans And AI Agents
+
+OpenFusionAPI is intentionally useful to both human builders and autonomous AI systems.
+
+- A human can use the UI to create applications, define variables, configure handlers, and publish endpoints quickly.
+- An AI agent can do the same through MCP-aware workflows, endpoint metadata, and structured contracts.
+- In many cases, the endpoint does not require handwritten code because the handler, schema, and configuration are enough to make the service operational.
+- When code is required, it is usually limited to the business-specific part, while the platform keeps environment setup, validation, access rules, and deployment structure consistent.
+
+This makes OpenFusionAPI a strong fit for teams that want agents to move beyond code suggestions and actually assemble deployable services.
 
 ## ⏳ Development Speed & Efficiency
 
@@ -48,6 +67,13 @@ OpenFusion API significantly **reduces API development time** by abstracting rep
 - Developers can configure endpoints in minutes.  
 - Built-in validation and security reduce post-deployment issues.  
 - Versioning and environment segregation enable safer rollouts.  
+
+For AI workflows, the speed gain is even more pronounced:
+
+- Agents do not need to scaffold full services from scratch for every use case.
+- Agents can create endpoints directly in the platform by selecting the application, handler, method, access level, variables, and schema.
+- The result is a much shorter path from intent to deployed service.
+- This is especially effective for fast internal service delivery, integration adapters, admin tools, and machine-to-machine endpoints.
 
 ## 🧭 Documentation
 
@@ -69,6 +95,7 @@ Important operational note:
 - Integration engineers
 - DevOps teams
 - Teams using AI tools (MCP)
+- Organizations that want AI agents to create and maintain deployable endpoints
 
 ## 🏁 Quick Start
 
@@ -88,6 +115,17 @@ Use this order when creating a new integration:
 5. Reuse application variables from any endpoint in the same application instead of hardcoding repeated values.
 
 This is the safest flow for both human operators and MCP / AI agents because the application is the root container, variables are shared configuration, and endpoints are attached to that application afterward.
+
+For AI agents, the intended operating model is:
+
+1. Understand the service intent.
+2. Create or select the target application.
+3. Define shared variables first.
+4. Create one or more endpoints with the correct handler and access model.
+5. Use JSON Schema where structured contracts are needed.
+6. Validate and publish the result.
+
+That workflow lets an agent create usable services with minimal or no handwritten code, which is one of the main reasons OpenFusionAPI can dramatically accelerate service deployment.
  
 ---
 

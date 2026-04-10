@@ -9,7 +9,7 @@
     "examples": []
   },
   "configuration": {
-    "code": "JSON string with payload and mime type metadata.",
-    "custom_data": "Not used by the base TEXT handler."
+    "code": "Raw text content returned by the endpoint.",
+    "custom_data": "TEXT handler configuration such as custom_data.mimeType."
   }
 }

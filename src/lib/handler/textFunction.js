@@ -10,39 +10,30 @@ export const textFunction = async (
   const { request, reply, endpoint } = getHandlerExecutionContext(context);
 
   try {
+    const textConfig =
+      typeof endpoint.custom_data === "string"
+        ? JSON.parse(endpoint.custom_data)
+        : endpoint.custom_data && typeof endpoint.custom_data === "object"
+          ? endpoint.custom_data
+          : {};
 
-  const textConfig = typeof endpoint.custom_data === "string"
-      ? JSON.parse(endpoint.custom_data)
-      : endpoint.custom_data;
-    /*
-    let textConfig;
-    try {
-      textConfig = JSON.parse(method.code);
-    } catch (e) {
-      response.code(400).send({ error: "Invalid JSON in input code" });
-      return;
-    }
-    */
-
-    let mimeType = "text/plain";
-
-    if (textConfig.mimeType) {
-      mimeType =
-        textConfig.mimeType.length > 0 ? textConfig.mimeType : "text/plain";
-    }
-
-    //  console.log("\n\n", mimeType, getExtensionFromMimeType(mimeType));
+    const mimeType =
+      typeof textConfig.mimeType === "string" && textConfig.mimeType.length > 0
+        ? textConfig.mimeType
+        : "text/plain";
 
     let filename = Date.now() + "." + getExtensionFromMimeType(mimeType);
 
-    if (!endpoint.code) {
+    const payload = typeof endpoint.code === "string" ? endpoint.code : undefined;
+
+    if (payload === undefined) {
       reply.code(400).send({ error: "No payload provided" });
       return;
     }
 
     sendHandlerResponse(reply, {
       statusCode: 200,
-      data: endpoint.code,
+      data: payload,
       contentType: mimeType,
       headers: {
         "Content-Disposition": `attachment; filename="${filename}"`,

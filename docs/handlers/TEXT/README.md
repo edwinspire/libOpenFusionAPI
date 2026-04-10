@@ -8,8 +8,8 @@ The **TEXT handler** allows OpenFusionAPI to serve static text content, such as 
 <summary>🧠 How It Works</summary>
 
 When an endpoint is configured with the **TEXT** handler:
-1.  The handler parses the configuration JSON provided in the "Code" editor.
-2.  It extracts the `payload` (content) and `mimeType` (content type).
+1.  It reads the raw text content from the `code` field.
+2.  It reads MIME metadata from `custom_data`, typically `custom_data.mimeType`.
 3.  It generates a filename based on the current timestamp and the file extension derived from the MIME type.
 4.  It serves the content with a `Content-Disposition: attachment` header, forcing the browser or client to download it as a file.
 
@@ -20,26 +20,32 @@ When an endpoint is configured with the **TEXT** handler:
 <details>
 <summary>⚙️ Endpoint Configuration</summary>
 
-The configuration must be a valid **JSON object** with the following properties:
+Current configuration:
 
--   `payload`: **(Required)** The string content to return.
--   `mimeType`: **(Optional)** The MIME type of the content (default: `text/plain`).
+-   `code`: **(Required)** Raw text content to return.
+-   `custom_data.mimeType`: **(Optional)** MIME type of the content (default: `text/plain`).
 
-**Example: JSON Configuration** (for the Code editor)
+**Example CSV endpoint**:
 ```json
 {
-  "mimeType": "text/csv",
-  "payload": "id,name,role\n1,Admin,SuperOFAPI\n2,User,Guest"
+  "code": "id,name,role\n1,Admin,SuperOFAPI\n2,User,Guest",
+  "custom_data": {
+    "mimeType": "text/csv"
+  }
 }
 ```
 
 **Example HTML Snippet**:
 ```json
 {
-  "mimeType": "text/html",
-  "payload": "<h1>Maintenance Mode</h1><p>We will be back shortly.</p>"
+  "code": "<h1>Maintenance Mode</h1><p>We will be back shortly.</p>",
+  "custom_data": {
+    "mimeType": "text/html"
+  }
 }
 ```
+
+Older backups that stored JSON inside `code` should be adapted by the migration parser during restore. Runtime execution no longer interprets JSON configuration stored inside `code`.
 
 </details>
 
@@ -115,6 +121,7 @@ id,name,role
 -   **Scripts**: Hosting install scripts (e.g., `install.sh` or `setup.ps1`).
 -   **Mock Data**: Returning fixed responses for testing without a database.
 -   **Documentation**: Serving static Markdown or WSDL files.
+-   **Local WSDL Publishing**: Hosting a WSDL XML document so another SOAP endpoint can consume it from a stable local URL.
 </details>
 
 ---

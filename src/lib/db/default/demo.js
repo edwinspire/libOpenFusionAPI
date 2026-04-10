@@ -2617,6 +2617,126 @@ export const demo_app = {
           "schema": {
             "type": "object",
             "properties": {
+              "schemaGoal": {
+                "type": "string",
+                "description": "Describe the endpoint input contract the AI should model as a JSON Schema for OpenFusionAPI."
+              },
+              "ai": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "includeDiagnostics": {
+                "type": "boolean"
+              },
+              "maxToolRounds": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-schema-validator-q1"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "schemaGoal": "Create a JSON Schema for an OpenFusionAPI endpoint input with required full_name as string, optional age as integer >= 0, and optional email as string with email format.",
+              "includeDiagnostics": true,
+              "maxToolRounds": 8
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": {}
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "internal_hash_row": "demo-js-ai-schema-validator-h1"
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1,
+          "MimeType": ""
+        }
+      },
+      "idendpoint": "8d3fe2a1-0b58-4f0c-9c6d-2c8b1d4f5a61",
+      "rowkey": 987,
+      "enabled": true,
+      "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
+      "environment": "dev",
+      "timeout": 1800,
+      "resource": "/ofapi/examples/js/ask_ia_with_mcp_validate_json_schema",
+      "method": "POST",
+      "handler": "JS",
+      "access": 0,
+      "title": "JS askIAWithMCP JSON Schema Validator Demo",
+      "description": "Example JS handler endpoint that asks the model to create a JSON Schema for OpenFusionAPI and requires it to validate compatibility with the demo MCP tool validate_json_schema_for_mcp before returning the final result.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "example,js,ia,mcp,json schema,validator,openfusionapi",
+      "code": "const body = request.body || {};\n\nconst aiDefaults = $_APP_VARS_['$_VAR_AI_DEFAULTS'];\nconst mcpServers = $_APP_VARS_['$_VAR_MCP_SERVERS_DEMO_DEV'];\n\nif (!aiDefaults || typeof aiDefaults !== 'object') {\n  $_EXCEPTION_('Application variable $_VAR_AI_DEFAULTS is required and must be an object.', { appVars: $_APP_VARS_ }, 500);\n}\n\nif (!Array.isArray(mcpServers)) {\n  $_EXCEPTION_('Application variable $_VAR_MCP_SERVERS_DEMO_DEV is required and must be an array.', { appVars: $_APP_VARS_ }, 500);\n}\n\nconst aiOverrides = body.ai && typeof body.ai === 'object' ? body.ai : {};\nconst ai = {\n  ...aiDefaults,\n  ...aiOverrides,\n};\n\nconst schemaGoal = typeof body.schemaGoal === 'string' && body.schemaGoal.trim().length > 0\n  ? body.schemaGoal.trim()\n  : 'Create a JSON Schema for an OpenFusionAPI endpoint input with required full_name as string and optional age as integer >= 0.';\n\nconst prompts = [\n  {\n    role: 'user',\n    content: `You are designing a JSON Schema that will be stored in OpenFusionAPI. Goal: ${schemaGoal}\n\nMandatory workflow:\n1. Produce a candidate JSON Schema object for OpenFusionAPI endpoint input.\n2. Call validate_json_schema_for_mcp with that candidate schema.\n3. If compatible is false, or warnings indicate unsupported keywords or poor MCP guidance, revise the schema and validate again.\n4. Return a JSON object with keys schema, validationReport, and notes.\n5. validationReport must contain the final tool result.\n6. notes must briefly explain any compromise made for MCP compatibility.`\n  },\n];\n\nconst result = await askIAWithProviderMCP({\n  provider: ai,\n  mcpServers,\n  prompts,\n  includeDiagnostics: body.includeDiagnostics ?? true,\n  maxToolRounds: body.maxToolRounds ?? 8,\n});\n\n$_RETURN_DATA_ = result;",
+      "cache_time": 0,
+      "createdAt": "2026-04-10T12:00:00.000Z",
+      "updatedAt": "2026-04-10T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {}
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
               "prompts": {
                 "description": "Prompt string or chat messages received in the POST body.",
                 "oneOf": [

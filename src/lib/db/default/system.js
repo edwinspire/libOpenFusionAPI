@@ -1885,7 +1885,7 @@ export const system_app = {
               "code": {
                 "type": "string",
                 "default": "",
-                "description": "Handler payload. Convention depends on `handler`: JS => server-side JavaScript source and it must assign `$_RETURN_DATA_` instead of using `return`; FUNCTION => internal function name such as `fnMyFunction`; FETCH => target URL string; TEXT => JSON string with `content` and `mime`; SQL => SQL query string while connection settings live in `custom_data`; SQL_BULK_I/SOAP/HANA/MONGODB/MCP => handler-specific configuration payload; TELEGRAM_BOT => JavaScript source that configures the injected grammY bot instance available as `$BOT`, while the Telegram token is normally provided in `custom_data.token`. Do not instantiate the bot manually and do not call `$BOT.start()` because the runtime starts it automatically."
+                "description": "Handler payload. Convention depends on `handler`: JS => server-side JavaScript source and it must assign `$_RETURN_DATA_` instead of using `return`; FUNCTION => internal function name such as `fnMyFunction`; FETCH => target URL string; TEXT => raw text content while MIME metadata lives in `custom_data.mimeType`; SQL => SQL query string while connection settings live in `custom_data`; SQL_BULK_I/SOAP/HANA/MONGODB/MCP => handler-specific configuration payload; TELEGRAM_BOT => JavaScript source that configures the injected grammY bot instance available as `$BOT`, while the Telegram token is normally provided in `custom_data.token`. Do not instantiate the bot manually and do not call `$BOT.start()` because the runtime starts it automatically."
               },
               "cors": {
                 "$ref": "#/$defs/jsonValue",
