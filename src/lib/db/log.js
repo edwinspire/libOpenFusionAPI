@@ -340,7 +340,30 @@ export const getLogs = async (options = {}) => {
     // Ejecutar consulta principal
     const logs = await LogEntry.findAll(queryOptions);
 
-
+    if (raw && logs && logs.length > 0) {
+      const jsonFields = [
+        "req_headers",
+        "res_headers",
+        "query",
+        "body",
+        "params",
+        "response_data",
+        "message",
+      ];
+      return logs.map((log) => {
+        const item = { ...log };
+        jsonFields.forEach((field) => {
+          if (typeof item[field] === "string") {
+            try {
+              item[field] = JSON.parse(item[field]);
+            } catch (e) {
+              // ignore invalid json just in case
+            }
+          }
+        });
+        return item;
+      });
+    }
 
     return logs;
   } catch (error) {

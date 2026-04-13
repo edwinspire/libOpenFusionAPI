@@ -1355,9 +1355,23 @@ ${endpointUpsertHandlerGuide}
 
             let uF = AutoURL.auto(url_internal, true);
 
+            let sanitizedHeaders = {};
+            if (currentHeaders) {
+              const forbidden = new Set(["expect", "host", "connection", "keep-alive"]);
+              if (typeof currentHeaders.forEach === "function") {
+                currentHeaders.forEach((v, k) => {
+                  if (!forbidden.has(k.toLowerCase())) sanitizedHeaders[k] = v;
+                });
+              } else {
+                for (const [k, v] of Object.entries(currentHeaders)) {
+                  if (!forbidden.has(k.toLowerCase())) sanitizedHeaders[k] = v;
+                }
+              }
+            }
+
             let request_endpoint = await uF[endpoint.method.toLowerCase()]({
               data: data,
-              headers: currentHeaders,
+              headers: sanitizedHeaders,
             });
 
             const mimeType = request_endpoint.headers.get("content-type") ?? "text/plain";

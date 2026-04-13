@@ -5,7 +5,7 @@ export const system_app = {
   },
   "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
   "app": "system",
-  "rowkey": 207,
+  "rowkey": 491,
   "iduser": null,
   "enabled": true,
   "description": "App System",
@@ -148,7 +148,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff4",
-      "rowkey": 631,
+      "rowkey": 853,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -409,7 +409,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff3",
-      "rowkey": 597,
+      "rowkey": 841,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -509,7 +509,7 @@ export const system_app = {
         }
       },
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
-      "rowkey": 33,
+      "rowkey": 338,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -627,7 +627,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbff1",
-      "rowkey": 436,
+      "rowkey": 228,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -760,7 +760,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c0c4f621-02ea-4ea6-a79a-a9b5d7c4a101",
-      "rowkey": 981,
+      "rowkey": 437,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -843,7 +843,7 @@ export const system_app = {
         }
       },
       "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
-      "rowkey": 688,
+      "rowkey": 869,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -858,6 +858,230 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "app",
+      "code": "fnGetApps",
+      "cache_time": 0,
+      "createdAt": "2025-11-21T22:04:52.725Z",
+      "updatedAt": "2025-11-22T00:11:42.110Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "app_vars_catalog",
+        "title": "List application variable catalog",
+        "description": "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idapp": {
+                "type": "string"
+              },
+              "environment": {
+                "type": "string"
+              },
+              "include_values": {
+                "type": "boolean"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idapp"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "c7z1y4l0n",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "00000000-0000-0000-0000-000000000001",
+              "include_values": false
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "2f8d3d77-d6fa-4de7-8623-4e1cf5e5a103",
+      "rowkey": 233,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/app/vars/catalog",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get Application Variable Catalog",
+      "description": "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "app,var,catalog,lightweight",
+      "code": "fnGetAppVarsCatalogByIdApp",
+      "cache_time": 0,
+      "createdAt": "2026-04-06T01:25:00.000Z",
+      "updatedAt": "2026-04-06T01:25:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "apps_list",
+        "title": "List Apps",
+        "description": "Returns all applications with their application variables and related endpoints."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "iqg87g0if",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "55bdde78-051e-4844-a4b2-089f122f6160",
+      "rowkey": 772,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/apps",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "App List",
+      "description": "Returns all applications with their application variables and related endpoints.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "",
       "code": "fnGetApps",
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.725Z",
@@ -962,7 +1186,7 @@ export const system_app = {
         }
       },
       "idendpoint": "5a0dd410-6f0e-4839-b630-bebba38f9102",
-      "rowkey": 982,
+      "rowkey": 616,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -981,106 +1205,6 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2026-04-06T01:10:00.000Z",
       "updatedAt": "2026-04-06T01:10:00.000Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": true,
-        "name": "apps_list",
-        "title": "List Apps",
-        "description": "Returns all applications with their application variables and related endpoints."
-      },
-      "json_schema": {
-        "in": {
-          "enabled": true,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": false
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "iqg87g0if",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "55bdde78-051e-4844-a4b2-089f122f6160",
-      "rowkey": 880,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/api/apps",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "App List",
-      "description": "Returns all applications with their application variables and related endpoints.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetApps",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.725Z",
-      "updatedAt": "2025-11-22T00:11:42.110Z"
     },
     {
       "ctrl": {
@@ -1266,7 +1390,7 @@ export const system_app = {
         }
       },
       "idendpoint": "18c23475-a6d1-4070-955b-685f3947fb62",
-      "rowkey": 48,
+      "rowkey": 121,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1476,7 +1600,7 @@ export const system_app = {
         }
       },
       "idendpoint": "9a4e24c9-f563-42b2-b7db-b4bc4b03c5c1",
-      "rowkey": 143,
+      "rowkey": 149,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1595,7 +1719,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf02",
-      "rowkey": 126,
+      "rowkey": 576,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -1614,128 +1738,6 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": true,
-        "name": "endpoint_source_summary",
-        "title": "Get endpoint source summary",
-        "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload."
-      },
-      "json_schema": {
-        "in": {
-          "enabled": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "idendpoint": {
-                "type": "string"
-              },
-              "preview_lines": {
-                "type": "integer",
-                "minimum": 1
-              }
-            },
-            "additionalProperties": false,
-            "required": [
-              "idendpoint"
-            ]
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "sy3qevh9r",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {
-              "idendpoint": "00000000-0000-0000-0000-000000000002",
-              "preview_lines": 20
-            }
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "cuv7rmczz",
-            "type": 1
-          }
-        ],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "0f9b28e3-5412-45dd-82f6-c5bf1778d104",
-      "rowkey": 984,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/api/endpoint/source/summary",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "Get Endpoint Source Summary",
-      "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "endpoint,source,summary,preview",
-      "code": "fnEndpointSourceSummaryById",
-      "cache_time": 0,
-      "createdAt": "2026-04-06T01:40:00.000Z",
-      "updatedAt": "2026-04-06T01:40:00.000Z"
     },
     {
       "ctrl": {
@@ -2071,7 +2073,7 @@ export const system_app = {
         }
       },
       "idendpoint": "410321a2-3930-4545-963d-b47f90fdbf01",
-      "rowkey": 947,
+      "rowkey": 432,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2193,7 +2195,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cfdf4ac3-bd98-463e-ae57-d331193ed416",
-      "rowkey": 356,
+      "rowkey": 463,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2212,6 +2214,128 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.112Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "endpoint_source_summary",
+        "title": "Get endpoint source summary",
+        "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idendpoint": {
+                "type": "string"
+              },
+              "preview_lines": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idendpoint"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "sy3qevh9r",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idendpoint": "00000000-0000-0000-0000-000000000002",
+              "preview_lines": 20
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "cuv7rmczz",
+            "type": 1
+          }
+        ],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "0f9b28e3-5412-45dd-82f6-c5bf1778d104",
+      "rowkey": 820,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint/source/summary",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get Endpoint Source Summary",
+      "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "endpoint,source,summary,preview",
+      "code": "fnEndpointSourceSummaryById",
+      "cache_time": 0,
+      "createdAt": "2026-04-06T01:40:00.000Z",
+      "updatedAt": "2026-04-06T01:40:00.000Z"
     },
     {
       "ctrl": {
@@ -2265,7 +2389,7 @@ export const system_app = {
         }
       },
       "idendpoint": "13f94d7d-6612-4c30-8202-286cbbe3da3e",
-      "rowkey": 798,
+      "rowkey": 869,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2387,7 +2511,7 @@ export const system_app = {
         }
       },
       "idendpoint": "25ca7819-8823-4835-87c5-04b792bc594d",
-      "rowkey": 389,
+      "rowkey": 494,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2487,7 +2611,7 @@ export const system_app = {
         }
       },
       "idendpoint": "788e6e35-106d-45db-acb0-839db45c20f6",
-      "rowkey": 53,
+      "rowkey": 923,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2518,7 +2642,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908194",
-      "rowkey": 337,
+      "rowkey": 737,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2549,7 +2673,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "ed1c2a5c-69dd-44bb-bbef-fd90b66d6f5f",
-      "rowkey": 426,
+      "rowkey": 681,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2580,7 +2704,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "89b6d2c3-5d9e-4c18-9221-5f2673c17bb3",
-      "rowkey": 780,
+      "rowkey": 377,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2680,7 +2804,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d2fff88-66a6-43b5-9cab-11b5aec1a706",
-      "rowkey": 302,
+      "rowkey": 512,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2780,7 +2904,7 @@ export const system_app = {
         }
       },
       "idendpoint": "f57b01dc-a51c-4c23-ab4b-c890ca733e80",
-      "rowkey": 83,
+      "rowkey": 839,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2811,7 +2935,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "00034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 417,
+      "rowkey": 880,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2842,7 +2966,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "01034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 626,
+      "rowkey": 646,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2873,7 +2997,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ee",
-      "rowkey": 22,
+      "rowkey": 225,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -2959,7 +3083,7 @@ export const system_app = {
         }
       },
       "idendpoint": "38d64e6e-e3a2-4664-abb9-cc9b1abeaf31",
-      "rowkey": 293,
+      "rowkey": 878,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3118,7 +3242,7 @@ export const system_app = {
         }
       },
       "idendpoint": "305b4de6-c6c4-42d5-b148-c5fc6ded51bb",
-      "rowkey": 166,
+      "rowkey": 275,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3196,7 +3320,7 @@ export const system_app = {
         }
       },
       "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
-      "rowkey": 397,
+      "rowkey": 160,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3337,7 +3461,7 @@ export const system_app = {
         }
       },
       "idendpoint": "20354d7a-e4fe-47af-8ff6-187bca92f3f9",
-      "rowkey": 597,
+      "rowkey": 997,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3446,7 +3570,7 @@ export const system_app = {
         }
       },
       "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7ff",
-      "rowkey": 46,
+      "rowkey": 54,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3465,130 +3589,6 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.724Z",
       "updatedAt": "2025-11-22T00:11:42.106Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": true,
-        "name": "app_vars_catalog",
-        "title": "List application variable catalog",
-        "description": "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested."
-      },
-      "json_schema": {
-        "in": {
-          "enabled": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "idapp": {
-                "type": "string"
-              },
-              "environment": {
-                "type": "string"
-              },
-              "include_values": {
-                "type": "boolean"
-              },
-              "limit": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "offset": {
-                "type": "integer",
-                "minimum": 0
-              }
-            },
-            "additionalProperties": false,
-            "required": [
-              "idapp"
-            ]
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "c7z1y4l0n",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {
-              "idapp": "00000000-0000-0000-0000-000000000001",
-              "include_values": false
-            }
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "2f8d3d77-d6fa-4de7-8623-4e1cf5e5a103",
-      "rowkey": 983,
-      "enabled": true,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/api/app/vars/catalog",
-      "method": "POST",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "Get Application Variable Catalog",
-      "description": "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "app,var,catalog,lightweight",
-      "code": "fnGetAppVarsCatalogByIdApp",
-      "cache_time": 0,
-      "createdAt": "2026-04-06T01:25:00.000Z",
-      "updatedAt": "2026-04-06T01:25:00.000Z"
     },
     {
       "ctrl": {
@@ -3668,7 +3668,7 @@ export const system_app = {
         }
       },
       "idendpoint": "51316993-907c-4fd0-859f-7d2a0bc90dd3",
-      "rowkey": 296,
+      "rowkey": 581,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3697,7 +3697,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3ead2170-283d-4c6a-abc1-eddd217b6d01",
-      "rowkey": 589,
+      "rowkey": 250,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3726,7 +3726,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "047845ac-5367-48ed-9465-8e36ba6c7bae",
-      "rowkey": 987,
+      "rowkey": 935,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3836,7 +3836,7 @@ export const system_app = {
         }
       },
       "idendpoint": "2cf4eecc-1bbe-433a-b8eb-347a7de52d4d",
-      "rowkey": 205,
+      "rowkey": 38,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -3980,7 +3980,7 @@ export const system_app = {
         }
       },
       "idendpoint": "cff35b3a-7ca0-4ef8-882d-d39815d55616",
-      "rowkey": 425,
+      "rowkey": 21,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4217,7 +4217,7 @@ export const system_app = {
         }
       },
       "idendpoint": "8bb911ac-374c-41c9-b93f-21d037abf330",
-      "rowkey": 994,
+      "rowkey": 129,
       "enabled": false,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4303,7 +4303,7 @@ export const system_app = {
         }
       },
       "idendpoint": "bcf0e362-a454-4e47-85a0-772c4ddd3538",
-      "rowkey": 589,
+      "rowkey": 513,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4389,7 +4389,7 @@ export const system_app = {
         }
       },
       "idendpoint": "0b48cd44-09fe-40e7-b0a7-59fe01e054cc",
-      "rowkey": 98,
+      "rowkey": 922,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4458,7 +4458,7 @@ export const system_app = {
         }
       },
       "idendpoint": "71cfbad5-cf5f-4d64-a952-1a52af0bf26b",
-      "rowkey": 690,
+      "rowkey": 118,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4527,7 +4527,7 @@ export const system_app = {
         }
       },
       "idendpoint": "e753e2db-ca20-4607-82b7-34b70e435a0c",
-      "rowkey": 136,
+      "rowkey": 744,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4596,7 +4596,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34987a43-63e4-4926-824b-5254155b5c80",
-      "rowkey": 234,
+      "rowkey": 727,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4615,6 +4615,106 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.724Z",
       "updatedAt": "2025-11-22T00:11:42.107Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": false,
+        "name": "",
+        "title": "",
+        "description": ""
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "3nbewj7nd",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "{\n  \"libOpenFusionAPI\": {\n    \"version\": \"2.1.0\"\n  }\n}",
+          "sizeKBResponse": "0.04"
+        }
+      },
+      "idendpoint": "0686803b-4817-48cd-9e9a-38807bdd7a98",
+      "rowkey": 124,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/libopenfusionapi/version/last",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "Get last version libOpenFusionAPI versión",
+      "description": "Get last version libOpenFusionAPI versión on GitHub repository.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "libopenfusionapi,github,version",
+      "code": "const url =\n  \"https://raw.githubusercontent.com/edwinspire/libOpenFusionAPI/main/package.json\";\n\nconst uF = new uFetch(url);\nconst response = await uF.get();\nconst json = await response.json();\n\n$_RETURN_DATA_ = { libOpenFusionAPI: { version: json.version } };\n",
+      "cache_time": 90,
+      "createdAt": "2026-04-12T23:38:14.887Z",
+      "updatedAt": "2026-04-12T23:38:14.887Z"
     },
     {
       "ctrl": {
@@ -4673,7 +4773,7 @@ export const system_app = {
         }
       },
       "idendpoint": "34870b00-beb1-45d3-ada6-c164fc22cd7a",
-      "rowkey": 837,
+      "rowkey": 374,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4768,7 +4868,7 @@ export const system_app = {
         }
       },
       "idendpoint": "787a8ec2-b0d7-44ae-9214-2254f9d9d086",
-      "rowkey": 452,
+      "rowkey": 376,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4829,7 +4929,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "4c2516ec-d7c4-4783-8ee5-f7dac5b68a91",
-      "rowkey": 480,
+      "rowkey": 905,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4860,7 +4960,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "12fb738c-7d1f-4eba-afb4-508a9fa9d06a",
-      "rowkey": 962,
+      "rowkey": 837,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4944,7 +5044,7 @@ export const system_app = {
         }
       },
       "idendpoint": "b9bc8e9a-54ab-4496-bf65-bbe374d03d84",
-      "rowkey": 220,
+      "rowkey": 419,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -4975,7 +5075,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2fa0",
-      "rowkey": 857,
+      "rowkey": 551,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5006,7 +5106,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "d7737d40-5cd8-45f2-a60a-1014272a2faf",
-      "rowkey": 869,
+      "rowkey": 852,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5084,7 +5184,7 @@ export const system_app = {
         }
       },
       "idendpoint": "17c211d6-8c81-4274-b5c4-604126454ab0",
-      "rowkey": 173,
+      "rowkey": 326,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5185,7 +5285,7 @@ export const system_app = {
         }
       },
       "idendpoint": "3d3de358-681d-4b61-98dc-c1663db0c02c",
-      "rowkey": 192,
+      "rowkey": 54,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5369,7 +5469,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c10b1812-8b25-4b16-adb9-bf7ac8134f76",
-      "rowkey": 117,
+      "rowkey": 814,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5433,7 +5533,7 @@ export const system_app = {
         ]
       },
       "idendpoint": "18731c87-9d59-44b6-8871-ecaa493008e5",
-      "rowkey": 34,
+      "rowkey": 770,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5526,7 +5626,7 @@ export const system_app = {
         }
       },
       "idendpoint": "c6d6c431-aa5a-4e76-b89c-fe91e0537de4",
-      "rowkey": 625,
+      "rowkey": 736,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5641,7 +5741,7 @@ export const system_app = {
         }
       },
       "idendpoint": "871cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 468,
+      "rowkey": 696,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5672,7 +5772,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "131cca3e-f835-4414-89ca-5ddbbec5ab89",
-      "rowkey": 997,
+      "rowkey": 686,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5703,7 +5803,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "0144753a-61a6-4ee1-8ae5-1d871dd21d24",
-      "rowkey": 563,
+      "rowkey": 449,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5734,7 +5834,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908191",
-      "rowkey": 483,
+      "rowkey": 727,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5765,7 +5865,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "a71cd2ed-8456-4e5e-8ab5-b7724a908193",
-      "rowkey": 840,
+      "rowkey": 96,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5794,7 +5894,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "2c6d77b7-d8e2-49e2-9c63-a98a873b389c",
-      "rowkey": 764,
+      "rowkey": 705,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5825,7 +5925,7 @@ export const system_app = {
       "headers_test": {},
       "data_test": {},
       "idendpoint": "3eb8b6c8-e001-43e6-9ace-517a05d33e6b",
-      "rowkey": 978,
+      "rowkey": 18,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
@@ -5911,7 +6011,7 @@ export const system_app = {
         }
       },
       "idendpoint": "a0130d77-b779-4dea-a87f-6841520ffade",
-      "rowkey": 654,
+      "rowkey": 276,
       "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
