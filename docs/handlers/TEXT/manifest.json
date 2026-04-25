@@ -2,7 +2,7 @@
   "handler": "TEXT",
   "label": "Text",
   "status": "active",
-  "summary": "Returns static text or file-like content from endpoint configuration.",
+  "summary": "Returns static text or file-like content from endpoint configuration. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add `custom_data.fileName` if it requires to be downloadable.",
   "docs": {
     "main": "README.md",
     "generated": [],

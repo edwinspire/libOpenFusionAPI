@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import {
   getHandlerExecutionContext,
   replyException,
@@ -22,8 +23,6 @@ export const textFunction = async (
         ? textConfig.mimeType
         : "text/plain";
 
-    let filename = Date.now() + "." + getExtensionFromMimeType(mimeType);
-
     const payload = typeof endpoint.code === "string" ? endpoint.code : undefined;
 
     if (payload === undefined) {
@@ -31,54 +30,25 @@ export const textFunction = async (
       return;
     }
 
-    sendHandlerResponse(reply, {
+    let finalPayload = payload;
+    if (textConfig.isBase64) {
+      finalPayload = Buffer.from(payload, "base64");
+    }
+
+    const responseOptions = {
       statusCode: 200,
-      data: payload,
+      data: finalPayload,
       contentType: mimeType,
-      headers: {
-        "Content-Disposition": `attachment; filename="${filename}"`,
-      },
-    });
+    };
+
+    if (typeof textConfig.fileName === "string" && textConfig.fileName.length > 0) {
+      responseOptions.headers = {
+        "Content-Disposition": `attachment; filename="${textConfig.fileName}"`,
+      };
+    }
+
+    sendHandlerResponse(reply, responseOptions);
   } catch (error) {
     replyException(request, reply, error);
   }
 };
-
-function getExtensionFromMimeType(mimeType) {
-  const mimeTypes = {
-    "text/plain": "txt",
-    "text/html": "html",
-    "text/css": "css",
-    "text/javascript": "js",
-    "text/xml": "xml",
-    "application/wsdl+xml": "wsdl",
-    "text/csv": "csv",
-    "text/markdown": "md",
-    "text/cache-manifest": "appcache",
-    "text/calendar": "ics",
-    "text/vnd.sun.j2me.app-descriptor": "jad",
-    "text/vnd.wap.wml": "wml",
-    "text/vnd.wap.wmlscript": "wmls",
-    "text/x-asm": "asm",
-    "text/x-c": "c",
-    "text/x-fortran": "f",
-    "text/x-java-source": "java",
-    "text/x-markdown": "md",
-    "text/x-nfo": "nfo",
-    "text/x-opml": "opml",
-    "text/x-pascal": "p",
-    "text/x-script": "script",
-    "text/x-script.perl": "pl",
-    "text/x-script.python": "py",
-    "text/x-server-parsed-html": "shtml",
-    "text/x-setext": "etx",
-    "text/x-sfv": "sfv",
-    "text/x-uuencode": "uu",
-    "text/x-vcalendar": "vcs",
-    "text/x-vcard": "vcf",
-    "text/troff": "tr",
-    "text/x-component": "htc",
-  };
-
-  return mimeTypes[mimeType] || "txt"; // Devuelve la extensión o null si no se encuentra
-}

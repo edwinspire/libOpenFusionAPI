@@ -24,7 +24,68 @@ export async function fnGetEndpointBackupByIdEndpoint(params) {
 export async function fnEndpointUpsert(params) {
   let r = { code: 200, data: undefined };
   try {
-    r.data = await upsertEndpoint(params.request.body);
+    let body = params.request.body;
+    let fileToProcess = null;
+
+    const contentType = params.request.headers?.['content-type'] || '';
+    if (contentType.includes("multipart/form-data") && body) {
+      let flattenedBody = {};
+      
+      for (const key in body) {
+        let field = body[key];
+        let items = Array.isArray(field) ? field : [field];
+        
+        for (const item of items) {
+          if (item && item.type === 'file') {
+            if (!fileToProcess) {
+              fileToProcess = item;
+            }
+          } else if (item && item.type === 'field') {
+            try {
+              flattenedBody[key] = JSON.parse(item.value);
+            } catch (e) {
+              flattenedBody[key] = item.value;
+            }
+          }
+        }
+      }
+
+      if (flattenedBody.json && typeof flattenedBody.json === 'object') {
+        body = flattenedBody.json;
+      } else if (flattenedBody.data && typeof flattenedBody.data === 'object') {
+        body = flattenedBody.data;
+      } else if (flattenedBody.endpoint && typeof flattenedBody.endpoint === 'object') {
+        body = flattenedBody.endpoint;
+      } else {
+        body = flattenedBody;
+      }
+    }
+
+    if (body && body.handler === "TEXT" && fileToProcess) {
+      let buffer = await fileToProcess.toBuffer();
+      
+      if (buffer.length > 1024 * 1024) {
+        r.data = { error: "File size exceeds the 1MB limit." };
+        r.code = 400;
+        return r;
+      }
+      
+      body.code = buffer.toString('base64');
+      
+      let customData = typeof body.custom_data === 'object' && body.custom_data !== null ? body.custom_data : {};
+      if (typeof body.custom_data === 'string') {
+        try { customData = JSON.parse(body.custom_data); } catch(e) {}
+      }
+      
+      customData.mimeType = fileToProcess.mimetype;
+      customData.fileName = fileToProcess.filename;
+      customData.fileSize = buffer.length;
+      customData.isBase64 = true;
+      
+      body.custom_data = customData;
+    }
+
+    r.data = await upsertEndpoint(body);
     r.code = 200;
   } catch (error) {
     console.log(error);

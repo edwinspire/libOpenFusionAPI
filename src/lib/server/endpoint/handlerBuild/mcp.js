@@ -950,7 +950,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
 | \`JS\` | JavaScript source (see JS rules below) |
 | \`FUNCTION\` | Internal function name, e.g. \`fnMyFunction\` |
 | \`FETCH\` | Target URL string to proxy, e.g. \`https://api.example.com/data\` |
-| \`TEXT\` | Raw text content. Put the MIME type in \`custom_data.mimeType\`. |
+| \`TEXT\` | Raw text content. Put the MIME type in \`custom_data.mimeType\`. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add \`custom_data.fileName\` if it requires to be downloadable. |
 | \`SQL\` | Standard SQL query string. Connection config goes in \`custom_data\` |
 | \`SQL_BULK_I\` | JSON with \`table_name\`, \`config\`, optionally \`ignoreDuplicates\` |
 | \`SOAP\` | Handler-specific SOAP configuration payload |
@@ -1068,7 +1068,7 @@ $_CUSTOM_HEADERS_ = h;
   const getEndpointUpsertDescriptionAddon = (endpoint) => {
     if (!isEndpointUpsertEndpoint(endpoint)) return "";
 
-    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is a function identifier string. JS => `code` is JavaScript source that must assign `$_RETURN_DATA_`. FETCH => `code` is the target URL. TEXT => `code` is the raw text content and MIME metadata goes in `custom_data.mimeType`. SQL => `code` is the SQL query and `custom_data` stores connection settings. SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => `code` uses handler-specific configuration and should be built from `handler_documentation` for that handler. NA is an internal default/no-op handler and should be avoided in new integrations. Recommended agent workflow: choose handler first, inspect the handler contract, then build the payload.";
+    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is a function identifier string. JS => `code` is JavaScript source that must assign `$_RETURN_DATA_`. FETCH => `code` is the target URL. TEXT => `code` is the raw text content and MIME metadata goes in `custom_data.mimeType`. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add `custom_data.fileName` if it requires to be downloadable. SQL => `code` is the SQL query and `custom_data` stores connection settings. SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => `code` uses handler-specific configuration and should be built from `handler_documentation` for that handler. NA is an internal default/no-op handler and should be avoided in new integrations. Recommended agent workflow: choose handler first, inspect the handler contract, then build the payload.";
   };
 
   // Guard against missing endpoint collections when an app is partially configured.

@@ -1,6 +1,6 @@
 # TEXT Handler – Static Content Response
 
-The **TEXT handler** allows OpenFusionAPI to serve static text content, such as configuration files, scripts, HTML snippets, or downloadable files, directly from the endpoint configuration.
+The **TEXT handler** allows OpenFusionAPI to serve static text content, such as configuration files, scripts, HTML snippets, or downloadable files, directly from the endpoint configuration. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add `custom_data.fileName` if it requires to be downloadable.
 
 ---
 
@@ -10,8 +10,7 @@ The **TEXT handler** allows OpenFusionAPI to serve static text content, such as 
 When an endpoint is configured with the **TEXT** handler:
 1.  It reads the raw text content from the `code` field.
 2.  It reads MIME metadata from `custom_data`, typically `custom_data.mimeType`.
-3.  It generates a filename based on the current timestamp and the file extension derived from the MIME type.
-4.  It serves the content with a `Content-Disposition: attachment` header, forcing the browser or client to download it as a file.
+3.  If `custom_data.fileName` is provided, it serves the content with a `Content-Disposition: attachment` header, forcing the browser or client to download it as a file with that name. Otherwise, it is served inline.
 
 </details>
 
@@ -23,7 +22,8 @@ When an endpoint is configured with the **TEXT** handler:
 Current configuration:
 
 -   `code`: **(Required)** Raw text content to return.
--   `custom_data.mimeType`: **(Optional)** MIME type of the content (default: `text/plain`).
+-   `custom_data.mimeType`: **(Required)** MIME type of the content (default: `text/plain`).
+-   `custom_data.fileName`: **(Optional)** If provided, it will set the `Content-Disposition` header to download the file with this name.
 
 **Example CSV endpoint**:
 ```json

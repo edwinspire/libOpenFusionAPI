@@ -49,7 +49,7 @@ export const Handlers = {
     fn: textFunction,
     css_icon: "fa-regular fa-file-lines",
     css_class: "warning",
-    description: "It allows storing plain text that will be returned by the endpoint with the parameterized mimetype.",
+    description: "It allows storing plain text that will be returned by the endpoint with the parameterized mimetype. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add `custom_data.fileName` if it requires to be downloadable.",
   },
   SQL_BULK_I: {
     label: "SQL Bulk Insert",
