@@ -7,6 +7,7 @@ import {
 } from "../../../../../db/endpoint.js";
 
 import { getEndpointBackupByIdEndpoint } from "../../../../../db/endpoint_backup.js";
+import { Endpoint } from "../../../../../db/models.js";
 
 export async function fnGetEndpointBackupByIdEndpoint(params) {
   let r = { code: 200, data: undefined };
@@ -215,6 +216,87 @@ export async function fnGetResponseCountStatus(params) {
     );
   } catch (error) {
     r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnEndpointMigrate(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    const migrations = params.request.body;
+    
+    if (!Array.isArray(migrations)) {
+      r.code = 400;
+      r.data = { error: "Expected an array of objects." };
+      return r;
+    }
+
+    const results = [];
+
+    for (const item of migrations) {
+      const { idendpoint, target_env } = item;
+      
+      if (!idendpoint || !target_env) {
+        results.push({ idendpoint, target_env, status: "error", message: "Missing idendpoint or target_env" });
+        continue;
+      }
+
+      try {
+        const originalEndpoint = await getEndpointById(idendpoint);
+        
+        if (!originalEndpoint) {
+          results.push({ idendpoint, target_env, status: "error", message: "Endpoint not found" });
+          continue;
+        }
+
+        const data = originalEndpoint.toJSON ? originalEndpoint.toJSON() : originalEndpoint;
+
+        if (data.environment === target_env) {
+          results.push({ idendpoint, target_env, status: "ignored", message: "Already in target environment" });
+          continue;
+        }
+
+        const existing = await Endpoint.findOne({
+          where: {
+            idapp: data.idapp,
+            environment: target_env,
+            resource: data.resource,
+            method: data.method
+          }
+        });
+
+        if (existing) {
+          results.push({ idendpoint, target_env, status: "success", message: "Endpoint already exists in target environment. Ok." });
+          continue;
+        }
+
+        delete data.idendpoint;
+        delete data.createdAt;
+        delete data.updatedAt;
+        
+        data.environment = target_env;
+
+        const upsertResult = await upsertEndpoint(data);
+        
+        results.push({ 
+          idendpoint, 
+          target_env, 
+          status: "success", 
+          new_idendpoint: upsertResult.result.idendpoint,
+          message: "Migrated successfully" 
+        });
+
+      } catch (err) {
+        results.push({ idendpoint, target_env, status: "error", message: err.message });
+      }
+    }
+
+    r.data = results;
+    r.code = 200;
+  } catch (error) {
+    console.log(error);
+    r.data = { error: error.message };
     r.code = 500;
   }
   return r;
