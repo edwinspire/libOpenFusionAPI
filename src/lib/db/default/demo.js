@@ -399,7 +399,7 @@ export const demo_app = {
           "MimeType": ""
         }
       },
-      "idendpoint": "b04920b7-393d-4c67-aba2-89af14541963",
+      "idendpoint": "b14920b7-393d-4c67-aba2-89af14541963",
       "rowkey": 618,
       "enabled": true,
       "idapp": "c4ca4238-a0b9-2382-0dcc-509a6f75849b",
