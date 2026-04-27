@@ -78,6 +78,22 @@ export const upsertEndpoint = async (
 ) => {
   try {
     data = await ensureUniqueEnabledMcpName(data);
+
+    // Prevent unique constraint violation on composite key
+    if (data.idapp && data.environment && data.resource && data.method) {
+      const existing = await Endpoint.findOne({
+        where: {
+          idapp: data.idapp,
+          environment: String(data.environment).toLowerCase(),
+          resource: String(data.resource).toLowerCase(),
+          method: String(data.method).toUpperCase(),
+        },
+      });
+      if (existing) {
+        data.idendpoint = existing.idendpoint;
+      }
+    }
+
     const [result, created] = await Endpoint.upsert(data, { returning: true });
     
     try {
