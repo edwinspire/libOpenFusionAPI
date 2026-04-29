@@ -83,6 +83,10 @@ export async function fnLoginApiClient(params) {
   let r = { data: undefined, code: 204 };
 
   let auth_data = getUserPasswordTokenFromRequest(params.request);
+  const xForwardedProto = params?.request?.headers?.["x-forwarded-proto"];
+  const isHttpsRequest =
+    params?.request?.protocol === "https" ||
+    (typeof xForwardedProto === "string" && xForwardedProto.includes("https"));
 
   try {
     let data = await loginApiClient(
@@ -94,7 +98,7 @@ export async function fnLoginApiClient(params) {
     params.reply.setCookie("OFAPI_TOKEN", "", {
       path: "/",
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttpsRequest,
       sameSite: "Strict",
       maxAge: 5,
     });
@@ -106,7 +110,7 @@ export async function fnLoginApiClient(params) {
       params.reply.setCookie("OFAPI_TOKEN", data.token, {
         path: "/",
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: isHttpsRequest,
         sameSite: "Lax",
         maxAge: 60 * 60,
       });
@@ -114,7 +118,7 @@ export async function fnLoginApiClient(params) {
       r.data = data;
       r.code = 200;
     } else {
-      r.data = user;
+      r.data = { login: false, error: "Invalid credentials" };
       r.code = 401;
     }
   } catch (error) {
