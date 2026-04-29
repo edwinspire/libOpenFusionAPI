@@ -27,6 +27,10 @@ export async function fnLogin(params) {
   let r = { code: 204, data: undefined };
   try {
     let auth_data = getUserPasswordTokenFromRequest(params.request);
+    const xForwardedProto = params?.request?.headers?.["x-forwarded-proto"];
+    const isHttpsRequest =
+      params?.request?.protocol === "https" ||
+      (typeof xForwardedProto === "string" && xForwardedProto.includes("https"));
 
     let user = await login(auth_data.Basic.username, auth_data.Basic.password);
 
@@ -34,7 +38,7 @@ export async function fnLogin(params) {
     params.reply.setCookie("OFAPI_TOKEN", "", {
       path: "/",
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttpsRequest,
       sameSite: "Strict",
       maxAge: 5,
     });
@@ -47,7 +51,7 @@ export async function fnLogin(params) {
       params.reply.setCookie("OFAPI_TOKEN", user.token, {
         path: "/",
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: isHttpsRequest,
         sameSite: "Lax",
         maxAge: 60 * 60,
       });
