@@ -83,10 +83,12 @@ export async function fnLoginApiClient(params) {
   let r = { data: undefined, code: 204 };
 
   let auth_data = getUserPasswordTokenFromRequest(params.request);
-  const xForwardedProto = params?.request?.headers?.["x-forwarded-proto"];
-  const isHttpsRequest =
+  //const xForwardedProto = params?.request?.headers?.["x-forwarded-proto"];
+  const isHttpsRequest = false;
+  /*
     params?.request?.protocol === "https" ||
     (typeof xForwardedProto === "string" && xForwardedProto.includes("https"));
+    */
 
   try {
     let data = await loginApiClient(
