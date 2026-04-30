@@ -54,10 +54,10 @@ export function getUserPasswordTokenFromRequest(req) {
     let jwt_key = JWTKEY;
     token = authHeader.split(" ")[1];
 
-    if (token.startsWith("OFAPI_KEY@")) {
+    /*if (token.startsWith("OFAPI_KEY@")) {
       token = token.slice("OFAPI_KEY@".length);
       jwt_key = req?.openfusionapi?.handler?.params?.jwt_key || JWTKEY;
-    }
+    }*/
 
     try {
       data_token = checkToken(token, jwt_key);

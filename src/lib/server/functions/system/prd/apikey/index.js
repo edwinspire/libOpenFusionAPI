@@ -48,7 +48,8 @@ export async function fnUpsertApiKey(params) {
 
     const key = raw_key;
 
-    ak.token = 'OFAPI_KEY@' + GenTokenJWT({ apikey: { idapp: ak.idapp, idclient: ak.idclient } }, ak.startAt, ak.endAt, key);
+    //ak.token = 'OFAPI_KEY@' + GenTokenJWT({ apikey: { idapp: ak.idapp, idclient: ak.idclient } }, ak.startAt, ak.endAt, key);
+    ak.token = GenTokenJWT({ apikey: { idapp: ak.idapp, idclient: ak.idclient } }, ak.startAt, ak.endAt, key);
 
     let data = await upsertApiKey(ak);
 

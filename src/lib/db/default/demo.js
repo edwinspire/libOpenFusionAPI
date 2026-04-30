@@ -291,7 +291,7 @@ export const demo_app = {
           "type": "http",
           "url": "http://localhost:3000/api/demo/mcp/server/dev",
           "headers": {
-            "Authorization": "Bearer OFAPI_KEY@eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImFwaWtleSI6eyJpZGFwcCI6ImNmY2QyMDg0LTk1ZDUtNjVlZi02NmU3LWRmZjlmOTg3NjRkYSIsImlkY2xpZW50IjoiODA1OGI2OWMtZmJlNi00YjJlLTg5NjQtOTljMzhkMGEyOTMzIn19LCJleHAiOjE3NzczMzQ0MDAsIm5iZiI6MTc3NDY1NjAwMCwiaWF0IjoxNzc0NzE5ODYzfQ.DHPTnXREmh5NMMUWpD_8xMebRLjnpubnKaaIpVLhvXY"
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImFwaWtleSI6eyJpZGFwcCI6ImNmY2QyMDg0LTk1ZDUtNjVlZi02NmU3LWRmZjlmOTg3NjRkYSIsImlkY2xpZW50IjoiODA1OGI2OWMtZmJlNi00YjJlLTg5NjQtOTljMzhkMGEyOTMzIn19LCJleHAiOjE3NzczMzQ0MDAsIm5iZiI6MTc3NDY1NjAwMCwiaWF0IjoxNzc0NzE5ODYzfQ.DHPTnXREmh5NMMUWpD_8xMebRLjnpubnKaaIpVLhvXY"
           }
         }
       ],
