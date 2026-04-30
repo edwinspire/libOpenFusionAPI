@@ -124,6 +124,7 @@ export const getLogs = async (options = {}) => {
       orderDirection = "DESC",
       trace_id,
       raw = true, // Si quieres objetos planos en lugar de instancias de Sequelize
+      lightweight = false, // Si true, omite campos grandes (req_headers, res_headers, response_data, message)
     } = options;
 
     //
@@ -309,27 +310,34 @@ export const getLogs = async (options = {}) => {
 
     // === CONFIGURACIÓN DE LA CONSULTA ===
 
+    // Atributos ligeros (siempre presentes)
+    const lightweightAttributes = [
+      "id",
+      "timestamp",
+      "idapp",
+      "idendpoint",
+      "trace_id",
+      "url",
+      "method",
+      "status_code",
+      "log_level",
+      "response_time",
+    ];
+
+    // Atributos completos (incluye campos grandes)
+    const fullAttributes = [
+      ...lightweightAttributes,
+      "user_agent",
+      "client",
+      "req_headers",
+      "res_headers",
+      "response_data",
+      "message",
+    ];
+
     const queryOptions = {
       where: whereConditions,
-      attributes: [
-        "id",
-        "timestamp",
-        "idapp",
-        "idendpoint",
-        "trace_id",
-        "url",
-        "method",
-        "status_code",
-        "log_level",
-        "user_agent",
-        "client",
-        "req_headers",
-        "res_headers",
-        "response_time",
-        "response_data",
-        "message",
-        
-      ],
+      attributes: lightweight ? lightweightAttributes : fullAttributes,
       order: [[normalizedOrder, normalizedOrderDirection]],
       limit: normalizedLimit,
       offset: normalizedOffset,

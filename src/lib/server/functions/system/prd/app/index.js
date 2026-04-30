@@ -29,7 +29,8 @@ export async function fnGetApplicationsTreeByFilters(params) {
 export async function fnGetApps(params) {
   let r = { code: 204, data: undefined };
   try {
-    const apps = await getAllApps();
+    const attributes = params.request.query?.attributes || params.request.body?.attributes;
+    const apps = await getAllApps(attributes);
 
     r.data = apps;
     r.code = 200;

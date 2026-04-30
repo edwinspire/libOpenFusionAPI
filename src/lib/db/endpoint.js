@@ -1,5 +1,6 @@
 import { Endpoint } from "./models.js";
 import { createEndpointBackup } from "./endpoint_backup.js";
+import { Op } from "sequelize";
 
 const normalizeMcpConfig = (mcp) => {
   if (!mcp) {
@@ -32,7 +33,18 @@ const formatMcpTimestamp = (date = new Date()) => {
   return `${year}${month}${day}${hours}${minutes}${seconds}`;
 };
 
+/**
+ * Verifies that no other enabled endpoint in the same (idapp + environment)
+ * already uses the same MCP tool name.
+ *
+ * Scope: uniqueness is per (idapp, environment). The same name in "dev" and
+ * "prd" is perfectly valid — MCP servers are typically scoped to one env.
+ *
+ * @throws {Error} with code MCP_NAME_CONFLICT when a duplicate is found,
+ *   including the conflicting idendpoint so callers / agents can act on it.
+ */
 const ensureUniqueEnabledMcpName = async (data) => {
+  // Nothing to check if no app or no mcp config
   if (!data?.idapp) {
     return data;
   }
@@ -40,37 +52,61 @@ const ensureUniqueEnabledMcpName = async (data) => {
   const nextMcp = normalizeMcpConfig(data.mcp);
   const nextName = nextMcp?.name?.trim?.();
 
+  // Only enforce uniqueness when MCP is explicitly enabled with a name
   if (!nextMcp?.enabled || !nextName) {
     return data;
   }
 
-  const endpoints = await getEndpointByIdApp(data.idapp);
-  const hasConflict = endpoints.some((endpoint) => {
-    const current = endpoint?.toJSON ? endpoint.toJSON() : endpoint;
+  // Scope: same app + same environment (required for a meaningful scope)
+  const environment = data.environment
+    ? String(data.environment).toLowerCase()
+    : null;
+
+  if (!environment) {
+    // Cannot enforce scope without environment — skip silently
+    return data;
+  }
+
+  // Lean query: only fetch idendpoint + mcp for endpoints in this (idapp, environment)
+  const candidates = await Endpoint.findAll({
+    where: { idapp: data.idapp, environment },
+    attributes: ["idendpoint", "mcp"],
+  });
+
+  const conflict = candidates.find((ep) => {
+    const current = ep?.toJSON ? ep.toJSON() : ep;
     const currentMcp = normalizeMcpConfig(current?.mcp);
     const currentName = currentMcp?.name?.trim?.();
 
-    if (!currentMcp?.enabled || !currentName) {
-      return false;
-    }
+    // Skip if MCP not enabled or has no name
+    if (!currentMcp?.enabled || !currentName) return false;
 
-    if (current?.idendpoint === data.idendpoint) {
-      return false;
-    }
+    // Skip self (UPDATE case)
+    if (current?.idendpoint && current.idendpoint === data.idendpoint) return false;
 
     return currentName === nextName;
   });
 
-  if (!hasConflict) {
+  if (!conflict) {
     return data;
   }
 
-  data.mcp = {
-    ...nextMcp,
-    name: `${nextName}_${formatMcpTimestamp()}`,
+  // Throw a structured, descriptive error so agents and callers know exactly
+  // what went wrong and which endpoint holds the conflicting name.
+  const conflictData = conflict?.toJSON ? conflict.toJSON() : conflict;
+  const err = new Error(
+    `MCP tool name '${nextName}' is already in use by endpoint '${conflictData.idendpoint}' ` +
+    `in app '${data.idapp}' / environment '${environment}'. ` +
+    `Choose a different mcp.name before saving.`
+  );
+  err.code = "MCP_NAME_CONFLICT";
+  err.details = {
+    requested_name: nextName,
+    conflicting_idendpoint: conflictData.idendpoint,
+    idapp: data.idapp,
+    environment,
   };
-
-  return data;
+  throw err;
 };
 
 export const upsertEndpoint = async (
@@ -113,9 +149,14 @@ export const upsertEndpoint = async (
 // READ
 export const getEndpointById = async (
   /** @type {import("sequelize").Identifier | undefined} */ idendpoint,
+  attributes = null
 ) => {
   try {
-    const endpoint = await Endpoint.findByPk(idendpoint);
+    const options = {};
+    if (attributes && Array.isArray(attributes) && attributes.length > 0) {
+      options.attributes = attributes;
+    }
+    const endpoint = await Endpoint.findByPk(idendpoint, options);
     return endpoint;
   } catch (error) {
     console.error("Error retrieving user:", error);
@@ -213,15 +254,50 @@ export const deleteEndpoint = async (
 // READ
 export const getEndpointByIdApp = async (
   /** @type {import("sequelize").Identifier | undefined} */ idapp,
+  attributes = null
 ) => {
   try {
-    //const endpoints = await Endpoint.findAll({attributes: list_fields, where: { appname: appname } });
-    const endpoints = await Endpoint.findAll({ where: { idapp: idapp } });
+    const options = { where: { idapp: idapp } };
+    if (attributes && Array.isArray(attributes) && attributes.length > 0) {
+      options.attributes = attributes;
+    }
+    const endpoints = await Endpoint.findAll(options);
     return endpoints;
   } catch (error) {
-    console.error("Error retrieving user:", error);
+    console.error("Error retrieving endpoints by app:", error);
     throw error;
   }
+};
+
+/**
+ * Restaura un endpoint desde un respaldo (backup) específico.
+ * @param {string} idbackup - ID del respaldo a restaurar
+ * @returns {Promise<{success: boolean, idendpoint: string}>}
+ */
+export const restoreEndpointFromBackup = async (idbackup) => {
+  if (!idbackup) throw new Error("idbackup es obligatorio.");
+  
+  const { getEndpointBackupById } = await import("./endpoint_backup.js");
+  const backup = await getEndpointBackupById(idbackup);
+  
+  if (!backup) {
+    throw new Error(`No se encontró el respaldo con ID ${idbackup}`);
+  }
+
+  const backupData = backup.toJSON ? backup.toJSON() : backup;
+  const endpointData = backupData.data; // El campo 'data' contiene el snapshot del endpoint
+
+  // Asegurarnos de que el idendpoint sea el correcto
+  endpointData.idendpoint = backupData.idendpoint;
+
+  // Realizar el upsert para restaurar
+  const [result] = await Endpoint.upsert(endpointData, { returning: true });
+
+  // Crear un nuevo backup de este cambio (la restauración en sí misma es un cambio)
+  const { createEndpointBackup } = await import("./endpoint_backup.js");
+  await createEndpointBackup({ data: endpointData, idendpoint: result.idendpoint });
+
+  return { success: true, idendpoint: result.idendpoint };
 };
 
 export const getEndpointCatalogByIdApp = async (filters = {}) => {
@@ -325,4 +401,111 @@ export const bulkCreateEndpoints = (
     ignoreDuplicates: true,
     //updateOnDuplicate: uniqueFields
   });
+};
+
+/**
+ * Búsqueda global de endpoints por texto libre.
+ * Busca en title, description, resource, keywords y (opcionalmente) en code.
+ * @param {Object} filters
+ * @param {string} filters.query - Texto a buscar (LIKE)
+ * @param {string} [filters.idapp] - Filtrar por app (opcional)
+ * @param {string} [filters.environment] - Filtrar por ambiente
+ * @param {string} [filters.handler] - Filtrar por handler
+ * @param {boolean} [filters.enabled] - Filtrar por estado
+ * @param {boolean} [filters.search_code] - Incluir búsqueda dentro del campo code
+ * @param {number} [filters.limit=50] - Máximo de resultados
+ * @param {number} [filters.offset=0] - Offset para paginación
+ * @returns {Promise<Array>}
+ */
+export const searchEndpoints = async (filters = {}) => {
+  const {
+    query,
+    idapp,
+    environment,
+    handler,
+    enabled,
+    search_code = false,
+    limit = 50,
+    offset = 0,
+  } = filters;
+
+  if (!query || typeof query !== "string" || query.trim().length === 0) {
+    throw new Error("El parámetro 'query' es obligatorio y debe ser una cadena no vacía.");
+  }
+
+  const likePattern = `%${query.trim()}%`;
+
+  const orConditions = [
+    { title: { [Op.like]: likePattern } },
+    { description: { [Op.like]: likePattern } },
+    { resource: { [Op.like]: likePattern } },
+    { keywords: { [Op.like]: likePattern } },
+  ];
+
+  if (search_code) {
+    orConditions.push({ code: { [Op.like]: likePattern } });
+  }
+
+  const where = { [Op.or]: orConditions };
+
+  if (idapp) where.idapp = idapp;
+  if (environment) where.environment = environment;
+  if (handler) where.handler = handler.toUpperCase();
+  if (enabled !== undefined && enabled !== null) where.enabled = enabled;
+
+  const parsedLimit = Math.min(Number.isFinite(Number(limit)) ? Number(limit) : 50, 200);
+  const parsedOffset = Number.isFinite(Number(offset)) && Number(offset) >= 0 ? Number(offset) : 0;
+
+  try {
+    return await Endpoint.findAll({
+      where,
+      attributes: [
+        "idendpoint",
+        "idapp",
+        "enabled",
+        "environment",
+        "resource",
+        "method",
+        "handler",
+        "title",
+        "description",
+        "keywords",
+        "mcp",
+        "cache_time",
+        "access",
+        "updatedAt",
+      ],
+      order: [
+        ["resource", "ASC"],
+        ["environment", "ASC"],
+        ["method", "ASC"],
+      ],
+      limit: parsedLimit,
+      offset: parsedOffset,
+    });
+  } catch (error) {
+    console.error("Error en searchEndpoints:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene únicamente el campo `code` (fuente) de un endpoint.
+ * Útil para agentes que solo necesitan leer/modificar el código sin descargar todo el payload.
+ * @param {string} idendpoint - UUID del endpoint
+ * @returns {Promise<{idendpoint: string, handler: string, code: string|null}|null>}
+ */
+export const getEndpointCode = async (idendpoint) => {
+  if (!idendpoint) throw new Error("idendpoint es obligatorio.");
+  try {
+    const endpoint = await Endpoint.findByPk(idendpoint, {
+      attributes: ["idendpoint", "idapp", "resource", "method", "handler", "environment", "enabled", "code"],
+    });
+    if (!endpoint) return null;
+    const data = endpoint.toJSON ? endpoint.toJSON() : endpoint;
+    return data;
+  } catch (error) {
+    console.error("Error en getEndpointCode:", error);
+    throw error;
+  }
 };

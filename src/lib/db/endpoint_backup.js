@@ -126,3 +126,24 @@ export const getEndpointBackupByIdEndpoint = async (
     throw error;
   }
 };
+
+/**
+ * Lightweight version: returns only idbackup, idendpoint, hash and createdAt.
+ * The heavy `data` field (full endpoint snapshot) is excluded.
+ * Use this to list the history before fetching a specific version with getEndpointBackupById.
+ * @param {string} idendpoint - UUID del endpoint
+ * @returns {Promise<Array>}
+ */
+export const getEndpointBackupByIdEndpointLightweight = async (idendpoint) => {
+  try {
+    return await EndpointBackup.findAll({
+      where: { idendpoint },
+      attributes: ["idbackup", "idendpoint", "hash", "createdAt"],
+      order: [["idbackup", "DESC"]],
+    });
+  } catch (error) {
+    console.error("Error retrieving lightweight backup history:", error);
+    throw error;
+  }
+};
+

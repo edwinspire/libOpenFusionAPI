@@ -546,7 +546,7 @@ export const system_app = {
         "enabled": true,
         "name": "app_endpoints",
         "title": "List endpoints of an app",
-        "description": "Returns all endpoints associated with one application identified by `idapp`."
+        "description": "Returns all endpoints associated with one application identified by `idapp`. Use the optional 'attributes' array to request only specific fields and reduce the payload size."
       },
       "json_schema": {
         "in": {
@@ -555,7 +555,13 @@ export const system_app = {
             "type": "object",
             "properties": {
               "idapp": {
-                "type": "string"
+                "type": "string",
+                "description": "The unique identifier of the application."
+              },
+              "attributes": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Optional: array of fields to return for each endpoint (e.g. ['idendpoint', 'resource', 'method', 'handler', 'enabled'])."
               }
             },
             "additionalProperties": false,
@@ -1004,14 +1010,20 @@ export const system_app = {
         "enabled": true,
         "name": "apps_list",
         "title": "List Apps",
-        "description": "Returns all applications with their application variables and related endpoints."
+        "description": "Returns all applications with their application variables and related endpoints. This is a very heavy endpoint — use the optional 'attributes' array to request only specific fields or use 'apps_catalog' for a lightweight list."
       },
       "json_schema": {
         "in": {
           "enabled": true,
           "schema": {
             "type": "object",
-            "properties": {},
+            "properties": {
+              "attributes": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Optional: array of fields to return for each application (e.g. ['idapp', 'app', 'enabled', 'description'])."
+              }
+            },
             "additionalProperties": false
           }
         },
@@ -1637,7 +1649,7 @@ export const system_app = {
         "enabled": true,
         "name": "read_endpoint_data",
         "title": "Read Endpoint Details",
-        "description": "Returns detailed data for a specific endpoint by `idendpoint`, including configuration and runtime-relevant metadata."
+        "description": "Returns detailed data for a specific endpoint by `idendpoint`. Use the optional 'attributes' array to request only specific fields (e.g. ['idendpoint', 'json_schema', 'code']) and reduce payload size. If 'attributes' is omitted, all fields are returned."
       },
       "json_schema": {
         "in": {
@@ -1646,7 +1658,13 @@ export const system_app = {
             "type": "object",
             "properties": {
               "idendpoint": {
-                "type": "string"
+                "type": "string",
+                "description": "The unique identifier of the endpoint."
+              },
+              "attributes": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Optional: array of fields to return (e.g. ['resource', 'method', 'handler', 'code', 'json_schema'])."
               }
             },
             "additionalProperties": false,
@@ -2109,8 +2127,8 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "endpoint_change_history",
-        "title": "endpoint_change_history",
-        "description": "Returns the ordered change history of an endpoint, useful for audits and rollback analysis."
+        "title": "Endpoint Change History",
+        "description": "Returns the ordered change history (backup list) of an endpoint. Use 'lightweight: true' (recommended for agents) to get only idbackup, hash, and createdAt without the heavy full-snapshot 'data' field. To inspect a specific version, call this first with lightweight=true, note the 'idbackup', then call GET /api/endpoint/backup/detail?idbackup=<id> to retrieve the full snapshot."
       },
       "json_schema": {
         "in": {
@@ -2123,6 +2141,11 @@ export const system_app = {
                 "minLength": 1,
                 "description": "Endpoint identifier whose backup history should be returned.",
                 "example": "cfdf4ac3-bd98-463e-ae57-d331193ed416"
+              },
+              "lightweight": {
+                "type": "boolean",
+                "default": true,
+                "description": "If true (recommended), returns only idbackup, hash and createdAt without the heavy full-snapshot data field."
               }
             },
             "required": [
@@ -6130,6 +6153,352 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.111Z"
+    },
+    {
+      "ctrl": { "admin": true, "users": [], "log": { "status_info": 1, "status_success": 1, "status_redirect": 1, "status_client_error": 2, "status_server_error": 3 } },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "search_endpoints",
+        "title": "Search Endpoints",
+        "description": "Global keyword search across all endpoints in all apps. Searches title, description, resource, and keywords fields. Optionally searches inside source code with 'search_code: true'. Returns a lightweight catalog (no source code by default). Use this tool to find which endpoint does a specific thing before calling 'read_endpoint_data' or 'endpoint_get_code'. Max results: 200."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "EndpointSearchRequest",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["query"],
+            "properties": {
+              "query": { "type": "string", "minLength": 1, "maxLength": 200, "description": "Text to search for in title, description, resource, and keywords." },
+              "idapp": { "type": "string", "description": "Optional: restrict search to a specific app UUID." },
+              "environment": { "type": "string", "description": "Optional: restrict to an environment (dev, qa, prd)." },
+              "handler": { "type": "string", "description": "Optional: restrict by handler type (JS, FUNCTION, SQL, etc.)." },
+              "enabled": { "type": "boolean", "description": "Optional: filter by enabled status." },
+              "search_code": { "type": "boolean", "default": false, "description": "If true, also search inside the source code field (slower)." },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200, "default": 50 },
+              "offset": { "type": "integer", "minimum": 0, "default": 0 }
+            }
+          }
+        },
+        "out": { "enabled": false, "schema": { "type": "object", "properties": {}, "additionalProperties": true } }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": { "selection": 0, "json": { "code": { "query": "sql", "enabled": true } }, "xml": { "code": "" }, "text": { "value": "" }, "form": [], "urlencoded": [] },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "b1c2d3e4-f5a6-7890-abcd-ef1234567891",
+      "rowkey": 910,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint/search",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Search Endpoints Globally",
+      "description": "Global keyword search across all endpoints in all apps.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "search,find,endpoint,global",
+      "code": "fnEndpointSearch",
+      "cache_time": 0,
+      "createdAt": "2026-04-30T12:00:00.000Z",
+      "updatedAt": "2026-04-30T12:00:00.000Z"
+    },
+    {
+      "ctrl": { "admin": true, "users": [], "log": { "status_info": 1, "status_success": 1, "status_redirect": 1, "status_client_error": 2, "status_server_error": 3 } },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "endpoint_get_code",
+        "title": "Get Endpoint Source Code",
+        "description": "Returns ONLY the source code and basic metadata of a specific endpoint by 'idendpoint'. Much lighter than 'read_endpoint_data' — use this when you need to read or modify the logic of an existing endpoint without downloading the full configuration (json_schema, data_test, ctrl, etc.). Call 'read_endpoint_data' first to discover the idendpoint if you do not already have it."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "EndpointGetCodeRequest",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["idendpoint"],
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "UUID of the endpoint whose source code you want to retrieve." }
+            }
+          }
+        },
+        "out": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idendpoint": { "type": "string" },
+              "idapp": { "type": "string" },
+              "resource": { "type": "string" },
+              "method": { "type": "string" },
+              "handler": { "type": "string" },
+              "environment": { "type": "string" },
+              "enabled": { "type": "boolean" },
+              "code": { "type": ["string", "null"], "description": "Raw source code of the endpoint." }
+            }
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": { "selection": 0, "json": { "code": { "idendpoint": "00000000-0000-0000-0000-000000000001" } }, "xml": { "code": "" }, "text": { "value": "" }, "form": [], "urlencoded": [] },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "b1c2d3e4-f5a6-7890-abcd-ef1234567892",
+      "rowkey": 911,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint/code",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get Endpoint Source Code",
+      "description": "Returns only the source code field of a specific endpoint by idendpoint.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "code,source,endpoint",
+      "code": "fnEndpointGetCode",
+      "cache_time": 0,
+      "createdAt": "2026-04-30T12:00:00.000Z",
+      "updatedAt": "2026-04-30T12:00:00.000Z"
+    },
+    {
+      "ctrl": { "admin": true, "users": [], "log": { "status_info": 1, "status_success": 1, "status_redirect": 1, "status_client_error": 2, "status_server_error": 3 } },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "system_health_stats",
+        "title": "System Health Stats",
+        "description": "Returns a compact health snapshot of the OpenFusionAPI system: total apps, total endpoints (enabled and MCP-enabled), and recent error metrics grouped by HTTP status code. Very small payload — ideal as a first call to orient an agent before deeper exploration. The 'last_hours' parameter controls the time window for log metrics (default: 1 hour)."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "SystemHealthStatsRequest",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "last_hours": { "type": "integer", "minimum": 1, "maximum": 72, "default": 1, "description": "Time window in hours for log metrics. Default is 1." }
+            }
+          }
+        },
+        "out": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "timestamp": { "type": "string", "format": "date-time" },
+              "window_hours": { "type": "integer" },
+              "apps": { "type": "object", "properties": { "total": { "type": "integer" } } },
+              "endpoints": {
+                "type": "object",
+                "properties": {
+                  "total": { "type": "integer" },
+                  "enabled": { "type": "integer" },
+                  "mcp_enabled": { "type": "integer" }
+                }
+              },
+              "logs": {
+                "type": "object",
+                "properties": {
+                  "total_in_window": { "type": "integer" },
+                  "errors_in_window": { "type": "integer" },
+                  "by_status_code": { "type": "object", "additionalProperties": { "type": "integer" } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [{ "enabled": true, "key": "last_hours", "value": "1", "_id": "health01", "type": 1 }],
+        "body": { "selection": 0, "json": { "code": {} }, "xml": { "code": "" }, "text": { "value": "" }, "form": [], "urlencoded": [] },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "b1c2d3e4-f5a6-7890-abcd-ef1234567893",
+      "rowkey": 912,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/system/health/stats",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "System Health Stats",
+      "description": "Compact health snapshot: apps, endpoints, and recent error metrics.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "health,stats,system,monitoring",
+      "code": "fnGetSystemHealthStats",
+      "cache_time": 0,
+      "createdAt": "2026-04-30T12:00:00.000Z",
+      "updatedAt": "2026-04-30T12:00:00.000Z"
+    },
+    {
+      "ctrl": { "admin": true, "users": [], "log": { "status_info": 1, "status_success": 1, "status_redirect": 1, "status_client_error": 2, "status_server_error": 3 } },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "execute_endpoint_test",
+        "title": "Execute Endpoint Test",
+        "description": "Executes an endpoint via an internal HTTP call and returns the result (status_code, response_time_ms, response body). Ideal for agents to verify that an endpoint they just created or modified works correctly. Simplest usage: provide only 'idendpoint' — the tool auto-resolves app name, resource and method from the DB. Optionally override 'environment' (default: prd), provide 'payload' for POST/PUT bodies, 'query_params' for GET, and 'bearer_token' for authenticated endpoints. The 'response' field in the result contains the actual endpoint response. Endpoints that require auth and have no public access will need a valid bearer_token."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "ExecuteEndpointTestRequest",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "UUID of the endpoint to test. Auto-resolves app, resource and method. Recommended over explicit fields." },
+              "app": { "type": "string", "description": "App name (required only when idendpoint is not provided)." },
+              "resource": { "type": "string", "description": "Endpoint resource path (required only when idendpoint is not provided)." },
+              "method": { "type": "string", "enum": ["GET","POST","PUT","PATCH","DELETE"], "default": "GET", "description": "HTTP method (auto-resolved from idendpoint if omitted)." },
+              "environment": { "type": "string", "enum": ["dev","qa","prd"], "default": "prd", "description": "Target environment. Defaults to 'prd'." },
+              "payload": { "type": ["object","array","null"], "description": "JSON body to send for POST / PUT / PATCH requests." },
+              "query_params": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Query string parameters (key-value pairs)." },
+              "bearer_token": { "type": ["string","null"], "description": "Bearer token for authenticated endpoints. Omit for public endpoints." },
+              "timeout_ms": { "type": "integer", "minimum": 500, "maximum": 30000, "default": 10000, "description": "Request timeout in milliseconds." }
+            }
+          }
+        },
+        "out": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "tested_url": { "type": "string", "description": "The internal URL that was called." },
+              "method": { "type": "string" },
+              "status_code": { "type": "integer" },
+              "response_time_ms": { "type": "integer" },
+              "success": { "type": "boolean" },
+              "response": { "description": "The actual response from the endpoint (JSON or text)." }
+            }
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": { "selection": 0, "json": { "code": { "idendpoint": "00000000-0000-0000-0000-000000000001", "environment": "prd" } }, "xml": { "code": "" }, "text": { "value": "" }, "form": [], "urlencoded": [] },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "b1c2d3e4-f5a6-7890-abcd-ef1234567894",
+      "rowkey": 913,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint/test",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Execute Endpoint Test",
+      "description": "Executes an endpoint via internal HTTP and returns status, response time, and response body.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "test,execute,verify,endpoint",
+      "code": "fnEndpointTest",
+      "cache_time": 0,
+      "createdAt": "2026-04-30T12:00:00.000Z",
+      "updatedAt": "2026-04-30T12:00:00.000Z"
+    },
+    {
+      "ctrl": { "admin": true, "users": [], "log": { "status_info": 1, "status_success": 1, "status_redirect": 1, "status_client_error": 2, "status_server_error": 3 } },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "endpoint_restore_version",
+        "title": "Restore Endpoint Version",
+        "description": "Restores an endpoint to a previous version using a specific 'idbackup'. This is a powerful one-click rollback tool. To find the correct idbackup, first call 'endpoint_change_history' with 'lightweight: true' to see the list of available backups and their timestamps."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "EndpointRestoreBackupRequest",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["idbackup"],
+            "properties": {
+              "idbackup": { "type": "integer", "description": "The unique ID of the backup version to restore." }
+            }
+          }
+        },
+        "out": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "success": { "type": "boolean" },
+              "idendpoint": { "type": "string", "format": "uuid" }
+            }
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": { "selection": 0, "json": { "code": { "idbackup": 1 } }, "xml": { "code": "" }, "text": { "value": "" }, "form": [], "urlencoded": [] },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "b1c2d3e4-f5a6-7890-abcd-ef1234567895",
+      "rowkey": 914,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint/restore",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Restore Endpoint Version",
+      "description": "Restores an endpoint to a previous version from backup.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "restore,rollback,backup,endpoint",
+      "code": "fnEndpointRestoreBackup",
+      "cache_time": 0,
+      "createdAt": "2026-04-30T12:00:00.000Z",
+      "updatedAt": "2026-04-30T12:00:00.000Z"
     }
   ]
 }

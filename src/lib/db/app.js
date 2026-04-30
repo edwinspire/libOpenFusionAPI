@@ -149,10 +149,13 @@ export const getAppFullById = async (
   }
 };
 
-export const getAllApps = async () => {
+export const getAllApps = async (attributes = null) => {
   try {
-    //const apps = await Application.findAll({ attributes: ["idapp", "app"] });
-    const apps = await Application.findAll();
+    const options = {};
+    if (attributes && Array.isArray(attributes) && attributes.length > 0) {
+      options.attributes = attributes;
+    }
+    const apps = await Application.findAll(options);
     return apps;
   } catch (error) {
     console.error("Error retrieving apps:", error);

@@ -7,6 +7,8 @@ import {
   getLogs,
   getLogsRecordsPerMinute, getLogSummaryByAppStatusCode
 } from "../../../../../db/log.js";
+import { getAllEndpoints } from "../../../../../db/endpoint.js";
+import { App } from "../../../../../db/models.js";
 
 export async function fnGetLogSummaryByAppStatusCode(params) {
   let r = { data: undefined, code: 204 };
@@ -27,7 +29,12 @@ export async function fnGetLogs(params) {
   let r = { data: undefined, code: 204 };
 
   try {
-    let data = await getLogs(params?.request?.query);
+    // Merge query params + body so MCP agents can use body payload (includes lightweight flag)
+    const queryParams = params?.request?.query || {};
+    const bodyParams = params?.request?.body || {};
+    const merged = { ...queryParams, ...bodyParams };
+
+    let data = await getLogs(merged);
 
     r.data = data;
     r.code = 200;
@@ -49,7 +56,7 @@ export async function fnInsertLog(params) {
 
     r.data = error;
     r.code = 500;
-    //res.code(500).json({ error: error.message });
+    //res.code(500).json({ error: error.message })
   }
   return r;
 }
@@ -97,3 +104,67 @@ export const fnGetSystemInfoStatic = async () => {
   }
   return r;
 };
+
+/**
+ * Devuelve estadísticas compactas del sistema: total de apps, endpoints, y métricas de logs recientes.
+ * Diseñado para agentes: payload pequeño y alto valor de contexto.
+ * MCP tool: system_health_stats
+ */
+export async function fnGetSystemHealthStats(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    const last_hours = Number(params?.request?.query?.last_hours) || 1;
+
+    // Conteo total de apps
+    const totalApps = await App.count();
+
+    // Conteo total de endpoints
+    const allEndpoints = await getAllEndpoints();
+    const totalEndpoints = allEndpoints.length;
+    const enabledEndpoints = allEndpoints.filter(e => {
+      const d = e.toJSON ? e.toJSON() : e;
+      return d.enabled;
+    }).length;
+    const mcpEndpoints = allEndpoints.filter(e => {
+      const d = e.toJSON ? e.toJSON() : e;
+      return d.mcp && d.mcp.enabled;
+    }).length;
+
+    // Logs recientes agrupados por status_code (lightweight)
+    const recentLogs = await getLogs({
+      last_hours,
+      lightweight: true,
+      limit: 5000,
+    });
+
+    const logsByStatus = {};
+    let errorCount = 0;
+    for (const log of recentLogs) {
+      const sc = log.status_code;
+      logsByStatus[sc] = (logsByStatus[sc] || 0) + 1;
+      if (sc >= 400) errorCount++;
+    }
+
+    r.data = {
+      timestamp: new Date().toISOString(),
+      window_hours: last_hours,
+      apps: { total: totalApps },
+      endpoints: {
+        total: totalEndpoints,
+        enabled: enabledEndpoints,
+        mcp_enabled: mcpEndpoints,
+      },
+      logs: {
+        total_in_window: recentLogs.length,
+        errors_in_window: errorCount,
+        by_status_code: logsByStatus,
+      },
+    };
+    r.code = 200;
+  } catch (error) {
+    console.log(error);
+    r.data = { error: error.message };
+    r.code = 500;
+  }
+  return r;
+}
