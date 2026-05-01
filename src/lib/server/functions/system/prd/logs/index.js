@@ -8,7 +8,7 @@ import {
   getLogsRecordsPerMinute, getLogSummaryByAppStatusCode
 } from "../../../../../db/log.js";
 import { getAllEndpoints } from "../../../../../db/endpoint.js";
-import { App } from "../../../../../db/models.js";
+import { Application as App } from "../../../../../db/models.js";
 
 export async function fnGetLogSummaryByAppStatusCode(params) {
   let r = { data: undefined, code: 204 };
