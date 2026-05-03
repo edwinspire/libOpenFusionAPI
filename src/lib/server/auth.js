@@ -50,14 +50,21 @@ export function getUserPasswordTokenFromRequest(req) {
       password = undefined;
     }
   } else if (authHeader?.startsWith("Bearer ")) {
-
     let jwt_key = JWTKEY;
     token = authHeader.split(" ")[1];
 
+    const decodedToken = jwt.decode(token);
+
+    if (decodedToken?.data?.apikey?.idclient) {
+      jwt_key = req?.openfusionapi?.handler?.params?.jwt_key || JWTKEY;
+    }
+
+    /*
     if (token.startsWith("OFAPI_KEY@")) {
       token = token.slice("OFAPI_KEY@".length);
       jwt_key = req?.openfusionapi?.handler?.params?.jwt_key || JWTKEY;
     }
+    */
 
     try {
       data_token = checkToken(token, jwt_key);
@@ -115,7 +122,7 @@ export const CreateOpenFusionAPIToken = () => {
         },
       },
     },
-    60 * 60 * 24 * 365
+    60 * 60 * 24 * 365,
   );
   process.env.USER_OPENFUSIONAPI_TOKEN = token;
 };
