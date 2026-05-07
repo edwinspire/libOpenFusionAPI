@@ -680,40 +680,139 @@ $_RETURN_DATA_ = {
     },
     uFetch: {
       fn: request && reply ? uFetch : undefined,
-      description: "HTTP client constructor for calling external or fully-qualified URLs.",
-      web: own_repo,
-      return: "uFetch instance",
+      description: "Universal HTTP client for Node.js and browsers, with unified request helpers, auth helpers, and fail-safe batch execution.",
+      web: "https://github.com/edwinspire/universal-fetch",
+      params: [
+        {
+          name: "constructor(url?, redirect_in_unauthorized?)",
+          description: "Creates an instance with optional base URL for relative paths. In browser mode, redirect_in_unauthorized can redirect on 401.",
+          required: false,
+          type: "function",
+        },
+        {
+          name: "request(url, method, data, headers, options)",
+          description: "Low-level request method used by all wrappers.",
+          required: false,
+          type: "function",
+        },
+        {
+          name: "get|post|put|patch|delete({ url, data, headers, options })",
+          description: "Convenience wrappers for common HTTP methods.",
+          required: false,
+          type: "function",
+        },
+        {
+          name: "batch(url, method, items, headers, options, config)",
+          description: "Parallel fail-safe processor. Returns one result per item and does not throw due to individual item failures.",
+          required: false,
+          type: "function",
+        },
+      ],
+      return: {
+        type: "object",
+        description: "uFetch instance with request wrappers and auth helpers.",
+        object: [
+          { name: "request", type: "function", description: "Core request primitive." },
+          { name: "get|post|put|patch|delete", type: "function", description: "HTTP method wrappers using opts object." },
+          { name: "batch", type: "function", description: "Fail-safe batch execution with configurable concurrency." },
+          { name: "setBasicAuthorization", type: "function", description: "Sets persistent Basic auth header for the instance." },
+          { name: "setBearerAuthorization", type: "function", description: "Sets persistent Bearer auth header for the instance." },
+          { name: "abort", type: "function", description: "Aborts active in-flight requests for this instance." },
+        ],
+      },
       notes: [
         "Use uFetch when the target URL is absolute or belongs to another system.",
-        "uFetch evolves frequently, so validate method names and request options against the official documentation or the installed version before publishing new examples or endpoint code.",
+        "For GET or HEAD, data is serialized as query string. For non-GET methods, object data is serialized as JSON automatically.",
+        "batch() returns per-item result objects and is designed to continue even if some items fail; always inspect isError per item.",
+        "Authorization helpers persist at instance level. Create a fresh instance when different credentials must be isolated.",
       ],
       agentGuidance: [
         "For internal OpenFusionAPI endpoints in the same instance, prefer uFetchAutoEnv instead of hardcoding dev/qa/prd URLs.",
-        "Do not assume older aliases such as uppercase GET or POST remain the preferred API; confirm the current library contract first.",
+        "Prefer method wrappers with opts object for readability: get/post/put/patch/delete({ url, data, headers, options }).",
+        "Use request(url, method, data, headers, options) only when method must be computed dynamically.",
+        "For bulk operations, prefer batch() over Promise.all to avoid failing the full operation due to a single request error.",
       ],
       example: `
-const uF = new uFetch('https://jsonplaceholder.typicode.com/todos/1');
-const response = await uF.get();
-$_RETURN_DATA_ = await response.json();
+const api = new uFetch('https://api.example.com');
+
+api.setBearerAuthorization(endpointEnv.API_TOKEN);
+
+const usersRes = await api.get({
+  url: '/users',
+  data: { role: 'admin', page: 1 },
+});
+
+const createRes = await api.post({
+  url: '/users',
+  data: { username: 'johndoe' },
+});
+
+const batchResults = await api.batch('/users', 'POST', [
+  { username: 'a' },
+  { username: 'b' },
+  { method: 'PUT', url: '/users/3', data: { username: 'c' } },
+], {}, {}, {
+  concurrency: 5,
+});
+
+$_RETURN_DATA_ = {
+  users: await usersRes.json(),
+  created: await createRes.json(),
+  batch: batchResults.map((r) => ({ isError: r.isError, httpCode: r.httpCode })),
+};
       `,
     },
     uFetchAutoEnv: {
       fn: request && reply ? fnUrlae : undefined,
-      description: `HTTP helper specialized for calling endpoints in the same OpenFusionAPI instance while preserving the current environment.`,
+      description: `OpenFusionAPI helper that wraps uFetch for same-instance calls and resolves /auto or /env suffixes to the current runtime environment.`,
       web: "https://github.com/edwinspire/universal-fetch",
+      params: [
+        {
+          name: "create(url, shouldApplyAuto = true)",
+          description: "Creates a uFetch instance for the given URL/path. Relative paths are resolved against current server base URL and port.",
+          required: false,
+          type: "function",
+        },
+        {
+          name: "auto(url)",
+          description: "Shortcut for create(url, true).",
+          required: false,
+          type: "function",
+        },
+      ],
+      return: {
+        type: "object",
+        description: "URLAutoEnvironment instance exposing create() and auto() that return uFetch instances.",
+        object: [
+          { name: "create", type: "function", description: "Builds uFetch instance from relative/absolute URL with optional environment replacement." },
+          { name: "auto", type: "function", description: "Always applies environment suffix replacement for /auto and /env." },
+        ],
+      },
       notes: [
-        "If the path ends in /auto or /env, the helper replaces that suffix with the current runtime environment.",
-        "Because this helper wraps universal-fetch, confirm the current upstream request API before relying on older snippets.",
+        "For relative paths, this helper builds a full URL using current base URL and server port.",
+        "If the path contains /auto or /env suffix before query/hash, it is replaced by the current environment (dev, qa, prd).",
+        "Absolute URLs bypass environment replacement and are sent as-is.",
+        "Request trace header ofapi-trace-id is propagated automatically when available.",
       ],
       agentGuidance: [
         "Prefer relative internal URLs such as /api/myapp/resource/auto instead of hardcoded localhost URLs.",
-        "When editing seeded endpoints or documentation, keep method casing aligned with the installed universal-fetch version.",
+        "Use auto() for environment-agnostic internal calls and keep endpoint code portable across dev/qa/prd.",
+        "Use create(path, false) when you must preserve a literal path and avoid automatic /auto or /env replacement.",
+        "After obtaining the uFetch instance, use standard uFetch methods like get/post/put/patch/delete with opts object.",
       ],
       example: `
-const uF = uFetchAutoEnv.auto('/api/datetime_app/sum-array/auto');
-const response = await uF.post({ data: { numbers: [4, 12, 9] } });
+const sumFetch = uFetchAutoEnv.auto('/api/datetime_app/sum-array/auto');
+const sumResponse = await sumFetch.post({
+  data: { numbers: [4, 12, 9] },
+});
 
-$_RETURN_DATA_ = await response.json();
+const usersFetch = uFetchAutoEnv.create('/api/myapp/users/env?active=true#view');
+const usersResponse = await usersFetch.get();
+
+$_RETURN_DATA_ = {
+  sum: await sumResponse.json(),
+  users: await usersResponse.json(),
+};
       `,
     },
     PromiseSequence: {
