@@ -62,34 +62,89 @@ export default class ModelHooks extends EventEmitter {
   constructor() {
     super();
   }
-  emit(data) {
-    let instance = {};
 
-  if (Array.isArray(data.instance)) {
-    instance = data.instance[0];
-  } else {
-    instance = data.instance;
-  }
+  /**
+   * Notifies about a change in a database model.
+   * @param {Object} data - Notification data.
+   * @param {Object|Object[]} data.instance - The Sequelize instance(s) affected.
+   * @param {string} data.table - The name of the table/model.
+   * @param {string} data.action - The hook action (e.g., afterUpsert, afterCreate).
+   * @param {string} [data.schema] - The database schema.
+   */
+  notify(data) {
+    if (!data || !data.instance) return;
 
-  let dataHook = {};
+    // Handle both single instance and array of instances (bulk)
+    let instance = Array.isArray(data.instance) ? data.instance[0] : data.instance;
+    if (!instance) return;
 
-  try {
-    dataHook = {
-      host: instance.sequelize.config.host,
-      database: instance.sequelize.config.database,
-      schema: data.schema || "",
-      model: data.table,
-      action: data.action,
-      data: instance,
-    };
-  } catch (error) {
-    console.log("Error en HooksDB:", error);
-  }
-    super.emit('hook', dataHook);
+    try {
+      const sequelize = instance.sequelize || dbsequelize;
+      const config = sequelize?.config || {};
+
+      // Convert instance to plain object to avoid circular references and overhead
+      const plainData =
+        typeof instance.get === "function"
+          ? instance.get({ plain: true })
+          : typeof instance.toJSON === "function"
+            ? instance.toJSON()
+            : instance;
+
+      const dataHook = {
+        host: config.host || "localhost",
+        database: config.database || "unknown",
+        schema: data.schema || "",
+        model: data.table || "unknown",
+        action: data.action || "unknown",
+        data: plainData,
+      };
+
+      super.emit("hook", dataHook);
+    } catch (error) {
+      console.error("Error in ModelHooks.notify:", error);
+    }
   }
 }
 
 export const modelHooks = new ModelHooks();
+
+// Register a listener for external webhooks to decouple them from DB operations
+modelHooks.on("hook", async (data) => {
+  try {
+    await emitHook(data);
+  } catch (error) {
+    console.error("Error emitting external webhook:", error);
+  }
+});
+
+// Global hooks to automate notifications for all models
+const IGNORED_MODELS_FOR_HOOKS = [ModelNames.LogEntry, ModelNames.ApiUsageLog];
+
+const globalNotify = (action) => (instance, options) => {
+  // Get model name (which is the prefixed table name in this project)
+  const modelName = instance?.constructor?.name;
+
+  if (!modelName || IGNORED_MODELS_FOR_HOOKS.includes(modelName)) {
+    return;
+  }
+
+  modelHooks.notify({
+    instance,
+    table: modelName,
+    action: action,
+  });
+};
+
+// Register global hooks to the sequelize instance
+dbsequelize.addHook("afterCreate", globalNotify("afterCreate"));
+dbsequelize.addHook("afterUpdate", globalNotify("afterUpdate"));
+dbsequelize.addHook("afterDestroy", globalNotify("afterDestroy"));
+
+// afterUpsert has a slightly different signature in some Sequelize versions
+dbsequelize.addHook("afterUpsert", (instance, options) => {
+  const target = Array.isArray(instance) ? instance[0] : instance;
+  globalNotify("afterUpsert")(target, options);
+});
 
 class JSON_ADAPTER {
   constructor() { }
@@ -165,32 +220,6 @@ export function prefixTableName(table_name) {
   return (TABLE_NAME_PREFIX_API || "ofapi") + "_" + table_name;
 }
 
-async function HooksDB(data) {
-  let instance = {};
-
-  if (Array.isArray(data.instance)) {
-    instance = data.instance[0];
-  } else {
-    instance = data.instance;
-  }
-
-  let dataHook = {};
-
-  try {
-    dataHook = {
-      host: instance.sequelize.config.host,
-      database: instance.sequelize.config.database,
-      schema: data.schema || "",
-      model: data.table,
-      action: data.action,
-      data: instance,
-    };
-  } catch (error) {
-    console.log("Error en HooksDB:", error);
-  }
-
-  return await emitHook(dataHook);
-}
 
 // Definir el modelo de la tabla 'User'
 export const User = dbsequelize.define(
@@ -263,13 +292,6 @@ export const User = dbsequelize.define(
       },
     ],
     hooks: {
-      afterUpsert: async (instance) => {
-        await HooksDB({
-          instance,
-          table: ModelNames.User,
-          action: "afterUpsert",
-        });
-      },
       beforeUpdate: (instance) => {
         randomRowKey(instance);
       },
@@ -301,15 +323,7 @@ export const Method = dbsequelize.define(
     freezeTableName: true,
     timestamps: true,
     indexes: [],
-    hooks: {
-      afterUpsert: async (instance) => {
-        await HooksDB({
-          instance,
-          table: ModelNames.Method,
-          action: "afterUpsert",
-        });
-      },
-    },
+    hooks: {},
   },
 );
 
@@ -356,7 +370,7 @@ export const Handler = dbsequelize.define(
     indexes: [],
     hooks: {
       afterUpsert: async (instance) => {
-        await HooksDB({
+        modelHooks.notify({
           instance,
           table: ModelNames.Handler,
           action: "afterUpsert",
@@ -416,13 +430,6 @@ export const Application = dbsequelize.define(
     timestamps: true,
     indexes: [],
     hooks: {
-      afterUpsert: async (instance) => {
-        await HooksDB({
-          instance,
-          table: ModelNames.Application,
-          action: "afterUpsert",
-        });
-      },
       beforeUpsert: (instance) => {
         if (instance.app && !validateAppName(instance.app)) {
           throw new Error("The application name cannot be empty or invalid.");
@@ -496,22 +503,7 @@ export const AppVars = dbsequelize.define(
       },
     ],
 
-    hooks: {
-      afterUpsert: async (instance) => {
-        await HooksDB({
-          instance,
-          table: ModelNames.AppVars,
-          action: "afterUpsert",
-        });
-      },
-      afterDestroy: async (instance) => {
-        await HooksDB({
-          instance,
-          table: ModelNames.AppVars,
-          action: "afterDestroy",
-        });
-      },
-    },
+    hooks: {},
   },
 );
 
@@ -719,22 +711,6 @@ export const Endpoint = dbsequelize.define(
       },
     ],
     hooks: {
-      afterUpsert: async (instance) => {
-        
-        modelHooks.emit({
-          instance,
-          table: ModelNames.Endpoint,
-          action: "afterUpsert",
-        });
-
-        /*
-        await HooksDB({
-          instance,
-          table: ModelNames.Endpoint,
-          action: "afterUpsert",
-        });
-        */
-      },
       beforeValidate: (instance) => {
         randomRowKey(instance);
         if (
@@ -1108,15 +1084,7 @@ export const IntervalTask = dbsequelize.define(
     timestamps: true, //
     paranoid: false, // Evita el soft delete
     comment: "App Intervals",
-    hooks: {
-      afterUpsert: async (instance) => {
-        await HooksDB({
-          instance,
-          table: ModelNames.IntervalTask,
-          action: "afterUpsert",
-        });
-      },
-    },
+    hooks: {},
     indexes: [
       {
         fields: ["idendpoint"],
