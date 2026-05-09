@@ -166,6 +166,7 @@ export default class ServerAPI extends EventEmitter {
 
     modelHooks.on("hook", async (data) => {
       this.dbHookCacheInvalidation.handleHookData(data);
+      this._emitEndpointEvent("database_hook", data);
     });
 
     this.maxBodyBytes =
@@ -182,6 +183,7 @@ export default class ServerAPI extends EventEmitter {
 
   async checkwebHookDB(request) {
     this.dbHookCacheInvalidation.handleHookData(request?.body);
+    this._emitEndpointEvent("database_hook", request?.body);
   }
 
   async _build() {
