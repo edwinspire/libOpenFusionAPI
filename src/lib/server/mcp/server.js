@@ -5,12 +5,13 @@ import {
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { jsonSchemaToZod } from "./utils.js";
+import {version} from "../version.js";
 
-function getServer(app) {
+function getServer() {
   // Create an MCP server
   const server = new McpServer({
     name: "OpenFusionAPI MCP Server",
-    version: "1.0.0",
+    version: version,
   }, {
     capabilities: {
       resources: {}

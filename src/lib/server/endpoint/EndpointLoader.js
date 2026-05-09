@@ -1,32 +1,16 @@
-import { get_url_params, url_key } from "../utils_path.js";
-import { replaceAllFast } from "./utils.js";
-// import Ajv from "ajv";
-
-// const ajv = new Ajv();
-
-const HANDLERS_SKIP_CODE_REPLACEMENT = new Set([
-  "JS",
-  "MCP",
-  "MONGODB",
-  "FUNCTION",
-]);
-
-const HANDLERS_PARSE_CUSTOM_DATA_JSON = new Set([
-  "SQL",
-  "HANA",
-  "MONGODB",
-  "SQL_BULK_I",
-]);
+import { ajv } from "../ajv.js";
+import { url_key } from "../utils_path.js";
 
 /**
- * Handles loading endpoints from the database, building their handlers,
- * and managing the thundering-herd protection during concurrent loads.
+ * EndpointLoader subsystem
+ * Handles loading endpoints from DB and generating handlers
  */
-export class EndpointLoader {
+export default class EndpointLoader {
   /**
-   * @param {object} internalEndpoint  - Shared reference to the endpoint registry object.
-   * @param {object} fnLocal           - Shared reference to the local function registry.
-   * @param {Map}    loadingPromises   - Shared in-flight promise map (thundering-herd guard).
+   * @param {Object} internalEndpoint Reference to the internal cache of endpoints
+   * @param {Function} fnLocal Reference to local functions registry
+   * @param {Map} loadingPromises Map of active loading promises (thundering herd protection)
+   * @param {Object} dependencies External dependencies (dbFetcher, vmFactory, mcpBuilder)
    */
   constructor(internalEndpoint, fnLocal, loadingPromises, dependencies) {
     this._ep = internalEndpoint;
@@ -58,45 +42,48 @@ export class EndpointLoader {
   getFnNames() {
     let r = {};
 
-    if (this._fnLocal) {
-      let list_env = Object.keys(this._fnLocal);
-
-      for (let i = 0; i < list_env.length; i++) {
-        let env_name = list_env[i];
-        let list_app = Object.keys(this._fnLocal[env_name]);
-        if (!r[env_name]) {
-          r[env_name] = {};
-        }
-
-        for (let index = 0; index < list_app.length; index++) {
-          let app_name = list_app[index];
-          r[env_name][app_name] = Object.keys(
-            this._fnLocal[env_name][app_name]
-          );
-        }
-      }
-    }
+    Object.keys(this._fnLocal).forEach((key) => {
+      r[key] = {
+        name: key,
+      };
+    });
 
     return r;
   }
 
-  async getEndpoint(request_path_params) {
-    const { url_key: key } = request_path_params;
+  /**
+   * Main entry point to get or load an endpoint
+   */
+  async getEndpoint(params) {
+    const key = url_key(
+      params.app,
+      params.resource,
+      params.environment,
+      params.method,
+      params.method == "WS"
+    );
 
-    // Fast path: already cached
-    if (this._ep[key]) {
+    if (!key) {
+      return null;
+    }
+
+    if (this._ep[key] && this._ep[key].handler) {
       return this._ep[key];
     }
 
-    // Thundering-herd protection: reuse in-flight promise
+    // Thundering herd protection: if already loading, return existing promise
     if (this._loadingPromises.has(key)) {
       await this._loadingPromises.get(key);
-    } else {
-      const loadPromise = this._loadEndpointsByAPPToCache(request_path_params);
-      this._loadingPromises.set(key, loadPromise);
-      try {
-        await loadPromise;
-      } finally {
+      return this._ep[key];
+    }
+
+    const loadPromise = this._loadEndpointsByAPPToCache(params);
+    this._loadingPromises.set(key, loadPromise);
+
+    try {
+      await loadPromise;
+    } finally {
+      if (this._loadingPromises.has(key)) {
         this._loadingPromises.delete(key);
       }
     }
@@ -106,48 +93,50 @@ export class EndpointLoader {
 
   async _loadEndpointsByAPPToCache(params) {
     try {
-      let appData = await this._dbFetcher({
+      const all_eps = await this._dbFetcher({
         app: params.app,
         enabled: true,
         endpoint: {
           enabled: true,
-          environment: params.environment,
-          method: params.method,
-          resource: params.resource,
         },
       });
 
-      if (appData && appData.idapp) {
-        if (appData.enabled && appData.endpoints) {
-          for (let i = 0; i < appData.endpoints.length; i++) {
-            let endpoint = appData.endpoints[i];
+      if (all_eps && all_eps.idapp) {
+        if (all_eps.enabled && all_eps.endpoints) {
+          for (let i = 0; i < all_eps.endpoints.length; i++) {
+            let endpoint = all_eps.endpoints[i];
 
             const key = url_key(
-              appData.app,
+              all_eps.app,
               endpoint.resource,
               endpoint.environment,
               endpoint.method,
               endpoint.method == "WS"
             );
+
+            if (!key) {
+              continue;
+            }
+
             endpoint.url_key = key;
-            endpoint.idapp = appData.idapp;
-            endpoint.jwt_key = appData.jwt_key;
+            endpoint.idapp = all_eps.idapp;
+            endpoint.jwt_key = all_eps.jwt_key;
 
             if (!this._ep[key]) {
               this._ep[key] = {};
             }
 
             this._ep[key].handler = await this._getApiHandler(
-              appData.app,
+              all_eps.app,
               endpoint,
-              appData.vrs
+              all_eps.vrs
             );
           }
         }
       }
     } catch (error) {
       console.trace(error);
-      throw error; // Re-throw to inform caller that load failed
+      throw error;
     }
   }
 
@@ -158,23 +147,7 @@ export class EndpointLoader {
 
     try {
       if (endpointData.enabled) {
-        let props = [];
-        let appvars_obj = {};
-
-        if (Array.isArray(app_vars)) {
-          props = app_vars.filter((item) => {
-            return endpointData.environment == item.environment;
-          });
-
-          for (let index = 0; index < props.length; index++) {
-            const element = props[index];
-            appvars_obj[element.name] = element.value;
-          }
-        }
-
-        if (props.length > 0) {
-          this._applyAppVarsReplacements(returnHandler, endpointData, props);
-        }
+        let appvars_obj = getAppVarsObject(app_vars);
 
         // Compile JSON schema validator if enabled
         // TODO: Re-enable this block when request-time schema validation is wired
@@ -202,56 +175,47 @@ export class EndpointLoader {
     return returnHandler;
   }
 
-  _applyAppVarsReplacements(returnHandler, endpointData, props) {
-    if (
-      !HANDLERS_SKIP_CODE_REPLACEMENT.has(endpointData.handler) &&
-      returnHandler.params.code &&
-      returnHandler.params.code.length > 0
-    ) {
-      returnHandler.params.code = replaceAllFast(returnHandler.params.code, props);
-    }
-
-    if (
-      typeof returnHandler?.params?.custom_data === "string" &&
-      HANDLERS_PARSE_CUSTOM_DATA_JSON.has(endpointData.handler)
-    ) {
-      returnHandler.params.custom_data = JSON.parse(
-        replaceAllFast(returnHandler.params.custom_data, props)
-      );
-    }
-  }
-
   async _initializeHandler(returnHandler, appvars_obj) {
-    const handlerName = returnHandler?.params?.handler;
-    const initializer = this._handlerInitializers[handlerName];
-
+    const initializer = this._handlerInitializers[returnHandler.params.handler];
     if (initializer) {
       await initializer(returnHandler, appvars_obj);
     }
   }
 
   async _initVmHandler(returnHandler, appvars_obj) {
-    returnHandler.params.app_vars = appvars_obj;
-    returnHandler.params.jsFn = await this._vmFactory(
-      returnHandler.params.code,
-      appvars_obj,
-      returnHandler.params.timeout
-    );
-    returnHandler.params.code = undefined;
+    try {
+      const vm = await this._vmFactory(
+        returnHandler.params.app,
+        returnHandler.params.code,
+        appvars_obj,
+        returnHandler.params.custom_data
+      );
+      returnHandler.params.method_fn = vm;
+    } catch (error) {
+      console.trace(error);
+    }
   }
 
   _initFunctionHandler(returnHandler) {
-    const envFunctions = this._fnLocal[returnHandler.params.environment];
-    const appFunctions = envFunctions && envFunctions[returnHandler.params.app];
-    const publicFunctions = envFunctions && envFunctions["public"];
-
-    if (appFunctions && appFunctions[returnHandler.params.code]) {
-      returnHandler.params.Fn = appFunctions[returnHandler.params.code];
-    } else if (publicFunctions && publicFunctions[returnHandler.params.code]) {
-      returnHandler.params.Fn = publicFunctions[returnHandler.params.code];
+    if (returnHandler.params.code) {
+      const methodFn = this._fnLocal[returnHandler.params.code];
+      if (!methodFn) {
+        return null;
+      }
+      returnHandler.params.method_fn = methodFn;
     }
-
-    returnHandler.message = "";
-    returnHandler.status = 200;
   }
+}
+
+/**
+ * Helper to build appvars object
+ */
+function getAppVarsObject(vrs) {
+  let r = {};
+  if (vrs && Array.isArray(vrs)) {
+    vrs.forEach((v) => {
+      r[v.name] = v.value;
+    });
+  }
+  return r;
 }

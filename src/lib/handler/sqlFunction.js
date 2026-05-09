@@ -113,6 +113,23 @@ export const sqlFunction = async (context) => {
       }
     }
 
+    // For named bind params ($param), fill omitted values with empty string.
+    // This keeps optional SQL filters from failing when a query param is absent.
+    if (paramsSQL.query && !replacements && !Array.isArray(data_bind)) {
+      const bindNames = new Set();
+      const bindRegex = /\$([a-zA-Z_][a-zA-Z0-9_]*)/g;
+      let match;
+      while ((match = bindRegex.exec(paramsSQL.query)) !== null) {
+        bindNames.add(match[1]);
+      }
+
+      for (const bindName of bindNames) {
+        if (!Object.prototype.hasOwnProperty.call(data_bind, bindName)) {
+          data_bind[bindName] = "";
+        }
+      }
+    }
+
     if (paramsSQL.config.database) {
       //console.log("Config sqlFunction", paramsSQL, request.method, data_bind);
 

@@ -46,7 +46,7 @@ export class EndpointPreValidationService {
       this.ensureTraceId(request, reply);
 
       let request_path_params = this.getURLParams(request.url, request.method);
-
+      
       // Si la solicitud NO es una ruta de API, permite que continúe el procesamiento normal
       if (!request_path_params || !request_path_params.url_key) {
         return;

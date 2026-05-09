@@ -6,8 +6,8 @@ import {
 export const mcpFunction = async (context) => {
   const request = context?.request;
   const reply = context?.reply;
-  const method = context?.method || context?.endpoint;
-  const server_data = context?.server_data;
+  const trace_id = request.headers["ofapi-trace-id"];
+
   try {
     const serverFactory = request.openfusionapi?.handler?.params?.server_mcp;
 
@@ -23,21 +23,32 @@ export const mcpFunction = async (context) => {
       sessionIdGenerator: undefined,
     });
     reply.raw.on("close", () => {
-      console.log("Request closed");
       transport?.close?.();
       server?.close?.();
     });
     await server.connect(transport);
     await transport.handleRequest(request.raw, reply.raw, request.body);
   } catch (error) {
-    console.error("Error handling MCP request:", error);
+    const errorMessage = `MCP Server initialization failed: ${error.message}`;
+    console.error(`[MCP_ERROR] [TraceID: ${trace_id}] ${errorMessage}`, error);
+
+    // Ensure the error is captured by the system logger
+    if (reply.openfusionapi) {
+      if (!reply.openfusionapi.lastResponse) reply.openfusionapi.lastResponse = {};
+      reply.openfusionapi.lastResponse.exception = error.message;
+      reply.openfusionapi.lastResponse.data = { error: errorMessage, trace_id };
+    }
+
     if (!reply.sent) {
       reply.code(500).send({
         jsonrpc: "2.0",
         error: {
           code: -32603,
-          message: "MCP: Internal server error. " + error.message,
-          stack: error.stack
+          message: errorMessage,
+          data: {
+            trace_id: trace_id,
+            suggestion: "Please provide this trace_id to the administrator for further analysis.",
+          },
         },
         id: null,
       });

@@ -2357,6 +2357,27 @@ export const system_app = {
       "keywords": "endpoint,source,summary,preview",
       "code": "fnEndpointSourceSummaryById",
       "cache_time": 0,
+      "mcp": {
+        "enabled": true,
+        "name": "endpoint_source_summary",
+        "title": "Get Endpoint Source Summary",
+        "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "EndpointSourceSummaryRequest",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["idendpoint"],
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "UUID of the endpoint to summarize." },
+              "preview_lines": { "type": "integer", "description": "Number of lines to include in the code preview (default: 40).", "minimum": 1, "maximum": 500 }
+            }
+          }
+        }
+      },
       "createdAt": "2026-04-06T01:40:00.000Z",
       "updatedAt": "2026-04-06T01:40:00.000Z"
     },
