@@ -1,11 +1,10 @@
-import { ajv } from "../ajv.js";
 import { url_key } from "../utils_path.js";
 
 /**
  * EndpointLoader subsystem
  * Handles loading endpoints from DB and generating handlers
  */
-export default class EndpointLoader {
+export class EndpointLoader {
   /**
    * @param {Object} internalEndpoint Reference to the internal cache of endpoints
    * @param {Function} fnLocal Reference to local functions registry
@@ -135,7 +134,7 @@ export default class EndpointLoader {
         }
       }
     } catch (error) {
-      console.trace(error);
+      console.error("EndpointLoader Error:", error.message, error.stack);
       throw error;
     }
   }
@@ -148,6 +147,7 @@ export default class EndpointLoader {
     try {
       if (endpointData.enabled) {
         let appvars_obj = getAppVarsObject(app_vars);
+        returnHandler.params.app_vars = appvars_obj;
 
         // Compile JSON schema validator if enabled
         // TODO: Re-enable this block when request-time schema validation is wired
@@ -185,12 +185,12 @@ export default class EndpointLoader {
   async _initVmHandler(returnHandler, appvars_obj) {
     try {
       const vm = await this._vmFactory(
-        returnHandler.params.app,
         returnHandler.params.code,
         appvars_obj,
+        returnHandler.params.timeout * 1000,
         returnHandler.params.custom_data
       );
-      returnHandler.params.method_fn = vm;
+      returnHandler.params.jsFn = vm;
     } catch (error) {
       console.trace(error);
     }
@@ -198,11 +198,22 @@ export default class EndpointLoader {
 
   _initFunctionHandler(returnHandler) {
     if (returnHandler.params.code) {
-      const methodFn = this._fnLocal[returnHandler.params.code];
+      const { environment, app, code } = returnHandler.params;
+      let methodFn;
+
+      if (this._fnLocal[environment]) {
+        // Look in app-specific functions first, then in public functions
+        methodFn =
+          (this._fnLocal[environment][app] &&
+            this._fnLocal[environment][app][code]) ||
+          (this._fnLocal[environment]["public"] &&
+            this._fnLocal[environment]["public"][code]);
+      }
+
       if (!methodFn) {
         return null;
       }
-      returnHandler.params.method_fn = methodFn;
+      returnHandler.params.Fn = methodFn;
     }
   }
 }

@@ -52,7 +52,7 @@ function replace_URL_AUTO_ENV_(str) {
 
 function replace_SEQUENTIAL_PROMISES(str) {
   if (typeof str !== "string") str = String(str);
-  return str.replace(/\$_SECUENTIAL_PROMISES_/g, "sequentialPromises");
+  return str.replace(/\$_SECUENTIAL_PROMISES_/g, "PromiseSequence");
 }
 
 function replace_GENTOKEN(str) {
@@ -395,7 +395,7 @@ export const restoreAppFromBackup = async (app) => {
 };
 
 export const defaultApps = async () => {
-  let result = default_apps.map(async (app) => {
+  let promises = default_apps.map(async (app) => {
     try {
       let r = await restoreAppFromBackup(app);
       return { app: app, result: r };
@@ -405,7 +405,7 @@ export const defaultApps = async () => {
     }
   });
 
-  return result;
+  return await Promise.all(promises);
 };
 
 export const getAppById = async (
@@ -597,11 +597,7 @@ export function parseAppVar(appvar) {
  */
 export async function getApplicationsTreeByFilters(filters = {}) {
   const { idapp, app, enabled, endpoint } = filters;
-  // method, environment, resource,  handler
   try {
-    // ===============================
-    // Construcción dinámica del WHERE
-    // ===============================
     const appWhere = {};
     const endpointWhere = {};
 
@@ -614,7 +610,7 @@ export async function getApplicationsTreeByFilters(filters = {}) {
     }
 
     if (app) {
-      appWhere.app = app.toLowerCase(); // Normalizado
+      appWhere.app = app.toLowerCase();
     }
 
     if (endpoint?.idendpoint) {
@@ -641,9 +637,6 @@ export async function getApplicationsTreeByFilters(filters = {}) {
       endpointWhere.enabled = endpoint.enabled;
     }
 
-    // ========================================================
-    // Consulta con inclusión condicional de filtros en Endpoint
-    // ========================================================
     const data = await Application.findAll({
       where: appWhere,
       include: [
@@ -662,51 +655,27 @@ export async function getApplicationsTreeByFilters(filters = {}) {
       ],
     });
 
-    if (!data) return {};
+    if (!data) return [];
 
-    //const appData = data.toJSON();
     const appData = data.map((item) => {
       const appItem = item.toJSON();
-      appItem.vrs = appItem.vrs.map((item) => {
-        item.value = parseAppVar(item);
-        return item;
+      appItem.vrs = appItem.vrs.map((v) => {
+        v.value = parseAppVar(v);
+        return v;
       });
       return appItem;
     });
 
-    /*
-    appData.vrs = appData.vrs.map((item) => {
-      item.value = parseAppVar(item);
-      return item;
-    });
-*/
     return appData;
   } catch (error) {
-    console.error("Error en getApplicationTreeByFilters:", error);
-    throw new Error(
-      "No se pudo obtener la información de la aplicación. getApplicationTreeByFilters"
-    );
+    console.error("Error en getApplicationsTreeByFilters:", error);
+    throw error;
   }
 }
 
-/**
- * Obtiene la información completa de Application con sus AppVars y Endpoints,
- * filtrando por app, method, environment y resource (opcionales).
- *
- * @param {object} filters
- * @param {string=} filters.app
- * @param {string=} filters.method
- * @param {string=} filters.environment
- * @param {string=} filters.resource
- * @returns {Promise<object|null>}
- */
 export async function getApplicationTreeByFilters(filters = {}) {
   const { idapp, app, enabled, endpoint } = filters;
-  // method, environment, resource,  handler
   try {
-    // ===============================
-    // Construcción dinámica del WHERE
-    // ===============================
     const appWhere = {};
     const endpointWhere = {};
 
@@ -719,7 +688,11 @@ export async function getApplicationTreeByFilters(filters = {}) {
     }
 
     if (app) {
-      appWhere.app = app.toLowerCase(); // Normalizado
+      appWhere.app = app.toLowerCase();
+    }
+
+    if (endpoint?.idendpoint) {
+      endpointWhere.idendpoint = endpoint.idendpoint;
     }
 
     if (endpoint?.method) {
@@ -742,9 +715,6 @@ export async function getApplicationTreeByFilters(filters = {}) {
       endpointWhere.enabled = endpoint.enabled;
     }
 
-    // ========================================================
-    // Consulta con inclusión condicional de filtros en Endpoint
-    // ========================================================
     const data = await Application.findOne({
       where: appWhere,
       include: [
@@ -775,9 +745,7 @@ export async function getApplicationTreeByFilters(filters = {}) {
     return appData;
   } catch (error) {
     console.error("Error en getApplicationTreeByFilters:", error);
-    throw new Error(
-      "No se pudo obtener la información de la aplicación. getApplicationTreeByFilters"
-    );
+    throw error;
   }
 }
 

@@ -1774,7 +1774,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_upsert",
         "title": "Endpoint UPSERT",
-        "description": "Creates or updates an endpoint attached to an existing application. Recommended workflow: create the application first, define reusable AppVars per environment (`dev`, `qa`, `prd`) with `appvar_upsert`, then create endpoints with this tool by choosing both the handler and the HTTP method explicitly. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads."
+        "description": "Creates or updates an endpoint attached to an existing application. Recommended workflow: create the application first, define reusable AppVars per environment (`dev`, `qa`, `prd`) with `appvar_upsert`, then create endpoints with this tool by choosing both the handler and the HTTP method explicitly. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads. In JS handlers, `uFetch` and instances from `uFetchAutoEnv.create(...)` are primarily for fetch-style calls (`get/post/put/patch/delete`). For list/lote fan-out scenarios, use `batch(items, { concurrency, method, buildRequest, onProgress })` to split calls into controlled parallel blocks/workers; each result item has shape `{ isError, httpCode, response?, error? }`."
       },
       "json_schema": {
         "in": {
@@ -6520,6 +6520,34 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2026-04-30T12:00:00.000Z",
       "updatedAt": "2026-04-30T12:00:00.000Z"
+    },
+    {
+      "ctrl": { "admin": true, "users": [], "log": { "status_info": 1, "status_success": 1, "status_redirect": 1, "status_client_error": 2, "status_server_error": 3 } },
+      "cors": {},
+      "mcp": { "enabled": true, "name": "endpoint_delete", "title": "Delete Endpoint", "description": "Permanently deletes an endpoint from the database and registry." },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": { "type": "object", "properties": { "idendpoint": { "type": "string", "format": "uuid", "description": "UUID of the endpoint to delete." } }, "required": ["idendpoint"] }
+        }
+      },
+      "idendpoint": "b1c2d3e4-f5a6-7890-abcd-ef1234567896",
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint",
+      "method": "DELETE",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Delete Endpoint",
+      "description": "Permanently deletes an endpoint.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "endpoint,delete,system",
+      "code": "fnEndpointDelete",
+      "cache_time": 0
     }
   ]
 }

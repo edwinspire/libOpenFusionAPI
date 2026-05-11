@@ -177,6 +177,30 @@ export const soapFunction = async (context) => {
   const request = context?.request;
   const reply = context?.reply;
   const endpoint = context?.method || context?.endpoint;
+
+  const resolveSoapConfigFromCode = (codeValue, appVars) => {
+    if (typeof codeValue !== "string") {
+      return codeValue;
+    }
+
+    const direct = codeValue.trim();
+    const fromAppVar =
+      appVars && typeof appVars === "object" && Object.hasOwn(appVars, direct)
+        ? appVars[direct]
+        : undefined;
+
+    const candidate = fromAppVar !== undefined ? fromAppVar : direct;
+    if (typeof candidate === "object" && candidate !== null) {
+      return candidate;
+    }
+
+    if (typeof candidate === "string") {
+      return JSON.parse(candidate);
+    }
+
+    return JSON.parse(String(candidate));
+  };
+
   try {
     // console.log(">>>>>>>>>>>>> method.code -----> ", method.code);
     let SOAPParameters;
@@ -187,7 +211,10 @@ export const soapFunction = async (context) => {
     } else {
       // Toma el wsdl del code, que es cuando el usuario usa una variable de aplicación
       try {
-        SOAPParameters = JSON.parse(endpoint.code);
+        SOAPParameters = resolveSoapConfigFromCode(
+          endpoint.code,
+          endpoint?.app_vars,
+        );
       } catch {
         throw new Error("SOAP endpoint configuration is invalid JSON. Check the 'code' field.");
       }

@@ -5,12 +5,30 @@ import {
   replyException,
   sendHandlerError,
   sendHandlerResponse,
+  resolveAppVar,
 } from "./utils.js";
 
 export const fetchFunction = async (context) => {
-  const { request, reply, method } = getHandlerExecutionContext(context);
+  const { request, reply, method, endpoint } = getHandlerExecutionContext(context);
   //console.log(uFetch);
   try {
+    // Resolve AppVar placeholder if present in code (the destination URL)
+    let url = method.code;
+    const appVars =
+      endpoint?.app_vars ||
+      endpoint?.params?.app_vars ||
+      method?.app_vars ||
+      method?.params?.app_vars;
+    const environment =
+      endpoint?.environment ||
+      endpoint?.params?.environment ||
+      method?.environment ||
+      method?.params?.environment ||
+      'dev';
+    if (typeof url === 'string' && url.startsWith('$_')) {
+      url = resolveAppVar(url, appVars, environment);
+    }
+
     // Removed unused req_headers block
 
     /** ------------------------------
@@ -44,14 +62,14 @@ export const fetchFunction = async (context) => {
      *  VALIDAR URL DESTINO
      * ------------------------------*/
     if (
-      !method.code ||
-      typeof method.code !== "string" ||
-      method.code.length == 0
+      !url ||
+      typeof url !== "string" ||
+      url.length == 0
     ) {
       sendHandlerError(
         reply,
         500,
-        `The destination URL ${method.code} is invalid.`,
+        `The destination URL ${url} is invalid.`,
       );
       return;
     }
@@ -72,7 +90,7 @@ export const fetchFunction = async (context) => {
       headers: forwardedHeaders, // Usar los headers de la peticion
       body: request.body, // Usar los body de la peticion
       query: request.query, // Usar los query de la peticion,
-      url: method.code,
+      url: url,
     };
 
     const FData = new uFetch();

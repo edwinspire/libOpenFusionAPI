@@ -680,7 +680,7 @@ $_RETURN_DATA_ = {
     },
     uFetch: {
       fn: request && reply ? uFetch : undefined,
-      description: "Universal HTTP client for Node.js and browsers, with unified request helpers, auth helpers, and fail-safe batch execution.",
+      description: "Universal HTTP client for Node.js and browsers. Primary use is standard fetch-style requests (get/post/put/patch/delete); batch adds controlled parallel processing for large input sets.",
       web: "https://github.com/edwinspire/universal-fetch",
       params: [
         {
@@ -702,8 +702,8 @@ $_RETURN_DATA_ = {
           type: "function",
         },
         {
-          name: "batch(url, method, items, headers, options, config)",
-          description: "Parallel fail-safe processor. Returns one result per item and does not throw due to individual item failures.",
+          name: "batch(items, config)",
+          description: "Parallel fail-safe processor. Uses config.buildRequest(item) to create each request and returns one result per item without failing the whole batch.",
           required: false,
           type: "function",
         },
@@ -722,12 +722,20 @@ $_RETURN_DATA_ = {
       },
       notes: [
         "Use uFetch when the target URL is absolute or belongs to another system.",
+        "Primary workflow: use get/post/put/patch/delete for single requests or simple request chains.",
+        "Quick decision: one request => get/post/put/patch/delete.",
+        "Quick decision: list/lote of requests with controlled parallel workers => batch(items, { concurrency, ... }).",
         "For GET or HEAD, data is serialized as query string. For non-GET methods, object data is serialized as JSON automatically.",
+        "Use batch() when you must process many calls from a list and split the workload into concurrent workers/blocks.",
         "batch() returns per-item result objects and is designed to continue even if some items fail; always inspect isError per item.",
+        "batch() signature: batch(items, { concurrency, method, buildRequest, onProgress }).",
+        "Each batch result item has shape: { isError, httpCode, response?, error? }.",
         "Authorization helpers persist at instance level. Create a fresh instance when different credentials must be isolated.",
       ],
       agentGuidance: [
         "For internal OpenFusionAPI endpoints in the same instance, prefer uFetchAutoEnv instead of hardcoding dev/qa/prd URLs.",
+        "Start with get/post/put/patch/delete and switch to batch only when you have a collection of inputs to process concurrently.",
+        "If you need per-item fault tolerance and progress in a large workload, prefer batch over Promise.all.",
         "Prefer method wrappers with opts object for readability: get/post/put/patch/delete({ url, data, headers, options }).",
         "Use request(url, method, data, headers, options) only when method must be computed dynamically.",
         "For bulk operations, prefer batch() over Promise.all to avoid failing the full operation due to a single request error.",
@@ -747,24 +755,33 @@ const createRes = await api.post({
   data: { username: 'johndoe' },
 });
 
-const batchResults = await api.batch('/users', 'POST', [
+const batchResults = await api.batch([
   { username: 'a' },
   { username: 'b' },
-  { method: 'PUT', url: '/users/3', data: { username: 'c' } },
-], {}, {}, {
+  { username: 'c' },
+], {
   concurrency: 5,
+  method: 'POST',
+  buildRequest: (item) => ({
+    url: '/users',
+    data: item,
+  }),
 });
 
 $_RETURN_DATA_ = {
   users: await usersRes.json(),
   created: await createRes.json(),
-  batch: batchResults.map((r) => ({ isError: r.isError, httpCode: r.httpCode })),
+  batch: batchResults.map((r) => ({
+    isError: r.isError,
+    httpCode: r.httpCode,
+    hasResponse: !!r.response,
+  })),
 };
       `,
     },
     uFetchAutoEnv: {
       fn: request && reply ? fnUrlae : undefined,
-      description: `OpenFusionAPI helper that wraps uFetch for same-instance calls and resolves /auto or /env suffixes to the current runtime environment.`,
+      description: `OpenFusionAPI helper that wraps uFetch for same-instance calls. Use it mainly with get/post/put/patch/delete and optionally with batch for parallelized internal fan-out. It resolves /auto or /env suffixes to the current runtime environment.`,
       web: "https://github.com/edwinspire/universal-fetch",
       params: [
         {
@@ -792,6 +809,9 @@ $_RETURN_DATA_ = {
         "For relative paths, this helper builds a full URL using current base URL and server port.",
         "If the path contains /auto or /env suffix before query/hash, it is replaced by the current environment (dev, qa, prd).",
         "Absolute URLs bypass environment replacement and are sent as-is.",
+        "Most endpoints should start with get/post/put/patch/delete; batch is for list-driven parallel calls with controlled concurrency.",
+        "Quick decision: if you need N calls to the same internal endpoint with a lote, use create('/api/.../auto') + batch(items, { concurrency, buildRequest }).",
+        "create()/auto() return a uFetch instance, so batch(items, config) is also available for internal fan-out calls.",
         "Request trace header ofapi-trace-id is propagated automatically when available.",
       ],
       agentGuidance: [
@@ -809,9 +829,20 @@ const sumResponse = await sumFetch.post({
 const usersFetch = uFetchAutoEnv.create('/api/myapp/users/env?active=true#view');
 const usersResponse = await usersFetch.get();
 
+const soapFetch = uFetchAutoEnv.create('/api/demo/ofapi/soap/example01/auto');
+const items = Array.from({ length: 40 }, (_, i) => ({ dNum: i + 1 }));
+const batch = await soapFetch.batch(items, {
+  concurrency: 5,
+  method: 'GET',
+  buildRequest: (item) => ({
+    data: { dNum: item.dNum },
+  }),
+});
+
 $_RETURN_DATA_ = {
   sum: await sumResponse.json(),
   users: await usersResponse.json(),
+  batchSummary: batch.map((r) => ({ isError: r.isError, httpCode: r.httpCode })),
 };
       `,
     },
@@ -838,6 +869,18 @@ const data = [1, 2, 3, 4, 5];
 const batchSize = 2;
 
 const result = await PromiseSequence.ByItems(processBlock, batchSize, data);
+$_RETURN_DATA_ = result;
+      `,
+    },
+    sequentialPromises: {
+      fn: request && reply ? PromiseSequence : undefined,
+      description: "Legacy alias of PromiseSequence kept for backward compatibility.",
+      web: "https://github.com/edwinspire/sequential-promises",
+      notes: [
+        "Deprecated alias. Prefer PromiseSequence in new endpoint code.",
+      ],
+      example: `
+const result = await sequentialPromises.ByBlocks(async (item) => item, 2, [1, 2, 3, 4]);
 $_RETURN_DATA_ = result;
       `,
     },

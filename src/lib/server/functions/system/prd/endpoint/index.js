@@ -7,6 +7,7 @@ import {
   searchEndpoints,
   getEndpointCode,
   restoreEndpointFromBackup,
+  deleteEndpoint,
 } from "../../../../../db/endpoint.js";
 
 import { getEndpointBackupByIdEndpoint, getEndpointBackupByIdEndpointLightweight } from "../../../../../db/endpoint_backup.js";
@@ -373,6 +374,105 @@ export async function fnEndpointGetCode(params) {
 export async function fnEndpointTest(params) {
   let r = { code: 200, data: undefined };
   try {
+    const classifyFailure = (statusCode, responseData) => {
+      const message =
+        typeof responseData === "string"
+          ? responseData
+          : responseData?.error || responseData?.message || JSON.stringify(responseData || {});
+      const msg = String(message || "").toLowerCase();
+
+      if (statusCode === 401 || msg.includes("requires a token") || msg.includes("authorization")) {
+        return "auth_required";
+      }
+      if (statusCode === 406 || msg.includes("text/event-stream") || msg.includes("not acceptable")) {
+        return "missing_accept_header";
+      }
+      if (
+        msg.includes("missing parameter") ||
+        msg.includes("required") ||
+        msg.includes("cannot be empty") ||
+        msg.includes("requerido") ||
+        msg.includes("obligatorio")
+      ) {
+        return "missing_params";
+      }
+      if (msg.includes("not valid json") || msg.includes("unexpected token")) {
+        return "invalid_json_or_appvar";
+      }
+      if (msg.includes("handler") && msg.includes("no es válido")) {
+        return "invalid_handler";
+      }
+      if (statusCode >= 500) {
+        return "server_error";
+      }
+      return "request_error";
+    };
+
+    const extractQueryFromDataTest = (data_test) => {
+      const result = {};
+      const queryRows = data_test?.query;
+      if (!Array.isArray(queryRows)) {
+        return result;
+      }
+
+      for (const row of queryRows) {
+        if (!row || row.enabled !== true) {
+          continue;
+        }
+        if (!row.key || String(row.key).trim() === "") {
+          continue;
+        }
+        result[String(row.key)] = row.value == null ? "" : row.value;
+      }
+      return result;
+    };
+
+    const extractHeadersFromDataTest = (data_test, headers_test) => {
+      const result = {};
+
+      if (headers_test && typeof headers_test === "object" && !Array.isArray(headers_test)) {
+        Object.assign(result, headers_test);
+      }
+
+      const headerRows = data_test?.headers;
+      if (Array.isArray(headerRows)) {
+        for (const row of headerRows) {
+          if (!row || row.enabled !== true) {
+            continue;
+          }
+          if (!row.key || String(row.key).trim() === "") {
+            continue;
+          }
+          result[String(row.key)] = row.value == null ? "" : row.value;
+        }
+      }
+
+      return result;
+    };
+
+    const extractPayloadFromDataTest = (data_test) => {
+      const bodyCfg = data_test?.body;
+      if (!bodyCfg || typeof bodyCfg !== "object") {
+        return null;
+      }
+
+      const jsonCode = bodyCfg?.json?.code;
+      if (jsonCode != null) {
+        if (typeof jsonCode === "object") {
+          return jsonCode;
+        }
+        if (typeof jsonCode === "string" && jsonCode.trim() !== "") {
+          try {
+            return JSON.parse(jsonCode);
+          } catch (error) {
+            return null;
+          }
+        }
+      }
+
+      return null;
+    };
+
     const body = params?.request?.body || {};
     const {
       idendpoint,
@@ -390,6 +490,7 @@ export async function fnEndpointTest(params) {
     let resolvedResource = resource;
     let resolvedMethod = method;
     let resolvedApp = app;
+    let endpointData = null;
 
     if (idendpoint && (!resolvedResource || !resolvedApp)) {
       const ep = await getEndpointById(idendpoint);
@@ -399,15 +500,28 @@ export async function fnEndpointTest(params) {
         return r;
       }
       const epData = ep.toJSON ? ep.toJSON() : ep;
+      endpointData = epData;
       resolvedResource = resolvedResource || epData.resource;
       resolvedMethod = epData.method || resolvedMethod;
 
       // Obtener el nombre de la app desde idapp si no se provee
       if (!resolvedApp) {
-        const { App } = await import("../../../../../db/models.js");
-        const appRecord = await App.findByPk(epData.idapp, { attributes: ["app"] });
+        const { Application } = await import("../../../../../db/models.js");
+        const appRecord = await Application.findByPk(epData.idapp, { attributes: ["app"] });
         resolvedApp = appRecord ? appRecord.app : null;
       }
+    }
+
+    // If caller provided app/resource/method without idendpoint, try to load endpoint metadata.
+    if (!endpointData && resolvedApp && resolvedResource && resolvedMethod) {
+      const found = await Endpoint.findOne({
+        where: {
+          environment,
+          resource: resolvedResource,
+          method: resolvedMethod,
+        },
+      });
+      endpointData = found?.toJSON ? found.toJSON() : found;
     }
 
     if (!resolvedResource || !resolvedApp) {
@@ -417,22 +531,44 @@ export async function fnEndpointTest(params) {
     }
 
     // Construir URL interna: http://localhost:PORT/api/{app}{resource}/{environment}
-    const internalPath = `/api/${resolvedApp.toLowerCase()}${resolvedResource.toLowerCase()}/${environment.toLowerCase()}`;
+    const internalPath = `/api/${String(resolvedApp)}${String(resolvedResource)}/${String(environment)}`;
     let url = internal_url_http(internalPath);
 
+    // Auto-populate inputs from endpoint test metadata if caller omitted them.
+    const autoQueryParams =
+      query_params && typeof query_params === "object" && Object.keys(query_params).length > 0
+        ? query_params
+        : extractQueryFromDataTest(endpointData?.data_test);
+
+    const autoPayload =
+      payload !== null ? payload : extractPayloadFromDataTest(endpointData?.data_test);
+
+    const autoHeaders = extractHeadersFromDataTest(
+      endpointData?.data_test,
+      endpointData?.headers_test,
+    );
+
     // Añadir query params para GET
-    if (query_params && typeof query_params === "object" && Object.keys(query_params).length > 0) {
+    if (autoQueryParams && typeof autoQueryParams === "object" && Object.keys(autoQueryParams).length > 0) {
       const qs = new URLSearchParams(
-        Object.entries(query_params).map(([k, v]) => [k, String(v)])
+        Object.entries(autoQueryParams).map(([k, v]) => [k, String(v)])
       ).toString();
       url = `${url}?${qs}`;
     }
 
     const httpMethod = (resolvedMethod || "GET").toUpperCase();
 
-    const headers = { "Content-Type": "application/json" };
+    const headers = { ...autoHeaders };
     if (bearer_token) {
       headers["Authorization"] = `Bearer ${bearer_token}`;
+    }
+
+    if (
+      autoPayload !== null &&
+      ["POST", "PUT", "PATCH"].includes(httpMethod) &&
+      !Object.keys(headers).some((k) => k.toLowerCase() === "content-type")
+    ) {
+      headers["Content-Type"] = "application/json";
     }
 
     const fetchOptions = {
@@ -441,8 +577,12 @@ export async function fnEndpointTest(params) {
       signal: AbortSignal.timeout(timeout_ms),
     };
 
-    if (payload !== null && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
-      fetchOptions.body = JSON.stringify(payload);
+    if (autoPayload !== null && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
+      const ctKey = Object.keys(headers).find((k) => k.toLowerCase() === "content-type");
+      const ct = ctKey ? String(headers[ctKey]).toLowerCase() : "application/json";
+      fetchOptions.body = ct.includes("application/json")
+        ? JSON.stringify(autoPayload)
+        : String(autoPayload);
     }
 
     const t0 = Date.now();
@@ -464,13 +604,26 @@ export async function fnEndpointTest(params) {
       status_code: response.status,
       response_time_ms: elapsed,
       success: response.status >= 200 && response.status < 300,
+      error_type: response.status >= 200 && response.status < 300
+        ? null
+        : classifyFailure(response.status, responseData),
+      resolved_inputs: {
+        from_data_test: {
+          query_params: !query_params || Object.keys(query_params || {}).length === 0,
+          payload: payload === null,
+        },
+        query_params: autoQueryParams,
+      },
       response: responseData,
     };
   } catch (error) {
     console.log(error);
     const isTimeout = error?.name === "TimeoutError" || error?.code === "ABORT_ERR";
     r.code = isTimeout ? 504 : 500;
-    r.data = { error: isTimeout ? "Request timed out." : error.message };
+    r.data = {
+      error: isTimeout ? "Request timed out." : error.message,
+      error_type: isTimeout ? "timeout" : "tool_runtime_error",
+    };
   }
   return r;
 }
@@ -485,6 +638,30 @@ export async function fnEndpointRestoreBackup(params) {
     const idbackup = params?.request?.query?.idbackup || params?.request?.body?.idbackup;
     r.data = await restoreEndpointFromBackup(idbackup);
     r.code = 200;
+  } catch (error) {
+    console.log(error);
+    r.data = { error: error.message };
+    r.code = 500;
+  }
+  return r;
+}
+
+/**
+ * Elimina un endpoint por su idendpoint.
+ * MCP tool: endpoint_delete
+ */
+export async function fnEndpointDelete(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    const idendpoint = params?.request?.query?.idendpoint || params?.request?.body?.idendpoint;
+    if (!idendpoint) {
+      r.code = 400;
+      r.data = { error: "idendpoint is required" };
+      return r;
+    }
+    const success = await deleteEndpoint(idendpoint);
+    r.data = { success };
+    r.code = success ? 200 : 404;
   } catch (error) {
     console.log(error);
     r.data = { error: error.message };

@@ -19,10 +19,11 @@ import { TasksInterval } from "./timer/tasks.js";
 import { defaultApiClient } from "./db/apiclient.js";
 
 import dbAPIs from "./db/sequelize.js";
-import { defaultApps, getApplicationsTreeByFilters, getApplicationTreeByFilters } from "./db/app.js";
+import { defaultApps, getApplicationTreeByFilters } from "./db/app.js";
 import { createLog } from "./db/log.js";
 import { createFunctionVM } from "./server/createFunctionVM.js";
 import { CreateMCPHandler } from "./server/endpoint/handlerBuild/mcp.js";
+import { setServerListening } from "./server/utils.js";
 import { defaultUser, login } from "./db/user.js";
 import { defaultMethods } from "./db/method.js";
 //import { defaultHandlers } from "./db/handler.js";
@@ -217,7 +218,7 @@ export default class ServerAPI extends EventEmitter {
 
     this.webSocketManager = new WebSocketManager(this.fastify);
 
-    this.buildDB();
+    await this.buildDB();
     this.loadFunctionFiles();
     this._addFunctions();
 
@@ -257,6 +258,7 @@ export default class ServerAPI extends EventEmitter {
     );
 
     await this.fastify.listen({ port: PORT, host: host });
+    setServerListening(true);
 
     this._runOnReady();
   }
@@ -323,84 +325,88 @@ export default class ServerAPI extends EventEmitter {
   /**
    * @param {boolean} buildDB
    */
-  buildDB() {
+  async buildDB() {
     let buildDBEnv = process.env.BUILD_DB;
     let buildDB =
       buildDBEnv && buildDBEnv.toString().toUpperCase() == "TRUE"
         ? true
         : false;
 
-    (async () => {
-      if (buildDB) {
-        console.log("Crea la base de datos");
+    if (buildDB) {
+      console.log("Crea la base de datos");
 
-        try {
-          if (dbAPIs.getDialect() === "sqlite") {
-            const appTable = prefixTableName("application");
-            const backupTable = `${appTable}_backup`;
+      try {
+        if (dbAPIs.getDialect() === "sqlite") {
+          const appTable = prefixTableName("application");
+          const backupTable = `${appTable}_backup`;
 
-            // SQLite + alter can leave stale backup tables on failed migrations.
-            await dbAPIs.query(`DROP TABLE IF EXISTS \`${backupTable}\`;`);
+          await dbAPIs.query("PRAGMA foreign_keys = OFF;");
 
-            // Ensure app uniqueness before SQLite recreates table with UNIQUE(app).
-            // Keeps the first row per app (case-insensitive) and removes duplicates.
-            try {
-              await dbAPIs.query(
-                `DELETE FROM \`${appTable}\`
+          // SQLite + alter can leave stale backup tables on failed migrations.
+          await dbAPIs.query(`DROP TABLE IF EXISTS \`${backupTable}\`;`);
+
+          // Ensure app uniqueness before SQLite recreates table with UNIQUE(app).
+          // Keeps the first row per app (case-insensitive) and removes duplicates.
+          try {
+            await dbAPIs.query(
+              `DELETE FROM \`${appTable}\`
                  WHERE rowid NOT IN (
                    SELECT MIN(rowid)
                    FROM \`${appTable}\`
                    GROUP BY LOWER(app)
                  );`,
-              );
-            } catch (error) {
-              // First boot may not have the application table yet.
-            }
+            );
+          } catch (error) {
+            // First boot may not have the application table yet.
           }
-
-          await dbAPIs.sync({ alter: true });
-          console.log("Database created or updated successfully.");
-        } catch (error) {
-          // Con sqlite es posible que haya errores al recrear las tablas
-          console.log(error);
         }
-      }
 
-      /*
-      try {
-        await defaultHandlers();
+        await dbAPIs.sync({ alter: true });
+        
+        if (dbAPIs.getDialect() === "sqlite") {
+            await dbAPIs.query("PRAGMA foreign_keys = ON;");
+        }
+        console.log("Database created or updated successfully.");
       } catch (error) {
+        // Con sqlite es posible que haya errores al recrear las tablas
         console.log(error);
       }
-      */
+    }
 
-      try {
-        await defaultMethods();
-      } catch (error) {
-        console.log(error);
-      }
+    /*
+    try {
+      await defaultHandlers();
+    } catch (error) {
+      console.log(error);
+    }
+    */
 
-      try {
-        await defaultUser();
-      } catch (error) {
-        console.log(error);
-      }
+    try {
+      await defaultMethods();
+    } catch (error) {
+      console.log(error);
+    }
 
-      try {
-        await defaultApiClient();
-      } catch (error) {
-        console.log(error);
-      }
+    try {
+      await defaultUser();
+    } catch (error) {
+      console.log(error);
+    }
 
-      try {
-        await defaultApps();
-      } catch (error) {
-        console.log(error);
-      }
+    try {
+      await defaultApiClient();
+    } catch (error) {
+      console.log(error);
+    }
 
-      // Crea un token para tener acceso a los endpoints protegidos
-      CreateOpenFusionAPIToken();
-    })();
+    try {
+      await defaultApps();
+    } catch (error) {
+      console.log(error);
+    }
+
+    // Crea un token para tener acceso a los endpoints protegidos
+    CreateOpenFusionAPIToken();
 
     return true;
   }

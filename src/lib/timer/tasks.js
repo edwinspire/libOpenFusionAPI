@@ -32,7 +32,11 @@ export class TasksInterval {
   }
 
   postMessage(data) {
-    this.worker.postMessage(safeStringify(data));
+    if (this.worker) {
+      this.worker.postMessage(safeStringify(data));
+    } else {
+      console.warn("TasksInterval: Worker not initialized, message skipped.");
+    }
   }
 
   run() {

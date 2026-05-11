@@ -45,6 +45,66 @@ You have access to a context object (implied) with helper functions injected via
 - `@edwinspire/universal-fetch` changes over time. Before creating or editing endpoint code that depends on it, verify the current official documentation or the installed package version.
 - Do not assume legacy aliases such as `GET()` or `POST()` are still the preferred API.
 
+`uFetch.batch` quick reference:
+- Signature: `batch(items, { concurrency = 5, method = 'GET', buildRequest, onProgress })`
+- `buildRequest(item)` must return `{ url?, method?, data?, headers?, options? }`
+- Result shape per item: `{ isError, httpCode, response?, error? }`
+- `uFetchAutoEnv.create(...)` returns a `uFetch` instance, so `batch(...)` works there too.
+
+When to use each approach:
+- Use `get/post/put/patch/delete` for normal endpoint-to-endpoint calls or short request chains.
+- Use `batch(...)` when you have a list/lote of input data and need to split it into concurrent workers (threads/blocks) with a controlled `concurrency` value.
+- Prefer `batch(...)` over `Promise.all(...)` when you need fail-safe per-item results instead of failing the entire workload on the first rejected promise.
+
+Quick decision (at a glance):
+- One call to one endpoint: use `get/post/put/patch/delete`.
+- Many calls derived from a lote/list: use `batch(items, { concurrency, buildRequest, ... })`.
+- Need per-item error reporting without aborting all: use `batch(...)`.
+
+Batch example for internal endpoint fan-out (40 calls in 5 parallel workers):
+
+```javascript
+const soapFetch = uFetchAutoEnv.create('/api/demo/ofapi/soap/example01/auto');
+
+const items = Array.from({ length: 40 }, (_, i) => ({ dNum: i + 1 }));
+
+const batchResults = await soapFetch.batch(items, {
+  concurrency: 5,
+  method: 'GET',
+  buildRequest: (item) => ({
+    data: { dNum: item.dNum },
+  }),
+});
+
+const responses = await Promise.all(
+  batchResults.map(async (entry, index) => {
+    if (entry.isError) {
+      return {
+        index,
+        input: items[index],
+        isError: true,
+        httpCode: entry.httpCode,
+        error: entry.error?.message || String(entry.error),
+      };
+    }
+
+    return {
+      index,
+      input: items[index],
+      isError: false,
+      httpCode: entry.httpCode,
+      data: await entry.response.json(),
+    };
+  })
+);
+
+$_RETURN_DATA_ = {
+  total: items.length,
+  concurrency: 5,
+  responses,
+};
+```
+
 **Response Contract**:
 -   Assign the payload to `$_RETURN_DATA_`.
 -   Optionally assign a `Map` to `$_CUSTOM_HEADERS_`.

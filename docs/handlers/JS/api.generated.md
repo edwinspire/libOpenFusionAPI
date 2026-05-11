@@ -9,6 +9,10 @@
 - [\$_RETURN_DATA_](#_return_data_)
 - [OpenAI](#openai)
 - [PromiseSequence](#promisesequence)
+- [askAIWithTools](#askaiwithtools)
+- [askIAWithMCP](#askiawithmcp)
+- [askIAWithProviderMCP](#askiawithprovidermcp)
+- [createAIProviderMCPClient](#createaiprovidermcpclient)
 - [createImageFromHTML](#createimagefromhtml)
 - [createPDFFromHTML](#createpdffromhtml)
 - [crypto](#crypto)
@@ -16,6 +20,7 @@
 - [forge](#forge)
 - [json_to_xlsx_buffer](#json_to_xlsx_buffer)
 - [jwt](#jwt)
+- [listMcpTools](#listmcptools)
 - [luxon](#luxon)
 - [mongoose](#mongoose)
 - [nodemailer](#nodemailer)
@@ -25,6 +30,7 @@
 - [request](#request)
 - [request_xlsx_body_to_json](#request_xlsx_body_to_json)
 - [sequelize](#sequelize)
+- [sequentialPromises](#sequentialpromises)
 - [uFetch](#ufetch)
 - [uFetchAutoEnv](#ufetchautoenv)
 - [uuid](#uuid)
@@ -147,7 +153,7 @@ Official OpenAI SDK for calling language, reasoning, and multimodal models from 
 ```javascript
 
 const client = new OpenAI({
-  apiKey: $_APP_VARS_['$_VAR_OPENAI_API_KEY'],
+  apiKey: endpointEnv.OPENAI_API_KEY,
 });
 
 const response = await client.responses.create({
@@ -195,6 +201,464 @@ const batchSize = 2;
 
 const result = await PromiseSequence.ByItems(processBlock, batchSize, data);
 $_RETURN_DATA_ = result;
+      
+```
+
+---
+
+### `askAIWithTools(options.provider, [options.provider.provider|modelProvider|name|vendor], options.provider.model, [options.provider.baseUrl|baseURL], [options.provider.apiKey|api_key], [options.provider.azureApiKey|azure_api_key], [options.provider.apiVersion|api_version|api-version], [options.provider.clientName], [options.provider.clientVersion], [options.provider.defaultQuery|default_query], [options.provider.headers], [options.provider.temperature], [options.provider.maxTokens|max_tokens], [options.provider.toolChoice|tool_choice], [options.provider.timeout], [options.provider.responseTimeout|responseTimeoutMs|runTimeout], options.prompts, [options.mcpServers], [options.mcpServers[].name], options.mcpServers[].url, [options.mcpServers[].headers], [options.mcpServers[].timeout], [options.mcpServers[].transportPriority], [options.maxToolRounds], [options.includeDiagnostics], [options.signal])`
+
+[External Documentation](https://github.com/edwinspire/libOpenFusionAPI) 
+
+Generic AI helper that accepts a provider configuration, connects to the selected AI service, and optionally enables MCP tools from one or more MCP servers during the conversation.
+
+**Notes**
+
+- This helper is the recommended entry point for new JS endpoints that must be configurable across multiple AI providers.
+- `askIAWithProviderMCP` is the equally capable provider-first alias when you want the function name itself to emphasize MCP-enabled provider execution.
+- The minimum valid call is `provider.model + prompts`. In practice, most remote providers also need an API key.
+- Built-in provider presets currently available in this repo are: `openai`, `openai-compatible`, `azure-openai` (alias `azure`), `ollama`, `anthropic` (alias `claude`), and `google-gemini` (aliases `google` and `gemini`).
+- `openai` and `openai-compatible` use the OpenAI Chat Completions shape. Use `openai-compatible` when routing to a custom compatible base URL.
+- Azure OpenAI uses the SDK Azure client path internally, including `api-version` handling and deployment-aware routes.
+- Local Ollama can be called without a real API key because the helper injects a placeholder key when a base URL is present and no key is provided.
+- Native Anthropic support is available through the `anthropic` or `claude` provider preset and requires an Anthropic API key plus a valid Anthropic model name.
+- Native Google support is available through the `google`, `gemini`, or `google-gemini` provider preset and requires a Google GenAI API key or Vertex AI settings. If `model` is omitted there, the helper defaults to `gemini-2.5-flash`.
+- `timeout` controls the provider client's HTTP timeout. `responseTimeout` or `runTimeout` can also be set when you want a hard deadline for the overall AI response wait.
+- If you pass MCP servers, the helper will prepend a system instruction that explains the available tools and their mutating vs read-only intent.
+- MCP tools are exposed to the model as OpenAI function tools. The helper connects, lists tools, executes tool calls, and continues the conversation until it reaches a final answer or the round limit.
+
+**Agent Guidance**
+
+- Prefer this helper over askIAWithMCP for new work because it is provider-agnostic and easier to parameterize from request bodies or App Vars.
+- Use askIAWithProviderMCP when you want the function name to make it obvious that both the provider and MCP servers are first-class inputs.
+- Always provide `provider.model`. Also provide `provider.provider` when you want a known preset to resolve base URL and behavior automatically.
+- For plain OpenAI, use `provider: 'openai'` with `apiKey` and optionally override `baseUrl` when you are not using the default OpenAI endpoint.
+- For custom OpenAI-compatible gateways or self-hosted providers, use `provider: 'openai-compatible'` and set `baseUrl`.
+- For Azure OpenAI, provide `provider: 'azure-openai'`, the deployment name in `model`, the Azure OpenAI base URL, and `apiVersion`.
+- For Ollama, provide `provider: 'ollama'`, a local model name, and optionally a custom `baseUrl` if it is not running on the default host.
+- For Anthropic, provide `provider: 'anthropic'` or `provider: 'claude'`, plus `apiKey` and a native Anthropic model name such as `claude-3-7-sonnet-latest`.
+- For Google Gemini, provide `provider: 'google'`, `provider: 'gemini'`, or `provider: 'google-gemini'`, plus `apiKey` and a Gemini model such as `gemini-2.5-flash`.
+- Use the preset aliases intentionally: `azure` resolves to `azure-openai`, `claude` resolves to `anthropic`, and `google` or `gemini` resolve to `google-gemini`.
+- If MCP capabilities are unknown, call listMcpTools first and only then call askAIWithTools with the selected servers.
+- Store provider defaults and API keys in Application Variables whenever possible instead of hardcoding them into endpoint code.
+- When generating endpoint code, prefer one canonical request body shape and document it explicitly in the endpoint JSON schema.
+- If the task is informational, provide only read-only MCP servers or read-only tools when possible.
+
+*   `options.provider` <object> Provider configuration. Must include at least `model`. Built-in presets currently available in this repo are `openai`, `openai-compatible`, `azure-openai`, `ollama`, `anthropic`, `claude`, `google`, `gemini`, and `google-gemini`.
+*   `options.provider.provider|modelProvider|name|vendor` <string> **Optional**. Provider preset selector. Supported values are `openai`, `openai-compatible`, `azure-openai`, `azure`, `ollama`, `anthropic`, `claude`, `google`, `gemini`, and `google-gemini`. If omitted, the helper assumes `openai-compatible`.
+*   `options.provider.model` <string> Exact model or deployment name to invoke. This field is always required. For Azure OpenAI, pass the deployment name here.
+*   `options.provider.baseUrl|baseURL` <string> **Optional**. Optional provider base URL override. If omitted, the helper uses the preset default when available. Use this when routing through a gateway or a custom OpenAI-compatible endpoint.
+*   `options.provider.apiKey|api_key` <string> **Optional**. Provider API key for OpenAI-compatible providers. Required unless the selected provider is local and works with a placeholder key, such as Ollama.
+*   `options.provider.azureApiKey|azure_api_key` <string> **Optional**. Azure OpenAI API key when using the Azure provider preset.
+*   `options.provider.apiVersion|api_version|api-version` <string> **Optional**. Azure OpenAI API version. This is recommended when the provider is Azure OpenAI.
+*   `options.provider.clientName` <string> **Optional**. Optional MCP client name used while connecting to MCP servers.
+*   `options.provider.clientVersion` <string> **Optional**. Optional MCP client version used while connecting to MCP servers.
+*   `options.provider.defaultQuery|default_query` <object> **Optional**. Optional default query parameters passed to the AI provider client.
+*   `options.provider.headers` <object> **Optional**. Optional extra HTTP headers sent to the AI provider.
+*   `options.provider.temperature` <number> **Optional**. Sampling temperature sent to the provider.
+*   `options.provider.maxTokens|max_tokens` <integer> **Optional**. Maximum output tokens for the completion.
+*   `options.provider.toolChoice|tool_choice` <string|object> **Optional**. Optional tool selection policy passed to the provider when MCP tools are available.
+*   `options.provider.timeout` <integer> **Optional**. Default: `60000`. HTTP timeout in milliseconds for provider requests.
+*   `options.provider.responseTimeout|responseTimeoutMs|runTimeout` <integer> **Optional**. Optional overall wait timeout in milliseconds for the AI response cycle. Unlike `timeout`, this aborts the helper run even if the provider SDK itself does not stop promptly.
+*   `options.prompts` <string|array> Prompt input. Accepts a string, an array of strings, or an array of structured chat messages like `{ role, content }`.
+*   `options.mcpServers` <array<object>> **Optional**. Default: ``. Optional MCP server definitions. Each item can include `name`, `url`, `headers`, `timeout`, and `transportPriority`.
+*   `options.mcpServers[].name` <string> **Optional**. Friendly MCP server name used in diagnostics and generated tool aliases.
+*   `options.mcpServers[].url` <string> HTTP endpoint of the MCP server. Required for each server entry.
+*   `options.mcpServers[].headers` <object> **Optional**. Optional headers for authenticating against the MCP server.
+*   `options.mcpServers[].timeout` <integer> **Optional**. Optional timeout in milliseconds for fallback RPC requests.
+*   `options.mcpServers[].transportPriority` <array<string>> **Optional**. Optional ordered list of transport strategies, typically `['streamable-http', 'legacy-sse-http']`.
+*   `options.maxToolRounds` <integer> **Optional**. Default: `6`. Maximum number of tool-execution rounds before forcing a final answer.
+*   `options.includeDiagnostics` <boolean> **Optional**. When true, returns execution metadata including tool calls, messages, and resolved MCP server info.
+*   `options.signal` <AbortSignal> **Optional**. Optional AbortSignal used to cancel the provider request.
+
+*   Returns: <string|object> Returns the assistant text by default. When `includeDiagnostics` is true, returns an object with `text`, `provider`, `model`, `messages`, `tools`, `toolExecutions`, and `mcpServers`.
+
+#### Example
+
+```javascript
+
+const body = request.body || {};
+
+// Canonical request body shape:
+// {
+//   provider: {
+//     provider: 'openai-compatible',
+//     model: 'gpt-4o-mini',
+//     apiKey: '...optional if preset is local...',
+//     baseUrl: '...optional override...',
+//     temperature: 0.1,
+//     timeout: 1800000,
+//     responseTimeout: 120000
+//   },
+//   mcpServers: [{ name, url, headers?, timeout?, transportPriority? }],
+//   prompts: [{ role, content }],
+//   includeDiagnostics: true,
+//   maxToolRounds: 6
+// }
+
+if (!body.provider?.model) {
+  $_EXCEPTION_('The request body must include provider.model.', { body }, 400);
+}
+
+if (!(body.prompts ?? body.prompt ?? body.messages)) {
+  $_EXCEPTION_('The request body must include prompts, prompt, or messages.', { body }, 400);
+}
+
+const result = await askAIWithTools({
+  provider: {
+    provider: body.provider?.provider ?? 'openai-compatible',
+    model: body.provider?.model ?? 'gpt-4o-mini',
+    apiKey: body.provider?.apiKey ?? $_APP_VARS_['$_VAR_AI_API_KEY'],
+    baseUrl: body.provider?.baseUrl,
+    temperature: body.provider?.temperature ?? 0.1,
+    timeout: body.provider?.timeout ?? 1800000,
+    responseTimeout: body.provider?.responseTimeout ?? body.provider?.responseTimeoutMs ?? body.provider?.runTimeout ?? 120000,
+  },
+  mcpServers: Array.isArray(body.mcpServers) ? body.mcpServers : [],
+  prompts: body.prompts ?? body.prompt ?? body.messages,
+  includeDiagnostics: body.includeDiagnostics ?? true,
+  maxToolRounds: body.maxToolRounds ?? 6,
+});
+
+$_RETURN_DATA_ = result;
+
+// Azure OpenAI example
+const azureResult = await askAIWithTools({
+  provider: {
+    provider: 'azure-openai',
+    model: 'gpt-4o-mini',
+    baseUrl: 'https://your-resource.cognitiveservices.azure.com/openai',
+    apiVersion: '2025-01-01-preview',
+    azureApiKey: $_APP_VARS_['$_VAR_AZURE_OPENAI_API_KEY'],
+  },
+  prompts: [{ role: 'user', content: 'Hola' }],
+});
+
+// Native OpenAI example
+const openAIResult = await askAIWithTools({
+  provider: {
+    provider: 'openai',
+    model: 'gpt-4o-mini',
+    apiKey: $_APP_VARS_['$_VAR_OPENAI_API_KEY'],
+    responseTimeout: 120000,
+  },
+  prompts: [{ role: 'user', content: 'Hola desde OpenAI' }],
+});
+
+// Ollama example
+const ollamaResult = await askAIWithTools({
+  provider: {
+    provider: 'ollama',
+    model: 'qwen2.5-coder:1.5b',
+    baseUrl: 'http://localhost:11434',
+    temperature: 0.1,
+    timeout: 1800000,
+    responseTimeout: 120000,
+  },
+  prompts: [{ role: 'user', content: 'Hola desde Ollama' }],
+});
+
+// Native Anthropic example
+const claudeResult = await askAIWithTools({
+  provider: {
+    provider: 'claude',
+    model: 'claude-3-7-sonnet-latest',
+    apiKey: $_APP_VARS_['$_VAR_ANTHROPIC_API_KEY'],
+    responseTimeout: 120000,
+  },
+  prompts: [{ role: 'user', content: 'Hola desde Claude nativo' }],
+});
+
+// Google Gemini example
+const geminiResult = await askAIWithTools({
+  provider: {
+    provider: 'gemini',
+    model: 'gemini-2.5-flash',
+    apiKey: $_APP_VARS_['$_VAR_GOOGLE_GENAI_API_KEY'],
+    responseTimeout: 120000,
+  },
+  prompts: [{ role: 'user', content: 'Hola desde Gemini' }],
+});
+      
+```
+
+---
+
+### `askIAWithMCP(options.ai, [options.ai.modelProvider], options.ai.model, [options.ai.baseUrl|baseURL], [options.ai.apiKey|api_key], [options.ai.azureApiKey|azure_api_key], [options.ai.apiVersion|api_version|api-version], [options.ai.defaultQuery|default_query], [options.ai.temperature], [options.ai.maxTokens|max_tokens], [options.ai.toolChoice|tool_choice], [options.ai.headers], [options.ai.organization], [options.ai.project], [options.ai.timeout], [options.ai.responseTimeout|responseTimeoutMs|runTimeout], options.prompts, [options.mcpServers], [options.mcpServers[].name], options.mcpServers[].url, [options.mcpServers[].headers], [options.mcpServers[].timeout], [options.mcpServers[].transportPriority], [options.maxToolRounds], [options.includeDiagnostics], [options.signal])`
+
+[External Documentation](https://github.com/edwinspire/libOpenFusionAPI) 
+
+Legacy compatibility wrapper over askAIWithTools. It accepts `options.ai` instead of `options.provider`, then runs a chat completion and can connect the model to MCP servers so it can discover and invoke tools during the conversation.
+
+**Notes**
+
+- This helper is intended to be called from the JS handler. It is no longer tied to a dedicated handler.
+- For new work, prefer askAIWithTools. This wrapper exists so older endpoints that already pass `ai` continue working without code changes.
+- `askIAWithProviderMCP` is the clearer modern name when you want a provider-first function signature without the legacy `ai` wrapper field.
+- The wrapper maps `options.ai` to the new generic `options.provider` contract internally.
+- Built-in provider presets currently available in this repo are: `openai`, `openai-compatible`, `azure-openai` (alias `azure`), `ollama`, `anthropic` (alias `claude`), and `google-gemini` (aliases `google` and `gemini`).
+- For local Ollama, a common config is `{ modelProvider: 'ollama', model: 'qwen2.5-coder:1.5b', baseUrl: 'http://localhost:11434', temperature: 0.1, timeout: 1800000, responseTimeout: 120000 }`.
+- For Azure OpenAI, set `modelProvider: 'azure-openai'`, use the Azure OpenAI base URL, and provide `apiVersion` or `defaultQuery: { 'api-version': '...' }`.
+- If `baseUrl` is present and `apiKey` is omitted, the helper injects a placeholder key so local OpenAI-compatible servers can still be called.
+- Native Anthropic support is available through the `anthropic` or `claude` provider preset and requires an Anthropic API key plus a valid Anthropic model name.
+- Native Google support is available through the `google`, `gemini`, or `google-gemini` provider preset and requires a Google GenAI API key or Vertex AI settings. If `model` is omitted there, the helper defaults to `gemini-2.5-flash`.
+- `timeout` controls the provider client's HTTP timeout. `responseTimeout` or `runTimeout` can also be set when you want a hard deadline for the overall AI response wait.
+- MCP tools are exposed to the model as OpenAI function tools. The helper will connect, list tools, execute tool calls, and continue the conversation until it reaches a final answer or the round limit.
+- Prompt roles should normally be `system`, `user`, `assistant`, and the helper itself manages `tool` messages internally during tool rounds.
+- For GET endpoints, prompt arrays usually arrive as a JSON string in `request.query.prompts`, so parse them before calling this helper.
+- When the output looks inconsistent, enable `includeDiagnostics` and inspect `messages`, `tools`, and `toolExecutions` before assuming hidden state.
+
+**Agent Guidance**
+
+- Use this only when you must preserve the old `ai` field shape. Otherwise use askAIWithTools.
+- If you are generating new handler code from scratch, prefer askIAWithProviderMCP or askAIWithTools instead of this legacy wrapper.
+- Use this helper when the endpoint needs an AI response and may need tool access through one or more MCP servers.
+- For plain OpenAI, use `modelProvider: 'openai'` with `apiKey` and an OpenAI model such as `gpt-4o-mini`.
+- For custom OpenAI-compatible gateways, use `modelProvider: 'openai-compatible'` and set `baseUrl` explicitly.
+- For Azure OpenAI, use `modelProvider: 'azure-openai'` or `azure`, set the deployment name in `model`, and provide `baseUrl` plus `apiVersion`.
+- For Ollama, use `modelProvider: 'ollama'`, a local model name, and optionally a custom `baseUrl` if it is not running on the default host.
+- For Anthropic, use `modelProvider: 'anthropic'` or `claude`, plus `apiKey` and a native Anthropic model name such as `claude-3-7-sonnet-latest`.
+- For Google Gemini, use `modelProvider: 'google'`, `gemini`, or `google-gemini`, plus `apiKey` and a Gemini model such as `gemini-2.5-flash`.
+- Use aliases intentionally: `azure` resolves to `azure-openai`, `claude` resolves to `anthropic`, and `google` or `gemini` resolve to `google-gemini`.
+- Prefer passing prompts as structured messages when system or multi-turn context matters.
+- If MCP capabilities are unknown, call `listMcpTools` first and only then call `askIAWithMCP` with the chosen servers.
+- For JS endpoints that rely on Application Variables, prefer `$_APP_VARS_['$_VAR_NAME']` in generated code because it is explicit and avoids scope-name ambiguity.
+- If the task is informational, provide only read-only MCP servers or read-only tools when possible.
+
+*   `options.ai` <object> AI provider configuration. Must include at least `model`. Built-in presets currently available in this repo are `openai`, `openai-compatible`, `azure-openai`, `ollama`, `anthropic`, `claude`, `google`, `gemini`, and `google-gemini`.
+*   `options.ai.modelProvider` <string> **Optional**. Provider preset selector. Supported values are `openai`, `openai-compatible`, `azure-openai`, `azure`, `ollama`, `anthropic`, `claude`, `google`, `gemini`, and `google-gemini`.
+*   `options.ai.model` <string> Exact model name to invoke. This field is required.
+*   `options.ai.baseUrl|baseURL` <string> **Optional**. Optional OpenAI-compatible base URL. Example: `http://localhost:11434` for Ollama. For Azure OpenAI, use the Azure resource OpenAI path such as `https://your-resource.openai.azure.com/openai` or the matching `cognitiveservices.azure.com/openai` endpoint.
+*   `options.ai.apiKey|api_key` <string> **Optional**. Provider API key when required. If omitted and `baseUrl` is present, the helper uses a placeholder key for local OpenAI-compatible servers.
+*   `options.ai.azureApiKey|azure_api_key` <string> **Optional**. Optional Azure OpenAI API key. When present, the helper also injects it into the `api-key` header expected by Azure OpenAI.
+*   `options.ai.apiVersion|api_version|api-version` <string> **Optional**. Optional Azure OpenAI API version. When provided, the helper sends it as `defaultQuery['api-version']`.
+*   `options.ai.defaultQuery|default_query` <object> **Optional**. Optional default query parameters passed to the AI provider HTTP client. This is especially useful for Azure OpenAI preview versions.
+*   `options.ai.temperature` <number> **Optional**. Sampling temperature sent to the provider.
+*   `options.ai.maxTokens|max_tokens` <integer> **Optional**. Maximum output tokens for the completion.
+*   `options.ai.toolChoice|tool_choice` <string|object> **Optional**. Optional tool selection policy passed to the provider when MCP tools are available.
+*   `options.ai.headers` <object> **Optional**. Optional extra HTTP headers sent to the AI provider.
+*   `options.ai.organization` <string> **Optional**. Optional provider organization identifier.
+*   `options.ai.project` <string> **Optional**. Optional provider project identifier.
+*   `options.ai.timeout` <integer> **Optional**. Default: `60000`. HTTP timeout in milliseconds for provider requests.
+*   `options.ai.responseTimeout|responseTimeoutMs|runTimeout` <integer> **Optional**. Optional overall wait timeout in milliseconds for the AI response cycle. Unlike `timeout`, this aborts the helper run even if the provider SDK itself does not stop promptly.
+*   `options.prompts` <string|array> Prompt input. Accepts a string, an array of strings, or an array of chat messages like `{ role, content }`. Structured messages are preferred when system instructions or multi-turn context matter.
+*   `options.mcpServers` <array<object>> **Optional**. Default: ``. Optional MCP server definitions. Each item can include `name`, `url`, `headers`, `timeout`, and `transportPriority`.
+*   `options.mcpServers[].name` <string> **Optional**. Friendly MCP server name used in diagnostics and tool aliases.
+*   `options.mcpServers[].url` <string> HTTP endpoint of the MCP server. Required for each server entry.
+*   `options.mcpServers[].headers` <object> **Optional**. Optional headers for authenticating against the MCP server.
+*   `options.mcpServers[].timeout` <integer> **Optional**. Optional timeout in milliseconds for fallback RPC requests.
+*   `options.mcpServers[].transportPriority` <array<string>> **Optional**. Optional ordered list of transport strategies, typically `['streamable-http', 'legacy-sse-http']`.
+*   `options.maxToolRounds` <integer> **Optional**. Default: `6`. Maximum number of tool-execution rounds before forcing a final answer.
+*   `options.includeDiagnostics` <boolean> **Optional**. When true, returns execution metadata including tool calls, messages, and resolved MCP server info.
+*   `options.signal` <AbortSignal> **Optional**. Optional AbortSignal used to cancel the provider request.
+
+*   Returns: <string|object> Returns the assistant text by default. When `includeDiagnostics` is true, returns an object with `text`, `provider`, `model`, `messages`, `tools`, `toolExecutions`, and `mcpServers`.
+
+#### Example
+
+```javascript
+
+const result = await askIAWithMCP({
+  ai: {
+    modelProvider: 'ollama',
+    model: 'qwen2.5-coder:1.5b',
+    baseUrl: 'http://localhost:11434',
+    temperature: 0.1,
+    timeout: 1800000,
+    responseTimeout: 120000,
+  },
+  mcpServers: [
+    {
+      name: 'openfusion_system_remote_prd',
+      url: 'https://example.com/api/system/mcp/server/prd',
+    },
+  ],
+  prompts: [
+    {
+      role: 'user',
+      content: 'List the available applications using MCP tools if needed.',
+    },
+  ],
+  includeDiagnostics: true,
+});
+
+$_RETURN_DATA_ = result;
+// Azure OpenAI example
+const result = await askIAWithMCP({
+  ai: {
+    modelProvider: 'azure-openai',
+    model: 'gpt-4o-mini',
+    baseUrl: 'https://diegomperezcentralus-resource.cognitiveservices.azure.com/openai',
+    apiVersion: '2025-01-01-preview',
+    azureApiKey: $_APP_VARS_['$_VAR_AZURE_OPENAI_API_KEY'],
+    timeout: 1800000,
+    responseTimeout: 120000,
+  },
+  prompts: [
+    {
+      role: 'user',
+      content: 'Hola',
+    },
+  ],
+});
+
+$_RETURN_DATA_ = result;
+
+// Native Anthropic example
+const anthropicResult = await askIAWithMCP({
+  ai: {
+    modelProvider: 'anthropic',
+    model: 'claude-3-7-sonnet-latest',
+    apiKey: $_APP_VARS_['$_VAR_ANTHROPIC_API_KEY'],
+    responseTimeout: 120000,
+  },
+  prompts: [{ role: 'user', content: 'Hola desde Anthropic' }],
+});
+
+$_RETURN_DATA_ = anthropicResult;
+
+// Google Gemini example
+const geminiResult = await askIAWithMCP({
+  ai: {
+    modelProvider: 'gemini',
+    model: 'gemini-2.5-flash',
+    apiKey: $_APP_VARS_['$_VAR_GOOGLE_GENAI_API_KEY'],
+    responseTimeout: 120000,
+  },
+  prompts: [{ role: 'user', content: 'Hola desde Gemini' }],
+});
+
+$_RETURN_DATA_ = geminiResult;
+      
+```
+
+---
+
+### `askIAWithProviderMCP(options.provider, [options.provider.provider|modelProvider|name|vendor], options.provider.model, [options.provider.baseUrl|baseURL], [options.provider.apiKey|api_key], [options.provider.azureApiKey|azure_api_key], [options.provider.apiVersion|api_version|api-version], [options.provider.temperature], [options.provider.maxTokens|max_tokens], [options.provider.toolChoice|tool_choice], [options.provider.timeout], [options.provider.responseTimeout|responseTimeoutMs|runTimeout], options.prompts, [options.mcpServers], [options.maxToolRounds], [options.includeDiagnostics], [options.signal])`
+
+[External Documentation](https://github.com/edwinspire/libOpenFusionAPI) 
+
+Primary provider-first AI helper for JS handlers. It accepts `options.provider`, can connect to one or more MCP servers, exposes those tools to the model, executes tool calls, and returns either the final text or rich diagnostics.
+
+**Notes**
+
+- This is the canonical provider-first helper in `ia.js`. Use it when you want the function name itself to make the provider+MCP contract explicit.
+- It shares the same runtime behavior as `askAIWithTools`; the difference is naming and intent clarity, not capability.
+- If you do not need MCP, you can still call this helper with only `provider + prompts`.
+- If you do need MCP, pass `mcpServers` and the helper will discover tools, expose them to the model, execute them, and continue until the model returns a final answer or the round limit is reached.
+- Use `includeDiagnostics` when you need to inspect `toolExecutions` or message flow before changing prompts or provider settings.
+- Use `responseTimeout` or `runTimeout` when you need a hard deadline for the overall AI wait, especially with slower local or remote providers.
+
+**Agent Guidance**
+
+- Prefer this helper when you are writing new JS handler code and want the name to communicate clearly that both the provider and MCP servers are configurable inputs.
+- Use `askAIWithTools` interchangeably only when brevity matters. Treat both functions as the same runtime capability.
+- Use `askIAWithMCP` only when you must preserve legacy payloads that already send `ai` instead of `provider`.
+- If the provider is unknown or controlled by request/App Vars, this helper is usually the clearest option for generated endpoint code.
+- If MCP capabilities are unknown, call `listMcpTools` first and then call this helper with the selected MCP servers.
+- If the task is informational, prefer read-only MCP servers or read-only tools and keep `maxToolRounds` low unless the workflow genuinely needs multiple tool steps.
+
+*   `options.provider` <object> Provider configuration. Must include at least `model`. Built-in presets currently available in this repo are `openai`, `openai-compatible`, `azure-openai`, `ollama`, `anthropic`, `claude`, `google`, `gemini`, and `google-gemini`.
+*   `options.provider.provider|modelProvider|name|vendor` <string> **Optional**. Provider preset selector. Supported values are `openai`, `openai-compatible`, `azure-openai`, `azure`, `ollama`, `anthropic`, `claude`, `google`, `gemini`, and `google-gemini`. If omitted, the helper assumes `openai-compatible`.
+*   `options.provider.model` <string> Exact model or deployment name to invoke. This field is always required. For Azure OpenAI, pass the deployment name here.
+*   `options.provider.baseUrl|baseURL` <string> **Optional**. Optional provider base URL override. Use this for custom OpenAI-compatible hosts, Ollama, or Azure OpenAI resource paths.
+*   `options.provider.apiKey|api_key` <string> **Optional**. Provider API key for OpenAI-compatible or native providers when required. Local Ollama can work without a real key when `baseUrl` is set.
+*   `options.provider.azureApiKey|azure_api_key` <string> **Optional**. Azure OpenAI API key when using the Azure provider preset.
+*   `options.provider.apiVersion|api_version|api-version` <string> **Optional**. Azure OpenAI API version. Recommended whenever the provider is Azure OpenAI.
+*   `options.provider.temperature` <number> **Optional**. Sampling temperature sent to the provider.
+*   `options.provider.maxTokens|max_tokens` <integer> **Optional**. Maximum output tokens for the completion.
+*   `options.provider.toolChoice|tool_choice` <string|object> **Optional**. Optional tool selection policy passed to the provider when MCP tools are available.
+*   `options.provider.timeout` <integer> **Optional**. Default: `60000`. HTTP timeout in milliseconds for provider requests.
+*   `options.provider.responseTimeout|responseTimeoutMs|runTimeout` <integer> **Optional**. Optional overall wait timeout in milliseconds for the AI response cycle. Unlike `timeout`, this aborts the helper run even if the provider SDK itself does not stop promptly.
+*   `options.prompts` <string|array> Prompt input. Accepts a string, an array of strings, or an array of structured chat messages like `{ role, content }`.
+*   `options.mcpServers` <array<object>> **Optional**. Default: ``. Optional MCP server definitions. Each item can include `name`, `url`, `headers`, `timeout`, and `transportPriority`.
+*   `options.maxToolRounds` <integer> **Optional**. Default: `6`. Maximum number of tool-execution rounds before forcing a final answer.
+*   `options.includeDiagnostics` <boolean> **Optional**. When true, returns execution metadata including tool calls, messages, and resolved MCP server info.
+*   `options.signal` <AbortSignal> **Optional**. Optional AbortSignal used to cancel the provider request.
+
+*   Returns: <string|object> Returns the assistant text by default. When `includeDiagnostics` is true, returns an object with `text`, `provider`, `model`, `messages`, `toolExecutions`, and `mcpServers`.
+
+#### Example
+
+```javascript
+
+const result = await askIAWithProviderMCP({
+  provider: {
+    provider: 'azure-openai',
+    model: 'gpt-4o-mini',
+    baseUrl: 'https://your-resource.cognitiveservices.azure.com/openai',
+    apiVersion: '2025-01-01-preview',
+    azureApiKey: $_APP_VARS_['$_VAR_AZURE_OPENAI_API_KEY'],
+    responseTimeout: 120000,
+  },
+  mcpServers: [
+    {
+      name: 'exa',
+      url: 'https://mcp.exa.ai/mcp',
+    },
+  ],
+  prompts: [
+    {
+      role: 'user',
+      content: 'Use MCP if needed and answer with the official Exa MCP page title only.',
+    },
+  ],
+  includeDiagnostics: true,
+  maxToolRounds: 4,
+});
+
+$_RETURN_DATA_ = result;
+      
+```
+
+---
+
+### `createAIProviderMCPClient(options.provider, [options.mcpServers])`
+
+[External Documentation](https://github.com/edwinspire/libOpenFusionAPI) 
+
+Low-level MCP-aware AI client factory. Use this when you need explicit connect/list/run/close control instead of a single helper call.
+
+**Notes**
+
+- This is for advanced handler logic such as custom retries, preflight tool inspection, or manual MCP fallback execution.
+- Always close the client in a finally block to release MCP transports cleanly.
+
+**Agent Guidance**
+
+- Prefer askIAWithProviderMCP for normal one-shot AI+MCP calls.
+- Use this client only when the handler must inspect tool catalogs, retry with custom logic, or execute a fallback flow after a model fails to use tools correctly.
+
+*   `options.provider` <object> Provider configuration with the same shape accepted by askIAWithProviderMCP.
+*   `options.mcpServers` <array<object>> **Optional**. Default: ``. MCP server list to connect before running or listing tools.
+
+*   Returns: <AIProviderMCPClient> Client instance with connect(), listTools(), run(), close(), and runtime access for advanced flows.
+
+#### Example
+
+```javascript
+
+const client = createAIProviderMCPClient({
+  provider: {
+    provider: 'ollama',
+    model: 'qwen2.5-coder:1.5b',
+    baseUrl: 'http://localhost:11434',
+  },
+  mcpServers: [{ name: 'exa', url: 'https://mcp.exa.ai/mcp' }],
+});
+
+try {
+  await client.connect();
+  const tools = await client.listTools();
+  const result = await client.run({
+    prompts: [{ role: 'user', content: 'Usa MCP si hace falta.' }],
+    includeDiagnostics: true,
+  });
+
+  $_RETURN_DATA_ = { tools, result };
+} finally {
+  await client.close();
+}
       
 ```
 
@@ -407,6 +871,41 @@ An implementation of JSON Web Tokens.
 
       const token = jwt.sign({ foo: 'bar' }, 'shhhhh');
       $_RETURN_DATA_ = token;
+      
+```
+
+---
+
+### `listMcpTools(options.mcpServers, [options.clientName], [options.clientVersion])`
+
+[External Documentation](https://github.com/edwinspire/libOpenFusionAPI) 
+
+Connects to one or more MCP servers and returns the discovered tools without running an AI conversation.
+
+**Notes**
+
+- Use this for diagnostics, capability discovery, or to verify that a remote MCP server exposes the expected tools before calling askIAWithMCP.
+
+*   `options.mcpServers` <array<object>> List of MCP server definitions to inspect.
+*   `options.clientName` <string> **Optional**. Optional MCP client name used during connection.
+*   `options.clientVersion` <string> **Optional**. Optional MCP client version used during connection.
+
+*   Returns: Array of MCP server descriptors with their resolved tool list.
+
+#### Example
+
+```javascript
+
+const tools = await listMcpTools({
+  mcpServers: [
+    {
+      name: 'openfusion_system_remote_prd',
+      url: 'https://example.com/api/system/mcp/server/prd',
+    },
+  ],
+});
+
+$_RETURN_DATA_ = tools;
       
 ```
 
@@ -684,60 +1183,176 @@ try {
 
 ---
 
-### `uFetch`
+### `sequentialPromises`
 
-[External Documentation](https://github.com/edwinspire/libOpenFusionAPI) 
+[External Documentation](https://github.com/edwinspire/sequential-promises) 
 
-HTTP client constructor for calling external or fully-qualified URLs.
+Legacy alias of PromiseSequence kept for backward compatibility.
 
 **Notes**
 
-- Use uFetch when the target URL is absolute or belongs to another system.
-- uFetch evolves frequently, so validate method names and request options against the official documentation or the installed version before publishing new examples or endpoint code.
-
-**Agent Guidance**
-
-- For internal OpenFusionAPI endpoints in the same instance, prefer uFetchAutoEnv instead of hardcoding dev/qa/prd URLs.
-- Do not assume older aliases such as uppercase GET or POST remain the preferred API; confirm the current library contract first.
-
-*   Returns: uFetch instance
+- Deprecated alias. Prefer PromiseSequence in new endpoint code.
 
 #### Example
 
 ```javascript
 
-const uF = new uFetch('https://jsonplaceholder.typicode.com/todos/1');
-const response = await uF.get();
-$_RETURN_DATA_ = await response.json();
+const result = await sequentialPromises.ByBlocks(async (item) => item, 2, [1, 2, 3, 4]);
+$_RETURN_DATA_ = result;
       
 ```
 
 ---
 
-### `uFetchAutoEnv`
+### `uFetch([constructor(url?, redirect_in_unauthorized?)], [request(url, method, data, headers, options)], [get|post|put|patch|delete({ url, data, headers, options })], [batch(items, config)])`
 
 [External Documentation](https://github.com/edwinspire/universal-fetch) 
 
-HTTP helper specialized for calling endpoints in the same OpenFusionAPI instance while preserving the current environment.
+Universal HTTP client for Node.js and browsers. Primary use is standard fetch-style requests (get/post/put/patch/delete); batch adds controlled parallel processing for large input sets.
 
 **Notes**
 
-- If the path ends in /auto or /env, the helper replaces that suffix with the current runtime environment.
-- Because this helper wraps universal-fetch, confirm the current upstream request API before relying on older snippets.
+- Use uFetch when the target URL is absolute or belongs to another system.
+- Primary workflow: use get/post/put/patch/delete for single requests or simple request chains.
+- Quick decision: one request => get/post/put/patch/delete.
+- Quick decision: list/lote of requests with controlled parallel workers => batch(items, { concurrency, ... }).
+- For GET or HEAD, data is serialized as query string. For non-GET methods, object data is serialized as JSON automatically.
+- Use batch() when you must process many calls from a list and split the workload into concurrent workers/blocks.
+- batch() returns per-item result objects and is designed to continue even if some items fail; always inspect isError per item.
+- batch() signature: batch(items, { concurrency, method, buildRequest, onProgress }).
+- Each batch result item has shape: { isError, httpCode, response?, error? }.
+- Authorization helpers persist at instance level. Create a fresh instance when different credentials must be isolated.
 
 **Agent Guidance**
 
-- Prefer relative internal URLs such as /api/myapp/resource/auto instead of hardcoded localhost URLs.
-- When editing seeded endpoints or documentation, keep method casing aligned with the installed universal-fetch version.
+- For internal OpenFusionAPI endpoints in the same instance, prefer uFetchAutoEnv instead of hardcoding dev/qa/prd URLs.
+- Start with get/post/put/patch/delete and switch to batch only when you have a collection of inputs to process concurrently.
+- If you need per-item fault tolerance and progress in a large workload, prefer batch over Promise.all.
+- Prefer method wrappers with opts object for readability: get/post/put/patch/delete({ url, data, headers, options }).
+- Use request(url, method, data, headers, options) only when method must be computed dynamically.
+- For bulk operations, prefer batch() over Promise.all to avoid failing the full operation due to a single request error.
+
+*   `constructor(url?, redirect_in_unauthorized?)` <function> **Optional**. Creates an instance with optional base URL for relative paths. In browser mode, redirect_in_unauthorized can redirect on 401.
+*   `request(url, method, data, headers, options)` <function> **Optional**. Low-level request method used by all wrappers.
+*   `get|post|put|patch|delete({ url, data, headers, options })` <function> **Optional**. Convenience wrappers for common HTTP methods.
+*   `batch(items, config)` <function> **Optional**. Parallel fail-safe processor. Uses config.buildRequest(item) to create each request and returns one result per item without failing the whole batch.
+
+*   Returns: <object> uFetch instance with request wrappers and auth helpers.
+
+    **Result Structure:**
+
+    *   `request` <function> Core request primitive.
+    *   `get|post|put|patch|delete` <function> HTTP method wrappers using opts object.
+    *   `batch` <function> Fail-safe batch execution with configurable concurrency.
+    *   `setBasicAuthorization` <function> Sets persistent Basic auth header for the instance.
+    *   `setBearerAuthorization` <function> Sets persistent Bearer auth header for the instance.
+    *   `abort` <function> Aborts active in-flight requests for this instance.
 
 #### Example
 
 ```javascript
 
-const uF = uFetchAutoEnv.auto('/api/datetime_app/sum-array/auto');
-const response = await uF.post({ data: { numbers: [4, 12, 9] } });
+const api = new uFetch('https://api.example.com');
 
-$_RETURN_DATA_ = await response.json();
+api.setBearerAuthorization(endpointEnv.API_TOKEN);
+
+const usersRes = await api.get({
+  url: '/users',
+  data: { role: 'admin', page: 1 },
+});
+
+const createRes = await api.post({
+  url: '/users',
+  data: { username: 'johndoe' },
+});
+
+const batchResults = await api.batch([
+  { username: 'a' },
+  { username: 'b' },
+  { username: 'c' },
+], {
+  concurrency: 5,
+  method: 'POST',
+  buildRequest: (item) => ({
+    url: '/users',
+    data: item,
+  }),
+});
+
+$_RETURN_DATA_ = {
+  users: await usersRes.json(),
+  created: await createRes.json(),
+  batch: batchResults.map((r) => ({
+    isError: r.isError,
+    httpCode: r.httpCode,
+    hasResponse: !!r.response,
+  })),
+};
+      
+```
+
+---
+
+### `uFetchAutoEnv([create(url, shouldApplyAuto = true)], [auto(url)])`
+
+[External Documentation](https://github.com/edwinspire/universal-fetch) 
+
+OpenFusionAPI helper that wraps uFetch for same-instance calls. Use it mainly with get/post/put/patch/delete and optionally with batch for parallelized internal fan-out. It resolves /auto or /env suffixes to the current runtime environment.
+
+**Notes**
+
+- For relative paths, this helper builds a full URL using current base URL and server port.
+- If the path contains /auto or /env suffix before query/hash, it is replaced by the current environment (dev, qa, prd).
+- Absolute URLs bypass environment replacement and are sent as-is.
+- Most endpoints should start with get/post/put/patch/delete; batch is for list-driven parallel calls with controlled concurrency.
+- Quick decision: if you need N calls to the same internal endpoint with a lote, use create('/api/.../auto') + batch(items, { concurrency, buildRequest }).
+- create()/auto() return a uFetch instance, so batch(items, config) is also available for internal fan-out calls.
+- Request trace header ofapi-trace-id is propagated automatically when available.
+
+**Agent Guidance**
+
+- Prefer relative internal URLs such as /api/myapp/resource/auto instead of hardcoded localhost URLs.
+- Use auto() for environment-agnostic internal calls and keep endpoint code portable across dev/qa/prd.
+- Use create(path, false) when you must preserve a literal path and avoid automatic /auto or /env replacement.
+- After obtaining the uFetch instance, use standard uFetch methods like get/post/put/patch/delete with opts object.
+
+*   `create(url, shouldApplyAuto = true)` <function> **Optional**. Creates a uFetch instance for the given URL/path. Relative paths are resolved against current server base URL and port.
+*   `auto(url)` <function> **Optional**. Shortcut for create(url, true).
+
+*   Returns: <object> URLAutoEnvironment instance exposing create() and auto() that return uFetch instances.
+
+    **Result Structure:**
+
+    *   `create` <function> Builds uFetch instance from relative/absolute URL with optional environment replacement.
+    *   `auto` <function> Always applies environment suffix replacement for /auto and /env.
+
+#### Example
+
+```javascript
+
+const sumFetch = uFetchAutoEnv.auto('/api/datetime_app/sum-array/auto');
+const sumResponse = await sumFetch.post({
+  data: { numbers: [4, 12, 9] },
+});
+
+const usersFetch = uFetchAutoEnv.create('/api/myapp/users/env?active=true#view');
+const usersResponse = await usersFetch.get();
+
+const soapFetch = uFetchAutoEnv.create('/api/demo/ofapi/soap/example01/auto');
+const items = Array.from({ length: 40 }, (_, i) => ({ dNum: i + 1 }));
+const batch = await soapFetch.batch(items, {
+  concurrency: 5,
+  method: 'GET',
+  buildRequest: (item) => ({
+    data: { dNum: item.dNum },
+  }),
+});
+
+$_RETURN_DATA_ = {
+  sum: await sumResponse.json(),
+  users: await usersResponse.json(),
+  batchSummary: batch.map((r) => ({ isError: r.isError, httpCode: r.httpCode })),
+};
       
 ```
 

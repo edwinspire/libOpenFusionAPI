@@ -28,9 +28,11 @@ export async function fnPublicAdd(params) {
   //console.log(params);
   try {
     let a =
-      Number(params.request.query.a) || Number(params.request.body.a) || 0;
+      Number(params.request.query.num_a) || Number(params.request.query.a) ||
+      Number(params.request.body?.num_a) || Number(params.request.body?.a) || 0;
     let b =
-      Number(params.request.query.b) || Number(params.request.body.b) || 0;
+      Number(params.request.query.num_b) || Number(params.request.query.b) ||
+      Number(params.request.body?.num_b) || Number(params.request.body?.b) || 0;
 
     // @ts-ignore
     params.reply.code(200).send({ result: a + b });

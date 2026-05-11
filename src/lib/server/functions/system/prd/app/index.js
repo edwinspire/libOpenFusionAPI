@@ -7,6 +7,7 @@ import {
   restoreAppFromBackup,
   getAppBackupById,
   checkSystemApp,
+  getApplicationTreeByFilters,
   getApplicationsTreeByFilters,
 } from "../../../../../db/app.js";
 import { generateDocumentation } from "../../../../doc_generator.js";

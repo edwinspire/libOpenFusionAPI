@@ -53,7 +53,16 @@ export const getRequestData = (request) => {
   }
 };
 
+let isServerListening = false;
+export const setServerListening = (val) => { isServerListening = val; };
+export const getServerListening = () => isServerListening;
+
 export async function emitHook(data) {
+  if (!isServerListening) {
+     // During bootstrap, we skip emitting hooks to the internal HTTP server
+     // because it's not yet listening. This prevents ECONNREFUSED noise.
+     return { error: "Server not ready" };
+  }
 
   try {
     const fnUrlae = new URLAutoEnvironment({ environment: "prd", port: PORT });
@@ -63,10 +72,14 @@ export async function emitHook(data) {
     let resp = await r.json();
     return resp;
   } catch (error) {
-    console.error(error);
+    if (error.code === 'ECONNREFUSED' || error.cause?.code === 'ECONNREFUSED') {
+       // Just in case it slips through or is calling an external server
+       // console.warn(`[emitHook] Connection refused to ${internal_url_post_hooks}.`);
+    } else {
+       console.error("Error in emitHook:", error);
+    }
     return { error: "Error validating webhook data", data: error };
   }
-
 }
 
 export const getUUID = () => {

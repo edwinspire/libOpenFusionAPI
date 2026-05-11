@@ -105,3 +105,98 @@ export const replyException = (request, reply, error) => {
   reply.code(statusCode).send({ error: message, trace_id });
   return;
 };
+
+/**
+ * Resolve AppVar placeholders (e.g., $_VAR_SQLITE) to their actual values.
+ * Supports placeholders in custom_data or code fields.
+ * 
+ * @param {string|object} value - The value that may contain an AppVar placeholder
+ * @param {object} app_vars - The app_vars object from endpoint context (keyed by environment)
+ * @param {string} environment - Current environment (dev, qa, prd)
+ * @returns {string|object} - Resolved value if placeholder found, otherwise original value
+ */
+export const resolveAppVar = (value, app_vars, environment = 'dev') => {
+  if (!value || typeof value !== 'string') {
+    return value;
+  }
+
+  const raw = value.trim();
+  const normalizedKey =
+    (raw.startsWith('"') && raw.endsWith('"')) ||
+    (raw.startsWith("'") && raw.endsWith("'"))
+      ? raw.slice(1, -1)
+      : raw;
+
+  const normalizeResolved = (resolved) => {
+    if (typeof resolved !== "string") {
+      return resolved;
+    }
+
+    const trimmed = resolved.trim();
+
+    if (
+      (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+      (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+      (trimmed.startsWith('"') && trimmed.endsWith('"'))
+    ) {
+      try {
+        return JSON.parse(trimmed);
+      } catch (error) {
+        return resolved;
+      }
+    }
+
+    return resolved;
+  };
+
+  const findAppVarValue = (name) => {
+    if (!app_vars) {
+      return undefined;
+    }
+
+    // Shape 1: { dev: { '$_VAR_NAME': value } }
+    if (app_vars?.[environment] && typeof app_vars[environment] === "object") {
+      const envValue = app_vars[environment][name];
+      if (envValue !== undefined) {
+        return envValue;
+      }
+    }
+
+    // Shape 2: { '$_VAR_NAME': value }
+    if (app_vars?.[name] !== undefined) {
+      return app_vars[name];
+    }
+
+    // Shape 3: array [{ name, environment, value }]
+    if (Array.isArray(app_vars)) {
+      const match = app_vars.find(
+        (row) => row?.name === name && (!row?.environment || row.environment === environment),
+      );
+      if (match?.value !== undefined) {
+        return match.value;
+      }
+    }
+
+    // Shape 4: { dev: [{ name, value }] }
+    const envList = app_vars?.[environment];
+    if (Array.isArray(envList)) {
+      const match = envList.find((row) => row?.name === name);
+      if (match?.value !== undefined) {
+        return match.value;
+      }
+    }
+
+    return undefined;
+  };
+
+  // Check if value is an AppVar placeholder (e.g., "$_VAR_NAME")
+  if (normalizedKey.startsWith('$_')) {
+    const resolved = findAppVarValue(normalizedKey);
+    
+    if (resolved !== undefined) {
+      return normalizeResolved(resolved);
+    }
+  }
+
+  return value;
+};

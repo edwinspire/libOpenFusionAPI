@@ -5,14 +5,43 @@ import {
   replyException,
   sendHandlerError,
   sendHandlerResponse,
+  resolveAppVar,
 } from "./utils.js";
 
 import { Pool } from "./ConnectionPool.js";
 
 export const sqlFunction = async (context) => {
-  const { request, reply, method } = getHandlerExecutionContext(context);
+  const { request, reply, method, endpoint } = getHandlerExecutionContext(context);
   try {
-    let paramsSQL = { query: method.code, config: typeof method.custom_data === 'string' ? JSON.parse(method.custom_data) : method.custom_data };
+    // Resolve AppVar placeholder if present in custom_data
+    let custom_data = method.custom_data;
+    const appVars =
+      endpoint?.app_vars ||
+      endpoint?.params?.app_vars ||
+      method?.app_vars ||
+      method?.params?.app_vars;
+    const environment =
+      endpoint?.environment ||
+      endpoint?.params?.environment ||
+      method?.environment ||
+      method?.params?.environment ||
+      'dev';
+    if (typeof custom_data === 'string' && custom_data.startsWith('$_')) {
+      custom_data = resolveAppVar(custom_data, appVars, environment);
+    }
+
+    let paramsSQL = { query: method.code, config: typeof custom_data === 'string' ? JSON.parse(custom_data) : custom_data };
+
+    // Backward compatibility: if endpoint has no config, try default SQLite AppVar.
+    if (
+      !paramsSQL.config ||
+      (typeof paramsSQL.config === "object" && Object.keys(paramsSQL.config).length === 0)
+    ) {
+      const fallbackConfig = resolveAppVar("$_VAR_SQLITE", appVars, environment);
+      if (fallbackConfig && typeof fallbackConfig === "object") {
+        paramsSQL.config = fallbackConfig;
+      }
+    }
 
     /* 
   El config debería tener:

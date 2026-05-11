@@ -134,7 +134,19 @@ export const getHandlerDoc = async (handler) => {
    ============================================================ */
 export async function runHandler(request, response, endpoint, server_data) {
   try {
-    const handler = Handlers[endpoint.handler];
+    let normalizedEndpoint = endpoint;
+    let handler = Handlers[endpoint.handler];
+    const endpointHandlerName = String(endpoint?.handler || "").trim().toUpperCase();
+
+    // Backward compatibility for legacy endpoints that were saved with handler "NA".
+    if ((!handler || !handler.fn) && endpointHandlerName === "NA") {
+      handler = Handlers.TEXT;
+      normalizedEndpoint = {
+        ...endpoint,
+        handler: "TEXT",
+        code: endpoint.code || "",
+      };
+    }
 
     if (!handler || !handler.fn) {
       response
@@ -146,8 +158,8 @@ export async function runHandler(request, response, endpoint, server_data) {
     await handler.fn({
       request,
       reply: response,
-      method: endpoint,
-      endpoint,
+      method: normalizedEndpoint,
+      endpoint: normalizedEndpoint,
       server_data
     });
   } catch (err) {
