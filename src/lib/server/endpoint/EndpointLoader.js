@@ -146,7 +146,7 @@ export class EndpointLoader {
 
     try {
       if (endpointData.enabled) {
-        let appvars_obj = getAppVarsObject(app_vars);
+        let appvars_obj = getAppVarsObject(app_vars, endpointData.environment);
         returnHandler.params.app_vars = appvars_obj;
 
         // Compile JSON schema validator if enabled
@@ -221,12 +221,40 @@ export class EndpointLoader {
 /**
  * Helper to build appvars object
  */
-function getAppVarsObject(vrs) {
+function getAppVarsObject(vrs, endpointEnvironment) {
   let r = {};
-  if (vrs && Array.isArray(vrs)) {
-    vrs.forEach((v) => {
-      r[v.name] = v.value;
-    });
+  if (!vrs || !Array.isArray(vrs)) {
+    return r;
   }
+
+  const normalizeEnvironment = (value) =>
+    typeof value === "string" ? value.trim().toLowerCase() : "";
+
+  const targetEnvironment = normalizeEnvironment(endpointEnvironment);
+
+  vrs.forEach((v) => {
+    if (!v?.name) {
+      return;
+    }
+
+    const varEnvironment = normalizeEnvironment(v.environment);
+
+    if (targetEnvironment) {
+      if (varEnvironment === targetEnvironment) {
+        r[v.name] = v.value;
+        return;
+      }
+
+      if (!(v.name in r) && !varEnvironment) {
+        r[v.name] = v.value;
+      }
+      return;
+    }
+
+    if (!(v.name in r) || !varEnvironment) {
+      r[v.name] = v.value;
+    }
+  });
+
   return r;
 }

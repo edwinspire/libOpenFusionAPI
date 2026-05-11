@@ -1,31 +1,107 @@
 import { Sequelize, QueryTypes } from "sequelize";
-import { mergeObjects } from "../server/utils.js";
+import { getAppVarsByIdApp } from "../db/appvars.js";
 import {
   getHandlerExecutionContext,
   replyException,
   sendHandlerError,
   sendHandlerResponse,
+  buildConnectionCacheKey,
   resolveAppVar,
 } from "./utils.js";
 
 import { Pool } from "./ConnectionPool.js";
+import { mergeObjects } from "../server/utils.js";
+
+const mergeAppVarsByEnvironment = (baseAppVars, overrideAppVars) => {
+  if (!baseAppVars && !overrideAppVars) {
+    return undefined;
+  }
+
+  const merged = { ...(baseAppVars || {}) };
+
+  if (!overrideAppVars || typeof overrideAppVars !== "object") {
+    return merged;
+  }
+
+  for (const [environment, values] of Object.entries(overrideAppVars)) {
+    if (!values || typeof values !== "object") {
+      merged[environment] = values;
+      continue;
+    }
+
+    merged[environment] = {
+      ...(merged[environment] || {}),
+      ...values,
+    };
+  }
+
+  return merged;
+};
+
+const extractMssqlErrorNumber = (error) => {
+  const directNumber = error?.parent?.number ?? error?.original?.number;
+  if (typeof directNumber === "number") {
+    return directNumber;
+  }
+
+  const parentErrors = error?.parent?.errors;
+  if (Array.isArray(parentErrors)) {
+    const nested = parentErrors.find((item) => typeof item?.number === "number");
+    if (nested) {
+      return nested.number;
+    }
+  }
+
+  return undefined;
+};
+
+const isLiveAppVarsRefreshEnabled = () => {
+  const raw = String(process.env.OFAPI_APPVARS_LIVE_READ || "").trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+};
 
 export const sqlFunction = async (context) => {
   const { request, reply, method, endpoint } = getHandlerExecutionContext(context);
   try {
     // Resolve AppVar placeholder if present in custom_data
     let custom_data = method.custom_data;
-    const appVars =
+    const appVarsSnapshot =
       endpoint?.app_vars ||
       endpoint?.params?.app_vars ||
       method?.app_vars ||
       method?.params?.app_vars;
+    let appVars = appVarsSnapshot;
     const environment =
       endpoint?.environment ||
       endpoint?.params?.environment ||
       method?.environment ||
       method?.params?.environment ||
       'dev';
+
+    // By default we use endpoint cache snapshot (faster and now invalidated on AppVar changes).
+    // Live DB refresh is optional and disabled by default.
+    if (endpoint?.idapp && isLiveAppVarsRefreshEnabled()) {
+      try {
+        const liveAppVars = await getAppVarsByIdApp(endpoint.idapp);
+        if (Array.isArray(liveAppVars) && liveAppVars.length > 0) {
+          const liveAppVarsByEnvironment = liveAppVars.reduce((acc, item) => {
+            if (!acc[item.environment]) {
+              acc[item.environment] = {};
+            }
+            acc[item.environment][item.name] = item.value;
+            return acc;
+          }, {});
+
+          appVars = mergeAppVarsByEnvironment(
+            appVarsSnapshot,
+            liveAppVarsByEnvironment,
+          );
+        }
+      } catch (error) {
+        console.warn("[sqlFunction] Could not refresh live app vars from PostgreSQL:", error?.message || error);
+      }
+    }
+
     if (typeof custom_data === 'string' && custom_data.startsWith('$_')) {
       custom_data = resolveAppVar(custom_data, appVars, environment);
     }
@@ -65,6 +141,7 @@ export const sqlFunction = async (context) => {
 
     let data_bind = {};
     let data_request = {};
+    let connection_json = undefined;
     let query_type = QueryTypes.SELECT;
 
     if (paramsSQL.query_type && QueryTypes[paramsSQL.query_type]) {
@@ -80,7 +157,6 @@ export const sqlFunction = async (context) => {
 
     if (data_request) {
       // Obtiene los parametros de conexión
-      let connection_json;
       if (data_request?.connection) {
         try {
           connection_json =
@@ -164,12 +240,20 @@ export const sqlFunction = async (context) => {
 
       // Verificar las configuraciones minimas
       if (paramsSQL && paramsSQL.config.options && paramsSQL.query) {
-        const configHash = JSON.stringify({
-          db: paramsSQL.config.database,
-          user: paramsSQL.config.username,
+        const configHash = buildConnectionCacheKey(paramsSQL.config, environment);
+/*
+        console.log("[sqlFunction] Connection context", {
+          environment,
+          database: paramsSQL.config.database,
+          username: paramsSQL.config.username,
           host: paramsSQL.config.options?.host,
           port: paramsSQL.config.options?.port,
+          cacheKey: configHash,
+          dialect: paramsSQL.config.options?.dialect,
+          hasConnectionOverride: !!connection_json,
+          hasAppVarCustomData: typeof custom_data === "string" && custom_data.startsWith("$_"),
         });
+        */
 
         let sequelize = await Pool.getConnection(configHash, paramsSQL);
 
@@ -184,7 +268,31 @@ export const sqlFunction = async (context) => {
           queryOptions.bind = data_bind;
         }
 
-        result_query = await sequelize.query(paramsSQL.query, queryOptions);
+        try {
+          result_query = await sequelize.query(paramsSQL.query, queryOptions);
+        } catch (queryErr) {
+          const mssqlNumber = extractMssqlErrorNumber(queryErr);
+
+          // Retry único para errores de apertura de base en MSSQL.
+          if (mssqlNumber === 945) {
+            console.warn(`[sqlFunction] MSSQL error 945 detected for ${configHash}. Rebuilding connection and retrying once.`);
+
+            const currentConn = Pool.connections.get(configHash);
+            if (currentConn?.sequelize) {
+              try {
+                await currentConn.sequelize.close();
+              } catch (closeErr) {
+                console.error("Error closing failed pool connection:", closeErr);
+              }
+            }
+
+            Pool.connections.delete(configHash);
+            sequelize = await Pool.getConnection(configHash, paramsSQL);
+            result_query = await sequelize.query(paramsSQL.query, queryOptions);
+          } else {
+            throw queryErr;
+          }
+        }
 
         //  console.log('-------------> ', result_query.toSQL())
 

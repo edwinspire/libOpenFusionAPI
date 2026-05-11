@@ -200,3 +200,23 @@ export const resolveAppVar = (value, app_vars, environment = 'dev') => {
 
   return value;
 };
+
+/**
+ * Build a deterministic cache key for database connections.
+ * Includes the resolved environment so production and test connections cannot share a pool entry.
+ */
+export const buildConnectionCacheKey = (config = {}, environment = 'dev') => {
+  const options = config?.options || {};
+
+  return JSON.stringify({
+    environment,
+    database: config?.database,
+    username: config?.username,
+    host: options?.host,
+    port: options?.port,
+    dialect: options?.dialect,
+    dialectOptions: options?.dialectOptions,
+    pool: options?.pool,
+    ssl: options?.ssl,
+  });
+};

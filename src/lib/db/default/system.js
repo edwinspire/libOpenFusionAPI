@@ -3795,6 +3795,339 @@ export const system_app = {
         "admin": true,
         "users": [],
         "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "cache_invalidate",
+        "title": "cache_invalidate",
+        "description": "Invalidates endpoint cache entries by `idapp` (optionally `environment`) or by a specific `idendpoint`. Use this when endpoint definitions or app variables changed and you need fresh data on next request."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idapp": {
+                "type": "string",
+                "description": "Application identifier."
+              },
+              "environment": {
+                "type": "string",
+                "description": "Optional environment filter (`dev`, `qa`, `prd`)."
+              },
+              "idendpoint": {
+                "type": "string",
+                "description": "Optional endpoint identifier to remove one endpoint directly."
+              },
+              "reason": {
+                "type": "string",
+                "description": "Optional audit note describing why invalidation was requested."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "00000000-0000-0000-0000-000000000001",
+              "environment": "prd"
+            }
+          }
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "9e2d2571-6b39-4741-97df-75456903f7fb",
+      "rowkey": 9101,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/cache/invalidate",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Invalidate endpoint cache",
+      "description": "Invalidates endpoint cache entries by `idapp` (optionally `environment`) or by a specific `idendpoint`.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "cache,invalidate,idapp,idendpoint",
+      "code": "fnInvalidateEndpointCache",
+      "cache_time": 0,
+      "createdAt": "2026-05-11T00:00:00.000Z",
+      "updatedAt": "2026-05-11T00:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "cache_status",
+        "title": "cache_status",
+        "description": "Returns a catalog of currently cached endpoints for one app and optional environment. Use it to inspect cache state before/after invalidation."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idapp": {
+                "type": "string",
+                "description": "Application identifier used to filter cached endpoints."
+              },
+              "environment": {
+                "type": "string",
+                "description": "Optional environment filter (`dev`, `qa`, `prd`)."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "idapp",
+            "value": "00000000-0000-0000-0000-000000000001",
+            "type": 1
+          },
+          {
+            "enabled": true,
+            "key": "environment",
+            "value": "prd",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "d37f889f-f649-4935-ab8f-ccdde3faeb84",
+      "rowkey": 9102,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/cache/status",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get endpoint cache status",
+      "description": "Returns a list of cached endpoints filtered by `idapp` and optional `environment`.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "cache,status,idapp",
+      "code": "fnEndpointCacheStatus",
+      "cache_time": 0,
+      "createdAt": "2026-05-11T00:00:00.000Z",
+      "updatedAt": "2026-05-11T00:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "appvars_effective_resolve",
+        "title": "appvars_effective_resolve",
+        "description": "Resolves the effective value of one AppVar for `idapp` + `environment`, indicating whether it came from cache snapshot or live DB lookup."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "idapp": {
+                "type": "string",
+                "description": "Application identifier."
+              },
+              "name": {
+                "type": "string",
+                "description": "AppVar name, for example `$_VAR_BBDD_PORTAL_CLIENTES`."
+              },
+              "environment": {
+                "type": "string",
+                "description": "Target environment (`dev`, `qa`, `prd`)."
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "cache",
+                  "live"
+                ],
+                "description": "Resolution mode: `cache`, `live`, or `auto` (cache first, then live fallback)."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "idapp",
+              "name"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "idapp",
+            "value": "00000000-0000-0000-0000-000000000001",
+            "type": 1
+          },
+          {
+            "enabled": true,
+            "key": "name",
+            "value": "$_VAR_BBDD_PORTAL_CLIENTES",
+            "type": 1
+          },
+          {
+            "enabled": true,
+            "key": "environment",
+            "value": "prd",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "4fd224a5-9059-4929-a635-2c61f1af2f87",
+      "rowkey": 9103,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/app/var/effective",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Resolve effective AppVar value",
+      "description": "Resolves one AppVar value for an app/environment and reports whether it came from cache snapshot or live DB.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "app,var,effective,resolve",
+      "code": "fnAppVarsEffectiveResolve",
+      "cache_time": 0,
+      "createdAt": "2026-05-11T00:00:00.000Z",
+      "updatedAt": "2026-05-11T00:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
           "status_info": 0,
           "status_success": 0,
           "status_redirect": 0,

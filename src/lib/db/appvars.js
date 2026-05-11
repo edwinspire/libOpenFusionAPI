@@ -20,8 +20,8 @@ export const getAppVarsById = async (
   /** @type {import("sequelize").Identifier | undefined} */ idAppVars
 ) => {
   try {
-    const AppVars = await AppVars.findByPk(idAppVars);
-    return AppVars;
+    const appVar = await AppVars.findByPk(idAppVars);
+    return appVar;
   } catch (error) {
     console.error("Error retrieving user:", error);
     throw error;

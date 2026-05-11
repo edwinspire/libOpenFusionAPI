@@ -7,6 +7,7 @@ import {
   sendHandlerError,
   sendHandlerResponse,
 } from "./utils.js";
+import { buildConnectionCacheKey } from "./utils.js";
 
 import { Pool } from "./ConnectionPool.js";
 
@@ -84,13 +85,12 @@ export const sqlFunctionInsertBulk = async (context) => {
       paramsSQL.config.options.logging = false;
     }
 
-    const configHash = JSON.stringify({
-      db: paramsSQL.config.database,
-      user: paramsSQL.config.username,
-      host: paramsSQL.config.options?.host,
-      port: paramsSQL.config.options?.port,
-      dialect: paramsSQL.config.options?.dialect,
-    });
+    const environment =
+      method?.environment ||
+      method?.params?.environment ||
+      "dev";
+
+    const configHash = buildConnectionCacheKey(paramsSQL.config, environment);
 
     const sequelize = await Pool.getConnection(configHash, paramsSQL);
 

@@ -20,6 +20,22 @@ class ConnectionPool {
   }
 
   /**
+   * Valida si una conexión en caché sigue siendo funcional.
+   * Intenta un authenticate() ligero sin query pesada.
+   */
+  async validateConnection(sequelize) {
+    try {
+      // Intenta validar la conexión con authenticate()
+      // Si falla, retorna false (conexión muerta)
+      await sequelize.authenticate();
+      return true;
+    } catch (err) {
+      console.warn(`[ConnectionPool] Connection validation failed: ${err.message}`);
+      return false;
+    }
+  }
+
+  /**
    * Gestiona el ciclo de vida de las conexiones para evitar fugas de memoria.
    * Implementa una estrategia LRU (Least Recently Used).
    */
@@ -39,8 +55,24 @@ class ConnectionPool {
         }
         this.connections.delete(configHash);
       } else {
-        connData.lastUsed = Date.now();
-        return connData.sequelize;
+        // Validar la conexión solo si lleva más de 30s sin usarse (evita SELECT 1+1 en cada request)
+        const idleMs = Date.now() - (connData.lastUsed || 0);
+        const needsValidation = idleMs > 30_000;
+        const isValid = needsValidation ? await this.validateConnection(connData.sequelize) : true;
+        if (isValid) {
+          connData.lastUsed = Date.now();
+          return connData.sequelize;
+        } else {
+          // Conexión muerta: cerrar y eliminar del caché
+          console.log(`[ConnectionPool] Stale connection detected for ${configHash}, recreating...`);
+          try {
+            await connData.sequelize.close();
+          } catch (err) {
+            console.error("Error closing stale connection:", err);
+          }
+          this.connections.delete(configHash);
+          // Continúa para crear nueva conexión
+        }
       }
     }
 
@@ -74,17 +106,57 @@ class ConnectionPool {
       ...paramsSQL.config.options,
     };
 
-    // Node 24 + tedious can fail on CJS default interop; pass dialectModule explicitly.
-    if (sequelizeOptions?.dialect === "mssql" && !sequelizeOptions.dialectModule) {
-      sequelizeOptions.dialectModule = tediousDialectModule;
-    }
-
-    const sequelize = new Sequelize(
+    const buildSequelize = (options) => new Sequelize(
       paramsSQL.config.database,
       paramsSQL.config.username,
       paramsSQL.config.password,
-      sequelizeOptions
+      options
     );
+
+    let sequelize = buildSequelize(sequelizeOptions);
+
+    // 4.5 Validar que la nueva conexión sea funcional
+    try {
+      await sequelize.authenticate();
+    } catch (err) {
+      const isMssql = sequelizeOptions?.dialect === "mssql";
+      const canRetryWithDialectModule = isMssql && !sequelizeOptions?.dialectModule;
+
+      if (canRetryWithDialectModule) {
+        console.warn(`[ConnectionPool] Default MSSQL connection failed for ${configHash}. Retrying with explicit dialectModule.`, err.message);
+        try {
+          await sequelize.close();
+        } catch (closeErr) {
+          console.error("Error closing failed default connection:", closeErr);
+        }
+
+        const retryOptions = {
+          ...sequelizeOptions,
+          dialectModule: tediousDialectModule,
+        };
+        sequelize = buildSequelize(retryOptions);
+
+        try {
+          await sequelize.authenticate();
+        } catch (retryErr) {
+          console.error(`[ConnectionPool] Failed to authenticate fallback MSSQL connection for ${configHash}:`, retryErr.message);
+          try {
+            await sequelize.close();
+          } catch (closeRetryErr) {
+            console.error("Error closing failed fallback connection:", closeRetryErr);
+          }
+          throw new Error(`Cannot authenticate connection to database: ${retryErr.message}`);
+        }
+      } else {
+        console.error(`[ConnectionPool] Failed to authenticate new connection for ${configHash}:`, err.message);
+        try {
+          await sequelize.close();
+        } catch (closeErr) {
+          console.error("Error closing failed connection:", closeErr);
+        }
+        throw new Error(`Cannot authenticate connection to database: ${err.message}`);
+      }
+    }
 
     // 4. Guardar en mapa
     this.connections.set(configHash, {

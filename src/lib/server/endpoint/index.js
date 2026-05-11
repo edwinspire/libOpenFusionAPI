@@ -126,6 +126,8 @@ export default class Endpoint extends EventEmitter {
   deleteEndpointByidEndpoint(idendpoint) {
     if (!idendpoint) return;
 
+    let removed = 0;
+
     try {
       let ep_list = Object.keys(this.internal_endpoint);
 
@@ -140,6 +142,7 @@ export default class Endpoint extends EventEmitter {
             method: ep.handler.params.method,
           });
           delete this.internal_endpoint[key];
+          removed += 1;
           break;
         }
       }
@@ -156,6 +159,7 @@ export default class Endpoint extends EventEmitter {
             method: ep.handler.params.method,
           });
           delete this.internal_endpoint[key];
+          removed += 1;
         }
       }
     } catch (error) {
@@ -164,9 +168,13 @@ export default class Endpoint extends EventEmitter {
         error
       );
     }
+
+    return removed;
   }
 
   deleteEndpointsByIdApp(idapp, env) {
+    let removed = 0;
+
     if (idapp) {
       let ep_list = Object.keys(this.internal_endpoint);
 
@@ -185,8 +193,11 @@ export default class Endpoint extends EventEmitter {
             method: ep.handler.params.method,
           });
           delete this.internal_endpoint[ep_list[index]];
+          removed += 1;
         }
       }
     }
+
+    return removed;
   }
 }

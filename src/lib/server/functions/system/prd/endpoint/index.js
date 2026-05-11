@@ -223,6 +223,109 @@ export async function fnGetCacheSize(params) {
   return r;
 }
 
+export async function fnInvalidateEndpointCache(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    const body = params?.request?.body || {};
+    const endpointClass = params?.server_data?.endpoint_class;
+    const idapp = body?.idapp;
+    const environment = body?.environment;
+    const idendpoint = body?.idendpoint;
+
+    if (!endpointClass) {
+      r.code = 500;
+      r.data = { error: "Endpoint cache service not available." };
+      return r;
+    }
+
+    if (!idapp && !idendpoint) {
+      r.code = 400;
+      r.data = { error: "'idapp' or 'idendpoint' is required." };
+      return r;
+    }
+
+    let removed = 0;
+
+    if (idendpoint) {
+      removed += endpointClass.deleteEndpointByidEndpoint(idendpoint) || 0;
+    }
+
+    if (idapp) {
+      removed += endpointClass.deleteEndpointsByIdApp(idapp, environment) || 0;
+    }
+
+    r.code = 200;
+    r.data = {
+      removed,
+      criteria: {
+        idapp,
+        environment,
+        idendpoint,
+      },
+    };
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
+export async function fnEndpointCacheStatus(params) {
+  let r = { data: undefined, code: 204 };
+  try {
+    const query = params?.request?.query || {};
+    const endpointClass = params?.server_data?.endpoint_class;
+    const idapp = query?.idapp;
+    const environment = query?.environment;
+
+    if (!endpointClass) {
+      r.code = 500;
+      r.data = { error: "Endpoint cache service not available." };
+      return r;
+    }
+
+    const internal = endpointClass?.internal_endpoint || {};
+    const entries = [];
+
+    for (const [urlKey, data] of Object.entries(internal)) {
+      const p = data?.handler?.params;
+      if (!p) {
+        continue;
+      }
+
+      if (idapp && p.idapp !== idapp) {
+        continue;
+      }
+
+      if (environment && p.environment !== environment) {
+        continue;
+      }
+
+      entries.push({
+        url_key: urlKey,
+        idapp: p.idapp,
+        idendpoint: p.idendpoint,
+        app: p.app,
+        environment: p.environment,
+        resource: p.resource,
+        method: p.method,
+        handler: p.handler,
+      });
+    }
+
+    r.code = 200;
+    r.data = {
+      total: entries.length,
+      filters: { idapp, environment },
+      entries,
+    };
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
 export async function fnGetResponseCountStatus(params) {
   let r = { data: undefined, code: 204 };
   try {
