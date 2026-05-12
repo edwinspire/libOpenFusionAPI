@@ -1,12 +1,15 @@
 import { Sequelize, QueryTypes } from "sequelize";
 import { getAppVarsByIdApp } from "../db/appvars.js";
 import {
+  getAppVarContext,
   getHandlerExecutionContext,
+  parseJsonConfig,
   replyException,
   sendHandlerError,
   sendHandlerResponse,
   buildConnectionCacheKey,
   resolveAppVar,
+  resolveAppVarPlaceholder,
 } from "./utils.js";
 
 import { Pool } from "./ConnectionPool.js";
@@ -65,18 +68,11 @@ export const sqlFunction = async (context) => {
   try {
     // Resolve AppVar placeholder if present in custom_data
     let custom_data = method.custom_data;
-    const appVarsSnapshot =
-      endpoint?.app_vars ||
-      endpoint?.params?.app_vars ||
-      method?.app_vars ||
-      method?.params?.app_vars;
+    const { appVars: appVarsSnapshot, environment } = getAppVarContext(
+      endpoint,
+      method,
+    );
     let appVars = appVarsSnapshot;
-    const environment =
-      endpoint?.environment ||
-      endpoint?.params?.environment ||
-      method?.environment ||
-      method?.params?.environment ||
-      'dev';
 
     // By default we use endpoint cache snapshot (faster and now invalidated on AppVar changes).
     // Live DB refresh is optional and disabled by default.
@@ -102,11 +98,12 @@ export const sqlFunction = async (context) => {
       }
     }
 
-    if (typeof custom_data === 'string' && custom_data.startsWith('$_')) {
-      custom_data = resolveAppVar(custom_data, appVars, environment);
-    }
+    custom_data = resolveAppVarPlaceholder(custom_data, appVars, environment);
 
-    let paramsSQL = { query: method.code, config: typeof custom_data === 'string' ? JSON.parse(custom_data) : custom_data };
+    let paramsSQL = {
+      query: method.code,
+      config: parseJsonConfig(custom_data),
+    };
 
     // Backward compatibility: if endpoint has no config, try default SQLite AppVar.
     if (

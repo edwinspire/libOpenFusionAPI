@@ -1,11 +1,12 @@
 // @ts-ignore
 import uFetch from "@edwinspire/universal-fetch";
 import {
+  getAppVarContext,
   getHandlerExecutionContext,
   replyException,
   sendHandlerError,
   sendHandlerResponse,
-  resolveAppVar,
+  resolveAppVarPlaceholder,
 } from "./utils.js";
 
 export const fetchFunction = async (context) => {
@@ -13,21 +14,8 @@ export const fetchFunction = async (context) => {
   //console.log(uFetch);
   try {
     // Resolve AppVar placeholder if present in code (the destination URL)
-    let url = method.code;
-    const appVars =
-      endpoint?.app_vars ||
-      endpoint?.params?.app_vars ||
-      method?.app_vars ||
-      method?.params?.app_vars;
-    const environment =
-      endpoint?.environment ||
-      endpoint?.params?.environment ||
-      method?.environment ||
-      method?.params?.environment ||
-      'dev';
-    if (typeof url === 'string' && url.startsWith('$_')) {
-      url = resolveAppVar(url, appVars, environment);
-    }
+    const { appVars, environment } = getAppVarContext(endpoint, method);
+    let url = resolveAppVarPlaceholder(method.code, appVars, environment);
 
     // Removed unused req_headers block
 

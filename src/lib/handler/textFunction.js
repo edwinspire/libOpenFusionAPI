@@ -1,8 +1,12 @@
 import { Buffer } from "node:buffer";
 import {
+  getAppVarContext,
   getHandlerExecutionContext,
+  parseJsonConfig,
   replyException,
+  sendHandlerError,
   sendHandlerResponse,
+  resolveAppVarPlaceholder,
 } from "./utils.js";
 
 export const textFunction = async (
@@ -11,12 +15,16 @@ export const textFunction = async (
   const { request, reply, endpoint } = getHandlerExecutionContext(context);
 
   try {
+    const { appVars, environment } = getAppVarContext(endpoint);
+    const custom_data = resolveAppVarPlaceholder(
+      endpoint.custom_data,
+      appVars,
+      environment,
+    );
     const textConfig =
-      typeof endpoint.custom_data === "string"
-        ? JSON.parse(endpoint.custom_data)
-        : endpoint.custom_data && typeof endpoint.custom_data === "object"
-          ? endpoint.custom_data
-          : {};
+      parseJsonConfig(custom_data) && typeof parseJsonConfig(custom_data) === "object"
+        ? parseJsonConfig(custom_data)
+        : {};
 
     const mimeType =
       typeof textConfig.mimeType === "string" && textConfig.mimeType.length > 0
@@ -26,7 +34,7 @@ export const textFunction = async (
     const payload = typeof endpoint.code === "string" ? endpoint.code : undefined;
 
     if (payload === undefined) {
-      reply.code(400).send({ error: "No payload provided" });
+      sendHandlerError(reply, 400, "No payload provided");
       return;
     }
 

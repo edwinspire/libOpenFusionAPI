@@ -201,6 +201,63 @@ export const resolveAppVar = (value, app_vars, environment = 'dev') => {
   return value;
 };
 
+export const createBadRequestError = (message, extra = {}) => {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return Object.assign(error, extra);
+};
+
+export const getAppVarContext = (endpoint, method = endpoint) => {
+  return {
+    appVars:
+      endpoint?.app_vars ||
+      endpoint?.params?.app_vars ||
+      method?.app_vars ||
+      method?.params?.app_vars,
+    environment:
+      endpoint?.environment ||
+      endpoint?.params?.environment ||
+      method?.environment ||
+      method?.params?.environment ||
+      "dev",
+  };
+};
+
+export const resolveAppVarPlaceholder = (value, appVars, environment = "dev") => {
+  const placeholder =
+    typeof value === "string" && value.trim().startsWith("$_")
+      ? value.trim()
+      : null;
+
+  if (!placeholder) {
+    return value;
+  }
+
+  const resolved = resolveAppVar(value, appVars, environment);
+  if (typeof resolved === "string" && resolved.trim() === placeholder) {
+    throw createBadRequestError(
+      `AppVar ${placeholder} not found for environment ${environment}`,
+    );
+  }
+
+  return resolved;
+};
+
+export const parseJsonConfig = (
+  value,
+  errorMessage = "Invalid JSON in method custom_data/AppVar",
+) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    throw createBadRequestError(errorMessage);
+  }
+};
+
 /**
  * Build a deterministic cache key for database connections.
  * Includes the resolved environment so production and test connections cannot share a pool entry.

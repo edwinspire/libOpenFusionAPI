@@ -1,10 +1,12 @@
 import { mergeObjects } from "../server/utils.js";
 import {
+  getAppVarContext,
   getHandlerExecutionContext,
+  parseJsonConfig,
   replyException,
-  resolveAppVar,
   sendHandlerError,
   sendHandlerResponse,
+  resolveAppVarPlaceholder,
 } from "./utils.js";
 import hana from "@sap/hana-client";
 
@@ -85,48 +87,13 @@ const getConnection = async (configHash, paramsSQL) => {
 export const sqlHana = async (context) => {
   const { request, reply, method, endpoint } = getHandlerExecutionContext(context);
   try {
-    let custom_data = method.custom_data;
-    const customDataPlaceholder =
-      typeof custom_data === "string" && custom_data.trim().startsWith("$_")
-        ? custom_data.trim()
-        : null;
-    const appVars =
-      endpoint?.app_vars ||
-      endpoint?.params?.app_vars ||
-      method?.app_vars ||
-      method?.params?.app_vars;
-    const environment =
-      endpoint?.environment ||
-      endpoint?.params?.environment ||
-      method?.environment ||
-      method?.params?.environment ||
-      "dev";
-
-    if (customDataPlaceholder) {
-      custom_data = resolveAppVar(custom_data, appVars, environment);
-
-      if (
-        typeof custom_data === "string" &&
-        custom_data.trim() === customDataPlaceholder
-      ) {
-        sendHandlerError(
-          reply,
-          400,
-          `AppVar ${customDataPlaceholder} not found for environment ${environment}`,
-        );
-        return;
-      }
-    }
-
-    let parsedConfig = custom_data;
-    if (typeof custom_data === "string") {
-      try {
-        parsedConfig = JSON.parse(custom_data);
-      } catch (e) {
-        sendHandlerError(reply, 400, "Invalid JSON in method custom_data/AppVar");
-        return;
-      }
-    }
+    const { appVars, environment } = getAppVarContext(endpoint, method);
+    const custom_data = resolveAppVarPlaceholder(
+      method.custom_data,
+      appVars,
+      environment,
+    );
+    const parsedConfig = parseJsonConfig(custom_data);
 
     let paramsSQL = {
       query: method.code,

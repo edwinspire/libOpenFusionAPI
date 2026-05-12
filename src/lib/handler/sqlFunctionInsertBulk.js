@@ -2,8 +2,11 @@ import { Sequelize, QueryTypes } from "sequelize";
 import { mergeObjects } from "../server/utils.js";
 import { parseQualifiedName } from "../db/utils.js";
 import {
+  getAppVarContext,
   getHandlerExecutionContext,
+  parseJsonConfig,
   replyException,
+  resolveAppVarPlaceholder,
   sendHandlerError,
   sendHandlerResponse,
 } from "./utils.js";
@@ -12,12 +15,15 @@ import { buildConnectionCacheKey } from "./utils.js";
 import { Pool } from "./ConnectionPool.js";
 
 export const sqlFunctionInsertBulk = async (context) => {
-  const { request, reply, method } = getHandlerExecutionContext(context);
+  const { request, reply, method, endpoint } = getHandlerExecutionContext(context);
   try {
-    // Parsear custom_data con validación null-safe
-    const customData = typeof method.custom_data === "string"
-      ? JSON.parse(method.custom_data)
-      : method.custom_data;
+    const { appVars, environment } = getAppVarContext(endpoint, method);
+    const custom_data = resolveAppVarPlaceholder(
+      method.custom_data,
+      appVars,
+      environment,
+    );
+    const customData = parseJsonConfig(custom_data);
 
     if (!customData) {
       sendHandlerError(reply, 400, "custom_data configuration is required");
@@ -84,11 +90,6 @@ export const sqlFunctionInsertBulk = async (context) => {
     if (paramsSQL.config.options.logging === undefined) {
       paramsSQL.config.options.logging = false;
     }
-
-    const environment =
-      method?.environment ||
-      method?.params?.environment ||
-      "dev";
 
     const configHash = buildConnectionCacheKey(paramsSQL.config, environment);
 

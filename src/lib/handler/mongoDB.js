@@ -1,17 +1,24 @@
 import { functionsVars, listFunctionsVars } from "../server/functionVars.js";
 import mongoose from "mongoose";
-import { replyException, setCacheReply } from "./utils.js";
+import {
+  getAppVarContext,
+  parseJsonConfig,
+  replyException,
+  sendHandlerError,
+  setCacheReply,
+  resolveAppVarPlaceholder,
+} from "./utils.js";
 
 // TODO: No probado completamente, revisar antes de producción
 
 export const getMongoDBParams = (custom_data) => {
   let paramsMongo;
-  try {
-    paramsMongo = typeof custom_data === 'string' ? JSON.parse(custom_data) : custom_data;
-  } catch (error) {
-    console.error(
-      "getMongoDBParams: Error al parsear el código JSON: " + custom_data
-    );
+  if (
+    custom_data !== undefined &&
+    custom_data !== null &&
+    !(typeof custom_data === "string" && custom_data.trim().length === 0)
+  ) {
+    paramsMongo = parseJsonConfig(custom_data);
   }
 
   if (!paramsMongo) {
@@ -98,13 +105,28 @@ export const mongodbFunction = async (context) => {
   const request = context?.request;
   const reply = context?.reply;
   const method = context?.method || context?.endpoint;
+  const endpoint = context?.endpoint || context?.method;
   const server_data = context?.server_data;
   try {
     if (!method.jsFn) {
       throw new Error("Function 'jsFn' is not defined in the method configuration.");
     }
 
-    let paramsMongo = getMongoDBParams(method.custom_data);
+    const { appVars, environment } = getAppVarContext(endpoint, method);
+    const custom_data = resolveAppVarPlaceholder(
+      method.custom_data,
+      appVars,
+      environment,
+    );
+
+    let paramsMongo;
+    try {
+      paramsMongo = getMongoDBParams(custom_data);
+    } catch (error) {
+      sendHandlerError(reply, 400, error?.message || "Invalid MongoDB configuration");
+      return;
+    }
+
     const conn = await getOrCreateConnection(paramsMongo);
 
     let fnVars = functionsVars(request, reply, method.environment);

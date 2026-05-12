@@ -2,7 +2,13 @@ import soap from "soap";
 import Ajv from "ajv";
 import { schema_input_genericSOAP } from "./json_schemas.js";
 import { mergeObjects } from "../server/utils.js";
-import { replyException } from "./utils.js";
+import {
+  createBadRequestError,
+  getAppVarContext,
+  parseJsonConfig,
+  replyException,
+  resolveAppVarPlaceholder,
+} from "./utils.js";
 //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const ajv = new Ajv();
@@ -178,29 +184,6 @@ export const soapFunction = async (context) => {
   const reply = context?.reply;
   const endpoint = context?.method || context?.endpoint;
 
-  const resolveSoapConfigFromCode = (codeValue, appVars) => {
-    if (typeof codeValue !== "string") {
-      return codeValue;
-    }
-
-    const direct = codeValue.trim();
-    const fromAppVar =
-      appVars && typeof appVars === "object" && Object.hasOwn(appVars, direct)
-        ? appVars[direct]
-        : undefined;
-
-    const candidate = fromAppVar !== undefined ? fromAppVar : direct;
-    if (typeof candidate === "object" && candidate !== null) {
-      return candidate;
-    }
-
-    if (typeof candidate === "string") {
-      return JSON.parse(candidate);
-    }
-
-    return JSON.parse(String(candidate));
-  };
-
   try {
     // console.log(">>>>>>>>>>>>> method.code -----> ", method.code);
     let SOAPParameters;
@@ -210,13 +193,22 @@ export const soapFunction = async (context) => {
       SOAPParameters = endpoint?.custom_data;
     } else {
       // Toma el wsdl del code, que es cuando el usuario usa una variable de aplicación
+      const { appVars, environment } = getAppVarContext(endpoint);
+      const soapConfigValue = resolveAppVarPlaceholder(
+        endpoint.code,
+        appVars,
+        environment,
+      );
+
       try {
-        SOAPParameters = resolveSoapConfigFromCode(
-          endpoint.code,
-          endpoint?.app_vars,
+        SOAPParameters = parseJsonConfig(
+          soapConfigValue,
+          "SOAP endpoint configuration is invalid JSON. Check AppVar/code value.",
         );
-      } catch {
-        throw new Error("SOAP endpoint configuration is invalid JSON. Check the 'code' field.");
+      } catch (error) {
+        throw createBadRequestError(
+          "SOAP endpoint configuration is invalid JSON. Check AppVar/code value.",
+        );
       }
     }
 
