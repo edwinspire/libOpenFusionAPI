@@ -39,15 +39,7 @@ export class EndpointLoader {
   }
 
   getFnNames() {
-    let r = {};
-
-    Object.keys(this._fnLocal).forEach((key) => {
-      r[key] = {
-        name: key,
-      };
-    });
-
-    return r;
+    return this._fnLocal;
   }
 
   /**

@@ -87,26 +87,25 @@ export async function fnFunctionNames(params) {
     r.data = [];
     r.code = 200;
 
-    if (!params.request.query.environment || !params.request.query.appName) {
+    const environment = params?.request?.query?.environment;
+    const appName = params?.request?.query?.appName;
+
+    if (!environment || !appName) {
       r.code = 400;
     } else if (
       params &&
       params.server_data &&
-      params.request.query.appName &&
-      params.request.query.environment
+      environment &&
+      appName
     ) {
-      let fnNames = params.server_data.endpoint_class.getFnNames();
+      const endpointClass = params.server_data.endpoint_class;
+      const fnRegistry = endpointClass?.fnLocal || endpointClass?.getFnNames?.() || {};
+      const envRegistry = fnRegistry?.[environment] || {};
 
-      if (fnNames && fnNames[params?.request?.query?.environment]) {
-        let public_fns =
-          fnNames[params.request.query.environment]["public"] || [];
-        let app_fns =
-          fnNames[params.request.query.environment][
-            params.request.query.appName
-          ] || [];
+      const publicFns = Object.keys(envRegistry.public || {});
+      const appFns = Object.keys(envRegistry[appName] || {});
 
-        r.data = [...new Set([...public_fns, ...app_fns])];
-      }
+      r.data = [...new Set([...publicFns, ...appFns])];
     }
   } catch (error) {
     r.data = error;
