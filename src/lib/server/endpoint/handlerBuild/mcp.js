@@ -528,13 +528,13 @@ export const CreateMCPHandler = async (app_name, environment) => {
     },
     app_vars: {
       description:
-        "Obtains the list of application variables for the given `idapp`.",
+        "Returns the application variables registered for one `idapp`. Use this to inspect shared configuration keys before creating or updating endpoints.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
       },
       notes: [
-        "The parameter name is `idapp` (not `iadpp`).",
-        "Values may be serialized depending on each variable `type`.",
+        "The request field is `idapp`; send the application identifier there.",
+        "Values may be stored as strings even when they represent JSON or other structured content; inspect each variable `type` before reusing it.",
       ],
       outputSchema: {
         type: "array",
@@ -544,9 +544,26 @@ export const CreateMCPHandler = async (app_name, environment) => {
         },
       },
     },
+    appvars_effective_resolve: {
+      description:
+        "Resolves the effective runtime value of one AppVar for a specific `idapp` and `environment`, including whether the value came from cached state or a live lookup.",
+      exampleRequest: {
+        idapp: "00000000-0000-0000-0000-000000000001",
+        environment: "prd",
+        name: "MY_CONFIG_VALUE",
+      },
+      notes: [
+        "Use this after `appvar_upsert` when you need to confirm the runtime value that endpoints will actually see.",
+        "If the result indicates cached data and you expected a fresh value, inspect cache state or invalidate cache before retesting dependent endpoints.",
+      ],
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
     available_functions_modules: {
       description:
-        "Retrieves all available internal functions and modules that can be referenced by endpoints using the `JS` handler.",
+        "Retrieves the helper globals, internal functions, and modules that JS-handler endpoints can use at runtime.",
       exampleRequest: {},
       exampleResponse: {
         "$_RETURN_DATA_": {
@@ -558,7 +575,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
       },
       notes: [
         "Useful to validate allowed imports/helpers before publishing JS endpoints.",
-        "The response is metadata-oriented and may include helper globals, modules, or example snippets rather than a rigid fixed schema.",
+        "Expect metadata and examples rather than a rigid contract: helper globals, module names, and short usage notes may all appear in the response.",
+        "For deeper JS runtime rules and examples, also consult the JS handler documentation via `handler_documentation` with `handler=JS`.",
       ],
       outputSchema: {
         type: "object",
@@ -567,12 +585,13 @@ export const CreateMCPHandler = async (app_name, environment) => {
     },
     app_endpoints: {
       description:
-        "Retrieves all endpoints associated with one application (`idapp`) with their key metadata.",
+        "Retrieves the endpoints associated with one application (`idapp`) including their main metadata and stored configuration.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
       },
       notes: [
-        "Use this for lightweight endpoint discovery; call `read_endpoint_data` when you need the full configuration of one endpoint.",
+        "Use this when you need more than discovery, for example when comparing endpoint settings across one app or reviewing multiple endpoint records together.",
+        "Prefer `app_endpoints_catalog` for initial discovery because that catalog is lighter and excludes larger payload fields by default.",
       ],
       outputSchema: {
         type: "array",
@@ -584,7 +603,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
     },
     app_endpoints_catalog: {
       description:
-        "Retrieves a lightweight catalog of endpoints for one application. By default it excludes endpoint source code.",
+        "Retrieves a lightweight catalog of endpoints for one application. By default it excludes endpoint source code and other heavy fields.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
         environment: "prd",
@@ -592,6 +611,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
       },
       notes: [
         "Prefer this over `app_endpoints` for discovery workflows because it avoids large `code` payloads unless explicitly requested.",
+        "Escalate to `app_endpoints` or `read_endpoint_data` only after you already know which endpoint needs detailed inspection.",
       ],
       outputSchema: {
         type: "array",
@@ -622,10 +642,11 @@ export const CreateMCPHandler = async (app_name, environment) => {
     },
     apps_list: {
       description:
-        "Retrieves all applications with their application variables and related endpoints.",
+        "Retrieves applications together with nested application variables and related endpoints.",
       exampleRequest: {},
       notes: [
         "This can be a large payload because it expands nested app variables and endpoints for every application.",
+        "Prefer `apps_catalog` for initial discovery and use this full list only when you explicitly need nested data for many applications at once.",
       ],
       outputSchema: {
         type: "array",
@@ -645,6 +666,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
       },
       notes: [
         "Prefer this over `apps_list` for initial discovery because the payload is smaller and excludes nested endpoint trees.",
+        "Move to `apps_list` or `get_app_list_filters` only when you need nested endpoints, variables, or filter-driven inspection.",
       ],
       outputSchema: {
         type: "array",
@@ -674,7 +696,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
     },
     get_app_list_filters: {
       description:
-        "Returns applications and nested endpoint data using the provided filters.",
+        "Returns applications and nested endpoint data using the provided filters. Use this when discovery needs to be narrowed by app fields, endpoint fields, or both.",
       exampleRequest: {
         app: "my_app",
         endpoint: {
@@ -711,6 +733,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
       notes: [
         "When multiple filters are sent, backends commonly evaluate them as AND conditions.",
         "The response is usually app-centric: each matched application may include nested variables and matched endpoints.",
+        "A practical workflow is: start with `apps_catalog` for broad discovery, then use this tool when you already know the filter dimensions you want to constrain.",
       ],
       outputSchema: {
         type: "array",
@@ -720,7 +743,24 @@ export const CreateMCPHandler = async (app_name, environment) => {
         },
       },
     },
+    system_health_stats: {
+      description:
+        "Returns compact system health metrics such as application counts, endpoint counts, MCP exposure, and recent log activity.",
+      exampleRequest: {
+        last_hours: 1,
+      },
+      notes: [
+        "Use this as a quick health snapshot before running heavier inspection tools.",
+        "The response is summary-oriented: it helps detect recent failures and MCP exposure counts, but it does not replace detailed log inspection.",
+      ],
+      outputSchema: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
     get_system_logs: {
+      description:
+        "Returns system log entries filtered by trace, time window, status, or severity. Use it to investigate failed executions and confirm recent system behavior.",
       exampleRequest: {
         trace_id: "trace-id-example",
         limit: 50,
@@ -730,6 +770,7 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Prefer `trace_id` as the first filter when investigating one failing execution path.",
         "When using date windows, send `start_date` and `end_date` together to keep the range explicit.",
         "Use `last_hours` for quick recent searches and reserve broad unfiltered scans for exceptional cases because log volume can be high.",
+        "When the schema exposes `log_level`, interpret it as severity filtering and document the concrete numeric mapping in the endpoint schema or example payload before relying on it in automation.",
       ],
       outputSchema: {
         type: "array",
@@ -933,185 +974,23 @@ export const CreateMCPHandler = async (app_name, environment) => {
 - **INSERT**: omit \`idendpoint\` — the server generates a new UUID automatically.
 - **UPDATE**: include a valid \`idendpoint\` UUID. Use \`read_endpoint_data\` first to read the current state before modifying.
 
-### Minimum Required Fields (all handlers)
-\`idapp\`, \`environment\` (dev|qa|prd), \`resource\` (e.g. \`/mypath\`), \`method\` (GET|POST|PUT|DELETE|PATCH), \`handler\`, \`access\`, \`title\`, \`description\`, \`code\`, \`timeout\` (default 30), \`cache_time\` (default 0).
-
-### access levels
-- \`0\` = Public (no authentication required)
-- \`1\` = Basic Auth
-- \`2\` = Bearer Token (default — recommended for private endpoints)
-- \`3\` = Basic + Token
-- \`4\` = Local only
-
-### Handler → code convention
-
-| handler | What to put in \`code\` |
-|---------|----------------------|
-| \`JS\` | JavaScript source (see JS rules below) |
-| \`FUNCTION\` | Internal function name, e.g. \`fnMyFunction\` |
-| \`FETCH\` | Target URL string to proxy, e.g. \`https://api.example.com/data\` |
-| \`TEXT\` | Raw text content. Put the MIME type in \`custom_data.mimeType\`. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add \`custom_data.fileName\` if it requires to be downloadable. |
-| \`SQL\` | Standard SQL query string. Connection config goes in \`custom_data\` |
-| \`SQL_BULK_I\` | JSON with \`table_name\`, \`config\`, optionally \`ignoreDuplicates\` |
-| \`SOAP\` | Handler-specific SOAP configuration payload |
-| \`HANA\` | Handler-specific SAP HANA configuration payload |
-| \`MONGODB\` | Handler-specific MongoDB configuration payload |
-| \`MCP\` | Handler-specific MCP configuration payload |
-| \`TELEGRAM_BOT\` | JavaScript source that configures the injected \`$BOT\` grammY instance; token usually goes in \`custom_data.token\`, and the runtime starts the bot automatically |
-| \`NA\` | Internal default/no-op handler. Avoid for new integrations |
-
-### Minimum examples by handler
-
-**JS**
-\`code\`: \`$_RETURN_DATA_ = { ok: true };\`
-
-**FUNCTION**
-\`code\`: \`fnMyFunction\`
-
-**FETCH**
-\`code\`: \`https://api.example.com/data\`
-
-**TEXT**
-\`code\`: raw text such as \`hello\`
-
-\`custom_data\`:
-\`{"mimeType":"text/plain"}\`
-
-**SQL**
-\`code\`: \`SELECT id, email, status FROM accounts WHERE account_id = $account_id\`
-
-\`custom_data\`:
-\`{"config":{"database":"main_db","username":"db_user","password":"db_password","options":{"host":"db.example.internal","port":1433,"dialect":"mssql"}},"query_type":"SELECT"}\`
-
-**SQL_BULK_I**
-\`code\`: \`{"table_name":"accounts","config":{"database":"main_db","username":"db_user","password":"db_password","options":{"host":"db.example.internal","dialect":"mssql"}}}\`
-
-**SOAP**
-\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`SOAP\` before writing the payload.
-
-**HANA**
-\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`HANA\` before writing the payload.
-
-**MONGODB**
-\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`MONGODB\` before writing the payload.
-
-**MCP**
-\`code\`: handler-specific JSON configuration. Call \`handler_documentation\` with \`MCP\` before writing the payload.
-
-**TELEGRAM_BOT**
-\`code\`: JavaScript source that configures the injected grammY bot instance available as \`$BOT\`. Store the Telegram token in \`custom_data.token\`. Do not instantiate the bot yourself and do not call \`$BOT.start()\`; the runtime starts it after evaluating the script. This handler is used to persist and run bot logic in the background, not to return business data from the HTTP response.
-
-Operational notes for agents:
-- An HTTP \`200\` only confirms the route handled the request. It does not prove the bot started successfully.
-- Real startup happens in the background worker. Validate worker logs separately.
-- Repeated startup failures can auto-disable the endpoint.
-- In this repository, seeded apps such as \`demo\` can be restored on server startup, so persistent TELEGRAM_BOT changes may also require updating the default app definition.
-- Typical Telegram startup failures: \`401 Unauthorized\` means invalid or revoked token; \`404 Not Found\` usually means Telegram does not recognize that bot token.
-
-### ⚠️ SQL handler Binds
-Do not assume one placeholder syntax works for every SQL backend. Keep the SQL text in \`code\`, store connection settings in \`custom_data\`, and confirm the expected bind style with \`handler_documentation\` for \`SQL\` before publishing the endpoint.
-
-### ⚠️ SQL custom_data
-For the \`SQL\` handler, keep the SQL query in \`code\` and store database connection parameters in \`custom_data\`. Do not wrap both pieces inside \`code\`.
-
-### ⚠️ Handler-specific JSON payloads
-For \`SOAP\`, \`HANA\`, \`MONGODB\`, and \`MCP\`, the exact JSON shape is runtime-specific. Call \`handler_documentation\` for the selected handler and build the payload from that contract instead of reusing examples from another handler. For \`TELEGRAM_BOT\`, write JavaScript code for \`$BOT\`, provide the token in \`custom_data.token\`, let the runtime start the bot automatically, and verify startup in logs instead of relying only on the HTTP response.
-
-### ⚠️ CRITICAL: JS handler — do NOT use \`return\`
-
-The JS handler runs inside a Node.js VM sandbox. To return data you MUST assign **\`$_RETURN_DATA_\`**.
-Using \`return\` compiles silently but the endpoint always responds with \`{}\` (empty object).
-
-**✅ Correct JS code example:**
-\`\`\`javascript
-// Returns current ISO datetime
-$_RETURN_DATA_ = {
-  datetime: new Date().toISOString(),
-  timestamp: Date.now()
-};
-\`\`\`
-
-**❌ Wrong (produces empty {} response):**
-\`\`\`javascript
-return { datetime: new Date().toISOString() };
-\`\`\`
-
-**Reading request data in JS:**
-\`\`\`javascript
-const body    = request.body && request.body.json ? request.body.json : request.body; // POST/PUT body
-const query   = request.query;   // URL query params
-const headers = request.headers; // Request headers
-\`\`\`
-
-### ✅ JS batch quick reference (uFetch / uFetchAutoEnv)
-
-Primary usage of \`uFetch\` and \`uFetchAutoEnv\` is standard fetch-style calls: \`get/post/put/patch/delete\`.
-Use \`batch(items, config)\` when you have a list/lote of inputs and need parallel workers/blocks with controlled concurrency.
-
-Quick decision:
-- One call to one endpoint: use \`get/post/put/patch/delete\`.
-- Many calls from a lote/list: use \`batch(items, { concurrency, buildRequest, ... })\`.
-- Need per-item error reporting without aborting all calls: use \`batch(...)\`.
-
-- Signature: \`batch(items, { concurrency = 5, method = 'GET', buildRequest, onProgress })\`
-- \`buildRequest(item)\` must return request parts like \`{ url?, method?, data?, headers?, options? }\`
-- Result shape per item: \`{ isError, httpCode, response?, error? }\`
-- \`uFetchAutoEnv.create('/api/.../auto')\` returns a \`uFetch\` instance, so \`batch(...)\` is available there too.
-
-Example (40 calls with 5 parallel workers):
-\`\`\`javascript
-const soapFetch = uFetchAutoEnv.create('/api/demo/ofapi/soap/example01/auto');
-const items = Array.from({ length: 40 }, (_, i) => ({ dNum: i + 1 }));
-
-const batchResults = await soapFetch.batch(items, {
-  concurrency: 5,
-  method: 'GET',
-  buildRequest: (item) => ({
-    data: { dNum: item.dNum },
-  }),
-});
-
-const responses = await Promise.all(batchResults.map(async (entry, index) => {
-  if (entry.isError) {
-    return { index, input: items[index], isError: true, httpCode: entry.httpCode, error: entry.error?.message || String(entry.error) };
-  }
-
-  return { index, input: items[index], isError: false, httpCode: entry.httpCode, data: await entry.response.json() };
-}));
-
-$_RETURN_DATA_ = {
-  total: items.length,
-  concurrency: 5,
-  responses,
-};
-\`\`\`
-
-**Returning custom headers in JS:**
-\`\`\`javascript
-let h = new Map();
-h.set("X-My-Header", "value");
-$_RETURN_DATA_ = { result: 42 };
-$_CUSTOM_HEADERS_ = h;
-\`\`\`
-
 ### Recommended workflow
 
 1. Choose the handler first.
-2. Call \`handler_documentation\` with the chosen handler whenever the handler expects a structured JSON payload or database-specific rules.
-3. When you create a JSON Schema that will be stored in OpenFusionAPI, call \`validate_json_schema_for_mcp\` before publishing it.
-4. Build the \`code\` field following the table above and use \`custom_data\` for SQL connection settings.
+2. Read the input schema and field descriptions from this tool before building the payload.
+3. Call \`handler_documentation\` with the chosen handler whenever the handler expects a structured JSON payload or database-specific rules.
+4. When you create a JSON Schema that will be stored in OpenFusionAPI, call \`validate_json_schema_for_mcp\` before publishing it.
 5. If updating an existing endpoint, call \`read_endpoint_data\` first and modify the current structure instead of rebuilding it from memory.
 6. Run \`endpoint_upsert\` with all required fields.
 7. Call \`read_endpoint_data\` again to verify the persisted structure.
 8. Test the endpoint via its HTTP URL before exposing it as an MCP tool.
-9. For \`TELEGRAM_BOT\`, also inspect worker startup logs and re-check whether the endpoint stayed enabled after startup.
 `;
   };
 
   const getEndpointUpsertDescriptionAddon = (endpoint) => {
     if (!isEndpointUpsertEndpoint(endpoint)) return "";
 
-    return " Handler-Specific Guide (endpoint_upsert): `handler` defines the shape of `code` and related fields. FUNCTION => `code` is a function identifier string. JS => `code` is JavaScript source that must assign `$_RETURN_DATA_`. In JS, `uFetch` and instances returned by `uFetchAutoEnv.create(...)` are primarily used for fetch-style calls (`get/post/put/patch/delete`); for list/lote workloads use `batch(items, { concurrency, method, buildRequest, onProgress })` to process calls in controlled parallel blocks/workers. Each batch result item has shape `{ isError, httpCode, response?, error? }`. FETCH => `code` is the target URL. TEXT => `code` is the raw text content and MIME metadata goes in `custom_data.mimeType`. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add `custom_data.fileName` if it requires to be downloadable. SQL => `code` is the SQL query and `custom_data` stores connection settings. SQL_BULK_I/SOAP/HANA/MONGODB/MCP/TELEGRAM_BOT => `code` uses handler-specific configuration and should be built from `handler_documentation` for that handler. NA is an internal default/no-op handler and should be avoided in new integrations. Recommended agent workflow: choose handler first, inspect the handler contract, then build the payload.";
+    return " Handler-specific note: `handler` defines the shape of `code` and related fields. Use the input schema field descriptions for the stored contract, and call `handler_documentation` before composing payloads for SQL_BULK_I, SOAP, HANA, MONGODB, MCP, TELEGRAM_BOT, or other handler-specific structures.";
   };
 
   // Guard against missing endpoint collections when an app is partially configured.

@@ -24,6 +24,27 @@ The configuration area accepts raw JavaScript code. The code must essentially fo
 
 **Available Context Variables**:
 You have access to a context object (implied) with helper functions injected via `functionsVars`:
+
+---
+
+## Log Level (log_level)
+
+Muchos endpoints y herramientas MCP permiten configurar el nivel de log para cada petición. Los valores posibles y su significado son:
+
+| Valor     | Nombre     | Descripción                                                                 |
+|-----------|------------|-----------------------------------------------------------------------------|
+| 0         | Disabled   | No se guarda ningún log para la petición.                                    |
+| 1         | Basic      | Solo los campos mínimos (timestamp, método, status, ids, etc.).              |
+| 2         | Normal     | Incluye parámetros, query, body, user agent, etc.                            |
+| 3         | Full       | Incluye todo lo anterior más headers completos y respuesta serializada.       |
+
+**Uso recomendado:**
+- Usa `Basic` para monitoreo ligero.
+- Usa `Normal` para depuración estándar.
+- Usa `Full` solo para auditoría o troubleshooting profundo (puede incluir datos sensibles o grandes).
+- Usa `Disabled` para endpoints donde no se requiere ningún registro.
+
+En los schemas y herramientas MCP, el campo `log_level` acepta estos valores (0-3) y puede aparecer como `integer` o como selector textual en UIs.
 -   `request.query` — Query string parameters for GET endpoints (object).
 -   `request.body` — Parsed JSON body for POST endpoints; also used for multipart form-data fields.
 -   `request.headers` — Incoming HTTP headers.

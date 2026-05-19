@@ -43,13 +43,32 @@ async function runAllTests() {
   let success = true;
   try {
     // 2. Run the integration tests
-    const testFiles = [
-      "integration_test.js"
+    const testRuns = [
+      {
+        label: "integration_test.js",
+        command: "node",
+        args: ["integration_test.js"],
+      },
+      {
+        label: "check_mcp_name_uniqueness",
+        command: "node",
+        args: [
+          "../scratch/check_mcp_name_uniqueness.js",
+          "--server-key",
+          "openfusion_system_remote_prd",
+          "--app",
+          "system",
+          "--environment",
+          "prd",
+          "--idapp",
+          "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+        ],
+      },
     ];
 
-    for (const file of testFiles) {
-      console.log(`\n--- Running ${file} ---`);
-      const testProcess = spawn("node", [file], {
+    for (const testRun of testRuns) {
+      console.log(`\n--- Running ${testRun.label} ---`);
+      const testProcess = spawn(testRun.command, testRun.args, {
         cwd: __dirname,
         stdio: "inherit"
       });
@@ -59,7 +78,7 @@ async function runAllTests() {
       });
 
       if (exitCode !== 0) {
-        console.error(`${file} failed with exit code ${exitCode}`);
+        console.error(`${testRun.label} failed with exit code ${exitCode}`);
         success = false;
         break;
       }

@@ -209,7 +209,7 @@ export const system_app = {
                 "type": "string",
                 "maxLength": 50,
                 "pattern": "^[a-zA-Z0-9_~.\\-]+$",
-                "description": "Application name. Automatically normalized to lowercase. Must be unique. Allowed chars: letters, digits, _ ~ . -"
+                "description": "Creates or updates one endpoint definition. Omit `idendpoint` to insert a new endpoint; include `idendpoint` to update an existing one. The selected `handler` defines the required shape of `code` and related fields. For structured handlers such as SQL_BULK_I, SOAP, HANA, MONGODB, MCP, or TELEGRAM_BOT, call `handler_documentation` before composing the payload. After saving, read the endpoint again and test it before exposing it through MCP."
               },
               "iduser": {
                 "type": [
@@ -428,106 +428,6 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2025-11-21T22:04:52.726Z",
       "updatedAt": "2025-11-22T00:11:42.111Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {
-          "status_info": 1,
-          "status_success": 1,
-          "status_redirect": 1,
-          "status_client_error": 2,
-          "status_server_error": 3
-        }
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
-      },
-      "json_schema": {
-        "in": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "evgcn9zdx",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0,
-          "json": {
-            "code": {}
-          },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
-          "form": [],
-          "urlencoded": []
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
-      },
-      "idendpoint": "15034cf9-4c94-43ba-bc7a-3d762f62d7de",
-      "rowkey": 446,
-      "enabled": false,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/api/app/0.01",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "",
-      "description": "",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "",
-      "code": "fnGetAppById",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.724Z",
-      "updatedAt": "2025-11-22T00:11:42.106Z"
     },
     {
       "ctrl": {
@@ -785,89 +685,6 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2026-04-06T01:10:00.000Z",
       "updatedAt": "2026-04-06T01:10:00.000Z"
-    },
-    {
-      "ctrl": {
-        "admin": true,
-        "users": [],
-        "log": {}
-      },
-      "cors": {},
-      "mcp": {
-        "enabled": true,
-        "name": "get_app_list",
-        "title": "Get Application List",
-        "description": "It returns the list of registered applications, but does not return the endpoints associated with each app."
-      },
-      "json_schema": {
-        "in": {
-          "enabled": true,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        },
-        "out": {
-          "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
-        }
-      },
-      "custom_data": {},
-      "headers_test": {},
-      "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "uppcvcn8w",
-            "type": 1
-          }
-        ],
-        "body": {
-          "selection": 0
-        },
-        "headers": [],
-        "auth": {
-          "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
-        },
-        "last_response": {
-          "data": "[\n  {\n    \"vars\": {},\n    \"params\": {\n      \"users\": []\n    },\n    \"idapp\": \"cfcd2084-95d5-65ef-66e7-dff9f98764da\",\n    \"app\": \"system\",\n    \"rowkey\": 493,\n    \"iduser\": null,\n    \"enabled\": true,\n    \"description\": \"App System\",\n    \"jwt_key\": \"a6c042e9-5516-484f-a502-051fa8906331\",\n    \"createdAt\": \"2025-11-21T22:04:52.650Z\",\n    \"updatedAt\": \"2025-11-22T00:11:41.979Z\"\n  },\n  {\n    \"vars\": {},\n    \"params\": {},\n    \"idapp\": \"c4ca4238-a0b9-2382-0dcc-509a6f75849b\",\n    \"app\": \"demo\",\n    \"rowkey\": 194,\n    \"iduser\": null,\n    \"enabled\": true,\n    \"description\": \"App DEMO\",\n    \"jwt_key\": \"f30ce432-7b32-4267-8af3-3dfd7c0f7ed6\",\n    \"createdAt\": \"2024-01-30T03:33:10.835Z\",\n    \"updatedAt\": \"2025-11-22T05:07:07.329Z\"\n  },\n  {\n    \"vars\": {},\n    \"params\": {\n      \"users\": []\n    },\n    \"idapp\": \"e86e84f1-336f-4f2a-ab37-ffed7876e71f\",\n    \"app\": \"app_agent_mcp_20260328_a\",\n    \"rowkey\": 312,\n    \"iduser\": null,\n    \"enabled\": true,\n    \"description\": \"Prueba contrato MCP app_create_update\"",
-          "sizeKBResponse": "1.89"
-        }
-      },
-      "idendpoint": "55bdde78-051e-4844-a4b2-089f122f616e",
-      "rowkey": 98,
-      "enabled": false,
-      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
-      "environment": "prd",
-      "timeout": 30,
-      "resource": "/api/app/list",
-      "method": "GET",
-      "handler": "FUNCTION",
-      "access": 2,
-      "title": "Get Apps",
-      "description": "It returns the list of registered applications, but does not return the endpoints associated with each app.",
-      "price_by_request": 1,
-      "price_kb_request": 1,
-      "price_kb_response": 1,
-      "keywords": "app",
-      "code": "fnGetApps",
-      "cache_time": 0,
-      "createdAt": "2025-11-21T22:04:52.725Z",
-      "updatedAt": "2025-11-22T00:11:42.110Z"
     },
     {
       "ctrl": {
@@ -1364,11 +1181,11 @@ export const system_app = {
           "json": {
             "code": {
               "connection": {
-                "database": "msdb",
-                "username": "sa",
-                "password": "sqlopenfusionapi",
+                "database": "<database_name>",
+                "username": "<db_user>",
+                "password": "<db_password>",
                 "dialect": "mssql",
-                "host": "192.168.100.2",
+                "host": "<db_host_or_ip>",
                 "dialectOptions": {
                   "options": {
                     "requestTimeout": 600000
@@ -1572,18 +1389,18 @@ export const system_app = {
           "json": {
             "code": {
               "connection": {
-                "database": "msdb",
-                "username": "sa",
-                "password": "sqlopenfusionapi",
+                "database": "<database_name>",
+                "username": "<db_user>",
+                "password": "<db_password>",
                 "dialect": "mssql",
-                "host": "192.168.100.2",
+                "host": "<db_host_or_ip>",
                 "dialectOptions": {
                   "options": {
                     "requestTimeout": 600000
                   }
                 }
               },
-              "table": "tbl_ClientesDatosExtra"
+              "table": "<table_name>"
             }
           },
           "xml": {
@@ -1927,7 +1744,7 @@ export const system_app = {
               },
               "custom_data": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "Handler-specific auxiliary data, such as SQL connection settings."
+                "description": "Handler-specific auxiliary data. Common examples: SQL connection settings, TEXT `mimeType` and optional `fileName`, or TELEGRAM_BOT `token`. For handlers with runtime-specific payloads, confirm the expected `custom_data` shape with `handler_documentation` before saving."
               },
               "headers_test": {
                 "$ref": "#/$defs/jsonValue",
@@ -2387,16 +2204,66 @@ export const system_app = {
         "log": {}
       },
       "cors": {},
-      "mcp": {},
-      "json_schema": {},
+      "mcp": {
+        "enabled": true,
+        "name": "list_function_names",
+        "title": "List Function Names",
+        "description": "Returns function names available for one application and environment. Required query fields: `environment` and `appName`."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "FunctionNamesRequest",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "environment",
+              "appName"
+            ],
+            "properties": {
+              "environment": {
+                "type": "string",
+                "enum": [
+                  "dev",
+                  "qa",
+                  "prd"
+                ],
+                "description": "Environment where functions will be resolved."
+              },
+              "appName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "description": "Application name whose registered functions should be listed."
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "custom_data": {},
       "headers_test": {},
       "data_test": {
         "query": [
           {
             "enabled": true,
-            "key": "env",
+            "key": "environment",
             "value": "prd",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
+          },
+          {
+            "enabled": true,
+            "key": "appName",
+            "value": "system",
             "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368"
           }
         ],
@@ -2443,7 +2310,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "",
-      "description": "",
+      "description": "Returns function names available for one application and environment.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -2589,26 +2456,41 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
+        "enabled": true,
+        "name": "list_api_clients",
+        "title": "List API Clients",
+        "description": "Returns API clients with optional filters. If no filters are provided, it returns all clients ordered by username."
       },
       "json_schema": {
         "in": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
+            "title": "ApiClientsListRequest",
             "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "additionalProperties": false,
+            "properties": {
+              "idclient": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Optional API client UUID filter."
+              },
+              "username": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 150,
+                "description": "Optional username filter."
+              }
+            }
           }
         },
         "out": {
           "enabled": false,
           "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
           }
         }
       },
@@ -2665,7 +2547,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 0,
       "title": "Get API Clients",
-      "description": "Get list all api clients",
+      "description": "Returns API clients. Optional filters: `idclient` and `username`.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -2782,26 +2664,29 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
+        "enabled": true,
+        "name": "list_all_bots",
+        "title": "List All Bots",
+        "description": "Returns all registered bots for the current environment."
       },
       "json_schema": {
         "in": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
+            "title": "ListAllBotsRequest",
             "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "additionalProperties": false,
+            "properties": {}
           }
         },
         "out": {
           "enabled": false,
           "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
           }
         }
       },
@@ -3365,7 +3250,7 @@ export const system_app = {
       },
       "idendpoint": "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
       "rowkey": 286,
-      "enabled": false,
+      "enabled": true,
       "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
       "environment": "prd",
       "timeout": 30,
@@ -3722,7 +3607,7 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 0,
       "title": "Get all Bots",
-      "description": "Get all bots",
+      "description": "Returns all registered bots for the current environment.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -4028,7 +3913,7 @@ export const system_app = {
               },
               "name": {
                 "type": "string",
-                "description": "AppVar name, for example `$_VAR_BBDD_PORTAL_CLIENTES`."
+                "description": "Stored AppVar name (for example `MY_CONFIG_VALUE`). To reference a variable inside endpoint JSON payloads, use placeholder strings like `$_MY_CONFIG_VALUE`."
               },
               "environment": {
                 "type": "string",
@@ -4052,10 +3937,24 @@ export const system_app = {
           }
         },
         "out": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
             "type": "object",
-            "properties": {},
+            "properties": {
+              "idapp": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "environment": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "value": {}
+            },
             "additionalProperties": true
           }
         }
@@ -4073,13 +3972,19 @@ export const system_app = {
           {
             "enabled": true,
             "key": "name",
-            "value": "$_VAR_BBDD_PORTAL_CLIENTES",
+            "value": "MY_CONFIG_VALUE",
             "type": 1
           },
           {
             "enabled": true,
             "key": "environment",
             "value": "prd",
+            "type": 1
+          },
+          {
+            "enabled": true,
+            "key": "source",
+            "value": "auto",
             "type": 1
           }
         ],
@@ -4137,25 +4042,25 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
+        "enabled": true,
+        "name": "get_libopenfusionapi_latest_version",
+        "title": "Get Latest libOpenFusionAPI Version",
+        "description": "Returns the latest published libOpenFusionAPI version from the GitHub repository."
       },
       "json_schema": {
         "in": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
+            "title": "LatestVersionRequest",
             "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "additionalProperties": false,
+            "properties": {}
           }
         },
         "out": {
           "enabled": false,
           "schema": {
             "type": "object",
-            "properties": {},
             "additionalProperties": true
           }
         }
@@ -5183,7 +5088,7 @@ export const system_app = {
       "handler": "JS",
       "access": 0,
       "title": "Get last version libOpenFusionAPI versión",
-      "description": "Get last version libOpenFusionAPI versión on GitHub repository.",
+      "description": "Returns the latest published libOpenFusionAPI version from the GitHub repository.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
@@ -5832,9 +5737,8 @@ export const system_app = {
               },
               "log_level": {
                 "type": "integer",
-                "minimum": 1,
-                "maximum": 3,
-                "description": "Log level filter (1..3)."
+                "enum": [0, 1, 2, 3],
+                "description": "Nivel de log: 0=Disabled (sin log), 1=Basic (mínimo), 2=Normal (parámetros, query, body), 3=Full (todo, incluye headers y respuesta)."
               },
               "method": {
                 "type": "string",

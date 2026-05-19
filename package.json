@@ -1,11 +1,12 @@
 {
   "name": "@edwinspire/libopenfusionapi",
-  "version": "3.0.7",
+  "version": "3.1.1",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
-    "test": "node ./test/index.js",
-    "test:mcp-docs": "node ./test/mcp_tool_descriptions.js",
-    "test:smoke": "node ./test/smoke_runtime.js",
+    "test": "node ./dev/test/index.js",
+    "test:mcp-docs": "node ./dev/test/mcp_tool_descriptions.js",
+    "test:mcp-names": "node ./dev/scratch/check_mcp_name_uniqueness.js --server-key openfusion_system_remote_prd --app system --environment prd --idapp cfcd2084-95d5-65ef-66e7-dff9f98764da",
+    "test:smoke": "node ./dev/test/smoke_runtime.js",
     "system:check": "node ./scripts/system_sync.mjs --check-only",
     "system:sync": "node ./scripts/system_sync.mjs",
     "docs:js-api": "node ./src/lib/server/generateDocs.js",
@@ -14,8 +15,8 @@
     "docs:handlers": "npm run docs:js-api && npm run docs:handlers:index && npm run docs:handlers:validate",
     "set_version": "node ./set_version.js",
     "start": "node --max-old-space-size=4096 ./src/server.js",
-    "test:integration": "node ./test/integration_test.js",
-    "test:all": "node ./test/index.js",
+    "test:integration": "node ./dev/test/integration_test.js",
+    "test:all": "node ./dev/test/index.js",
     "reinstall": "rm -rf node_modules package-lock.json && npm install"
   },
   "type": "module",
