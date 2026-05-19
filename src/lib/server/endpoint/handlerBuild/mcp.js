@@ -423,6 +423,14 @@ export const CreateMCPHandler = async (app_name, environment) => {
     return ["SOAP", "HANA", "MONGODB", "MCP", "TELEGRAM_BOT", "SQL_BULK_I"].includes(handler);
   };
 
+  const isEndpointUpsertLikeTool = (toolName) => {
+    const normalized = normalizeToolKey(toolName);
+    return (
+      normalized === "endpoint_upsert" ||
+      (normalized.startsWith("upsert_") && normalized.endsWith("_endpoint_handler"))
+    );
+  };
+
   const buildAgentToolDescription = ({
     endpoint,
     safeToolName,
@@ -462,6 +470,10 @@ export const CreateMCPHandler = async (app_name, environment) => {
       lines.push("Agent guidance: call read_endpoint_data before updating an existing endpoint, and verify the saved structure after endpoint_upsert.");
     }
 
+    if (isEndpointUpsertLikeTool(safeToolName)) {
+      lines.push("Agent guidance: fields under code/custom_data may use AppVar placeholders as strings (for example \"$_MY_VAR\"); runtime resolves them to effective application variable values.");
+    }
+
     if (endpoint.access != 0) {
       lines.push("Agent guidance: this tool requires MCP server credentials; do not assume anonymous access.");
     }
@@ -475,14 +487,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
 
   const TOOL_DOC_OVERRIDES = {
     app_data: {
-      description:
-        "Returns the main Application record for the provided `idapp`.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
-      },
-      outputSchema: {
-        type: "object",
-        additionalProperties: true,
       },
     },
     app_create_update: {
@@ -491,14 +497,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         enabled: true,
         description: "Example application",
       },
-      outputSchema: {
-        type: "object",
-        additionalProperties: true,
-      },
     },
     read_endpoint_data: {
-      description:
-        "Returns detailed data for a specific endpoint by `idendpoint`, including its configuration, metadata and runtime-relevant fields. Use this tool to inspect endpoint settings before updating or debugging.",
       exampleRequest: {
         idendpoint: "00000000-0000-0000-0000-000000000002",
       },
@@ -506,14 +506,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Send the endpoint identifier in `idendpoint` exactly as defined in the input schema.",
         "Use this response as a read-before-write step prior to endpoint_upsert changes.",
       ],
-      outputSchema: {
-        type: "object",
-        additionalProperties: true,
-      },
     },
     endpoint_source_summary: {
-      description:
-        "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload.",
       exampleRequest: {
         idendpoint: "00000000-0000-0000-0000-000000000002",
         preview_lines: 40,
@@ -521,14 +515,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
       notes: [
         "Prefer this over `read_endpoint_data` when the agent only needs a quick code preview or wants to estimate source size before requesting the full endpoint configuration.",
       ],
-      outputSchema: {
-        type: "object",
-        additionalProperties: true,
-      },
     },
     app_vars: {
-      description:
-        "Returns the application variables registered for one `idapp`. Use this to inspect shared configuration keys before creating or updating endpoints.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
       },
@@ -536,17 +524,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "The request field is `idapp`; send the application identifier there.",
         "Values may be stored as strings even when they represent JSON or other structured content; inspect each variable `type` before reusing it.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     appvars_effective_resolve: {
-      description:
-        "Resolves the effective runtime value of one AppVar for a specific `idapp` and `environment`, including whether the value came from cached state or a live lookup.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
         environment: "prd",
@@ -556,14 +535,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Use this after `appvar_upsert` when you need to confirm the runtime value that endpoints will actually see.",
         "If the result indicates cached data and you expected a fresh value, inspect cache state or invalidate cache before retesting dependent endpoints.",
       ],
-      outputSchema: {
-        type: "object",
-        additionalProperties: true,
-      },
     },
     available_functions_modules: {
-      description:
-        "Retrieves the helper globals, internal functions, and modules that JS-handler endpoints can use at runtime.",
       exampleRequest: {},
       exampleResponse: {
         "$_RETURN_DATA_": {
@@ -578,14 +551,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Expect metadata and examples rather than a rigid contract: helper globals, module names, and short usage notes may all appear in the response.",
         "For deeper JS runtime rules and examples, also consult the JS handler documentation via `handler_documentation` with `handler=JS`.",
       ],
-      outputSchema: {
-        type: "object",
-        additionalProperties: true,
-      },
     },
     app_endpoints: {
-      description:
-        "Retrieves the endpoints associated with one application (`idapp`) including their main metadata and stored configuration.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
       },
@@ -593,17 +560,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Use this when you need more than discovery, for example when comparing endpoint settings across one app or reviewing multiple endpoint records together.",
         "Prefer `app_endpoints_catalog` for initial discovery because that catalog is lighter and excludes larger payload fields by default.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     app_endpoints_catalog: {
-      description:
-        "Retrieves a lightweight catalog of endpoints for one application. By default it excludes endpoint source code and other heavy fields.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
         environment: "prd",
@@ -613,17 +571,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Prefer this over `app_endpoints` for discovery workflows because it avoids large `code` payloads unless explicitly requested.",
         "Escalate to `app_endpoints` or `read_endpoint_data` only after you already know which endpoint needs detailed inspection.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     app_vars_catalog: {
-      description:
-        "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
         environment: "prd",
@@ -632,33 +581,15 @@ export const CreateMCPHandler = async (app_name, environment) => {
       notes: [
         "Prefer this over `app_vars` for discovery workflows because it avoids returning variable values unless explicitly requested.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     apps_list: {
-      description:
-        "Retrieves applications together with nested application variables and related endpoints.",
       exampleRequest: {},
       notes: [
         "This can be a large payload because it expands nested app variables and endpoints for every application.",
         "Prefer `apps_catalog` for initial discovery and use this full list only when you explicitly need nested data for many applications at once.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     apps_catalog: {
-      description:
-        "Retrieves a lightweight catalog of applications without nested endpoints or application variables.",
       exampleRequest: {
         enabled: true,
         limit: 50,
@@ -668,17 +599,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Prefer this over `apps_list` for initial discovery because the payload is smaller and excludes nested endpoint trees.",
         "Move to `apps_list` or `get_app_list_filters` only when you need nested endpoints, variables, or filter-driven inspection.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     endpoint_change_history: {
-      description:
-        "Returns the ordered change history of an endpoint, useful for audits and rollback analysis.",
       exampleRequest: {
         idendpoint: "00000000-0000-0000-0000-000000000002",
       },
@@ -686,17 +608,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Entries are typically ordered by newest-first unless the backend configuration defines otherwise.",
         "History rows are snapshots for inspection; restoring a version still requires an explicit write operation.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     get_app_list_filters: {
-      description:
-        "Returns applications and nested endpoint data using the provided filters. Use this when discovery needs to be narrowed by app fields, endpoint fields, or both.",
       exampleRequest: {
         app: "my_app",
         endpoint: {
@@ -735,17 +648,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "The response is usually app-centric: each matched application may include nested variables and matched endpoints.",
         "A practical workflow is: start with `apps_catalog` for broad discovery, then use this tool when you already know the filter dimensions you want to constrain.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     system_health_stats: {
-      description:
-        "Returns compact system health metrics such as application counts, endpoint counts, MCP exposure, and recent log activity.",
       exampleRequest: {
         last_hours: 1,
       },
@@ -753,14 +657,8 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Use this as a quick health snapshot before running heavier inspection tools.",
         "The response is summary-oriented: it helps detect recent failures and MCP exposure counts, but it does not replace detailed log inspection.",
       ],
-      outputSchema: {
-        type: "object",
-        additionalProperties: true,
-      },
     },
     get_system_logs: {
-      description:
-        "Returns system log entries filtered by trace, time window, status, or severity. Use it to investigate failed executions and confirm recent system behavior.",
       exampleRequest: {
         trace_id: "trace-id-example",
         limit: 50,
@@ -770,19 +668,9 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Prefer `trace_id` as the first filter when investigating one failing execution path.",
         "When using date windows, send `start_date` and `end_date` together to keep the range explicit.",
         "Use `last_hours` for quick recent searches and reserve broad unfiltered scans for exceptional cases because log volume can be high.",
-        "When the schema exposes `log_level`, interpret it as severity filtering and document the concrete numeric mapping in the endpoint schema or example payload before relying on it in automation.",
       ],
-      outputSchema: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: true,
-        },
-      },
     },
     appvar_upsert: {
-      description:
-        "Creates or updates a reusable application variable for a target `idapp` and `environment`. Use this after creating the application and before creating endpoints when configuration must be shared across multiple endpoints. Supported environments commonly used by agents are `dev`, `qa`, and `prd`.",
       exampleRequest: {
         idapp: "00000000-0000-0000-0000-000000000001",
         name: "MY_CONFIG_VALUE",
@@ -795,10 +683,6 @@ export const CreateMCPHandler = async (app_name, environment) => {
         "Recommended workflow: create the application first, store shared configuration with appvar_upsert, and then create endpoints that reuse those variables.",
         "When an endpoint JSON payload needs to reference an AppVar placeholder, embed it as a string such as `\"$_VAR_NAME\"`.",
       ],
-      outputSchema: {
-        type: "object",
-        additionalProperties: true,
-      },
     },
     endpoint_upsert: {
       outputSchema: {
@@ -810,74 +694,6 @@ export const CreateMCPHandler = async (app_name, environment) => {
       exampleRequest: {
         handler: "JS",
       },
-      exampleResponse: {
-        label: "JavaScript",
-        description: "Executes JavaScript in a Node.js VM sandbox.",
-        markdown: "Canonical handler guide in markdown format.",
-        manifest: {
-          handler: "JS",
-          label: "JavaScript",
-          status: "active",
-          summary: "Executes JavaScript in a Node.js VM sandbox.",
-        },
-        generated: [
-          {
-            file: "api.generated.md",
-            markdown: "Generated API reference for helper functions available in the JS handler runtime.",
-          },
-        ],
-        examples: [],
-        files: {
-          main: "README.md",
-          manifest: "manifest.json",
-          generated: ["api.generated.md"],
-          examples: [],
-          existing: ["README.md", "manifest.json", "api.generated.md"],
-        },
-      },
-      notes: [
-        "Use this tool before composing payloads for handlers with runtime-specific JSON structure.",
-        "The response may include canonical markdown, structured manifest metadata, generated reference files, and example files when available.",
-      ],
-      outputSchema: {
-        type: "object",
-        properties: {
-          label: { type: "string" },
-          description: { type: "string" },
-          markdown: { type: "string" },
-          manifest: {
-            type: "object",
-            additionalProperties: true,
-          },
-          generated: {
-            type: "array",
-            items: {
-              type: "object",
-              additionalProperties: true,
-            },
-          },
-          examples: {
-            type: "array",
-            items: {
-              type: "object",
-              additionalProperties: true,
-            },
-          },
-          files: {
-            type: "object",
-            additionalProperties: true,
-          },
-        },
-        required: ["label", "description"],
-        additionalProperties: true,
-      },
-    },
-    upsert_sql_endpoint_handler: {
-      description:
-        "Creates or updates SQL-based endpoints (CRUD/query) with Sequelize-compatible database configuration.",
-      notes: [
-        "Prefer this specialized tool for SQL handler setup; use endpoint_upsert for generic multi-handler updates.",
-      ],
     },
   };
 
@@ -1067,10 +883,14 @@ export const CreateMCPHandler = async (app_name, environment) => {
       endpoint?.json_schema?.in?.schema?.properties?.vars?.deprecated === true;
     const endpointUpsertHandlerGuide = getEndpointUpsertHandlerGuide(endpoint);
     const endpointUpsertDescriptionAddon = getEndpointUpsertDescriptionAddon(endpoint);
+    // Prefer canonical docs from system.js (endpoint.mcp.description / endpoint.description)
+    // and only use mcp.js override descriptions as fallback.
     const baseDescription = endpoint?.mcp?.description && endpoint?.mcp?.description.length > 0
       ? endpoint?.mcp?.description
       : endpoint.description;
-    const effectiveDescription = override?.description ?? baseDescription;
+    const effectiveDescription = (baseDescription && String(baseDescription).trim().length > 0)
+      ? baseDescription
+      : override?.description;
     const noDeclaredInputFields = schemaHasNoDeclaredTopLevelFields(inputSchema);
     const inputAllowsExtraFields = schemaAllowsAdditionalProperties(inputSchema);
     const isArgumentlessTool = noDeclaredInputFields && !inputAllowsExtraFields;

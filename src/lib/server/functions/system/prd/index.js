@@ -114,4 +114,31 @@ export async function fnFunctionNames(params) {
   return r;
 }
 
+export async function fnAgentOnboardingGuide(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    const trace_id = params?.request?.headers?.["ofapi-trace-id"] || "";
+
+    r.code = 200;
+    r.data = {
+      summary:
+        "1. Always inspect each tool description and input schema first; treat the system catalog as source of truth. 2. For endpoint creation/updates, choose handler first and match payload shape to that handler. 3. Read current endpoint data before updates and patch incrementally. 4. Validate JSON Schema with validate_json_schema_for_mcp before publishing. 5. Use trace_id in logs to follow one execution path end to end.",
+      links: {
+        handler_documentation: "/api/handler/documentation",
+        endpoint_upsert: "/api/endpoint",
+        get_system_logs: "/api/system/logs",
+      },
+      trace_id,
+    };
+  } catch (error) {
+    r.data = {
+      error: error?.message || String(error),
+      trace_id: params?.request?.headers?.["ofapi-trace-id"] || "",
+    };
+    r.code = 500;
+  }
+
+  return r;
+}
+
 

@@ -209,7 +209,7 @@ export const system_app = {
                 "type": "string",
                 "maxLength": 50,
                 "pattern": "^[a-zA-Z0-9_~.\\-]+$",
-                "description": "Creates or updates one endpoint definition. Omit `idendpoint` to insert a new endpoint; include `idendpoint` to update an existing one. The selected `handler` defines the required shape of `code` and related fields. For structured handlers such as SQL_BULK_I, SOAP, HANA, MONGODB, MCP, or TELEGRAM_BOT, call `handler_documentation` before composing the payload. After saving, read the endpoint again and test it before exposing it through MCP."
+                "description": "Unique application name. It is normalized to lowercase and must match [a-zA-Z0-9_~.-] (max 50 chars)."
               },
               "iduser": {
                 "type": [
@@ -1591,7 +1591,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_upsert",
         "title": "Endpoint UPSERT",
-        "description": "Creates or updates an endpoint attached to an existing application. Recommended workflow: create the application first, define reusable AppVars per environment (`dev`, `qa`, `prd`) with `appvar_upsert`, then create endpoints with this tool by choosing both the handler and the HTTP method explicitly. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads. In JS handlers, `uFetch` and instances from `uFetchAutoEnv.create(...)` are primarily for fetch-style calls (`get/post/put/patch/delete`). For list/lote fan-out scenarios, use `batch(items, { concurrency, method, buildRequest, onProgress })` to split calls into controlled parallel blocks/workers; each result item has shape `{ isError, httpCode, response?, error? }`."
+        "description": "Creates or updates an endpoint attached to an existing application. Recommended workflow: create the application first, define reusable AppVars per environment (`dev`, `qa`, `prd`) with `appvar_upsert`, then create endpoints with this tool by choosing both the handler and the HTTP method explicitly. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads, including `code` and `custom_data` when handler contracts allow it. In JS handlers, `uFetch` and instances from `uFetchAutoEnv.create(...)` are primarily for fetch-style calls (`get/post/put/patch/delete`). For list/lote fan-out scenarios, use `batch(items, { concurrency, method, buildRequest, onProgress })` to split calls into controlled parallel blocks/workers; each result item has shape `{ isError, httpCode, response?, error? }`."
       },
       "json_schema": {
         "in": {
@@ -1722,7 +1722,7 @@ export const system_app = {
               "code": {
                 "type": "string",
                 "default": "",
-                "description": "Handler payload. Convention depends on `handler`: JS => server-side JavaScript source and it must assign `$_RETURN_DATA_` instead of using `return`; FUNCTION => internal function name such as `fnMyFunction`; FETCH => target URL string; TEXT => raw text content while MIME metadata lives in `custom_data.mimeType`. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add `custom_data.fileName` if it requires to be downloadable; SQL => SQL query string while connection settings live in `custom_data`; SQL_BULK_I/SOAP/HANA/MONGODB/MCP => handler-specific configuration payload; TELEGRAM_BOT => JavaScript source that configures the injected grammY bot instance available as `$BOT`, while the Telegram token is normally provided in `custom_data.token`. Do not instantiate the bot manually and do not call `$BOT.start()` because the runtime starts it automatically."
+                "description": "Handler payload. Convention depends on `handler`: JS => server-side JavaScript source and it must assign `$_RETURN_DATA_` instead of using `return`; FUNCTION => internal function name such as `fnMyFunction`; FETCH => target URL string; TEXT => raw text content while MIME metadata lives in `custom_data.mimeType`. This handler can be used to expose text with a mimetype, but also for other types of files like a PDF converted to base64 or other files up to 1Mega. Optionally, add `custom_data.fileName` if it requires to be downloadable; SQL => SQL query string while connection settings live in `custom_data`; SQL_BULK_I/SOAP/HANA/MONGODB/MCP => handler-specific configuration payload; TELEGRAM_BOT => JavaScript source that configures the injected grammY bot instance available as `$BOT`, while the Telegram token is normally provided in `custom_data.token`. Do not instantiate the bot manually and do not call `$BOT.start()` because the runtime starts it automatically. You can also pass an AppVar placeholder string such as `\"$_MY_VAR\"`; it will be resolved at runtime to the effective application variable value."
               },
               "cors": {
                 "$ref": "#/$defs/jsonValue",
@@ -1744,7 +1744,7 @@ export const system_app = {
               },
               "custom_data": {
                 "$ref": "#/$defs/jsonValue",
-                "description": "Handler-specific auxiliary data. Common examples: SQL connection settings, TEXT `mimeType` and optional `fileName`, or TELEGRAM_BOT `token`. For handlers with runtime-specific payloads, confirm the expected `custom_data` shape with `handler_documentation` before saving."
+                "description": "Handler-specific auxiliary data. Common examples: SQL connection settings, TEXT `mimeType` and optional `fileName`, or TELEGRAM_BOT `token`. For handlers with runtime-specific payloads, confirm the expected `custom_data` shape with `handler_documentation` before saving. You can pass AppVar placeholder strings such as `\"$_MY_VAR\"` in fields that accept string values; placeholders are resolved at runtime."
               },
               "headers_test": {
                 "$ref": "#/$defs/jsonValue",
@@ -2337,7 +2337,7 @@ export const system_app = {
         "enabled": true,
         "name": "handler_documentation",
         "title": "Handler Documentation",
-        "description": "Returns documentation for a supported endpoint handler."
+        "description": "Returns canonical documentation for one endpoint handler, including usage notes and optional generated references/examples. Call this before building complex handler payloads (for example SQL_BULK_I, SOAP, HANA, MONGODB, MCP, TELEGRAM_BOT) in `endpoint_upsert`."
       },
       "json_schema": {
         "in": {
@@ -2350,7 +2350,7 @@ export const system_app = {
                 "minLength": 1,
                 "maxLength": 25,
                 "pattern": "^[A-Z_]+$",
-                "description": "Type of handler used by the endpoint. Recommended values: JS, FETCH, SOAP, SQL, TEXT, SQL_BULK_I, HANA, FUNCTION, MONGODB, MCP, TELEGRAM_BOT, NA."
+                "description": "Handler identifier in uppercase. Recommended values: JS, FETCH, SOAP, SQL, TEXT, SQL_BULK_I, HANA, FUNCTION, MONGODB, MCP, TELEGRAM_BOT, NA."
               }
             },
             "additionalProperties": false,
@@ -2364,7 +2364,43 @@ export const system_app = {
           "enabled": false,
           "schema": {
             "type": "object",
-            "properties": {},
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "markdown": {
+                "type": "string"
+              },
+              "manifest": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "generated": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "examples": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "files": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "label",
+              "description"
+            ],
             "additionalProperties": true
           }
         }
@@ -4533,6 +4569,1062 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
+        "enabled": true,
+        "name": "upsert_text_endpoint_handler",
+        "title": "UPSERT TEXT Endpoint",
+        "description": "Creates or updates TEXT endpoints using a simplified payload for plain text plus MIME metadata. Internally maps the input into endpoint_upsert with handler=TEXT."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE."
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether the endpoint should be enabled."
+              },
+              "idapp": {
+                "type": "string",
+                "format": "uuid",
+                "description": "UUID of the target application."
+              },
+              "environment": {
+                "type": "string",
+                "enum": [
+                  "dev",
+                  "qa",
+                  "prd"
+                ],
+                "description": "Target environment."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Execution timeout in seconds."
+              },
+              "resource": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300,
+                "description": "HTTP resource path, for example /download/readme."
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE",
+                  "OPTIONS",
+                  "HEAD"
+                ],
+                "description": "HTTP method for the endpoint."
+              },
+              "access": {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "description": "Access level."
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Human-readable endpoint title."
+              },
+              "description": {
+                "type": "string",
+                "description": "Endpoint purpose description."
+              },
+              "price_by_request": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Cost per request in millicents."
+              },
+              "price_kb_request": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Cost per request KB in millicents."
+              },
+              "price_kb_response": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Cost per response KB in millicents."
+              },
+              "keywords": {
+                "type": "string",
+                "description": "Search keywords."
+              },
+              "ctrl": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "text": {
+                "type": "string",
+                "description": "Plain text content to store in endpoint_upsert.code."
+              },
+              "mimeType": {
+                "type": "string",
+                "description": "MIME type stored in custom_data.mimeType, for example text/plain or application/json."
+              },
+              "fileName": {
+                "type": "string",
+                "description": "Optional downloadable file name stored in custom_data.fileName."
+              },
+              "custom_data": {
+                "$ref": "#/$defs/jsonValue",
+                "description": "Optional extra custom_data merged with mimeType/fileName."
+              },
+              "cors": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "cache_time": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Cache time in seconds."
+              },
+              "mcp": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "json_schema": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "headers_test": {
+                "$ref": "#/$defs/jsonValue"
+              },
+              "data_test": {
+                "$ref": "#/$defs/jsonValue"
+              }
+            },
+            "required": [
+              "idapp",
+              "environment",
+              "timeout",
+              "resource",
+              "method",
+              "access",
+              "title",
+              "description",
+              "price_by_request",
+              "price_kb_request",
+              "price_kb_response",
+              "keywords",
+              "text",
+              "cache_time"
+            ],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/$defs/jsonValue"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/jsonValue"
+                    }
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": false,
+            "key": "",
+            "value": "",
+            "_id": "txtwrapperquery01",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "<idapp-uuid>",
+              "environment": "prd",
+              "resource": "/docs/readme",
+              "method": "GET",
+              "access": 0,
+              "title": "README text",
+              "description": "Exposes a text payload",
+              "timeout": 30,
+              "cache_time": 0,
+              "price_by_request": 1,
+              "price_kb_request": 1,
+              "price_kb_response": 1,
+              "keywords": "text,content",
+              "text": "hello world",
+              "mimeType": "text/plain"
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "3a91a3d2-7485-4f66-a85c-1c0e4972b7e1",
+      "rowkey": 902,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/text",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT TEXT Handler Endpoint",
+      "description": "Create or modify in OpenFusion API an endpoint that stores plain text content (TEXT handler).",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "text,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (typeof body.mimeType === 'string' && body.mimeType.trim().length > 0) {\n  custom_data.mimeType = body.mimeType;\n} else if (!custom_data.mimeType) {\n  custom_data.mimeType = 'text/plain';\n}\n\nif (typeof body.fileName === 'string' && body.fileName.trim().length > 0) {\n  custom_data.fileName = body.fileName;\n}\n\nconst data = {\n  ...body,\n  handler: 'TEXT',\n  code: body.text ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.text;\ndelete data.mimeType;\ndelete data.fileName;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-05-19T12:00:00.000Z",
+      "updatedAt": "2026-05-19T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "upsert_js_endpoint_handler",
+        "title": "UPSERT JS Endpoint",
+        "description": "Creates or updates JS endpoints using a simplified payload. Send `js_code` and this wrapper maps it to endpoint_upsert with handler=JS."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
+              "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
+              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
+              "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
+              "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], "description": "HTTP method for the endpoint." },
+              "access": { "type": "integer", "enum": [0, 1, 2, 3, 4], "description": "Access level." },
+              "title": { "type": "string", "maxLength": 200, "description": "Human-readable endpoint title." },
+              "description": { "type": "string", "description": "Endpoint purpose description." },
+              "price_by_request": { "type": "integer", "minimum": 0, "description": "Cost per request in millicents." },
+              "price_kb_request": { "type": "integer", "minimum": 0, "description": "Cost per request KB in millicents." },
+              "price_kb_response": { "type": "integer", "minimum": 0, "description": "Cost per response KB in millicents." },
+              "keywords": { "type": "string", "description": "Search keywords." },
+              "ctrl": { "$ref": "#/$defs/jsonValue" },
+              "js_code": { "type": "string", "description": "JavaScript source code stored in endpoint_upsert.code. Use $_RETURN_DATA_ for responses instead of return." },
+              "custom_data": { "$ref": "#/$defs/jsonValue", "description": "Optional custom_data object forwarded to endpoint_upsert." },
+              "cors": { "$ref": "#/$defs/jsonValue" },
+              "cache_time": { "type": "integer", "minimum": 0, "description": "Cache time in seconds." },
+              "mcp": { "$ref": "#/$defs/jsonValue" },
+              "json_schema": { "$ref": "#/$defs/jsonValue" },
+              "headers_test": { "$ref": "#/$defs/jsonValue" },
+              "data_test": { "$ref": "#/$defs/jsonValue" }
+            },
+            "required": ["idapp", "environment", "timeout", "resource", "method", "access", "title", "description", "price_by_request", "price_kb_request", "price_kb_response", "keywords", "js_code", "cache_time"],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "string" },
+                  { "type": "number" },
+                  { "type": "integer" },
+                  { "type": "boolean" },
+                  { "type": "null" }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": { "type": "object", "properties": {}, "additionalProperties": true }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [{ "enabled": false, "key": "", "value": "", "_id": "jswrapperquery01", "type": 1 }],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "<idapp-uuid>",
+              "environment": "prd",
+              "resource": "/scripts/ping",
+              "method": "GET",
+              "access": 0,
+              "title": "Ping JS",
+              "description": "Simple JS endpoint",
+              "timeout": 30,
+              "cache_time": 0,
+              "price_by_request": 1,
+              "price_kb_request": 1,
+              "price_kb_response": 1,
+              "keywords": "js,endpoint",
+              "js_code": "$_RETURN_DATA_ = { ok: true };"
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "9d1027b2-3e8d-4c94-88b6-8b0d5b1f3e6a",
+      "rowkey": 903,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/js",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT JS Handler Endpoint",
+      "description": "Create or modify in OpenFusion API an endpoint that runs JavaScript (JS handler).",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "js,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst data = {\n  ...body,\n  handler: 'JS',\n  code: body.js_code ?? body.code ?? '',\n};\n\ndelete data.js_code;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-05-19T12:00:00.000Z",
+      "updatedAt": "2026-05-19T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "upsert_fetch_endpoint_handler",
+        "title": "UPSERT FETCH Endpoint",
+        "description": "Creates or updates FETCH endpoints using a simplified payload. Send `target_url` and this wrapper maps it to endpoint_upsert with handler=FETCH."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
+              "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
+              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
+              "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
+              "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], "description": "HTTP method for the endpoint." },
+              "access": { "type": "integer", "enum": [0, 1, 2, 3, 4], "description": "Access level." },
+              "title": { "type": "string", "maxLength": 200, "description": "Human-readable endpoint title." },
+              "description": { "type": "string", "description": "Endpoint purpose description." },
+              "price_by_request": { "type": "integer", "minimum": 0, "description": "Cost per request in millicents." },
+              "price_kb_request": { "type": "integer", "minimum": 0, "description": "Cost per request KB in millicents." },
+              "price_kb_response": { "type": "integer", "minimum": 0, "description": "Cost per response KB in millicents." },
+              "keywords": { "type": "string", "description": "Search keywords." },
+              "ctrl": { "$ref": "#/$defs/jsonValue" },
+              "target_url": { "type": "string", "minLength": 1, "description": "Target URL stored in endpoint_upsert.code for FETCH handler." },
+              "custom_data": { "$ref": "#/$defs/jsonValue", "description": "Optional custom_data object forwarded to endpoint_upsert." },
+              "cors": { "$ref": "#/$defs/jsonValue" },
+              "cache_time": { "type": "integer", "minimum": 0, "description": "Cache time in seconds." },
+              "mcp": { "$ref": "#/$defs/jsonValue" },
+              "json_schema": { "$ref": "#/$defs/jsonValue" },
+              "headers_test": { "$ref": "#/$defs/jsonValue" },
+              "data_test": { "$ref": "#/$defs/jsonValue" }
+            },
+            "required": ["idapp", "environment", "timeout", "resource", "method", "access", "title", "description", "price_by_request", "price_kb_request", "price_kb_response", "keywords", "target_url", "cache_time"],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "string" },
+                  { "type": "number" },
+                  { "type": "integer" },
+                  { "type": "boolean" },
+                  { "type": "null" }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": { "type": "object", "properties": {}, "additionalProperties": true }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [{ "enabled": false, "key": "", "value": "", "_id": "fetchwrapperquery01", "type": 1 }],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "<idapp-uuid>",
+              "environment": "prd",
+              "resource": "/external/weather",
+              "method": "GET",
+              "access": 0,
+              "title": "Weather proxy",
+              "description": "Proxy to external weather API",
+              "timeout": 30,
+              "cache_time": 0,
+              "price_by_request": 1,
+              "price_kb_request": 1,
+              "price_kb_response": 1,
+              "keywords": "fetch,proxy",
+              "target_url": "https://api.example.com/weather"
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "a2ea8b7a-9c6d-4d4a-bf6e-0c3fe38f6bf1",
+      "rowkey": 904,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/fetch",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT FETCH Handler Endpoint",
+      "description": "Create or modify in OpenFusion API an endpoint that proxies to an external URL (FETCH handler).",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "fetch,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst data = {\n  ...body,\n  handler: 'FETCH',\n  code: body.target_url ?? body.url ?? body.code ?? '',\n};\n\ndelete data.target_url;\ndelete data.url;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-05-19T12:00:00.000Z",
+      "updatedAt": "2026-05-19T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "upsert_soap_endpoint_handler",
+        "title": "UPSERT SOAP Endpoint",
+        "description": "Creates or updates SOAP endpoints using a simplified payload. Send `soap_config` and this wrapper maps it to endpoint_upsert with handler=SOAP."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
+              "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
+              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
+              "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
+              "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], "description": "HTTP method for the endpoint." },
+              "access": { "type": "integer", "enum": [0, 1, 2, 3, 4], "description": "Access level." },
+              "title": { "type": "string", "maxLength": 200, "description": "Human-readable endpoint title." },
+              "description": { "type": "string", "description": "Endpoint purpose description." },
+              "price_by_request": { "type": "integer", "minimum": 0, "description": "Cost per request in millicents." },
+              "price_kb_request": { "type": "integer", "minimum": 0, "description": "Cost per request KB in millicents." },
+              "price_kb_response": { "type": "integer", "minimum": 0, "description": "Cost per response KB in millicents." },
+              "keywords": { "type": "string", "description": "Search keywords." },
+              "ctrl": { "$ref": "#/$defs/jsonValue" },
+              "soap_config": { "$ref": "#/$defs/jsonValue", "description": "SOAP configuration object stored in custom_data (for example wsdl, functionName, security options)." },
+              "code": { "type": "string", "description": "Optional fallback code/AppVar reference. When `soap_config` has wsdl this wrapper can keep code empty." },
+              "custom_data": { "$ref": "#/$defs/jsonValue", "description": "Optional extra custom_data merged with soap_config." },
+              "cors": { "$ref": "#/$defs/jsonValue" },
+              "cache_time": { "type": "integer", "minimum": 0, "description": "Cache time in seconds." },
+              "mcp": { "$ref": "#/$defs/jsonValue" },
+              "json_schema": { "$ref": "#/$defs/jsonValue" },
+              "headers_test": { "$ref": "#/$defs/jsonValue" },
+              "data_test": { "$ref": "#/$defs/jsonValue" }
+            },
+            "required": ["idapp", "environment", "timeout", "resource", "method", "access", "title", "description", "price_by_request", "price_kb_request", "price_kb_response", "keywords", "soap_config", "cache_time"],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "string" },
+                  { "type": "number" },
+                  { "type": "integer" },
+                  { "type": "boolean" },
+                  { "type": "null" }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": { "type": "object", "properties": {}, "additionalProperties": true }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [{ "enabled": false, "key": "", "value": "", "_id": "soapwrapperquery01", "type": 1 }],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "<idapp-uuid>",
+              "environment": "prd",
+              "resource": "/ofapi/soap/number_to_words",
+              "method": "GET",
+              "access": 0,
+              "title": "SOAP Number To Words",
+              "description": "SOAP proxy endpoint",
+              "timeout": 30,
+              "cache_time": 0,
+              "price_by_request": 1,
+              "price_kb_request": 1,
+              "price_kb_response": 1,
+              "keywords": "soap,endpoint",
+              "soap_config": {
+                "wsdl": "https://www.dataaccess.com/webservicesserver/numberconversion.wso?WSDL",
+                "functionName": "NumberToWords"
+              }
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "b5721f7f-0f21-4d4f-b9b9-2a66bb68dbe0",
+      "rowkey": 905,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/soap",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT SOAP Handler Endpoint",
+      "description": "Create or modify in OpenFusion API a SOAP handler endpoint.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "soap,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.soap_config && typeof body.soap_config === 'object') {\n  Object.assign(custom_data, body.soap_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'SOAP',\n  code: body.code ?? '',\n  custom_data,\n};\n\ndelete data.soap_config;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-05-19T12:00:00.000Z",
+      "updatedAt": "2026-05-19T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "upsert_mongodb_endpoint_handler",
+        "title": "UPSERT MONGODB Endpoint",
+        "description": "Creates or updates MONGODB endpoints using a simplified payload. Send `mongo_code` and `mongo_config`, and this wrapper maps them to endpoint_upsert with handler=MONGODB."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
+              "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
+              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
+              "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
+              "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], "description": "HTTP method for the endpoint." },
+              "access": { "type": "integer", "enum": [0, 1, 2, 3, 4], "description": "Access level." },
+              "title": { "type": "string", "maxLength": 200, "description": "Human-readable endpoint title." },
+              "description": { "type": "string", "description": "Endpoint purpose description." },
+              "price_by_request": { "type": "integer", "minimum": 0, "description": "Cost per request in millicents." },
+              "price_kb_request": { "type": "integer", "minimum": 0, "description": "Cost per request KB in millicents." },
+              "price_kb_response": { "type": "integer", "minimum": 0, "description": "Cost per response KB in millicents." },
+              "keywords": { "type": "string", "description": "Search keywords." },
+              "ctrl": { "$ref": "#/$defs/jsonValue" },
+              "mongo_code": { "type": "string", "description": "JavaScript logic stored in endpoint_upsert.code for MONGODB handler." },
+              "mongo_config": { "$ref": "#/$defs/jsonValue", "description": "MongoDB connection/config object stored in endpoint_upsert.custom_data." },
+              "custom_data": { "$ref": "#/$defs/jsonValue", "description": "Optional custom_data merged with mongo_config." },
+              "cors": { "$ref": "#/$defs/jsonValue" },
+              "cache_time": { "type": "integer", "minimum": 0, "description": "Cache time in seconds." },
+              "mcp": { "$ref": "#/$defs/jsonValue" },
+              "json_schema": { "$ref": "#/$defs/jsonValue" },
+              "headers_test": { "$ref": "#/$defs/jsonValue" },
+              "data_test": { "$ref": "#/$defs/jsonValue" }
+            },
+            "required": ["idapp", "environment", "timeout", "resource", "method", "access", "title", "description", "price_by_request", "price_kb_request", "price_kb_response", "keywords", "mongo_code", "mongo_config", "cache_time"],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "string" },
+                  { "type": "number" },
+                  { "type": "integer" },
+                  { "type": "boolean" },
+                  { "type": "null" }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": { "type": "object", "properties": {}, "additionalProperties": true }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [{ "enabled": false, "key": "", "value": "", "_id": "mongowrapperquery01", "type": 1 }],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "<idapp-uuid>",
+              "environment": "prd",
+              "resource": "/mongo/users/find",
+              "method": "POST",
+              "access": 0,
+              "title": "Mongo users find",
+              "description": "MONGODB endpoint example",
+              "timeout": 30,
+              "cache_time": 0,
+              "price_by_request": 1,
+              "price_kb_request": 1,
+              "price_kb_response": 1,
+              "keywords": "mongodb,endpoint",
+              "mongo_code": "const docs = await mongooseInstance.collection('users').find({}).toArray();\n$_RETURN_DATA_ = docs;",
+              "mongo_config": {
+                "host": "localhost",
+                "port": 27017,
+                "dbName": "my_database",
+                "user": "",
+                "pass": "",
+                "options": {}
+              }
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "2f7a36f0-f45c-4a5f-95d5-0bc2bdb1e25a",
+      "rowkey": 906,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/mongodb",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT MONGODB Handler Endpoint",
+      "description": "Create or modify in OpenFusion API a MONGODB handler endpoint.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "mongodb,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.mongo_config && typeof body.mongo_config === 'object') {\n  Object.assign(custom_data, body.mongo_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'MONGODB',\n  code: body.mongo_code ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.mongo_code;\ndelete data.mongo_config;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-05-19T12:00:00.000Z",
+      "updatedAt": "2026-05-19T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "upsert_hana_endpoint_handler",
+        "title": "UPSERT HANA Endpoint",
+        "description": "Creates or updates HANA endpoints using a simplified payload. Send `hana_code` and optional `hana_config`, and this wrapper maps them to endpoint_upsert with handler=HANA."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
+              "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
+              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
+              "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
+              "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], "description": "HTTP method for the endpoint." },
+              "access": { "type": "integer", "enum": [0, 1, 2, 3, 4], "description": "Access level." },
+              "title": { "type": "string", "maxLength": 200, "description": "Human-readable endpoint title." },
+              "description": { "type": "string", "description": "Endpoint purpose description." },
+              "price_by_request": { "type": "integer", "minimum": 0, "description": "Cost per request in millicents." },
+              "price_kb_request": { "type": "integer", "minimum": 0, "description": "Cost per request KB in millicents." },
+              "price_kb_response": { "type": "integer", "minimum": 0, "description": "Cost per response KB in millicents." },
+              "keywords": { "type": "string", "description": "Search keywords." },
+              "ctrl": { "$ref": "#/$defs/jsonValue" },
+              "hana_code": { "type": "string", "description": "SQL or handler-specific code stored in endpoint_upsert.code for HANA handler." },
+              "hana_config": { "$ref": "#/$defs/jsonValue", "description": "Optional HANA connection/config object merged into custom_data." },
+              "custom_data": { "$ref": "#/$defs/jsonValue", "description": "Optional custom_data merged with hana_config." },
+              "cors": { "$ref": "#/$defs/jsonValue" },
+              "cache_time": { "type": "integer", "minimum": 0, "description": "Cache time in seconds." },
+              "mcp": { "$ref": "#/$defs/jsonValue" },
+              "json_schema": { "$ref": "#/$defs/jsonValue" },
+              "headers_test": { "$ref": "#/$defs/jsonValue" },
+              "data_test": { "$ref": "#/$defs/jsonValue" }
+            },
+            "required": ["idapp", "environment", "timeout", "resource", "method", "access", "title", "description", "price_by_request", "price_kb_request", "price_kb_response", "keywords", "hana_code", "cache_time"],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "string" },
+                  { "type": "number" },
+                  { "type": "integer" },
+                  { "type": "boolean" },
+                  { "type": "null" }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": { "type": "object", "properties": {}, "additionalProperties": true }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [{ "enabled": false, "key": "", "value": "", "_id": "hanawrapperquery01", "type": 1 }],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "<idapp-uuid>",
+              "environment": "prd",
+              "resource": "/db/hana/query",
+              "method": "POST",
+              "access": 0,
+              "title": "HANA query",
+              "description": "HANA endpoint example",
+              "timeout": 30,
+              "cache_time": 0,
+              "price_by_request": 1,
+              "price_kb_request": 1,
+              "price_kb_response": 1,
+              "keywords": "hana,endpoint",
+              "hana_code": "SELECT * FROM USERS WHERE USER_ID = :id"
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "f27ef32e-3f6a-4dd4-b37b-5dca59a0b127",
+      "rowkey": 907,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/hana",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT HANA Handler Endpoint",
+      "description": "Create or modify in OpenFusion API a HANA handler endpoint.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "hana,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.hana_config && typeof body.hana_config === 'object') {\n  Object.assign(custom_data, body.hana_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'HANA',\n  code: body.hana_code ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.hana_code;\ndelete data.hana_config;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-05-19T12:00:00.000Z",
+      "updatedAt": "2026-05-19T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "upsert_sql_bulk_i_endpoint_handler",
+        "title": "UPSERT SQL_BULK_I Endpoint",
+        "description": "Creates or updates SQL_BULK_I endpoints using a simplified payload. Send `table_name` plus optional `bulk_config`, and this wrapper maps them to endpoint_upsert with handler=SQL_BULK_I."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
+              "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
+              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
+              "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
+              "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], "description": "HTTP method for the endpoint." },
+              "access": { "type": "integer", "enum": [0, 1, 2, 3, 4], "description": "Access level." },
+              "title": { "type": "string", "maxLength": 200, "description": "Human-readable endpoint title." },
+              "description": { "type": "string", "description": "Endpoint purpose description." },
+              "price_by_request": { "type": "integer", "minimum": 0, "description": "Cost per request in millicents." },
+              "price_kb_request": { "type": "integer", "minimum": 0, "description": "Cost per request KB in millicents." },
+              "price_kb_response": { "type": "integer", "minimum": 0, "description": "Cost per response KB in millicents." },
+              "keywords": { "type": "string", "description": "Search keywords." },
+              "ctrl": { "$ref": "#/$defs/jsonValue" },
+              "table_name": { "type": "string", "minLength": 1, "description": "Target table name stored in endpoint_upsert.code for SQL_BULK_I." },
+              "bulk_config": { "$ref": "#/$defs/jsonValue", "description": "SQL_BULK_I config object (connection and options) merged into custom_data." },
+              "custom_data": { "$ref": "#/$defs/jsonValue", "description": "Optional custom_data merged with bulk_config." },
+              "cors": { "$ref": "#/$defs/jsonValue" },
+              "cache_time": { "type": "integer", "minimum": 0, "description": "Cache time in seconds." },
+              "mcp": { "$ref": "#/$defs/jsonValue" },
+              "json_schema": { "$ref": "#/$defs/jsonValue" },
+              "headers_test": { "$ref": "#/$defs/jsonValue" },
+              "data_test": { "$ref": "#/$defs/jsonValue" }
+            },
+            "required": ["idapp", "environment", "timeout", "resource", "method", "access", "title", "description", "price_by_request", "price_kb_request", "price_kb_response", "keywords", "table_name", "cache_time"],
+            "$defs": {
+              "jsonValue": {
+                "oneOf": [
+                  { "type": "object", "additionalProperties": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "array", "items": { "$ref": "#/$defs/jsonValue" } },
+                  { "type": "string" },
+                  { "type": "number" },
+                  { "type": "integer" },
+                  { "type": "boolean" },
+                  { "type": "null" }
+                ]
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": { "type": "object", "properties": {}, "additionalProperties": true }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [{ "enabled": false, "key": "", "value": "", "_id": "sqlbulkwrapperquery01", "type": 1 }],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idapp": "<idapp-uuid>",
+              "environment": "prd",
+              "resource": "/db/bulk/users",
+              "method": "POST",
+              "access": 0,
+              "title": "Bulk insert users",
+              "description": "SQL_BULK_I endpoint example",
+              "timeout": 30,
+              "cache_time": 0,
+              "price_by_request": 1,
+              "price_kb_request": 1,
+              "price_kb_response": 1,
+              "keywords": "sql,bulk,endpoint",
+              "table_name": "users"
+            }
+          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": { "selection": 0, "basic": { "username": "", "password": "" }, "bearer": { "token": "" } },
+        "last_response": { "data": "", "sizeKBResponse": -1 }
+      },
+      "idendpoint": "3eaee5de-a17b-4be6-bfd9-f4fcd38fca10",
+      "rowkey": 908,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/endpoint/sql_bulk_i",
+      "method": "POST",
+      "handler": "JS",
+      "access": 3,
+      "title": "UPSERT SQL_BULK_I Handler Endpoint",
+      "description": "Create or modify in OpenFusion API a SQL_BULK_I handler endpoint.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "sql,bulk,endpoint",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.bulk_config && typeof body.bulk_config === 'object') {\n  Object.assign(custom_data, body.bulk_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'SQL_BULK_I',\n  code: body.table_name ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.table_name;\ndelete data.bulk_config;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "cache_time": 0,
+      "createdAt": "2026-05-19T12:00:00.000Z",
+      "updatedAt": "2026-05-19T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
         "enabled": false,
         "name": "",
         "title": "",
@@ -5738,7 +6830,7 @@ export const system_app = {
               "log_level": {
                 "type": "integer",
                 "enum": [0, 1, 2, 3],
-                "description": "Nivel de log: 0=Disabled (sin log), 1=Basic (mínimo), 2=Normal (parámetros, query, body), 3=Full (todo, incluye headers y respuesta)."
+                "description": "Log verbosity level: 0=Disabled (no logs), 1=Basic (minimal events), 2=Normal (includes params/query/body), 3=Full (includes headers and response payload)."
               },
               "method": {
                 "type": "string",
@@ -6572,8 +7664,8 @@ export const system_app = {
               "window_hours": { "type": "integer" },
               "apps": { "type": "object", "properties": { "total": { "type": "integer" } } },
               "endpoints": {
-                "type": "object",
-                "properties": {
+                  "type": "object",
+                  "properties": {
                   "total": { "type": "integer" },
                   "enabled": { "type": "integer" },
                   "mcp_enabled": { "type": "integer" }
@@ -6620,8 +7712,8 @@ export const system_app = {
       "cache_time": 0,
       "createdAt": "2026-04-30T12:00:00.000Z",
       "updatedAt": "2026-04-30T12:00:00.000Z"
-    },
-    {
+      },
+      {
       "ctrl": { "admin": true, "users": [], "log": { "status_info": 1, "status_success": 1, "status_redirect": 1, "status_client_error": 2, "status_server_error": 3 } },
       "cors": {},
       "mcp": {
@@ -6695,6 +7787,90 @@ export const system_app = {
       "createdAt": "2026-04-30T12:00:00.000Z",
       "updatedAt": "2026-04-30T12:00:00.000Z"
     },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "agent_onboarding",
+        "title": "Agent Onboarding Guide",
+        "description": "Returns best practices, recommended workflows, and key tips for MCP agents (AI or human) to use the OpenFusionAPI toolset efficiently and safely. All content is provided in English."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        "out": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "summary": { "type": "string", "description": "Best practices and onboarding summary for agents." },
+              "links": { "type": "object", "description": "Key tool references.", "properties": {
+                "handler_documentation": { "type": "string" },
+                "endpoint_upsert": { "type": "string" },
+                "get_system_logs": { "type": "string" }
+              }, "additionalProperties": false },
+              "trace_id": { "type": "string", "description": "Request trace identifier when available in header ofapi-trace-id." }
+            },
+            "required": ["summary"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "summary": "1. Always check the description and inputSchema of each tool in the MCP catalog (system.js seed). This is the source of truth for purpose, required fields, and examples.\n2. To create or modify endpoints: use endpoint_upsert or the specific wrapper for the handler. Read the handler field: it defines the shape of code and custom_data. If the handler is SQL_BULK_I, SOAP, HANA, MONGODB, MCP, or TELEGRAM_BOT, call handler_documentation before building the payload. Use AppVar placeholders (\"$_VAR_NAME\") in code/custom_data only where the contract allows.\n3. To get handler details: use handler_documentation with the handler name in uppercase. The result includes markdown, examples, manifest, and payload shape.\n4. For logs and auditing: use get_system_logs. The log_level field is: 0=Disabled, 1=Basic, 2=Normal, 3=Full. Prefer trace_id to track a complete execution.\n5. Before updating an existing endpoint: always call read_endpoint_data first. Modify the current structure, do not build from scratch.\n6. Always validate JSON Schemas with validate_json_schema_for_mcp before publishing.\n7. Do not send fields outside the inputSchema unless the contract allows (additionalProperties).\n8. If you have doubts about the shape of custom_data, code, or complex payloads, consult handler_documentation or the generated documentation in the seed.",
+              "links": {
+                "handler_documentation": "/api/handler/documentation",
+                "endpoint_upsert": "/api/endpoint",
+                "get_system_logs": "/api/system/logs"
+              }
+            }
+          }
+        }
+      },
+      "idendpoint": "caab6e15-dc01-4590-bcc5-f5ff66c4177a",
+      "rowkey": 9999,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 10,
+      "resource": "/api/agent_onboarding",
+      "method": "GET",
+      "handler": "JS",
+      "access": 0,
+      "title": "Agent Onboarding Guide",
+      "description": "Returns best practices, recommended workflows, and key tips for MCP agents (AI or human) to use the OpenFusionAPI toolset efficiently and safely. All content is provided in English.",
+      "price_by_request": 0,
+      "price_kb_request": 0,
+      "price_kb_response": 0,
+      "keywords": "onboarding,guide,agent,AI,best practices",
+      "code": "const trace_id = request?.headers?.['ofapi-trace-id'] || '';\n$_RETURN_DATA_ = {\n  summary: '1. Always inspect each tool description and input schema first; treat the system catalog as source of truth. 2. For endpoint creation/updates, choose handler first and match payload shape to that handler. 3. Read current endpoint data before updates and patch incrementally. 4. Validate JSON Schema with validate_json_schema_for_mcp before publishing. 5. Use trace_id in logs to follow one execution path end to end.',\n  links: {\n    handler_documentation: '/api/handler/documentation',\n    endpoint_upsert: '/api/endpoint',\n    get_system_logs: '/api/system/logs'\n  },\n  trace_id\n};",
+      "cache_time": 3600,
+      "createdAt": "2026-05-19T00:00:00.000Z",
+      "updatedAt": "2026-05-19T00:00:00.000Z"
+      },
     {
       "ctrl": { "admin": true, "users": [], "log": { "status_info": 1, "status_success": 1, "status_redirect": 1, "status_client_error": 2, "status_server_error": 3 } },
       "cors": {},

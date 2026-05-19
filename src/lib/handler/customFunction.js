@@ -26,12 +26,13 @@ function validateFnResult(result) {
 
 export const customFunction = async (context) => {
   const { request, reply, method, server_data } = getHandlerExecutionContext(context);
+  const trace_id = request?.headers?.["ofapi-trace-id"] || "";
   try {
     // Validación de función
     if (typeof method.Fn !== "function") {
       const msg = `URL: ${request.url} - Function '${method.code}' not found.`;
       console.error(msg);
-      reply.code(500).send({ error: msg });
+      reply.code(500).send({ error: msg, trace_id });
       return;
     }
 
@@ -77,7 +78,7 @@ export const customFunction = async (context) => {
     const parsed = validateFnResult(fnresult);
     if (!parsed.success) {
       console.error("Response validation errors:", parsed.error);
-      reply.code(500).send({ error: parsed.error });
+      reply.code(500).send({ error: parsed.error, trace_id });
       return;
     }
 
