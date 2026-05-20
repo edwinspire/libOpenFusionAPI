@@ -1033,6 +1033,7 @@ ${endpointUpsertHandlerGuide}
 `);
 
     let zod_inputSchema = z.object({}).describe("Data to send to the endpoint.");
+    let shouldUnwrapSingleValueInput = false;
     const requiresPassthroughToolInput = isEndpointUpsertEndpoint(endpoint);
 
     if (requiresPassthroughToolInput) {
@@ -1048,6 +1049,7 @@ ${endpointUpsertHandlerGuide}
         if (zodSchema instanceof z.ZodObject || isObjectLikeSerializedSchema(zodSchema)) {
           zod_inputSchema = zodSchema;
         } else if (isZodSchemaLike(zodSchema)) {
+          shouldUnwrapSingleValueInput = true;
           zod_inputSchema = z.object({ value: zodSchema }).describe(
             "Structured single-value input wrapped for MCP compatibility.",
           );
@@ -1091,6 +1093,10 @@ ${endpointUpsertHandlerGuide}
         handler: async (data, _context, currentHeaders) => {
 
           try {
+            const requestData = shouldUnwrapSingleValueInput && data && typeof data === "object" && "value" in data
+              ? data.value
+              : data;
+
             let AutoURL = new URLAutoEnvironment({
               environment: endpoint.environment,
             });
@@ -1112,7 +1118,7 @@ ${endpointUpsertHandlerGuide}
             }
 
             let request_endpoint = await uF[endpoint.method.toLowerCase()]({
-              data: data,
+              data: requestData,
               headers: sanitizedHeaders,
             });
 

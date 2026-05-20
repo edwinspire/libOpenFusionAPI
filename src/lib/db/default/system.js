@@ -445,8 +445,8 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "app_endpoints",
-        "title": "List endpoints of an app",
-        "description": "Returns all endpoints associated with one application identified by `idapp`. Use the optional 'attributes' array to request only specific fields and reduce the payload size."
+        "title": "List all endpoints of an app",
+        "description": "Returns the COMPLETE list of all endpoints for one application identified by 'idapp', across all environments (dev, qa, prd) and regardless of enabled/disabled status. Use this tool when you need the full inventory of endpoints for an app. To search for a specific endpoint by keyword, use 'search_endpoints' instead. To discover the idapp use 'apps_list' or 'apps_catalog'. Use the optional 'attributes' array to request only specific fields and reduce the payload size."
       },
       "json_schema": {
         "in": {
@@ -570,7 +570,7 @@ export const system_app = {
         "enabled": true,
         "name": "app_endpoints_catalog",
         "title": "List endpoint catalog of an app",
-        "description": "Returns a lightweight catalog of endpoints for one application. Endpoint source code is excluded unless explicitly requested."
+        "description": "Returns a lightweight catalog of endpoints for one application. Endpoint source code is excluded by default (set 'include_code: true' to include it). Supports filters: environment, method, handler, enabled. Use this for initial discovery or to list endpoints before calling 'read_endpoint_data' or 'endpoint_get_code'. Prefer this over 'app_endpoints' when you do not need the full endpoint payload."
       },
       "json_schema": {
         "in": {
@@ -702,8 +702,8 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "app_vars_catalog",
-        "title": "List application variable catalog",
-        "description": "Returns a lightweight catalog of application variables for one app. Values are excluded unless explicitly requested."
+        "title": "List Application Variable Catalog (Lightweight)",
+        "description": "Returns a lightweight list of AppVar names, types and environments for one app — variable values are excluded unless 'include_values: true' is set. Use this to discover which variables exist before reading or updating them. For the full variable data including values use 'app_vars'. To resolve the effective runtime value of a specific variable use 'appvars_effective_resolve'."
       },
       "json_schema": {
         "in": {
@@ -932,8 +932,8 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "apps_catalog",
-        "title": "List application catalog",
-        "description": "Returns a lightweight catalog of applications without nested endpoints or application variables."
+        "title": "List Application Catalog (Lightweight)",
+        "description": "Returns a lightweight list of applications: names, idapp, enabled status and description — without nested endpoints or AppVars. Use this to discover idapp values or check which apps exist. For a full payload including endpoints and variables use 'apps_list'. To get endpoints of a specific app use 'app_endpoints'."
       },
       "json_schema": {
         "in": {
@@ -1945,7 +1945,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_change_history",
         "title": "Endpoint Change History",
-        "description": "Returns the ordered change history (backup list) of an endpoint. Use 'lightweight: true' (recommended for agents) to get only idbackup, hash, and createdAt without the heavy full-snapshot 'data' field. To inspect a specific version, call this first with lightweight=true, note the 'idbackup', then call GET /api/endpoint/backup/detail?idbackup=<id> to retrieve the full snapshot."
+        "description": "Returns the ordered change history (backup list) of an endpoint. Use 'lightweight: true' (recommended for agents) to get only idbackup, hash, and createdAt without the heavy full-snapshot 'data' field. Use 'lightweight: false' to retrieve the full snapshot data inline. To rollback to a specific version, copy the 'idbackup' value and call 'endpoint_restore_version'."
       },
       "json_schema": {
         "in": {
@@ -2071,36 +2071,26 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "endpoint_source_summary",
-        "title": "Get endpoint source summary",
-        "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload."
+        "title": "Get Endpoint Source Summary",
+        "description": "Returns a compact source summary for one endpoint: code length, line count, and a configurable code preview — without downloading the full endpoint payload. Use this to quickly inspect endpoint logic before deciding whether to call 'endpoint_get_code' for the full source or 'read_endpoint_data' for the full configuration. Lighter than both alternatives."
       },
       "json_schema": {
         "in": {
           "enabled": true,
           "schema": {
+            "title": "EndpointSourceSummaryRequest",
             "type": "object",
-            "properties": {
-              "idendpoint": {
-                "type": "string"
-              },
-              "preview_lines": {
-                "type": "integer",
-                "minimum": 1
-              }
-            },
             "additionalProperties": false,
-            "required": [
-              "idendpoint"
-            ]
+            "required": ["idendpoint"],
+            "properties": {
+              "idendpoint": { "type": "string", "format": "uuid", "description": "UUID of the endpoint to summarize. Obtain from 'app_endpoints' or 'search_endpoints'." },
+              "preview_lines": { "type": "integer", "description": "Number of source code lines to include in the preview (default: 40, max: 500).", "minimum": 1, "maximum": 500 }
+            }
           }
         },
         "out": {
           "enabled": false,
-          "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
-          }
+          "schema": { "type": "object", "properties": {}, "additionalProperties": true }
         }
       },
       "custom_data": {},
@@ -2174,27 +2164,6 @@ export const system_app = {
       "keywords": "endpoint,source,summary,preview",
       "code": "fnEndpointSourceSummaryById",
       "cache_time": 0,
-      "mcp": {
-        "enabled": true,
-        "name": "endpoint_source_summary",
-        "title": "Get Endpoint Source Summary",
-        "description": "Returns a compact source summary for one endpoint, including code length, line count, and a preview without the full endpoint payload."
-      },
-      "json_schema": {
-        "in": {
-          "enabled": true,
-          "schema": {
-            "title": "EndpointSourceSummaryRequest",
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["idendpoint"],
-            "properties": {
-              "idendpoint": { "type": "string", "format": "uuid", "description": "UUID of the endpoint to summarize." },
-              "preview_lines": { "type": "integer", "description": "Number of lines to include in the code preview (default: 40).", "minimum": 1, "maximum": 500 }
-            }
-          }
-        }
-      },
       "createdAt": "2026-04-06T01:40:00.000Z",
       "updatedAt": "2026-04-06T01:40:00.000Z"
     },
@@ -2702,8 +2671,8 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "list_all_bots",
-        "title": "List All Bots",
-        "description": "Returns all registered bots for the current environment."
+        "title": "List All API Clients (Bots)",
+        "description": "Returns all registered API clients (also referred to as bots). An API client is an external agent or service that authenticates via API key to call OpenFusionAPI endpoints. Each entry includes the client credentials and the app it is associated with. Use 'list_api_clients' to filter by username or idclient."
       },
       "json_schema": {
         "in": {
@@ -3078,8 +3047,8 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "get_app_list_filters",
-        "title": "Get App List Filters",
-        "description": "Returns applications and nested endpoint data using the provided filters."
+        "title": "Get App with Endpoints by Filters",
+        "description": "Returns a SINGLE application with its nested endpoints and AppVars, filtered by any combination of app name, idapp, enabled status, and endpoint-level filters (environment, method, handler, resource, enabled). Use this when you need app data AND endpoint data in one call with precise filters. For simpler cases prefer: 'apps_catalog' (app names only), 'app_endpoints' (all endpoints for an app), or 'search_endpoints' (keyword search across endpoints)."
       },
       "json_schema": {
         "in": {
@@ -3321,7 +3290,7 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "appvar_upsert",
-        "title": "appvar_upsert",
+        "title": "Create or Update Application Variable",
         "description": "Creates or updates a reusable application variable for a target `idapp` and `environment`. Use this after creating the application and before creating endpoints when configuration must be shared across multiple endpoints. Supported environments commonly used by agents are `dev`, `qa`, and `prd`. `value` is stored as a string in this contract. When an endpoint JSON payload needs an AppVar placeholder, embed it as the string `\"$_VAR_NAME\"`."
       },
       "json_schema": {
@@ -3462,8 +3431,8 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "app_vars",
-        "title": "app_vars",
-        "description": "Returns the list of application variables for the provided `idapp`."
+        "title": "Get Application Variables",
+        "description": "Returns all application variables (AppVars) for the given `idapp`, including their values across all environments. Use this when you need the full variable data to read or inspect values. For a lightweight list without values use 'app_vars_catalog'. To resolve the effective runtime value of a single variable use 'appvars_effective_resolve'."
       },
       "json_schema": {
         "in": {
@@ -3727,7 +3696,7 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "cache_invalidate",
-        "title": "cache_invalidate",
+        "title": "Invalidate Endpoint Cache",
         "description": "Invalidates endpoint cache entries by `idapp` (optionally `environment`) or by a specific `idendpoint`. Use this when endpoint definitions or app variables changed and you need fresh data on next request."
       },
       "json_schema": {
@@ -3831,7 +3800,7 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "cache_status",
-        "title": "cache_status",
+        "title": "Get Endpoint Cache Status",
         "description": "Returns a catalog of currently cached endpoints for one app and optional environment. Use it to inspect cache state before/after invalidation."
       },
       "json_schema": {
@@ -3934,7 +3903,7 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "appvars_effective_resolve",
-        "title": "appvars_effective_resolve",
+        "title": "Resolve Effective AppVar Value",
         "description": "Resolves the effective value of one AppVar for `idapp` + `environment`, indicating whether it came from cache snapshot or live DB lookup."
       },
       "json_schema": {
@@ -4874,7 +4843,7 @@ export const system_app = {
             "properties": {
               "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
               "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
-              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "idapp": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", "description": "Application identifier. Accepts RFC UUID and legacy IDs already present in existing datasets." },
               "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
               "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
               "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
@@ -4999,7 +4968,7 @@ export const system_app = {
             "properties": {
               "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
               "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
-              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "idapp": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", "description": "Application identifier. Accepts RFC UUID and legacy IDs already present in existing datasets." },
               "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
               "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
               "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
@@ -5124,7 +5093,7 @@ export const system_app = {
             "properties": {
               "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
               "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
-              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "idapp": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", "description": "Application identifier. Accepts RFC UUID and legacy IDs already present in existing datasets." },
               "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
               "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
               "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
@@ -5253,7 +5222,7 @@ export const system_app = {
             "properties": {
               "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
               "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
-              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "idapp": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", "description": "Application identifier. Accepts RFC UUID and legacy IDs already present in existing datasets." },
               "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
               "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
               "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
@@ -5387,7 +5356,7 @@ export const system_app = {
             "properties": {
               "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
               "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
-              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "idapp": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", "description": "Application identifier. Accepts RFC UUID and legacy IDs already present in existing datasets." },
               "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
               "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
               "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
@@ -5513,7 +5482,7 @@ export const system_app = {
             "properties": {
               "idendpoint": { "type": "string", "format": "uuid", "description": "Endpoint identifier. Omit for INSERT; provide for UPDATE." },
               "enabled": { "type": "boolean", "description": "Whether the endpoint should be enabled." },
-              "idapp": { "type": "string", "format": "uuid", "description": "UUID of the target application." },
+              "idapp": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", "description": "Application identifier. Accepts RFC UUID and legacy IDs already present in existing datasets." },
               "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Target environment." },
               "timeout": { "type": "integer", "minimum": 0, "description": "Execution timeout in seconds." },
               "resource": { "type": "string", "minLength": 1, "maxLength": 300, "description": "HTTP resource path." },
@@ -5625,70 +5594,76 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {
-        "enabled": false,
-        "name": "",
-        "title": "",
-        "description": ""
+        "enabled": true,
+        "name": "endpoint_migrate",
+        "title": "Migrate Endpoint to Another Environment",
+        "description": "Copies one or more endpoints from their current environment to a target environment (dev, qa, or prd). The original endpoint is NOT deleted — this is a copy/promote operation, not a move. Each item in the array requires 'idendpoint' (UUID of the source endpoint) and 'target_env' (destination environment). Possible per-item outcomes: 'success' (migrated and new_idendpoint is returned), 'ignored' (source is already in target_env), 'already exists' (an endpoint with same app+resource+method already exists in target_env — treated as success, no duplicate is created), or 'error'. To obtain idendpoint values use 'app_endpoints' (full list) or 'search_endpoints' (by keyword). To verify the migration use 'app_endpoints' filtering by the target environment after calling this tool."
       },
       "json_schema": {
         "in": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "title": "EndpointMigrateRequest",
+            "type": "array",
+            "minItems": 1,
+            "description": "Array of migration items. Each item specifies one endpoint to copy to a target environment.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["idendpoint", "target_env"],
+              "properties": {
+                "idendpoint": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "UUID of the source endpoint to migrate. Obtain from 'app_endpoints' or 'search_endpoints'."
+                },
+                "target_env": {
+                  "type": "string",
+                  "enum": ["dev", "qa", "prd"],
+                  "description": "Destination environment. Must be different from the source endpoint's current environment."
+                }
+              }
+            }
           }
         },
         "out": {
-          "enabled": false,
+          "enabled": true,
           "schema": {
-            "type": "object",
-            "properties": {},
-            "additionalProperties": true
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idendpoint": { "type": "string", "description": "UUID of the source endpoint." },
+                "target_env": { "type": "string", "description": "Target environment requested." },
+                "status": { "type": "string", "enum": ["success", "ignored", "error"], "description": "'success': migrated or already existed. 'ignored': source already in target_env. 'error': see message." },
+                "new_idendpoint": { "type": "string", "description": "UUID of the newly created endpoint in the target environment. Present only when a new endpoint was created." },
+                "message": { "type": "string", "description": "Human-readable result detail." }
+              }
+            }
           }
         }
       },
       "custom_data": {},
       "headers_test": {},
       "data_test": {
-        "query": [
-          {
-            "enabled": false,
-            "key": "",
-            "value": "",
-            "_id": "vclugrmsj",
-            "type": 1
-          }
-        ],
+        "query": [],
         "body": {
           "selection": 0,
           "json": {
-            "code": {}
+            "code": [{ "idendpoint": "00000000-0000-0000-0000-000000000001", "target_env": "qa" }]
           },
-          "xml": {
-            "code": ""
-          },
-          "text": {
-            "value": ""
-          },
+          "xml": { "code": "" },
+          "text": { "value": "" },
           "form": [],
           "urlencoded": []
         },
         "headers": [],
         "auth": {
           "selection": 0,
-          "basic": {
-            "username": "",
-            "password": ""
-          },
-          "bearer": {
-            "token": ""
-          }
+          "basic": { "username": "", "password": "" },
+          "bearer": { "token": "" }
         },
-        "last_response": {
-          "data": "",
-          "sizeKBResponse": -1
-        }
+        "last_response": { "data": "", "sizeKBResponse": -1 }
       },
       "idendpoint": "a6edc8f9-867c-4076-a984-fe0c850ae2c0",
       "rowkey": 702,
@@ -5700,12 +5675,12 @@ export const system_app = {
       "method": "POST",
       "handler": "FUNCTION",
       "access": 3,
-      "title": "Migrate Endpoint",
-      "description": "",
+      "title": "Migrate Endpoint to Another Environment",
+      "description": "Copies one or more endpoints from their current environment to a target environment (dev, qa, or prd). The original endpoint is not deleted. If an endpoint with the same app+resource+method already exists in the target environment, the migration is skipped and reported as 'already exists'. Obtain idendpoint values from 'app_endpoints' or 'search_endpoints'.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "",
+      "keywords": "migrate,endpoint,environment,promote,copy",
       "code": "fnEndpointMigrate",
       "cache_time": 0,
       "createdAt": "2026-04-25T18:27:29.953Z",
@@ -6694,8 +6669,8 @@ export const system_app = {
       "mcp": {
         "enabled": true,
         "name": "available_functions_modules",
-        "title": "available_functions_modules",
-        "description": "Returns the internal functions and helper modules that can be referenced by endpoints using the `JS` handler."
+        "title": "List Available JS Functions and Modules",
+        "description": "Returns the list of built-in functions and helper modules available in scope for endpoints using the JS handler. Call this before creating or editing a JS endpoint to discover what functions (e.g. uFetch, uFetchAutoEnv, askIAWithProviderMCP) are available without importing them."
       },
       "json_schema": {
         "in": {
@@ -7511,7 +7486,7 @@ export const system_app = {
         "enabled": true,
         "name": "search_endpoints",
         "title": "Search Endpoints",
-        "description": "Global keyword search across all endpoints in all apps. Searches title, description, resource, and keywords fields. Optionally searches inside source code with 'search_code: true'. Returns a lightweight catalog (no source code by default). Use this tool to find which endpoint does a specific thing before calling 'read_endpoint_data' or 'endpoint_get_code'. Max results: 200."
+        "description": "Full-text keyword search across endpoints. Searches title, description, resource, and keywords fields using a LIKE pattern. The 'query' parameter is optional — omitting it (or leaving other filters like idapp, environment, or handler) returns all matching endpoints. Optionally searches inside source code with 'search_code: true'. Returns a lightweight catalog (no source code by default). Max results: 200 (default 50, use 'offset' for pagination). To retrieve ALL endpoints of a specific app use 'app_endpoints' with the idapp."
       },
       "json_schema": {
         "in": {
@@ -7520,16 +7495,15 @@ export const system_app = {
             "title": "EndpointSearchRequest",
             "type": "object",
             "additionalProperties": false,
-            "required": ["query"],
             "properties": {
-              "query": { "type": "string", "minLength": 1, "maxLength": 200, "description": "Text to search for in title, description, resource, and keywords." },
-              "idapp": { "type": "string", "description": "Optional: restrict search to a specific app UUID." },
-              "environment": { "type": "string", "description": "Optional: restrict to an environment (dev, qa, prd)." },
-              "handler": { "type": "string", "description": "Optional: restrict by handler type (JS, FUNCTION, SQL, etc.)." },
-              "enabled": { "type": "boolean", "description": "Optional: filter by enabled status." },
-              "search_code": { "type": "boolean", "default": false, "description": "If true, also search inside the source code field (slower)." },
-              "limit": { "type": "integer", "minimum": 1, "maximum": 200, "default": 50 },
-              "offset": { "type": "integer", "minimum": 0, "default": 0 }
+              "query": { "type": "string", "maxLength": 200, "description": "Optional. Keyword or phrase to search for. Applied as LIKE pattern over title, description, resource, and keywords. When omitted, all endpoints matching the other filters are returned. To get all endpoints of a specific app use 'app_endpoints' instead." },
+              "idapp": { "type": "string", "description": "Optional: restrict search to a specific app UUID. Obtain the idapp from 'apps_list' or 'apps_catalog'." },
+              "environment": { "type": "string", "enum": ["dev", "qa", "prd"], "description": "Optional: restrict to a specific environment (dev, qa, prd)." },
+              "handler": { "type": "string", "description": "Optional: restrict by handler type (JS, FUNCTION, SQL, FETCH, SOAP, etc.)." },
+              "enabled": { "type": "boolean", "description": "Optional: filter by enabled status. Omit to include both enabled and disabled endpoints." },
+              "search_code": { "type": "boolean", "default": false, "description": "If true, also search inside the source code field. Slower. Use only when you need to find endpoints by their implementation logic." },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200, "default": 50, "description": "Max number of results to return (default 50, max 200). Use 'offset' to paginate if you expect more results." },
+              "offset": { "type": "integer", "minimum": 0, "default": 0, "description": "Pagination offset. Increment by 'limit' to retrieve next page." }
             }
           }
         },
@@ -7840,7 +7814,7 @@ export const system_app = {
           "selection": 0,
           "json": {
             "code": {
-              "summary": "1. Always check the description and inputSchema of each tool in the MCP catalog (system.js seed). This is the source of truth for purpose, required fields, and examples.\n2. To create or modify endpoints: use endpoint_upsert or the specific wrapper for the handler. Read the handler field: it defines the shape of code and custom_data. If the handler is SQL_BULK_I, SOAP, HANA, MONGODB, MCP, or TELEGRAM_BOT, call handler_documentation before building the payload. Use AppVar placeholders (\"$_VAR_NAME\") in code/custom_data only where the contract allows.\n3. To get handler details: use handler_documentation with the handler name in uppercase. The result includes markdown, examples, manifest, and payload shape.\n4. For logs and auditing: use get_system_logs. The log_level field is: 0=Disabled, 1=Basic, 2=Normal, 3=Full. Prefer trace_id to track a complete execution.\n5. Before updating an existing endpoint: always call read_endpoint_data first. Modify the current structure, do not build from scratch.\n6. Always validate JSON Schemas with validate_json_schema_for_mcp before publishing.\n7. Do not send fields outside the inputSchema unless the contract allows (additionalProperties).\n8. If you have doubts about the shape of custom_data, code, or complex payloads, consult handler_documentation or the generated documentation in the seed.",
+              "summary": "1. Always check the description and inputSchema of each tool in the MCP catalog (system.js seed). This is the source of truth for purpose, required fields, and examples.\n2. To create or modify endpoints: use endpoint_upsert or the specific wrapper for the handler. Read the handler field: it defines the shape of code and custom_data. If the handler is SQL_BULK_I, SOAP, HANA, MONGODB, MCP, or TELEGRAM_BOT, call handler_documentation before building the payload. Use AppVar placeholders (\"$_VAR_NAME\") in code/custom_data only where the contract allows.\n3. To get handler details: use handler_documentation with the handler name in uppercase. The result includes markdown, examples, manifest, and payload shape.\n4. For logs and auditing: use get_system_logs. The log_level field is: 0=Disabled, 1=Basic, 2=Normal, 3=Full. Prefer trace_id to track a complete execution.\n5. Before updating an existing endpoint: always call read_endpoint_data first. Modify the current structure, do not build from scratch.\n6. Before assigning a json_schema to an endpoint, confirm the schema is a valid JSON Schema object with properties defined. Use 'handler_documentation' to verify expected payload shapes per handler.\n7. Do not send fields outside the inputSchema unless the contract allows (additionalProperties).\n8. If you have doubts about the shape of custom_data, code, or complex payloads, consult handler_documentation or the generated documentation in the seed.",
               "links": {
                 "handler_documentation": "/api/handler/documentation",
                 "endpoint_upsert": "/api/endpoint",
@@ -7866,7 +7840,7 @@ export const system_app = {
       "price_kb_request": 0,
       "price_kb_response": 0,
       "keywords": "onboarding,guide,agent,AI,best practices",
-      "code": "const trace_id = request?.headers?.['ofapi-trace-id'] || '';\n$_RETURN_DATA_ = {\n  summary: '1. Always inspect each tool description and input schema first; treat the system catalog as source of truth. 2. For endpoint creation/updates, choose handler first and match payload shape to that handler. 3. Read current endpoint data before updates and patch incrementally. 4. Validate JSON Schema with validate_json_schema_for_mcp before publishing. 5. Use trace_id in logs to follow one execution path end to end.',\n  links: {\n    handler_documentation: '/api/handler/documentation',\n    endpoint_upsert: '/api/endpoint',\n    get_system_logs: '/api/system/logs'\n  },\n  trace_id\n};",
+      "code": "const trace_id = request?.headers?.['ofapi-trace-id'] || '';\n$_RETURN_DATA_ = {\n  summary: '1. Always inspect each tool description and input schema first; treat the system catalog as source of truth. 2. For endpoint creation/updates, choose handler first and match payload shape to that handler. Use upsert_js_endpoint_handler, upsert_sql_endpoint_handler, upsert_fetch_endpoint_handler, etc. for simplified handler-specific creation, or use endpoint_upsert for full control. 3. Read current endpoint data before updates and patch incrementally. 4. Use handler_documentation to verify the expected shape of code and custom_data before publishing. 5. Use trace_id in logs to follow one execution path end to end.',\n  links: {\n    handler_documentation: '/api/handler/documentation',\n    endpoint_upsert: '/api/endpoint',\n    get_system_logs: '/api/system/logs'\n  },\n  trace_id\n};",
       "cache_time": 3600,
       "createdAt": "2026-05-19T00:00:00.000Z",
       "updatedAt": "2026-05-19T00:00:00.000Z"

@@ -378,34 +378,27 @@ export async function fnEndpointMigrate(params) {
           continue;
         }
 
-        const existing = await Endpoint.findOne({
-          where: {
-            idapp: data.idapp,
-            environment: target_env,
-            resource: data.resource,
-            method: data.method
-          }
-        });
+        const upsertData = {
+          ...data,
+          environment: target_env,
+          skipMcpNameUniqueness: true,
+        };
 
-        if (existing) {
-          results.push({ idendpoint, target_env, status: "success", message: "Endpoint already exists in target environment. Ok." });
-          continue;
-        }
+        delete upsertData.idendpoint;
+        delete upsertData.createdAt;
+        delete upsertData.updatedAt;
+        delete upsertData.rowkey;
 
-        delete data.idendpoint;
-        delete data.createdAt;
-        delete data.updatedAt;
-        
-        data.environment = target_env;
-
-        const upsertResult = await upsertEndpoint(data);
+        const upsertResult = await upsertEndpoint(upsertData);
         
         results.push({ 
           idendpoint, 
           target_env, 
           status: "success", 
           new_idendpoint: upsertResult.result.idendpoint,
-          message: "Migrated successfully" 
+          message: upsertResult.created
+            ? "Migrated successfully"
+            : "Endpoint replaced successfully in target environment"
         });
 
       } catch (err) {

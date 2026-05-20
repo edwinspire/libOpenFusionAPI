@@ -113,9 +113,11 @@ export const upsertEndpoint = async (
   /** @type {import("sequelize").Optional<any, string>} */ data,
 ) => {
   try {
-    data = await ensureUniqueEnabledMcpName(data);
+    const skipMcpNameUniqueness = data?.skipMcpNameUniqueness === true;
+    delete data.skipMcpNameUniqueness;
 
-    // Prevent unique constraint violation on composite key
+    // Resolve the target endpoint first so updates/migrations can replace the
+    // destination row and keep MCP-name uniqueness checks scoped to that row.
     if (data.idapp && data.environment && data.resource && data.method) {
       const existing = await Endpoint.findOne({
         where: {
@@ -128,6 +130,10 @@ export const upsertEndpoint = async (
       if (existing) {
         data.idendpoint = existing.idendpoint;
       }
+    }
+
+    if (!skipMcpNameUniqueness) {
+      data = await ensureUniqueEnabledMcpName(data);
     }
 
     const [result, created] = await Endpoint.upsert(data, { returning: true });
@@ -429,24 +435,24 @@ export const searchEndpoints = async (filters = {}) => {
     offset = 0,
   } = filters;
 
-  if (!query || typeof query !== "string" || query.trim().length === 0) {
-    throw new Error("El parámetro 'query' es obligatorio y debe ser una cadena no vacía.");
-  }
+  const likePattern = query && typeof query === "string" && query.trim().length > 0
+    ? `%${query.trim()}%`
+    : null;
 
-  const likePattern = `%${query.trim()}%`;
+  const orConditions = likePattern
+    ? [
+        { title: { [Op.like]: likePattern } },
+        { description: { [Op.like]: likePattern } },
+        { resource: { [Op.like]: likePattern } },
+        { keywords: { [Op.like]: likePattern } },
+      ]
+    : [];
 
-  const orConditions = [
-    { title: { [Op.like]: likePattern } },
-    { description: { [Op.like]: likePattern } },
-    { resource: { [Op.like]: likePattern } },
-    { keywords: { [Op.like]: likePattern } },
-  ];
-
-  if (search_code) {
+  if (search_code && likePattern) {
     orConditions.push({ code: { [Op.like]: likePattern } });
   }
 
-  const where = { [Op.or]: orConditions };
+  const where = likePattern ? { [Op.or]: orConditions } : {};
 
   if (idapp) where.idapp = idapp;
   if (environment) where.environment = environment;

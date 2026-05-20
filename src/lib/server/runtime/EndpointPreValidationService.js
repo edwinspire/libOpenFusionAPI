@@ -29,6 +29,15 @@ export class EndpointPreValidationService {
 
   replyMappedError(error, request, reply) {
     const mapped = this.errorMapper(error, request);
+    if (!reply.openfusionapi) {
+      reply.openfusionapi = {};
+    }
+    if (!reply.openfusionapi.lastResponse) {
+      reply.openfusionapi.lastResponse = {};
+    }
+    reply.openfusionapi.lastResponse.exception =
+      mapped?.payload?.error || error?.message || String(error);
+    reply.openfusionapi.lastResponse.data = mapped?.payload;
     if (!reply.sent) {
       reply.code(mapped.statusCode).send(mapped.payload);
     }

@@ -2,6 +2,7 @@
 #logs
 *.log
 *.sqlite3
+**/ofapi.sqlite
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
