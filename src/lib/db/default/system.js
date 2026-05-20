@@ -6501,7 +6501,7 @@ export const system_app = {
       "resource": "/server/version",
       "method": "GET",
       "handler": "FUNCTION",
-      "access": 2,
+      "access": 0,
       "title": "",
       "description": "Get version API server",
       "price_by_request": 1,
