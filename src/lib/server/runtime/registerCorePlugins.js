@@ -41,6 +41,24 @@ export async function registerCorePlugins({
     ...resolvedCorsConfig,
   });
 
+  fastify.addHook("onSend", async (request, reply, payload) => {
+    const requestOrigin = request.headers.origin;
+    if ((resolvedCorsConfig?.origin === true || typeof resolvedCorsConfig?.origin === "function") && requestOrigin) {
+      reply.raw.removeHeader("Access-Control-Allow-Origin");
+      reply.raw.setHeader("Access-Control-Allow-Origin", requestOrigin);
+      if (resolvedCorsConfig?.credentials === true) {
+        reply.raw.removeHeader("Access-Control-Allow-Credentials");
+        reply.raw.setHeader("Access-Control-Allow-Credentials", "true");
+      }
+    }
+
+    reply.header("X-Content-Type-Options", "nosniff");
+    reply.header("X-Frame-Options", "DENY");
+    reply.header("Referrer-Policy", "no-referrer");
+    reply.header("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+    return payload;
+  });
+
   await fastify.register(websocket);
 
   if (!fs.existsSync(wwwDirPath)) {

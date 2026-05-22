@@ -9,7 +9,7 @@ async function runAllTests() {
 
   // 1. Start the server
   console.log("Starting server...");
-  const server = spawn("node", ["--max-old-space-size=4096", "../src/server.js"], {
+  const server = spawn("node", ["--max-old-space-size=4096", "../../src/server.js"], {
     cwd: __dirname,
     stdio: "inherit",
     env: { ...process.env, PORT: "3000", BUILD_DB: "true" }
@@ -48,6 +48,11 @@ async function runAllTests() {
         label: "integration_test.js",
         command: "node",
         args: ["integration_test.js"],
+      },
+      {
+        label: "owasp_top10.js",
+        command: "node",
+        args: ["owasp_top10.js"],
       },
       {
         label: "check_mcp_name_uniqueness",

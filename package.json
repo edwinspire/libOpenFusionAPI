@@ -1,9 +1,10 @@
 {
   "name": "@edwinspire/libopenfusionapi",
-  "version": "4.1.4",
+  "version": "4.2.1",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./dev/test/index.js",
+    "test:owasp": "node ./dev/test/owasp_top10.js",
     "test:mcp-docs": "node ./dev/test/mcp_tool_descriptions.js",
     "test:mcp-names": "node ./dev/scratch/check_mcp_name_uniqueness.js --server-key openfusion_system_remote_prd --app system --environment prd --idapp cfcd2084-95d5-65ef-66e7-dff9f98764da",
     "test:smoke": "node ./dev/test/smoke_runtime.js",

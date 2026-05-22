@@ -206,9 +206,16 @@ export default class ServerAPI extends EventEmitter {
         fs,
       },
       corsConfig: {
-        // TODO: Replace wildcard origin with an explicit allowlist when credentials=true.
-        // Browser credentialed requests with origin='*' are not CORS-compliant.
-        origin: "*",
+        // Reflect the caller origin by default so credentialed requests stay CORS-compliant.
+        // Deployments that need a narrower policy can still override this with corsPolicy.
+        origin: (origin, cb) => {
+          if (!origin) {
+            cb(null, false);
+            return;
+          }
+
+          cb(null, origin);
+        },
         credentials: true,
         allowedHeaders: ["Content-Type", "Authorization"],
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
