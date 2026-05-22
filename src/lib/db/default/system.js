@@ -1244,7 +1244,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "mongodb,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.mongo_config && typeof body.mongo_config === 'object') {\n  Object.assign(custom_data, body.mongo_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'MONGODB',\n  code: body.mongo_code ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.mongo_code;\ndelete data.mongo_config;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.mongo_config && typeof body.mongo_config === 'object') {\n  Object.assign(custom_data, body.mongo_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'MONGODB',\n  code: body.mongo_code ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.mongo_code;\ndelete data.mongo_config;\n\nconst req1 = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-05-19T12:00:00.000Z",
       "updatedAt": "2026-05-19T12:00:00.000Z"
@@ -2538,7 +2538,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "fetch,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst data = {\n  ...body,\n  handler: 'FETCH',\n  code: body.target_url ?? body.url ?? body.code ?? '',\n};\n\ndelete data.target_url;\ndelete data.url;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nconst data = {\n  ...body,\n  handler: 'FETCH',\n  code: body.target_url ?? body.url ?? body.code ?? '',\n};\n\ndelete data.target_url;\ndelete data.url;\n\nconst req1 = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-05-19T12:00:00.000Z",
       "updatedAt": "2026-05-19T12:00:00.000Z"
@@ -3632,7 +3632,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "js,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst data = {\n  ...body,\n  handler: 'JS',\n  code: body.js_code ?? body.code ?? '',\n};\n\ndelete data.js_code;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nconst data = {\n  ...body,\n  handler: 'JS',\n  code: body.js_code ?? body.code ?? '',\n};\n\ndelete data.js_code;\n\nconst req1 = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-05-19T12:00:00.000Z",
       "updatedAt": "2026-05-19T12:00:00.000Z"
@@ -4143,7 +4143,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "hana,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.hana_config && typeof body.hana_config === 'object') {\n  Object.assign(custom_data, body.hana_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'HANA',\n  code: body.hana_code ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.hana_code;\ndelete data.hana_config;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.hana_config && typeof body.hana_config === 'object') {\n  Object.assign(custom_data, body.hana_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'HANA',\n  code: body.hana_code ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.hana_code;\ndelete data.hana_config;\n\nconst req1 = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-05-19T12:00:00.000Z",
       "updatedAt": "2026-05-19T12:00:00.000Z"
@@ -8386,7 +8386,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "soap,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.soap_config && typeof body.soap_config === 'object') {\n  Object.assign(custom_data, body.soap_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'SOAP',\n  code: body.code ?? '',\n  custom_data,\n};\n\ndelete data.soap_config;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.soap_config && typeof body.soap_config === 'object') {\n  Object.assign(custom_data, body.soap_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'SOAP',\n  code: body.code ?? '',\n  custom_data,\n};\n\ndelete data.soap_config;\n\nconst req1 = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-05-19T12:00:00.000Z",
       "updatedAt": "2026-05-19T12:00:00.000Z"
@@ -8833,7 +8833,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "sql,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-03-17T16:03:50.532Z",
       "updatedAt": "2026-03-17T16:03:50.532Z"
@@ -9124,7 +9124,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "text,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (typeof body.mimeType === 'string' && body.mimeType.trim().length > 0) {\n  custom_data.mimeType = body.mimeType;\n} else if (!custom_data.mimeType) {\n  custom_data.mimeType = 'text/plain';\n}\n\nif (typeof body.fileName === 'string' && body.fileName.trim().length > 0) {\n  custom_data.fileName = body.fileName;\n}\n\nconst data = {\n  ...body,\n  handler: 'TEXT',\n  code: body.text ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.text;\ndelete data.mimeType;\ndelete data.fileName;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (typeof body.mimeType === 'string' && body.mimeType.trim().length > 0) {\n  custom_data.mimeType = body.mimeType;\n} else if (!custom_data.mimeType) {\n  custom_data.mimeType = 'text/plain';\n}\n\nif (typeof body.fileName === 'string' && body.fileName.trim().length > 0) {\n  custom_data.fileName = body.fileName;\n}\n\nconst data = {\n  ...body,\n  handler: 'TEXT',\n  code: body.text ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.text;\ndelete data.mimeType;\ndelete data.fileName;\n\nconst req1 = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-05-19T12:00:00.000Z",
       "updatedAt": "2026-05-19T12:00:00.000Z"
@@ -9411,7 +9411,7 @@ export const system_app = {
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "sql,bulk,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.bulk_config && typeof body.bulk_config === 'object') {\n  Object.assign(custom_data, body.bulk_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'SQL_BULK_I',\n  code: body.table_name ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.table_name;\ndelete data.bulk_config;\n\nconst req1 = await uF.post({ data });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst body = request.body || {};\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nconst custom_data = (body.custom_data && typeof body.custom_data === 'object') ? { ...body.custom_data } : {};\n\nif (body.bulk_config && typeof body.bulk_config === 'object') {\n  Object.assign(custom_data, body.bulk_config);\n}\n\nconst data = {\n  ...body,\n  handler: 'SQL_BULK_I',\n  code: body.table_name ?? body.code ?? '',\n  custom_data,\n};\n\ndelete data.table_name;\ndelete data.bulk_config;\n\nconst req1 = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-05-19T12:00:00.000Z",
       "updatedAt": "2026-05-19T12:00:00.000Z"
