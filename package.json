@@ -4,6 +4,8 @@
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./dev/test/index.js",
+    "test:cache": "node ./dev/test/cache_validation.js",
+    "test:ws-cache-events": "node ./dev/test/ws_cache_events.js",
     "test:owasp": "node ./dev/test/owasp_top10.js",
     "test:mcp-docs": "node ./dev/test/mcp_tool_descriptions.js",
     "test:mcp-names": "node ./dev/scratch/check_mcp_name_uniqueness.js --server-key openfusion_system_remote_prd --app system --environment prd --idapp cfcd2084-95d5-65ef-66e7-dff9f98764da",

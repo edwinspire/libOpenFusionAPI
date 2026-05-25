@@ -50,6 +50,16 @@ async function runAllTests() {
         args: ["integration_test.js"],
       },
       {
+        label: "cache_validation.js",
+        command: "node",
+        args: ["cache_validation.js"],
+      },
+      {
+        label: "ws_cache_events.js",
+        command: "node",
+        args: ["ws_cache_events.js"],
+      },
+      {
         label: "owasp_top10.js",
         command: "node",
         args: ["owasp_top10.js"],
