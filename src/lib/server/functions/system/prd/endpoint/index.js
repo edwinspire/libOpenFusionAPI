@@ -673,12 +673,15 @@ export async function fnEndpointTest(params) {
       signal: AbortSignal.timeout(timeout_ms),
     };
 
+      let serializedBody = null;
+
     if (autoPayload !== null && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
       const ctKey = Object.keys(headers).find((k) => k.toLowerCase() === "content-type");
       const ct = ctKey ? String(headers[ctKey]).toLowerCase() : "application/json";
-      fetchOptions.body = ct.includes("application/json")
+        serializedBody = ct.includes("application/json")
         ? JSON.stringify(autoPayload)
         : String(autoPayload);
+        fetchOptions.body = serializedBody;
     }
 
     const t0 = Date.now();
@@ -709,6 +712,9 @@ export async function fnEndpointTest(params) {
           payload: payload === null,
         },
         query_params: autoQueryParams,
+        payload: autoPayload,
+        headers,
+        serialized_body: serializedBody,
       },
       response: responseData,
     };

@@ -5797,7 +5797,7 @@ export const system_app = {
         "enabled": true,
         "name": "execute_endpoint_test",
         "title": "Execute Endpoint Test",
-        "description": "Executes an endpoint via an internal HTTP call and returns the result (status_code, response_time_ms, response body). Ideal for agents to verify that an endpoint they just created or modified works correctly. Simplest usage: provide only 'idendpoint' — the tool auto-resolves app name, resource and method from the DB. Optionally override 'environment' (default: prd), provide 'payload' for POST/PUT bodies, 'query_params' for GET, and 'bearer_token' for authenticated endpoints. The 'response' field in the result contains the actual endpoint response. Endpoints that require auth and have no public access will need a valid bearer_token."
+        "description": "Executes an endpoint via an internal HTTP call and returns the result (status_code, response_time_ms, response body). Ideal for agents to verify that an endpoint they just created or modified works correctly. Simplest usage: provide only 'idendpoint' — the tool auto-resolves app name, resource and method from the DB. Optionally override 'environment' (default: prd), provide 'payload' for POST/PUT bodies, 'query_params' for GET, and 'bearer_token' for authenticated endpoints. The result also includes the resolved query params, payload, headers, and serialized request body actually sent, so agents can debug request forwarding without writing local scripts. Endpoints that require auth and have no public access will need a valid bearer_token."
       },
       "json_schema": {
         "in": {
@@ -5894,6 +5894,43 @@ export const system_app = {
               },
               "success": {
                 "type": "boolean"
+              },
+              "resolved_inputs": {
+                "type": "object",
+                "description": "Resolved request inputs used by the tool, including query params, payload, headers, and serialized body.",
+                "properties": {
+                  "from_data_test": {
+                    "type": "object",
+                    "properties": {
+                      "query_params": {
+                        "type": "boolean"
+                      },
+                      "payload": {
+                        "type": "boolean"
+                      }
+                    }
+                  },
+                  "query_params": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "payload": {
+                    "description": "Payload object or array resolved for the request body."
+                  },
+                  "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "serialized_body": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Exact body string sent over HTTP after serialization."
+                  }
+                }
               },
               "response": {
                 "description": "The actual response from the endpoint (JSON or text)."
