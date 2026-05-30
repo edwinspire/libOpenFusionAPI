@@ -35,7 +35,10 @@ export class DbHookCacheInvalidationService {
       return;
     }
 
-    if (data.model == this.endpointModel && data.action === "afterUpsert") {
+    if (
+      data.model == this.endpointModel &&
+      (data.action === "afterUpsert" || data.action === "afterDestroy")
+    ) {
       this.endpoints.deleteEndpointByidEndpoint(
         data?.data?.idendpoint,
         data?.data?.environment,
