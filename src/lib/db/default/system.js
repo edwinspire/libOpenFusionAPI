@@ -2835,6 +2835,138 @@ export const system_app = {
       "updatedAt": "2026-04-30T12:00:00.000Z"
     },
     {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "endpoint_versions_matrix",
+        "title": "Get Endpoint Versions Matrix",
+        "description": "Returns endpoints grouped by resource+method with per-environment metadata (idendpoint, createdAt, updatedAt). Supports optional filtering by idendpoint (returns the same endpoint family across environments) and idapp. Use it to identify the most up-to-date environment and replicate that version to other environments."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "EndpointVersionsMatrixRequest",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "idendpoint": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Optional endpoint UUID. When provided, returns the same resource+method across its other environments."
+              },
+              "idapp": {
+                "type": "string",
+                "description": "Optional app UUID filter. Can be combined with idendpoint."
+              },
+              "app": {
+                "type": "string",
+                "description": "Optional app name filter (alternative to idapp)."
+              },
+              "include_disabled": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, include disabled endpoints."
+              },
+              "environments": {
+                "type": "array",
+                "description": "Optional environment list to include.",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "dev",
+                    "qa",
+                    "prd"
+                  ]
+                },
+                "minItems": 1
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {
+              "idendpoint": "8606a140-42f3-4e8f-aece-3bd9726b092e",
+              "environments": [
+                "dev",
+                "qa",
+                "prd"
+              ]
+            }
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "9b2df9d1-7f0d-4cae-9f59-8cd7c6b6f3a1",
+      "rowkey": 473,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/endpoint/versions/matrix",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 2,
+      "title": "Get Endpoint Versions Matrix",
+      "description": "Returns endpoint version metadata by environment so you can identify and replicate the latest version.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "endpoint,version,matrix,environment,migrate",
+      "code": "fnEndpointVersionsMatrix",
+      "cache_time": 0,
+      "createdAt": "2026-05-30T14:00:00.000Z",
+      "updatedAt": "2026-05-30T14:00:00.000Z"
+    },
+    {
       "ctrl": {},
       "cors": {},
       "mcp": {},

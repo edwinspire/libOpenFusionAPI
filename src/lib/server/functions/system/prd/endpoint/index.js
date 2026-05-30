@@ -11,7 +11,8 @@ import {
 } from "../../../../../db/endpoint.js";
 
 import { getEndpointBackupByIdEndpoint, getEndpointBackupByIdEndpointLightweight } from "../../../../../db/endpoint_backup.js";
-import { Endpoint } from "../../../../../db/models.js";
+import { Endpoint, Application } from "../../../../../db/models.js";
+import { Op } from "sequelize";
 import { internal_url_http } from "../../../../utils_path.js";
 
 export async function fnGetEndpointBackupByIdEndpoint(params) {
@@ -424,6 +425,164 @@ export async function fnEndpointSearch(params) {
   let r = { code: 200, data: undefined };
   try {
     r.data = await searchEndpoints(params?.request?.body || {});
+    r.code = 200;
+  } catch (error) {
+    console.log(error);
+    r.data = { error: error.message };
+    r.code = 500;
+  }
+  return r;
+}
+
+/**
+ * Devuelve una matriz de versiones por endpoint (resource+method) y ambiente.
+ * MCP tool: endpoint_versions_matrix
+ */
+export async function fnEndpointVersionsMatrix(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    const body = params?.request?.body || {};
+    const {
+      idendpoint,
+      idapp,
+      app,
+      include_disabled = false,
+      environments = ["dev", "qa", "prd"],
+    } = body;
+
+    const normalizedEnvs = Array.isArray(environments) && environments.length > 0
+      ? environments.filter((env) => ["dev", "qa", "prd"].includes(env))
+      : ["dev", "qa", "prd"];
+
+    if (normalizedEnvs.length === 0) {
+      r.code = 400;
+      r.data = { error: "At least one valid environment is required (dev, qa, prd)." };
+      return r;
+    }
+
+    const where = {
+      environment: { [Op.in]: normalizedEnvs },
+    };
+
+    if (!include_disabled) {
+      where.enabled = true;
+    }
+
+    let resolvedIdapp = idapp;
+
+    if (!resolvedIdapp && typeof app === "string" && app.trim() !== "") {
+      const appName = app.trim().toLowerCase();
+      const appRecord = await Application.findOne({
+        where: { app: appName },
+        attributes: ["idapp", "app"],
+      });
+
+      if (!appRecord) {
+        r.code = 404;
+        r.data = { error: `Application '${appName}' not found.` };
+        return r;
+      }
+
+      resolvedIdapp = appRecord.idapp;
+    }
+
+    if (idendpoint) {
+      const selected = await getEndpointById(idendpoint);
+      if (!selected) {
+        r.code = 404;
+        r.data = { error: `Endpoint '${idendpoint}' not found.` };
+        return r;
+      }
+
+      const selectedRow = selected.toJSON ? selected.toJSON() : selected;
+      where.resource = selectedRow.resource;
+      where.method = selectedRow.method;
+
+      if (!resolvedIdapp) {
+        resolvedIdapp = selectedRow.idapp;
+      }
+    }
+
+    if (resolvedIdapp) {
+      where.idapp = resolvedIdapp;
+    }
+
+    const endpoints = await Endpoint.findAll({
+      where,
+      attributes: [
+        "idendpoint",
+        "idapp",
+        "resource",
+        "method",
+        "environment",
+        "createdAt",
+        "updatedAt",
+        "enabled",
+      ],
+      order: [["resource", "ASC"], ["method", "ASC"], ["environment", "ASC"]],
+    });
+
+    const idapps = [...new Set(endpoints.map((ep) => ep.idapp).filter(Boolean))];
+    const apps = idapps.length > 0
+      ? await Application.findAll({
+        where: { idapp: { [Op.in]: idapps } },
+        attributes: ["idapp", "app"],
+      })
+      : [];
+
+    const appMap = new Map(apps.map((a) => [a.idapp, a.app]));
+    const envOrder = new Map([["dev", 0], ["qa", 1], ["prd", 2]]);
+    const grouped = new Map();
+
+    for (const endpoint of endpoints) {
+      const row = endpoint.toJSON ? endpoint.toJSON() : endpoint;
+      const createdAt = row.createdAt ? new Date(row.createdAt).toISOString() : null;
+      const updatedAt = row.updatedAt ? new Date(row.updatedAt).toISOString() : null;
+      const groupKey = `${row.idapp}::${row.resource}::${row.method}`;
+
+      if (!grouped.has(groupKey)) {
+        grouped.set(groupKey, {
+          idapp: row.idapp,
+          app: appMap.get(row.idapp) || null,
+          endpoint: row.resource,
+          method: row.method,
+          env: [],
+          latest: null,
+        });
+      }
+
+      const group = grouped.get(groupKey);
+      group.env.push({
+        env: row.environment,
+        createdAt,
+        updatedAt,
+        idendpoint: row.idendpoint,
+        enabled: row.enabled,
+      });
+    }
+
+    const result = [...grouped.values()].map((group) => {
+      group.env.sort((a, b) => (envOrder.get(a.env) ?? 99) - (envOrder.get(b.env) ?? 99));
+
+      let latest = null;
+      for (const item of group.env) {
+        const ts = item.updatedAt || item.createdAt;
+        if (!latest) {
+          latest = { ...item };
+          continue;
+        }
+
+        const latestTs = latest.updatedAt || latest.createdAt;
+        if ((ts || "") > (latestTs || "")) {
+          latest = { ...item };
+        }
+      }
+
+      group.latest = latest;
+      return group;
+    });
+
+    r.data = result;
     r.code = 200;
   } catch (error) {
     console.log(error);
