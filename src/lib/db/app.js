@@ -749,3 +749,91 @@ export async function getApplicationTreeByFilters(filters = {}) {
   }
 }
 
+export async function getApplicationEndpointByRoute(filters = {}) {
+  const {
+    idapp,
+    app,
+    enabled = true,
+    endpoint = {},
+  } = filters;
+
+  try {
+    const appWhere = {};
+    const endpointWhere = {};
+
+    if (idapp) {
+      appWhere.idapp = idapp;
+    }
+
+    if (app) {
+      appWhere.app = app.toLowerCase();
+    }
+
+    if (enabled !== null && enabled !== undefined) {
+      appWhere.enabled = enabled;
+    }
+
+    if (endpoint.idendpoint) {
+      endpointWhere.idendpoint = endpoint.idendpoint;
+    }
+
+    if (endpoint.method) {
+      endpointWhere.method = endpoint.method.toUpperCase();
+    }
+
+    if (endpoint.environment) {
+      endpointWhere.environment = endpoint.environment.toLowerCase();
+    }
+
+    if (endpoint.resource) {
+      endpointWhere.resource = endpoint.resource.toLowerCase();
+    }
+
+    if (endpoint.handler) {
+      endpointWhere.handler = endpoint.handler.toUpperCase();
+    }
+
+    if (endpoint.enabled !== null && endpoint.enabled !== undefined) {
+      endpointWhere.enabled = endpoint.enabled;
+    } else {
+      endpointWhere.enabled = true;
+    }
+
+    const data = await Application.findOne({
+      where: appWhere,
+      include: [
+        {
+          model: AppVars,
+          as: "vrs",
+          required: false,
+        },
+        {
+          model: Endpoint,
+          as: "endpoints",
+          required: true,
+          where: endpointWhere,
+          limit: 1,
+        },
+      ],
+    });
+
+    if (!data) return {};
+
+    const appData = data.toJSON();
+    appData.vrs = (appData.vrs || []).map((item) => {
+      item.value = parseAppVar(item);
+      return item;
+    });
+
+    if (Array.isArray(appData.endpoints) && appData.endpoints.length > 1) {
+      appData.endpoints = [appData.endpoints[0]];
+    }
+
+    return appData;
+  } catch (error) {
+    console.error("Error en getApplicationEndpointByRoute:", error);
+    throw error;
+  }
+}
+
+

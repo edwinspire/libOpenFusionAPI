@@ -17,6 +17,8 @@ class ConnectionPool {
   constructor(maxConnections = 50) {
     this.connections = new Map();
     this.MAX_CONNECTIONS = maxConnections;
+    this.validationIdleMs = getValidationIdleMs();
+    this.forceValidateAlways = isValidationAlwaysEnabled();
   }
 
   /**
@@ -55,9 +57,9 @@ class ConnectionPool {
         }
         this.connections.delete(configHash);
       } else {
-        // Validar la conexión solo si lleva más de 30s sin usarse (evita SELECT 1+1 en cada request)
+        // Validate only after configured idle threshold to avoid authenticate() on hot paths.
         const idleMs = Date.now() - (connData.lastUsed || 0);
-        const needsValidation = idleMs > 30_000;
+        const needsValidation = this.forceValidateAlways || idleMs > this.validationIdleMs;
         const isValid = needsValidation ? await this.validateConnection(connData.sequelize) : true;
         if (isValid) {
           connData.lastUsed = Date.now();
@@ -166,6 +168,18 @@ class ConnectionPool {
 
     return sequelize;
   }
+}
+
+function getValidationIdleMs() {
+  const raw = Number(process.env.OFAPI_SQL_POOL_VALIDATE_IDLE_MS);
+  return Number.isFinite(raw) && raw >= 0 ? raw : 30_000;
+}
+
+function isValidationAlwaysEnabled() {
+  const raw = String(process.env.OFAPI_SQL_POOL_FORCE_VALIDATE_ALWAYS || "")
+    .trim()
+    .toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
 }
 
 // Export a singleton instance

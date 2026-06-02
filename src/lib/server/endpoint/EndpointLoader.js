@@ -16,6 +16,7 @@ export class EndpointLoader {
     this._fnLocal = fnLocal;
     this._loadingPromises = loadingPromises;
     this._dbFetcher = dependencies.dbFetcher;
+    this._endpointFetcher = dependencies.endpointFetcher;
     this._vmFactory = dependencies.vmFactory;
     this._mcpBuilder = dependencies.mcpBuilder;
 
@@ -68,7 +69,7 @@ export class EndpointLoader {
       return this._ep[key];
     }
 
-    const loadPromise = this._loadEndpointsByAPPToCache(params);
+    const loadPromise = this._loadEndpointToCache(params);
     this._loadingPromises.set(key, loadPromise);
 
     try {
@@ -80,6 +81,69 @@ export class EndpointLoader {
     }
 
     return this._ep[key];
+  }
+
+  async _loadEndpointToCache(params) {
+    // Fast path: fetch only requested route metadata when dependency is available.
+    if (typeof this._endpointFetcher === "function") {
+      const loaded = await this._loadEndpointByRouteToCache(params);
+      if (loaded) {
+        return;
+      }
+    }
+
+    // Backward-compatible fallback: load all endpoints for the app.
+    await this._loadEndpointsByAPPToCache(params);
+  }
+
+  async _loadEndpointByRouteToCache(params) {
+    const appData = await this._endpointFetcher({
+      app: params.app,
+      enabled: true,
+      endpoint: {
+        resource: params.resource,
+        environment: params.environment,
+        method: params.method,
+        enabled: true,
+      },
+    });
+
+    if (!appData || !appData.idapp || !Array.isArray(appData.endpoints)) {
+      return false;
+    }
+
+    if (!appData.enabled || appData.endpoints.length === 0) {
+      return false;
+    }
+
+    const endpoint = appData.endpoints[0];
+    const key = url_key(
+      appData.app,
+      endpoint.resource,
+      endpoint.environment,
+      endpoint.method,
+      endpoint.method == "WS"
+    );
+
+    if (!key) {
+      return false;
+    }
+
+    endpoint.url_key = key;
+    endpoint.idapp = appData.idapp;
+    endpoint.jwt_key = appData.jwt_key;
+
+    if (!this._ep[key]) {
+      this._ep[key] = {};
+    }
+
+    this._ep[key].handler = await this._getApiHandler(
+      appData.app,
+      endpoint,
+      appData.vrs
+    );
+
+    return true;
   }
 
   async _loadEndpointsByAPPToCache(params) {

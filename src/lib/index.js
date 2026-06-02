@@ -19,7 +19,11 @@ import { TasksInterval } from "./timer/tasks.js";
 import { defaultApiClient } from "./db/apiclient.js";
 
 import dbAPIs from "./db/sequelize.js";
-import { defaultApps, getApplicationTreeByFilters } from "./db/app.js";
+import {
+  defaultApps,
+  getApplicationTreeByFilters,
+  getApplicationEndpointByRoute,
+} from "./db/app.js";
 import { createLog } from "./db/log.js";
 import { createFunctionVM } from "./server/createFunctionVM.js";
 import { CreateMCPHandler } from "./server/endpoint/handlerBuild/mcp.js";
@@ -123,6 +127,7 @@ export default class ServerAPI extends EventEmitter {
     super();
     this.endpoints = new Endpoint({
       dbFetcher: getApplicationTreeByFilters,
+      endpointFetcher: getApplicationEndpointByRoute,
       vmFactory: createFunctionVM,
       mcpBuilder: CreateMCPHandler,
       createLog: createLog
