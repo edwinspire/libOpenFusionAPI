@@ -11,7 +11,8 @@ import {
 } from "../../../../../db/endpoint.js";
 
 import { getEndpointBackupByIdEndpoint, getEndpointBackupByIdEndpointLightweight } from "../../../../../db/endpoint_backup.js";
-import { Endpoint, Application } from "../../../../../db/models.js";
+import { upsertAppVar, getAppVarsById } from "../../../../../db/appvars.js";
+import { Endpoint, Application, AppVars } from "../../../../../db/models.js";
 import { Op } from "sequelize";
 import { internal_url_http } from "../../../../utils_path.js";
 
@@ -404,6 +405,110 @@ export async function fnEndpointMigrate(params) {
 
       } catch (err) {
         results.push({ idendpoint, target_env, status: "error", message: err.message });
+      }
+    }
+
+    r.data = results;
+    r.code = 200;
+  } catch (error) {
+    console.log(error);
+    r.data = { error: error.message };
+    r.code = 500;
+  }
+  return r;
+}
+
+/**
+ * Migra una lista de variables de aplicación (AppVars) a otro ambiente.
+ * Similar a fnEndpointMigrate pero para AppVars.
+ * MCP tool: appvar_migrate
+ */
+export async function fnAppVarMigrate(params) {
+  let r = { code: 200, data: undefined };
+  try {
+    const migrations = params.request.body;
+    
+    if (!Array.isArray(migrations)) {
+      r.code = 400;
+      r.data = { error: "Expected an array of objects." };
+      return r;
+    }
+
+    const results = [];
+
+    for (const item of migrations) {
+      const { idappvar, target_env } = item;
+      
+      if (!idappvar || !target_env) {
+        results.push({ idappvar, target_env, status: "error", message: "Missing idappvar or target_env" });
+        continue;
+      }
+
+      try {
+        // Obtener la AppVar original
+        const originalAppVar = await AppVars.findByPk(idappvar);
+        
+        if (!originalAppVar) {
+          results.push({ idappvar, target_env, status: "error", message: "AppVar not found" });
+          continue;
+        }
+
+        const data = originalAppVar.toJSON ? originalAppVar.toJSON() : originalAppVar;
+
+        // Si ya está en el ambiente objetivo, ignorar
+        if (data.environment === target_env) {
+          results.push({ idappvar, target_env, status: "ignored", message: "Already in target environment" });
+          continue;
+        }
+
+        // Preparar datos para upsert en el nuevo ambiente
+        const upsertData = {
+          idapp: data.idapp,
+          environment: target_env,
+          name: data.name,
+          value: data.value,
+          type: data.type,
+          description: data.description,
+        };
+
+        // Verificar si ya existe una AppVar con el mismo name, idapp y target_env
+        const existingAppVar = await AppVars.findOne({
+          where: {
+            idapp: data.idapp,
+            environment: target_env,
+            name: data.name,
+          },
+        });
+
+        if (existingAppVar) {
+          // Si ya existe, actualizar su valor
+          await upsertAppVar({
+            idappvar: existingAppVar.dataValues.idappvar,
+            ...upsertData,
+          });
+
+          results.push({
+            idappvar,
+            target_env,
+            status: "success",
+            new_idappvar: existingAppVar.dataValues.idappvar,
+            message: "AppVar replaced successfully in target environment",
+          });
+        } else {
+          // Si no existe, crear una nueva (sin idappvar para que genere uno nuevo)
+          const upsertResult = await upsertAppVar(upsertData);
+
+          results.push({
+            idappvar,
+            target_env,
+            status: "success",
+            new_idappvar: upsertResult.dataValues?.idappvar || upsertResult.result?.idappvar,
+            message: "AppVar migrated successfully",
+          });
+        }
+
+      } catch (err) {
+        results.push({ idappvar, target_env, status: "error", message: err.message });
       }
     }
 

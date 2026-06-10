@@ -2708,6 +2708,156 @@ export const system_app = {
       "cors": {},
       "mcp": {
         "enabled": true,
+        "name": "appvar_migrate",
+        "title": "Migrate AppVar to Another Environment",
+        "description": "Copies one or more application variables (AppVars) from their current environment to a target environment (dev, qa, or prd). The original AppVar is NOT deleted — this is a copy/promote operation, not a move. Each item in the array requires 'idappvar' (UUID of the source AppVar) and 'target_env' (destination environment). Possible per-item outcomes: 'success' (migrated and new_idappvar is returned), 'ignored' (source is already in target_env), 'already exists' (an AppVar with same app+name already exists in target_env — treated as success, variable replaced), or 'error'. To obtain idappvar values use 'app_vars' (full list) or query AppVars by idapp. To verify the migration use 'app_vars' filtering by the target environment after calling this tool."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "title": "AppVarMigrateRequest",
+            "type": "array",
+            "minItems": 1,
+            "description": "Array of migration items. Each item specifies one AppVar to copy to a target environment.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "idappvar",
+                "target_env"
+              ],
+              "properties": {
+                "idappvar": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "UUID of the source AppVar to migrate. Obtain from 'app_vars'."
+                },
+                "target_env": {
+                  "type": "string",
+                  "enum": [
+                    "dev",
+                    "qa",
+                    "prd"
+                  ],
+                  "description": "Destination environment. Must be different from the source AppVar's current environment."
+                }
+              }
+            }
+          }
+        },
+        "out": {
+          "enabled": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idappvar": {
+                  "type": "string",
+                  "description": "UUID of the source AppVar."
+                },
+                "target_env": {
+                  "type": "string",
+                  "description": "Target environment requested."
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "success",
+                    "ignored",
+                    "error"
+                  ],
+                  "description": "'success': migrated or already existed. 'ignored': source already in target_env. 'error': see message."
+                },
+                "new_idappvar": {
+                  "type": "string",
+                  "description": "UUID of the newly created AppVar in the target environment or the existing one if replaced."
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Human-readable result detail."
+                }
+              }
+            }
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": [
+              {
+                "idappvar": "00000000-0000-0000-0000-000000000002",
+                "target_env": "qa"
+              }
+            ]
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "c3d4e5f6-a7b8-9012-cdef-012345678912",
+      "rowkey": 385,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/appvars/migrate",
+      "method": "POST",
+      "handler": "FUNCTION",
+      "access": 3,
+      "title": "Migrate AppVar to Another Environment",
+      "description": "Copies one or more application variables from their current environment to a target environment (dev, qa, or prd). The original AppVar is not deleted. If an AppVar with the same app and name already exists in the target environment, it is replaced. Obtain idappvar values from 'app_vars'.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "migrate,appvar,variable,environment,promote,copy",
+      "code": "fnAppVarMigrate",
+      "cache_time": 0,
+      "createdAt": "2026-06-09T12:00:00.000Z",
+      "updatedAt": "2026-06-09T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "admin": true,
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
         "name": "search_endpoints",
         "title": "Search Endpoints",
         "description": "Full-text keyword search across endpoints. Searches title, description, resource, and keywords fields using a LIKE pattern. The 'query' parameter is optional — omitting it (or leaving other filters like idapp, environment, or handler) returns all matching endpoints. Optionally searches inside source code with 'search_code: true'. Returns a lightweight catalog (no source code by default). Max results: 200 (default 50, use 'offset' for pagination). To retrieve ALL endpoints of a specific app use 'app_endpoints' with the idapp."
