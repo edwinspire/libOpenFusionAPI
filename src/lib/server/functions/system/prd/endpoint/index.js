@@ -629,6 +629,12 @@ export async function fnEndpointGetCode(params) {
 export async function fnEndpointTest(params) {
   let r = { code: 200, data: undefined };
   try {
+    const hasOwn = (obj, key) =>
+      obj != null && Object.prototype.hasOwnProperty.call(obj, key);
+
+    const methodSupportsBody = (httpMethod) =>
+      ["POST", "PUT", "PATCH", "DELETE"].includes(String(httpMethod || "").toUpperCase());
+
     const classifyFailure = (statusCode, responseData) => {
       const message =
         typeof responseData === "string"
@@ -741,6 +747,9 @@ export async function fnEndpointTest(params) {
       timeout_ms = 10000,
     } = body;
 
+    const hasQueryParamsInput = hasOwn(body, "query_params");
+    const hasPayloadInput = hasOwn(body, "payload");
+
     // Necesitamos resource y method — los tomamos del endpoint si no se proveen
     let resolvedResource = resource;
     let resolvedMethod = method;
@@ -791,12 +800,12 @@ export async function fnEndpointTest(params) {
 
     // Auto-populate inputs from endpoint test metadata if caller omitted them.
     const autoQueryParams =
-      query_params && typeof query_params === "object" && Object.keys(query_params).length > 0
-        ? query_params
+      hasQueryParamsInput
+        ? (query_params && typeof query_params === "object" ? query_params : {})
         : extractQueryFromDataTest(endpointData?.data_test);
 
     const autoPayload =
-      payload !== null ? payload : extractPayloadFromDataTest(endpointData?.data_test);
+      hasPayloadInput ? payload : extractPayloadFromDataTest(endpointData?.data_test);
 
     const autoHeaders = extractHeadersFromDataTest(
       endpointData?.data_test,
@@ -820,7 +829,7 @@ export async function fnEndpointTest(params) {
 
     if (
       autoPayload !== null &&
-      ["POST", "PUT", "PATCH"].includes(httpMethod) &&
+      methodSupportsBody(httpMethod) &&
       !Object.keys(headers).some((k) => k.toLowerCase() === "content-type")
     ) {
       headers["Content-Type"] = "application/json";
@@ -832,15 +841,28 @@ export async function fnEndpointTest(params) {
       signal: AbortSignal.timeout(timeout_ms),
     };
 
-      let serializedBody = null;
+    let serializedBody = null;
 
-    if (autoPayload !== null && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
+    if (autoPayload !== null && methodSupportsBody(httpMethod)) {
       const ctKey = Object.keys(headers).find((k) => k.toLowerCase() === "content-type");
       const ct = ctKey ? String(headers[ctKey]).toLowerCase() : "application/json";
-        serializedBody = ct.includes("application/json")
+      const isStructuredPayload =
+        autoPayload !== null &&
+        (Array.isArray(autoPayload) ||
+          (typeof autoPayload === "object" && !(autoPayload instanceof String)));
+
+      // If caller sends a structured payload explicitly, force JSON even when inherited headers_test includes a non-JSON content-type.
+      if (hasPayloadInput && isStructuredPayload && !ct.includes("application/json")) {
+        headers[ctKey || "Content-Type"] = "application/json";
+      }
+
+      const finalCtKey = Object.keys(headers).find((k) => k.toLowerCase() === "content-type");
+      const finalCt = finalCtKey ? String(headers[finalCtKey]).toLowerCase() : "application/json";
+
+      serializedBody = finalCt.includes("application/json")
         ? JSON.stringify(autoPayload)
         : String(autoPayload);
-        fetchOptions.body = serializedBody;
+      fetchOptions.body = serializedBody;
     }
 
     const t0 = Date.now();
@@ -867,8 +889,8 @@ export async function fnEndpointTest(params) {
         : classifyFailure(response.status, responseData),
       resolved_inputs: {
         from_data_test: {
-          query_params: !query_params || Object.keys(query_params || {}).length === 0,
-          payload: payload === null,
+          query_params: !hasQueryParamsInput,
+          payload: !hasPayloadInput,
         },
         query_params: autoQueryParams,
         payload: autoPayload,
