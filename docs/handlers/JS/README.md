@@ -67,8 +67,9 @@ En los schemas y herramientas MCP, el campo `log_level` acepta estos valores (0-
 - Do not assume legacy aliases such as `GET()` or `POST()` are still the preferred API.
 
 `uFetch.batch` quick reference:
-- Signature: `batch(items, { concurrency = 5, method = 'GET', buildRequest, onProgress })`
-- `buildRequest(item)` must return `{ url?, method?, data?, headers?, options? }`
+- Signature: `batch({ url, method = 'GET', items, headers, options, config: { concurrency = 5, onProgress } })`
+- If an item includes any of `{ url, method, data, headers, options }`, those fields override the base values for that item.
+- Positional signature `batch(url, method, items, headers, options, config)` is deprecated.
 - Result shape per item: `{ isError, httpCode, response?, error? }`
 - `uFetchAutoEnv.create(...)` returns a `uFetch` instance, so `batch(...)` works there too.
 
@@ -79,7 +80,7 @@ When to use each approach:
 
 Quick decision (at a glance):
 - One call to one endpoint: use `get/post/put/patch/delete`.
-- Many calls derived from a lote/list: use `batch(items, { concurrency, buildRequest, ... })`.
+- Many calls derived from a lote/list: use `batch({ method, items, config: { concurrency, ... } })`.
 - Need per-item error reporting without aborting all: use `batch(...)`.
 
 Batch example for internal endpoint fan-out (40 calls in 5 parallel workers):
@@ -89,12 +90,12 @@ const soapFetch = uFetchAutoEnv.create('/api/demo/ofapi/soap/example01/auto');
 
 const items = Array.from({ length: 40 }, (_, i) => ({ dNum: i + 1 }));
 
-const batchResults = await soapFetch.batch(items, {
-  concurrency: 5,
+const batchResults = await soapFetch.batch({
   method: 'GET',
-  buildRequest: (item) => ({
-    data: { dNum: item.dNum },
-  }),
+  items,
+  config: {
+    concurrency: 5,
+  },
 });
 
 const responses = await Promise.all(

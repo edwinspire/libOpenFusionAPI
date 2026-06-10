@@ -1225,7 +1225,7 @@ $_RETURN_DATA_ = result;
 
 ---
 
-### `uFetch([constructor(url?, redirect_in_unauthorized?)], [request(url, method, data, headers, options)], [get|post|put|patch|delete({ url, data, headers, options })], [batch(items, config)])`
+### `uFetch([constructor(url?, redirect_in_unauthorized?)], [request(url, method, data, headers, options)], [get|post|put|patch|delete({ url, data, headers, options })], [batch({ url, method, items, headers, options, config })])`
 
 [External Documentation](https://github.com/edwinspire/universal-fetch) 
 
@@ -1236,11 +1236,13 @@ Universal HTTP client for Node.js and browsers. Primary use is standard fetch-st
 - Use uFetch when the target URL is absolute or belongs to another system.
 - Primary workflow: use get/post/put/patch/delete for single requests or simple request chains.
 - Quick decision: one request => get/post/put/patch/delete.
-- Quick decision: list/lote of requests with controlled parallel workers => batch(items, { concurrency, ... }).
+- Quick decision: list/lote of requests with controlled parallel workers => batch({ items, config: { concurrency, ... } }).
 - For GET or HEAD, data is serialized as query string. For non-GET methods, object data is serialized as JSON automatically.
 - Use batch() when you must process many calls from a list and split the workload into concurrent workers/blocks.
 - batch() returns per-item result objects and is designed to continue even if some items fail; always inspect isError per item.
-- batch() signature: batch(items, { concurrency, method, buildRequest, onProgress }).
+- batch() signature: batch({ url, method, items, headers, options, config: { concurrency, onProgress } }).
+- If an item includes any of { url, method, data, headers, options }, those fields override base values for that item.
+- Positional signature batch(url, method, items, headers, options, config) is deprecated.
 - Each batch result item has shape: { isError, httpCode, response?, error? }.
 - Authorization helpers persist at instance level. Create a fresh instance when different credentials must be isolated.
 
@@ -1252,11 +1254,12 @@ Universal HTTP client for Node.js and browsers. Primary use is standard fetch-st
 - Prefer method wrappers with opts object for readability: get/post/put/patch/delete({ url, data, headers, options }).
 - Use request(url, method, data, headers, options) only when method must be computed dynamically.
 - For bulk operations, prefer batch() over Promise.all to avoid failing the full operation due to a single request error.
+- Prefer the object signature of batch(); avoid positional parameters because they are deprecated.
 
 *   `constructor(url?, redirect_in_unauthorized?)` <function> **Optional**. Creates an instance with optional base URL for relative paths. In browser mode, redirect_in_unauthorized can redirect on 401.
 *   `request(url, method, data, headers, options)` <function> **Optional**. Low-level request method used by all wrappers.
 *   `get|post|put|patch|delete({ url, data, headers, options })` <function> **Optional**. Convenience wrappers for common HTTP methods.
-*   `batch(items, config)` <function> **Optional**. Parallel fail-safe processor. Uses config.buildRequest(item) to create each request and returns one result per item without failing the whole batch.
+*   `batch({ url, method, items, headers, options, config })` <function> **Optional**. Parallel fail-safe processor. Receives a single options object and returns one result per item without failing the whole batch.
 
 *   Returns: <object> uFetch instance with request wrappers and auth helpers.
 
@@ -1287,17 +1290,17 @@ const createRes = await api.post({
   data: { username: 'johndoe' },
 });
 
-const batchResults = await api.batch([
-  { username: 'a' },
-  { username: 'b' },
-  { username: 'c' },
-], {
-  concurrency: 5,
+const batchResults = await api.batch({
+  url: '/users',
   method: 'POST',
-  buildRequest: (item) => ({
-    url: '/users',
-    data: item,
-  }),
+  items: [
+    { username: 'a' },
+    { username: 'b', method: 'PUT' },
+    { url: 'https://other-api.example/log', data: { msg: 'audit' } },
+  ],
+  config: {
+    concurrency: 5,
+  },
 });
 
 $_RETURN_DATA_ = {
@@ -1326,8 +1329,8 @@ OpenFusionAPI helper that wraps uFetch for same-instance calls. Use it mainly wi
 - If the path contains /auto or /env suffix before query/hash, it is replaced by the current environment (dev, qa, prd).
 - Absolute URLs bypass environment replacement and are sent as-is.
 - Most endpoints should start with get/post/put/patch/delete; batch is for list-driven parallel calls with controlled concurrency.
-- Quick decision: if you need N calls to the same internal endpoint with a lote, use create('/api/.../auto') + batch(items, { concurrency, buildRequest }).
-- create()/auto() return a uFetch instance, so batch(items, config) is also available for internal fan-out calls.
+- Quick decision: if you need N calls to the same internal endpoint with a lote, use create('/api/.../auto') + batch({ method, items, config }).
+- create()/auto() return a uFetch instance, so batch({ ...opts }) is also available for internal fan-out calls.
 - Request trace header ofapi-trace-id is propagated automatically when available.
 
 **Agent Guidance**
@@ -1361,12 +1364,12 @@ const usersResponse = await usersFetch.get();
 
 const soapFetch = uFetchAutoEnv.create('/api/demo/ofapi/soap/example01/auto');
 const items = Array.from({ length: 40 }, (_, i) => ({ dNum: i + 1 }));
-const batch = await soapFetch.batch(items, {
-  concurrency: 5,
+const batch = await soapFetch.batch({
   method: 'GET',
-  buildRequest: (item) => ({
-    data: { dNum: item.dNum },
-  }),
+  items,
+  config: {
+    concurrency: 5,
+  },
 });
 
 $_RETURN_DATA_ = {
