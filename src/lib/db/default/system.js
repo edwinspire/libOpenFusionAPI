@@ -3001,7 +3001,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_versions_matrix",
         "title": "Get Endpoint Versions Matrix",
-        "description": "Returns endpoints grouped by resource+method with per-environment metadata (idendpoint, createdAt, updatedAt). Supports optional filtering by idendpoint (returns the same endpoint family across environments) and idapp. Use it to identify the most up-to-date environment and replicate that version to other environments."
+        "description": "Returns endpoints grouped by resource+method with per-environment metadata (idendpoint, createdAt, updatedAt) plus comparison flags for code and configuration differences. Supports optional filtering by idendpoint (returns the same endpoint family across environments) and idapp. Use it to identify which environments are identical or different and which version is the best candidate to replicate."
       },
       "json_schema": {
         "in": {
@@ -3106,11 +3106,11 @@ export const system_app = {
       "handler": "FUNCTION",
       "access": 2,
       "title": "Get Endpoint Versions Matrix",
-      "description": "Returns endpoint version metadata by environment so you can identify and replicate the latest version.",
+      "description": "Returns endpoint version metadata by environment plus comparison results for code and configuration so you can identify identical or different environments and replicate the best version when needed.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
-      "keywords": "endpoint,version,matrix,environment,migrate",
+      "keywords": "endpoint,version,matrix,environment,migrate,compare,diff,configuration",
       "code": "fnEndpointVersionsMatrix",
       "cache_time": 0,
       "createdAt": "2026-05-30T14:00:00.000Z",

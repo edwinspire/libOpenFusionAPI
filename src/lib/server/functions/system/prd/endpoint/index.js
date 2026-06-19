@@ -14,6 +14,7 @@ import { getEndpointBackupByIdEndpoint, getEndpointBackupByIdEndpointLightweight
 import { upsertAppVar, getAppVarsById } from "../../../../../db/appvars.js";
 import { Endpoint, Application, AppVars } from "../../../../../db/models.js";
 import { Op } from "sequelize";
+import { createHash } from "node:crypto";
 import { internal_url_http } from "../../../../utils_path.js";
 
 export async function fnGetEndpointBackupByIdEndpoint(params) {
@@ -638,6 +639,137 @@ export async function fnEndpointVersionsMatrix(params) {
     const appMap = new Map(apps.map((a) => [a.idapp, a.app]));
     const envOrder = new Map([["dev", 0], ["qa", 1], ["prd", 2]]);
     const grouped = new Map();
+    const comparisonFields = [
+      "code",
+      "handler",
+      "access",
+      "timeout",
+      "enabled",
+      "cache_time",
+      "ctrl",
+      "cors",
+      "json_schema",
+      "custom_data",
+      "headers_test",
+      "data_test",
+      "title",
+      "description",
+      "keywords",
+      "price_by_request",
+      "price_kb_request",
+      "price_kb_response",
+    ];
+
+    const normalizeValue = (value) => {
+      if (value === null || value === undefined) {
+        return null;
+      }
+
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+
+      if (Array.isArray(value)) {
+        return value.map((item) => normalizeValue(item));
+      }
+
+      if (typeof value === "object") {
+        return Object.keys(value)
+          .sort()
+          .reduce((acc, key) => {
+            acc[key] = normalizeValue(value[key]);
+            return acc;
+          }, {});
+      }
+
+      return value;
+    };
+
+    const hashValue = (value) =>
+      createHash("sha256").update(JSON.stringify(normalizeValue(value))).digest("hex");
+
+    const hashFields = (row, fields) =>
+      createHash("sha256")
+        .update(JSON.stringify(fields.reduce((acc, field) => {
+          acc[field] = normalizeValue(row?.[field]);
+          return acc;
+        }, {})))
+        .digest("hex");
+
+    const buildComparison = (row, referenceRow) => {
+      if (!referenceRow) {
+        return {
+          reference_env: null,
+          same_code: true,
+          same_configuration: true,
+          same_metadata: true,
+          same_overall: true,
+          state: "identical",
+          different_fields: [],
+          matching_fields: comparisonFields,
+          hashes: null,
+        };
+      }
+
+      const codeHash = hashValue(row?.code);
+      const referenceCodeHash = hashValue(referenceRow?.code);
+      const configurationFields = ["handler", "access", "timeout", "enabled", "cache_time", "ctrl", "cors", "json_schema", "custom_data", "headers_test", "data_test"];
+      const metadataFields = ["title", "description", "keywords", "price_by_request", "price_kb_request", "price_kb_response"];
+
+      const hashes = {
+        code: codeHash,
+        configuration: hashFields(row, configurationFields),
+        metadata: hashFields(row, metadataFields),
+        overall: hashFields(row, comparisonFields),
+      };
+
+      const referenceHashes = {
+        code: referenceCodeHash,
+        configuration: hashFields(referenceRow, configurationFields),
+        metadata: hashFields(referenceRow, metadataFields),
+        overall: hashFields(referenceRow, comparisonFields),
+      };
+
+      const different_fields = [];
+      const matching_fields = [];
+
+      for (const field of comparisonFields) {
+        const same = hashValue(row?.[field]) === hashValue(referenceRow?.[field]);
+        if (same) {
+          matching_fields.push(field);
+        } else {
+          different_fields.push(field);
+        }
+      }
+
+      const same_code = hashes.code === referenceHashes.code;
+      const same_configuration = hashes.configuration === referenceHashes.configuration;
+      const same_metadata = hashes.metadata === referenceHashes.metadata;
+      const same_overall = hashes.overall === referenceHashes.overall;
+
+      let state = "different";
+      if (same_overall) {
+        state = "identical";
+      } else if (same_code && same_configuration) {
+        state = same_metadata ? "same_code_and_configuration" : "same_code_and_configuration_different_metadata";
+      } else if (same_code) {
+        state = "same_code_different_configuration";
+      } else if (same_configuration) {
+        state = "same_configuration_different_code";
+      }
+
+      return {
+        reference_env: referenceRow.environment,
+        same_code,
+        same_configuration,
+        same_metadata,
+        same_overall,
+        state,
+        different_fields,
+        matching_fields,
+        hashes,
+      };
+    };
 
     for (const endpoint of endpoints) {
       const row = endpoint.toJSON ? endpoint.toJSON() : endpoint;
@@ -652,11 +784,13 @@ export async function fnEndpointVersionsMatrix(params) {
           endpoint: row.resource,
           method: row.method,
           env: [],
+          envRecords: {},
           latest: null,
         });
       }
 
       const group = grouped.get(groupKey);
+      group.envRecords[row.environment] = row;
       group.env.push({
         env: row.environment,
         createdAt,
@@ -684,6 +818,49 @@ export async function fnEndpointVersionsMatrix(params) {
       }
 
       group.latest = latest;
+      const referenceEnv = latest?.env || group.env[0]?.env || null;
+      const referenceRow = referenceEnv ? group.envRecords[referenceEnv] : null;
+
+      group.comparison = {
+        reference_env: referenceEnv,
+        reference_idendpoint: referenceRow?.idendpoint || null,
+        all_same_code: true,
+        all_same_configuration: true,
+        all_same_metadata: true,
+        all_same_overall: true,
+        different_environments: [],
+      };
+
+      group.env = group.env.map((item) => {
+        const row = group.envRecords[item.env];
+        const comparison = buildComparison(row, referenceRow);
+
+        if (!comparison.same_code) {
+          group.comparison.all_same_code = false;
+        }
+        if (!comparison.same_configuration) {
+          group.comparison.all_same_configuration = false;
+        }
+        if (!comparison.same_metadata) {
+          group.comparison.all_same_metadata = false;
+        }
+        if (!comparison.same_overall) {
+          group.comparison.all_same_overall = false;
+          group.comparison.different_environments.push({
+            env: item.env,
+            idendpoint: item.idendpoint,
+            state: comparison.state,
+            different_fields: comparison.different_fields,
+          });
+        }
+
+        return {
+          ...item,
+          comparison,
+        };
+      });
+
+      delete group.envRecords;
       return group;
     });
 

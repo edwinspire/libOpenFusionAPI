@@ -613,6 +613,7 @@ const hex = hash.digest('hex');
 $_RETURN_DATA_ = hex;
       `,
     },
+    $_ENV_: {fn: environment, description: "Current runtime environment (dev, qa, prd)", web: own_repo, return: "string", notes: ["This variable is injected automatically based on the server environment and can be used for environment-specific logic in handlers."], example: `if ($_ENV_ === 'dev') { /* dev-only code */ }`},
     $_RETURN_DATA_: {
       fn: {},
       description: "Primary output slot for JS handlers. Assign the final payload here instead of using return.",
