@@ -708,6 +708,12 @@ $_RETURN_DATA_ = {
           required: false,
           type: "function",
         },
+        {
+          name: "batch_old(url, method, items, headers, options, config)",
+          description: "Legacy compatibility wrapper for positional batch calls.",
+          required: false,
+          type: "function",
+        },
       ],
       return: {
         type: "object",
@@ -729,10 +735,11 @@ $_RETURN_DATA_ = {
         "For GET or HEAD, data is serialized as query string. For non-GET methods, object data is serialized as JSON automatically.",
         "Use batch() when you must process many calls from a list and split the workload into concurrent workers/blocks.",
         "batch() returns per-item result objects and is designed to continue even if some items fail; always inspect isError per item.",
-        "batch() signature: batch({ url, method, items, headers, options, config: { concurrency, onProgress } }).",
+        "batch() signature: batch({ url, method, items, headers, options, config: { concurrency, onProgress, responseParser, includeResponse } }).",
         "If an item includes any of { url, method, data, headers, options }, those fields override base values for that item.",
-        "Positional signature batch(url, method, items, headers, options, config) is deprecated.",
-        "Each batch result item has shape: { isError, httpCode, response?, error? }.",
+        "Positional signature batch(url, method, items, headers, options, config) is not accepted by batch(); use batch_old(...) for legacy compatibility.",
+        "Each batch result item has shape by default: { isError, httpCode, data?, error? }.",
+        "If config.includeResponse is true, each result may also include response.",
         "Authorization helpers persist at instance level. Create a fresh instance when different credentials must be isolated.",
       ],
       agentGuidance: [
@@ -742,7 +749,7 @@ $_RETURN_DATA_ = {
         "Prefer method wrappers with opts object for readability: get/post/put/patch/delete({ url, data, headers, options }).",
         "Use request(url, method, data, headers, options) only when method must be computed dynamically.",
         "For bulk operations, prefer batch() over Promise.all to avoid failing the full operation due to a single request error.",
-        "Prefer the object signature of batch(); avoid positional parameters because they are deprecated.",
+        "Prefer the object signature of batch(); use batch_old() only while migrating legacy positional code.",
       ],
       example: `
 const api = new uFetch('https://api.example.com');
@@ -769,6 +776,7 @@ const batchResults = await api.batch({
   ],
   config: {
     concurrency: 5,
+    includeResponse: false,
   },
 });
 
@@ -778,7 +786,7 @@ $_RETURN_DATA_ = {
   batch: batchResults.map((r) => ({
     isError: r.isError,
     httpCode: r.httpCode,
-    hasResponse: !!r.response,
+    hasData: typeof r.data !== 'undefined',
   })),
 };
       `,

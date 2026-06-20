@@ -1,31 +1,11 @@
 # JS Handler API Reference
 
----
-
-## Log Level (log_level)
-
-Muchos endpoints y herramientas MCP permiten configurar el nivel de log para cada petición. Los valores posibles y su significado son:
-
-| Valor     | Nombre     | Descripción                                                                 |
-|-----------|------------|-----------------------------------------------------------------------------|
-| 0         | Disabled   | No se guarda ningún log para la petición.                                    |
-| 1         | Basic      | Solo los campos mínimos (timestamp, método, status, ids, etc.).              |
-| 2         | Normal     | Incluye parámetros, query, body, user agent, etc.                            |
-| 3         | Full       | Incluye todo lo anterior más headers completos y respuesta serializada.       |
-
-**Uso recomendado:**
-- Usa `Basic` para monitoreo ligero.
-- Usa `Normal` para depuración estándar.
-- Usa `Full` solo para auditoría o troubleshooting profundo (puede incluir datos sensibles o grandes).
-- Usa `Disabled` para endpoints donde no se requiere ningún registro.
-
-En los schemas y herramientas MCP, el campo `log_level` acepta estos valores (0-3) y puede aparecer como `integer` o como selector textual en UIs.
-
 > Auto-generated documentation for the JavaScript Handler environment.
 
 ## Table of Contents
 
 - [\$_CUSTOM_HEADERS_](#_custom_headers_)
+- [\$_ENV_](#_env_)
 - [\$_EXCEPTION_](#_exception_)
 - [\$_RETURN_DATA_](#_return_data_)
 - [OpenAI](#openai)
@@ -91,6 +71,26 @@ $_CUSTOM_HEADERS_.set(
   'attachment; filename="file.xlsx"',
 );
       
+```
+
+---
+
+### `$_ENV_`
+
+[External Documentation](https://github.com/edwinspire/libOpenFusionAPI) 
+
+Current runtime environment (dev, qa, prd)
+
+**Notes**
+
+- This variable is injected automatically based on the server environment and can be used for environment-specific logic in handlers.
+
+*   Returns: string
+
+#### Example
+
+```javascript
+if ($_ENV_ === 'dev') { /* dev-only code */ }
 ```
 
 ---
@@ -1229,7 +1229,7 @@ $_RETURN_DATA_ = result;
 
 [External Documentation](https://github.com/edwinspire/universal-fetch) 
 
-Universal HTTP client for Node.js and browsers. Primary use is standard fetch-style requests (get/post/put/patch/delete); batch adds controlled parallel processing for large input sets and now accepts only a single configuration object. Use `batch_old(...)` only for legacy positional integrations.
+Universal HTTP client for Node.js and browsers. Primary use is standard fetch-style requests (get/post/put/patch/delete); batch adds controlled parallel processing for large input sets.
 
 **Notes**
 
@@ -1237,16 +1237,14 @@ Universal HTTP client for Node.js and browsers. Primary use is standard fetch-st
 - Primary workflow: use get/post/put/patch/delete for single requests or simple request chains.
 - Quick decision: one request => get/post/put/patch/delete.
 - Quick decision: list/lote of requests with controlled parallel workers => batch({ items, config: { concurrency, ... } }).
-- Quick decision: legacy positional integrations that cannot be refactored immediately => batch_old(url, method, items, headers, options, config).
 - For GET or HEAD, data is serialized as query string. For non-GET methods, object data is serialized as JSON automatically.
 - Use batch() when you must process many calls from a list and split the workload into concurrent workers/blocks.
 - batch() returns per-item result objects and is designed to continue even if some items fail; always inspect isError per item.
-- batch() signature: batch({ url, method, items, headers, options, config: { concurrency, onProgress } }).
-- `url` is optional when the instance already has a base URL; use it only to override the constructor URL for that batch call.
+- batch() signature: batch({ url, method, items, headers, options, config: { concurrency, onProgress, responseParser, includeResponse } }).
 - If an item includes any of { url, method, data, headers, options }, those fields override base values for that item.
-- Positional signature batch(url, method, items, headers, options, config) is no longer supported.
-- Use batch_old(url, method, items, headers, options, config) only as a compatibility bridge for older code.
-- Each batch result item has shape: { isError, httpCode, response?, error? }.
+- Positional signature batch(url, method, items, headers, options, config) is not accepted by batch(); use batch_old(...) for legacy compatibility.
+- Each batch result item has shape by default: { isError, httpCode, data?, error? }.
+- If config.includeResponse is true, each result may also include response.
 - Authorization helpers persist at instance level. Create a fresh instance when different credentials must be isolated.
 
 **Agent Guidance**
@@ -1257,14 +1255,13 @@ Universal HTTP client for Node.js and browsers. Primary use is standard fetch-st
 - Prefer method wrappers with opts object for readability: get/post/put/patch/delete({ url, data, headers, options }).
 - Use request(url, method, data, headers, options) only when method must be computed dynamically.
 - For bulk operations, prefer batch() over Promise.all to avoid failing the full operation due to a single request error.
-- Prefer the object signature of batch(); avoid positional parameters because they are no longer supported.
-- Keep batch_old() only as a temporary migration path.
+- Prefer the object signature of batch(); use batch_old() only while migrating legacy positional code.
 
 *   `constructor(url?, redirect_in_unauthorized?)` <function> **Optional**. Creates an instance with optional base URL for relative paths. In browser mode, redirect_in_unauthorized can redirect on 401.
 *   `request(url, method, data, headers, options)` <function> **Optional**. Low-level request method used by all wrappers.
 *   `get|post|put|patch|delete({ url, data, headers, options })` <function> **Optional**. Convenience wrappers for common HTTP methods.
 *   `batch({ url, method, items, headers, options, config })` <function> **Optional**. Parallel fail-safe processor. Receives a single options object and returns one result per item without failing the whole batch.
-*   `batch_old(url, method, items, headers, options, config)` <function> **Optional**. Legacy compatibility processor for positional batch calls.
+*   `batch_old(url, method, items, headers, options, config)` <function> **Optional**. Legacy compatibility wrapper for positional batch calls.
 
 *   Returns: <object> uFetch instance with request wrappers and auth helpers.
 
@@ -1273,7 +1270,6 @@ Universal HTTP client for Node.js and browsers. Primary use is standard fetch-st
     *   `request` <function> Core request primitive.
     *   `get|post|put|patch|delete` <function> HTTP method wrappers using opts object.
     *   `batch` <function> Fail-safe batch execution with configurable concurrency.
-    *   `batch_old` <function> Legacy positional batch execution wrapper.
     *   `setBasicAuthorization` <function> Sets persistent Basic auth header for the instance.
     *   `setBearerAuthorization` <function> Sets persistent Bearer auth header for the instance.
     *   `abort` <function> Aborts active in-flight requests for this instance.
@@ -1306,6 +1302,7 @@ const batchResults = await api.batch({
   ],
   config: {
     concurrency: 5,
+    includeResponse: false,
   },
 });
 
@@ -1315,7 +1312,7 @@ $_RETURN_DATA_ = {
   batch: batchResults.map((r) => ({
     isError: r.isError,
     httpCode: r.httpCode,
-    hasResponse: !!r.response,
+    hasData: typeof r.data !== 'undefined',
   })),
 };
       

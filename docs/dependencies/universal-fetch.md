@@ -24,7 +24,9 @@ This page defines how libOpenFusionAPI documents and consumes @edwinspire/univer
 - Current batch signature: batch({ url, method, items, headers, options, config }).
 - Batch positional signature is unsupported in batch() and should not be generated in new code.
 - Legacy compatibility path: batch_old(url, method, items, headers, options, config).
-- Batch result item shape: { isError, httpCode, response?, error? }.
+- Batch supports config.responseParser and config.includeResponse (default false).
+- Batch result item shape by default: { isError, httpCode, data?, error? }.
+- If config.includeResponse=true, response is also included: { ..., response }.
 - url in batch options is optional when instance base URL is already defined.
 
 ## Agent Guidance
@@ -40,6 +42,7 @@ This page defines how libOpenFusionAPI documents and consumes @edwinspire/univer
 | Topic | Current Recommendation | Legacy Compatibility | Risk if Ignored |
 |---|---|---|---|
 | Batch invocation | batch({ ...opts }) | batch_old(url, method, items, headers, options, config) | Runtime exceptions in JS endpoints |
+| Batch result consumption | Prefer result.data; use includeResponse only when raw Response is needed | Legacy code reading result.response | Runtime errors when reading response.json() from undefined |
 | Bulk fan-out patterns | Controlled concurrency via config.concurrency | Existing positional wrappers during migration | Unstable behavior and avoidable failures |
 | Docs precedence | Local integration + upstream contract check | Manual cross-check only | Drift between generated code and runtime contract |
 

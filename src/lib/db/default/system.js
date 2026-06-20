@@ -4888,7 +4888,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_upsert",
         "title": "Endpoint UPSERT",
-        "description": "Creates or updates an endpoint attached to an existing application. Prefer handler-specific wrappers when available (for example upsert_js_endpoint_handler, upsert_sql_endpoint_handler, upsert_fetch_endpoint_handler, upsert_text_endpoint_handler) and use this generic endpoint_upsert as fallback or for full custom control. Recommended workflow: create the application first, define reusable AppVars per environment (`dev`, `qa`, `prd`) with `appvar_upsert`, then create endpoints with this tool by choosing both the handler and the HTTP method explicitly. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads, including `code` and `custom_data` when handler contracts allow it. In JS handlers, `uFetch` and instances from `uFetchAutoEnv.create(...)` are primarily for fetch-style calls (`get/post/put/patch/delete`). For list/lote fan-out scenarios, use `batch({ url, method, items, headers, options, config: { concurrency, onProgress } })` to split calls into controlled parallel blocks/workers; each result item has shape `{ isError, httpCode, response?, error? }`."
+        "description": "Creates or updates an endpoint attached to an existing application. Prefer handler-specific wrappers when available (for example upsert_js_endpoint_handler, upsert_sql_endpoint_handler, upsert_fetch_endpoint_handler, upsert_text_endpoint_handler) and use this generic endpoint_upsert as fallback or for full custom control. Recommended workflow: create the application first, define reusable AppVars per environment (`dev`, `qa`, `prd`) with `appvar_upsert`, then create endpoints with this tool by choosing both the handler and the HTTP method explicitly. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads, including `code` and `custom_data` when handler contracts allow it. In JS handlers, `uFetch` and instances from `uFetchAutoEnv.create(...)` are primarily for fetch-style calls (`get/post/put/patch/delete`). For list/lote fan-out scenarios, use `batch({ url, method, items, headers, options, config: { concurrency, onProgress, responseParser, includeResponse } })` to split calls into controlled parallel blocks/workers; each result item has shape by default `{ isError, httpCode, data?, error? }` and includes `response` only when `includeResponse=true`."
       },
       "json_schema": {
         "in": {
@@ -6125,13 +6125,25 @@ export const system_app = {
                 "description": "Target environment. Defaults to 'prd'."
               },
               "payload": {
-                "type": [
-                  "string",
-                  "number",
-                  "boolean",
-                  "object",
-                  "array",
-                  "null"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ],
                 "description": "Request body to send for POST / PUT / PATCH / DELETE requests. If you send 'payload': null explicitly, the tool will not inherit the saved data_test body for that execution."
               },

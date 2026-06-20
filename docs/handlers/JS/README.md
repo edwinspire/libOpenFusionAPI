@@ -74,11 +74,12 @@ En los schemas y herramientas MCP, el campo `log_level` acepta estos valores (0-
 - Last local verification against upstream contract: `2026-06-20`.
 
 `uFetch.batch` quick reference:
-- Signature: `batch({ url, method = 'GET', items, headers, options, config: { concurrency = 5, onProgress } })`
+- Signature: `batch({ url, method = 'GET', items, headers, options, config: { concurrency = 5, onProgress, responseParser, includeResponse = false } })`
 - `url` is optional when the `uFetch` instance already has a base URL; use it only to override that base URL for the batch call.
 - If an item includes any of `{ url, method, data, headers, options }`, those fields override the base values for that item.
 - Positional signature `batch(url, method, items, headers, options, config)` is no longer supported; use `batch_old(url, method, items, headers, options, config)` only for legacy compatibility.
-- Result shape per item: `{ isError, httpCode, response?, error? }`
+- Result shape per item (default): `{ isError, httpCode, data?, error? }`
+- If you explicitly set `config.includeResponse = true`, each result can also include `response`.
 - `uFetchAutoEnv.create(...)` returns a `uFetch` instance, so `batch(...)` works there too.
 
 When to use each approach:
@@ -125,7 +126,7 @@ const responses = await Promise.all(
       input: items[index],
       isError: false,
       httpCode: entry.httpCode,
-      data: await entry.response.json(),
+      data: entry.data,
     };
   })
 );
