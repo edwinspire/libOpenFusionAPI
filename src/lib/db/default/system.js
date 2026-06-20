@@ -6079,7 +6079,7 @@ export const system_app = {
         "enabled": true,
         "name": "execute_endpoint_test",
         "title": "Execute Endpoint Test",
-        "description": "Executes an endpoint via an internal HTTP call and returns the result (status_code, response_time_ms, response body). Ideal for agents to verify that an endpoint they just created or modified works correctly. Simplest usage: provide only 'idendpoint' — the tool auto-resolves app name, resource and method from the DB. Optionally override 'environment' (default: prd), provide 'payload' for POST/PUT bodies, 'query_params' for GET, and 'bearer_token' for authenticated endpoints. The result also includes the resolved query params, payload, headers, and serialized request body actually sent, so agents can debug request forwarding without writing local scripts. Endpoints that require auth and have no public access will need a valid bearer_token."
+        "description": "Executes an endpoint via an internal HTTP call and returns the result (status_code, response_time_ms, response body). Ideal for agents to verify that an endpoint they just created or modified works correctly. Simplest usage: provide only 'idendpoint' — the tool auto-resolves app name, resource and method from the DB. Optionally override 'environment' (default: prd), provide 'payload' for request bodies, 'query_params' for GET, 'headers' for custom request headers, and 'bearer_token' for authenticated endpoints. Saved test metadata (`data_test` / `headers_test`) is used only when `use_data_test_fallback=true`. When testing by explicit 'app' + 'resource', always send 'method' if you also send 'payload'. The result also includes the resolved query params, payload, headers, payload source, warnings, and serialized request body actually sent, so agents can debug request forwarding without writing local scripts. Endpoints that require auth and have no public access will need a valid bearer_token."
       },
       "json_schema": {
         "in": {
@@ -6112,7 +6112,7 @@ export const system_app = {
                   "DELETE"
                 ],
                 "default": "GET",
-                "description": "HTTP method (auto-resolved from idendpoint if omitted)."
+                "description": "HTTP method (auto-resolved from idendpoint if omitted). When using explicit 'app' + 'resource' together with 'payload', send this field explicitly."
               },
               "environment": {
                 "type": "string",
@@ -6126,11 +6126,21 @@ export const system_app = {
               },
               "payload": {
                 "type": [
+                  "string",
+                  "number",
+                  "boolean",
                   "object",
                   "array",
                   "null"
                 ],
-                "description": "JSON body to send for POST / PUT / PATCH requests."
+                "description": "Request body to send for POST / PUT / PATCH / DELETE requests. If you send 'payload': null explicitly, the tool will not inherit the saved data_test body for that execution."
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Optional request headers to send explicitly. Use this instead of relying on saved headers_test metadata."
               },
               "query_params": {
                 "type": "object",
@@ -6138,6 +6148,11 @@ export const system_app = {
                   "type": "string"
                 },
                 "description": "Query string parameters (key-value pairs)."
+              },
+              "use_data_test_fallback": {
+                "type": "boolean",
+                "default": false,
+                "description": "When true, missing payload/query_params/headers can be inherited from the endpoint's saved data_test and headers_test metadata. Recommended only for legacy/editor-style flows."
               },
               "bearer_token": {
                 "type": [
@@ -6189,6 +6204,9 @@ export const system_app = {
                       },
                       "payload": {
                         "type": "boolean"
+                      },
+                      "headers": {
+                        "type": "boolean"
                       }
                     }
                   },
@@ -6198,6 +6216,10 @@ export const system_app = {
                   },
                   "payload": {
                     "description": "Payload object or array resolved for the request body."
+                  },
+                  "payload_source": {
+                    "type": "string",
+                    "description": "Indicates whether the final payload came from the explicit input, saved data_test metadata, or no payload was used."
                   },
                   "headers": {
                     "type": "object",
@@ -6211,6 +6233,13 @@ export const system_app = {
                       "null"
                     ],
                     "description": "Exact body string sent over HTTP after serialization."
+                  },
+                  "warnings": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Non-fatal diagnostics explaining fallback decisions or ignored payload cases."
                   }
                 }
               },
@@ -8937,7 +8966,7 @@ export const system_app = {
         "enabled": true,
         "name": "upsert_sql_endpoint_handler",
         "title": "UPSERT SQL Endpoint",
-        "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize."
+        "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize. Supports HTTP methods GET, POST, PUT, PATCH, DELETE, OPTIONS, and HEAD for the created endpoint."
       },
       "json_schema": {
         "in": {
@@ -8972,6 +9001,19 @@ export const system_app = {
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 300
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE",
+                  "OPTIONS",
+                  "HEAD"
+                ],
+                "default": "POST"
               },
               "access": {
                 "type": "integer",
@@ -9147,12 +9189,12 @@ export const system_app = {
       "handler": "JS",
       "access": 3,
       "title": "UPSERT SQL Handler Endpoint",
-      "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize.",
+      "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize. Supports HTTP methods GET, POST, PUT, PATCH, DELETE, OPTIONS, and HEAD for the created endpoint.",
       "price_by_request": 1,
       "price_kb_request": 1,
       "price_kb_response": 1,
       "keywords": "sql,endpoint",
-      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nlet data = request.body;\ndata.handler = 'SQL';\ndata.method = 'POST';\n\nconst req1  = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
+      "code": "const uF = uFetchAutoEnv.auto('/api/system/api/endpoint/auto', true);\nconst auth = request?.headers?.authorization || request?.headers?.Authorization || '';\nconst body = request.body || {};\nconst method = String(body.method || 'POST').toUpperCase();\nconst data = { ...body, handler: 'SQL', method };\n\nconst req1  = await uF.post({ data, headers: auth ? { authorization: auth } : undefined });\nconst resp = await req1.json();\n$_RETURN_DATA_ = resp;",
       "cache_time": 0,
       "createdAt": "2026-03-17T16:03:50.532Z",
       "updatedAt": "2026-03-17T16:03:50.532Z"

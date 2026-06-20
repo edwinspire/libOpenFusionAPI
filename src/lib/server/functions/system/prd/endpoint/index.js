@@ -917,6 +917,11 @@ export async function fnEndpointTest(params) {
     const methodSupportsBody = (httpMethod) =>
       ["POST", "PUT", "PATCH", "DELETE"].includes(String(httpMethod || "").toUpperCase());
 
+    const isStructuredPayloadValue = (value) =>
+      value !== null &&
+      (Array.isArray(value) ||
+        (typeof value === "object" && !(value instanceof String)));
+
     const classifyFailure = (statusCode, responseData) => {
       const message =
         typeof responseData === "string"
@@ -996,24 +1001,27 @@ export async function fnEndpointTest(params) {
     const extractPayloadFromDataTest = (data_test) => {
       const bodyCfg = data_test?.body;
       if (!bodyCfg || typeof bodyCfg !== "object") {
-        return null;
+        return { payload: null, parse_error: null };
       }
 
       const jsonCode = bodyCfg?.json?.code;
       if (jsonCode != null) {
         if (typeof jsonCode === "object") {
-          return jsonCode;
+          return { payload: jsonCode, parse_error: null };
         }
         if (typeof jsonCode === "string" && jsonCode.trim() !== "") {
           try {
-            return JSON.parse(jsonCode);
+            return { payload: JSON.parse(jsonCode), parse_error: null };
           } catch (error) {
-            return null;
+            return {
+              payload: null,
+              parse_error: "Saved data_test.body.json.code is not valid JSON, so no fallback payload was used.",
+            };
           }
         }
       }
 
-      return null;
+      return { payload: null, parse_error: null };
     };
 
     const body = params?.request?.body || {};
@@ -1022,19 +1030,34 @@ export async function fnEndpointTest(params) {
       app,
       environment = "prd",
       resource,
-      method = "GET",
+      method,
       payload = null,
       query_params = {},
+      headers: input_headers = {},
+      use_data_test_fallback = false,
       bearer_token = null,
       timeout_ms = 10000,
     } = body;
 
+    const warnings = [];
+    const hasMethodInput = hasOwn(body, "method");
     const hasQueryParamsInput = hasOwn(body, "query_params");
     const hasPayloadInput = hasOwn(body, "payload");
+    const hasHeadersInput = hasOwn(body, "headers");
+    const allowDataTestFallback = use_data_test_fallback === true;
+
+    if (!idendpoint && hasPayloadInput && !hasMethodInput) {
+      r.code = 400;
+      r.data = {
+        error: "When testing by 'app' + 'resource' with an explicit 'payload', provide an explicit 'method' or use 'idendpoint'.",
+        error_type: "missing_method_for_payload",
+      };
+      return r;
+    }
 
     // Necesitamos resource y method — los tomamos del endpoint si no se proveen
     let resolvedResource = resource;
-    let resolvedMethod = method;
+    let resolvedMethod = method || "GET";
     let resolvedApp = app;
     let endpointData = null;
 
@@ -1052,7 +1075,6 @@ export async function fnEndpointTest(params) {
 
       // Obtener el nombre de la app desde idapp si no se provee
       if (!resolvedApp) {
-        const { Application } = await import("../../../../../db/models.js");
         const appRecord = await Application.findByPk(epData.idapp, { attributes: ["app"] });
         resolvedApp = appRecord ? appRecord.app : null;
       }
@@ -1060,14 +1082,26 @@ export async function fnEndpointTest(params) {
 
     // If caller provided app/resource/method without idendpoint, try to load endpoint metadata.
     if (!endpointData && resolvedApp && resolvedResource && resolvedMethod) {
-      const found = await Endpoint.findOne({
-        where: {
-          environment,
-          resource: resolvedResource,
-          method: resolvedMethod,
-        },
+      const appRecord = await Application.findOne({
+        where: { app: resolvedApp },
+        attributes: ["idapp"],
       });
-      endpointData = found?.toJSON ? found.toJSON() : found;
+
+      if (appRecord?.idapp) {
+        const found = await Endpoint.findOne({
+          where: {
+            idapp: appRecord.idapp,
+            environment,
+            resource: resolvedResource,
+            method: resolvedMethod,
+          },
+        });
+        endpointData = found?.toJSON ? found.toJSON() : found;
+      } else {
+        warnings.push(
+          `Application '${resolvedApp}' was not found while resolving saved test metadata; proceeding without data_test fallback.`,
+        );
+      }
     }
 
     if (!resolvedResource || !resolvedApp) {
@@ -1084,15 +1118,39 @@ export async function fnEndpointTest(params) {
     const autoQueryParams =
       hasQueryParamsInput
         ? (query_params && typeof query_params === "object" ? query_params : {})
-        : extractQueryFromDataTest(endpointData?.data_test);
+        : allowDataTestFallback
+          ? extractQueryFromDataTest(endpointData?.data_test)
+          : {};
 
-    const autoPayload =
-      hasPayloadInput ? payload : extractPayloadFromDataTest(endpointData?.data_test);
+    const payloadFromDataTest = hasPayloadInput
+      ? { payload: null, parse_error: null }
+      : allowDataTestFallback
+        ? extractPayloadFromDataTest(endpointData?.data_test)
+        : { payload: null, parse_error: null };
 
-    const autoHeaders = extractHeadersFromDataTest(
-      endpointData?.data_test,
-      endpointData?.headers_test,
-    );
+    if (payloadFromDataTest.parse_error) {
+      warnings.push(payloadFromDataTest.parse_error);
+    }
+
+    const autoPayload = hasPayloadInput ? payload : payloadFromDataTest.payload;
+    const payloadSource = hasPayloadInput
+      ? "explicit"
+      : payloadFromDataTest.payload !== null
+        ? "data_test"
+        : "none";
+
+    const autoHeaders = hasHeadersInput
+      ? (input_headers && typeof input_headers === "object" && !Array.isArray(input_headers) ? input_headers : {})
+      : allowDataTestFallback
+        ? extractHeadersFromDataTest(
+            endpointData?.data_test,
+            endpointData?.headers_test,
+          )
+        : {};
+
+    if (!allowDataTestFallback && endpointData?.data_test && !hasQueryParamsInput && !hasPayloadInput && !hasHeadersInput) {
+      warnings.push("Saved data_test/query/header metadata exists but was ignored because use_data_test_fallback=false.");
+    }
 
     // Añadir query params para GET
     if (autoQueryParams && typeof autoQueryParams === "object" && Object.keys(autoQueryParams).length > 0) {
@@ -1125,17 +1183,21 @@ export async function fnEndpointTest(params) {
 
     let serializedBody = null;
 
+    if (autoPayload !== null && !methodSupportsBody(httpMethod)) {
+      warnings.push(`Payload was not sent because method '${httpMethod}' does not use a request body in this tool.`);
+    }
+
     if (autoPayload !== null && methodSupportsBody(httpMethod)) {
       const ctKey = Object.keys(headers).find((k) => k.toLowerCase() === "content-type");
       const ct = ctKey ? String(headers[ctKey]).toLowerCase() : "application/json";
-      const isStructuredPayload =
-        autoPayload !== null &&
-        (Array.isArray(autoPayload) ||
-          (typeof autoPayload === "object" && !(autoPayload instanceof String)));
+      const isStructuredPayload = isStructuredPayloadValue(autoPayload);
 
-      // If caller sends a structured payload explicitly, force JSON even when inherited headers_test includes a non-JSON content-type.
-      if (hasPayloadInput && isStructuredPayload && !ct.includes("application/json")) {
+      // Structured payloads coming from either the caller or data_test must travel as JSON.
+      if (isStructuredPayload && !ct.includes("application/json")) {
         headers[ctKey || "Content-Type"] = "application/json";
+        if (!hasPayloadInput) {
+          warnings.push("Structured payload from data_test forced Content-Type to application/json to avoid string coercion.");
+        }
       }
 
       const finalCtKey = Object.keys(headers).find((k) => k.toLowerCase() === "content-type");
@@ -1171,13 +1233,16 @@ export async function fnEndpointTest(params) {
         : classifyFailure(response.status, responseData),
       resolved_inputs: {
         from_data_test: {
-          query_params: !hasQueryParamsInput,
-          payload: !hasPayloadInput,
+          query_params: allowDataTestFallback && !hasQueryParamsInput,
+          payload: allowDataTestFallback && !hasPayloadInput,
+          headers: allowDataTestFallback && !hasHeadersInput,
         },
         query_params: autoQueryParams,
         payload: autoPayload,
+        payload_source: payloadSource,
         headers,
         serialized_body: serializedBody,
+        warnings,
       },
       response: responseData,
     };
