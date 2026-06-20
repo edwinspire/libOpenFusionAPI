@@ -5,6 +5,7 @@ Internally it uses `@edwinspire/universal-fetch` to perform standardized HTTP re
 
 Agent note:
 - `@edwinspire/universal-fetch` may evolve frequently. Before updating FETCH behavior, examples, or helper snippets, confirm the current official documentation or the installed package contract.
+- If you use `uFetch.batch`, the current contract is a single object argument; positional batch calls are legacy and should move to `batch_old(...)`.
 
 ---
 

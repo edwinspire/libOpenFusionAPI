@@ -66,10 +66,18 @@ En los schemas y herramientas MCP, el campo `log_level` acepta estos valores (0-
 - `@edwinspire/universal-fetch` changes over time. Before creating or editing endpoint code that depends on it, verify the current official documentation or the installed package version.
 - Do not assume legacy aliases such as `GET()` or `POST()` are still the preferred API.
 
+`uFetch` source-of-truth policy (hybrid):
+- For repository integration patterns in this handler, this local document is the operational source of truth.
+- For package-level API contracts, the upstream docs are canonical.
+- If they differ, update this local guide immediately with a compatibility note and migration guidance.
+- Dedicated dependency guide for maintainers and agents: [../../dependencies/universal-fetch.md](../../dependencies/universal-fetch.md).
+- Last local verification against upstream contract: `2026-06-20`.
+
 `uFetch.batch` quick reference:
 - Signature: `batch({ url, method = 'GET', items, headers, options, config: { concurrency = 5, onProgress } })`
+- `url` is optional when the `uFetch` instance already has a base URL; use it only to override that base URL for the batch call.
 - If an item includes any of `{ url, method, data, headers, options }`, those fields override the base values for that item.
-- Positional signature `batch(url, method, items, headers, options, config)` is deprecated.
+- Positional signature `batch(url, method, items, headers, options, config)` is no longer supported; use `batch_old(url, method, items, headers, options, config)` only for legacy compatibility.
 - Result shape per item: `{ isError, httpCode, response?, error? }`
 - `uFetchAutoEnv.create(...)` returns a `uFetch` instance, so `batch(...)` works there too.
 
@@ -77,11 +85,13 @@ When to use each approach:
 - Use `get/post/put/patch/delete` for normal endpoint-to-endpoint calls or short request chains.
 - Use `batch(...)` when you have a list/lote of input data and need to split it into concurrent workers (threads/blocks) with a controlled `concurrency` value.
 - Prefer `batch(...)` over `Promise.all(...)` when you need fail-safe per-item results instead of failing the entire workload on the first rejected promise.
+- Use `batch_old(...)` only when you must keep an existing positional integration while migrating to the object signature.
 
 Quick decision (at a glance):
 - One call to one endpoint: use `get/post/put/patch/delete`.
 - Many calls derived from a lote/list: use `batch({ method, items, config: { concurrency, ... } })`.
 - Need per-item error reporting without aborting all: use `batch(...)`.
+- Existing positional code that cannot be refactored immediately: use `batch_old(...)` as a temporary compatibility bridge.
 
 Batch example for internal endpoint fan-out (40 calls in 5 parallel workers):
 

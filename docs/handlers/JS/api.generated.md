@@ -1225,11 +1225,11 @@ $_RETURN_DATA_ = result;
 
 ---
 
-### `uFetch([constructor(url?, redirect_in_unauthorized?)], [request(url, method, data, headers, options)], [get|post|put|patch|delete({ url, data, headers, options })], [batch({ url, method, items, headers, options, config })])`
+### `uFetch([constructor(url?, redirect_in_unauthorized?)], [request(url, method, data, headers, options)], [get|post|put|patch|delete({ url, data, headers, options })], [batch({ url, method, items, headers, options, config })], [batch_old(url, method, items, headers, options, config)])`
 
 [External Documentation](https://github.com/edwinspire/universal-fetch) 
 
-Universal HTTP client for Node.js and browsers. Primary use is standard fetch-style requests (get/post/put/patch/delete); batch adds controlled parallel processing for large input sets.
+Universal HTTP client for Node.js and browsers. Primary use is standard fetch-style requests (get/post/put/patch/delete); batch adds controlled parallel processing for large input sets and now accepts only a single configuration object. Use `batch_old(...)` only for legacy positional integrations.
 
 **Notes**
 
@@ -1237,12 +1237,15 @@ Universal HTTP client for Node.js and browsers. Primary use is standard fetch-st
 - Primary workflow: use get/post/put/patch/delete for single requests or simple request chains.
 - Quick decision: one request => get/post/put/patch/delete.
 - Quick decision: list/lote of requests with controlled parallel workers => batch({ items, config: { concurrency, ... } }).
+- Quick decision: legacy positional integrations that cannot be refactored immediately => batch_old(url, method, items, headers, options, config).
 - For GET or HEAD, data is serialized as query string. For non-GET methods, object data is serialized as JSON automatically.
 - Use batch() when you must process many calls from a list and split the workload into concurrent workers/blocks.
 - batch() returns per-item result objects and is designed to continue even if some items fail; always inspect isError per item.
 - batch() signature: batch({ url, method, items, headers, options, config: { concurrency, onProgress } }).
+- `url` is optional when the instance already has a base URL; use it only to override the constructor URL for that batch call.
 - If an item includes any of { url, method, data, headers, options }, those fields override base values for that item.
-- Positional signature batch(url, method, items, headers, options, config) is deprecated.
+- Positional signature batch(url, method, items, headers, options, config) is no longer supported.
+- Use batch_old(url, method, items, headers, options, config) only as a compatibility bridge for older code.
 - Each batch result item has shape: { isError, httpCode, response?, error? }.
 - Authorization helpers persist at instance level. Create a fresh instance when different credentials must be isolated.
 
@@ -1254,12 +1257,14 @@ Universal HTTP client for Node.js and browsers. Primary use is standard fetch-st
 - Prefer method wrappers with opts object for readability: get/post/put/patch/delete({ url, data, headers, options }).
 - Use request(url, method, data, headers, options) only when method must be computed dynamically.
 - For bulk operations, prefer batch() over Promise.all to avoid failing the full operation due to a single request error.
-- Prefer the object signature of batch(); avoid positional parameters because they are deprecated.
+- Prefer the object signature of batch(); avoid positional parameters because they are no longer supported.
+- Keep batch_old() only as a temporary migration path.
 
 *   `constructor(url?, redirect_in_unauthorized?)` <function> **Optional**. Creates an instance with optional base URL for relative paths. In browser mode, redirect_in_unauthorized can redirect on 401.
 *   `request(url, method, data, headers, options)` <function> **Optional**. Low-level request method used by all wrappers.
 *   `get|post|put|patch|delete({ url, data, headers, options })` <function> **Optional**. Convenience wrappers for common HTTP methods.
 *   `batch({ url, method, items, headers, options, config })` <function> **Optional**. Parallel fail-safe processor. Receives a single options object and returns one result per item without failing the whole batch.
+*   `batch_old(url, method, items, headers, options, config)` <function> **Optional**. Legacy compatibility processor for positional batch calls.
 
 *   Returns: <object> uFetch instance with request wrappers and auth helpers.
 
@@ -1268,6 +1273,7 @@ Universal HTTP client for Node.js and browsers. Primary use is standard fetch-st
     *   `request` <function> Core request primitive.
     *   `get|post|put|patch|delete` <function> HTTP method wrappers using opts object.
     *   `batch` <function> Fail-safe batch execution with configurable concurrency.
+    *   `batch_old` <function> Legacy positional batch execution wrapper.
     *   `setBasicAuthorization` <function> Sets persistent Basic auth header for the instance.
     *   `setBearerAuthorization` <function> Sets persistent Bearer auth header for the instance.
     *   `abort` <function> Aborts active in-flight requests for this instance.
