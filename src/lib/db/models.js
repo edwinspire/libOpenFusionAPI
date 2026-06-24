@@ -687,10 +687,29 @@ export const Endpoint = dbsequelize.define(
         "Time in which the data will be kept in cache. Zero to disable the cache.",
     },
     mcp: jsonField("mcp", { allowNull: true }),
-    json_schema: jsonField("json_schema", {
+    json_schema: {
+      type: JSON_TYPE,
       allowNull: true,
       defaultValue: default_json_schema,
-    }),
+      get() {
+        return JSON_ADAPTER.getData(this, "json_schema", default_json_schema);
+      },
+      set(value) {
+        const data = value ?? default_json_schema;
+
+        if (typeof data === "string") {
+          try {
+            const parsed = JSON.parse(data);
+            JSON_ADAPTER.setData(this, "json_schema", parsed, default_json_schema);
+          } catch (error) {
+            throw new Error("The field 'json_schema' must contain valid JSON.");
+          }
+          return;
+        }
+
+        JSON_ADAPTER.setData(this, "json_schema", data, default_json_schema);
+      },
+    },
     custom_data: jsonField("custom_data", { allowNull: true }),
     headers_test: jsonField("headers_test", { allowNull: true }),
     data_test: jsonField("data_test", { allowNull: true }),
