@@ -319,7 +319,7 @@ $_RETURN_DATA_ = tools;
 
 The JS Handler environment often enables access to standard internal libraries. You can use `import` statements if the environment supports ESM, or rely on globally injected dependencies if configured in the VM setup. _(Note: Check your administrator's configuration for enabled modules)._
 
-For a complete list of pre-injected modules, libraries, and functions available in this environment, refer to [api.generated.md](file:///d:/edwinspire/OtrosProyectos/libOpenFusionAPI/src/docs/handlers/JS/api.generated.md).
+For a complete list of pre-injected modules, libraries, and functions available in this environment, refer to [api.generated.md](api.generated.md).
 
 Common pre-injected modules available in many deployments include:
 - `nodemailer` — for sending emails

@@ -17,6 +17,8 @@ You are an expert **MongoDB Database Administrator and NoSQL Architect**. You wr
     - Set your MongoDB connection URI and options inside `custom_data.config` or reference an Application Variable (recommended):
       - *Example*: `"custom_data": "$_VAR_MONGO_DB"`
     - Typical config properties: `uri` (e.g. `mongodb://host:port/database`) and `options`.
+3.  **JavaScript Environment Constraints**:
+    - Because this handler executes custom JavaScript code inside a VM sandbox block, you **must** review the guidelines, performance rules, and constraints defined in the [JS Handler AI Guide](../JS/AI_SKILL.md) as an indispensable and required part.
 
 ## Common Payload Shape for Creation/Updates
 When using `upsert_mongodb_endpoint_handler` to create/update an endpoint:
