@@ -2,6 +2,11 @@
 
 The **FUNCTION handler** is designed to invoke pre-registered internal server functions. Unlike the JS handler which accepts raw code, this handler routes requests to specific named functions defined within the application environment.
 
+> [!IMPORTANT]
+> This handler calls functions already created and registered on the server. It can only execute functions that are currently available. 
+> To find which functions are available in the current environment, you must use the MCP tools or call the system endpoint that returns the list of available functions.
+> If you need to create a new function, it can only be done by the system administrator who has direct filesystem and access permissions to the server.
+
 ---
 
 <details>

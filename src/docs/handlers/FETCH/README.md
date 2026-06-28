@@ -15,9 +15,8 @@ Agent note:
 When an endpoint is configured with the **FETCH** handler:
 1.  **Request forwarding**: The incoming HTTP method (GET, POST, PUT, etc.), query parameters, and body are forwarded to the target URL.
 2.  **Header Sanitization**: Incoming headers are forwarded, except for hop-by-hop headers like `content-length`, `host`, `connection`, and `x-forwarded-for` to prevent conflicts.
-3.  **Variable Injection**: You can use Application Variables in the target URL (e.g., `https://api.example.com/{{env_version}}/users`).
-4.  **Response Handling**: The handler automatically detects the upstream content type (JSON, Text, XML, or Binary/Image) and processes it accordingly.
-5.  **Response Forwarding**: Key upstream headers (`content-type`, `etag`, `cache-control`, etc.) are passed back to the client.
+3.  **Response Handling**: The handler automatically detects the upstream content type (JSON, Text, XML, or Binary/Image) and processes it accordingly.
+4.  **Response Forwarding**: Key upstream headers (`content-type`, `etag`, `cache-control`, etc.) are passed back to the client.
 
 </details>
 
@@ -33,10 +32,6 @@ The configuration in the "Code" editor for this handler is simply the **Target U
 https://jsonplaceholder.typicode.com/posts
 ```
 
-You can also use variables:
-```text
-https://api.partner.com/{{ENV}}/orders
-```
 
 </details>
 
@@ -96,7 +91,7 @@ curl -X GET https://your-openfusion-server/api/proxy/users
 | Dynamic Method Forwarding | ✅ |
 | Header Forwarding | ✅ (Selective) |
 | Binary Content (Images/PDF) | ✅ |
-| Variable Substitution in URL | ✅ |
+| Variable Substitution in URL | ❌ |
 | Caching | ✅ (Max 50MB for binary) |
 | Authentication | ❌ (Must be handled via headers) |
 
