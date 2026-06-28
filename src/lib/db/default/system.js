@@ -1534,9 +1534,10 @@ export const system_app = {
           "selection": 0,
           "json": {
             "code": {
-              "summary": "1. Always check the description and inputSchema of each tool in the MCP catalog (system.js seed). This is the source of truth for purpose, required fields, and examples.\n2. To create or modify endpoints: prefer the handler-specific wrappers (for example upsert_js_endpoint_handler, upsert_sql_endpoint_handler, upsert_fetch_endpoint_handler, upsert_text_endpoint_handler). Use endpoint_upsert only as fallback when no specialized wrapper exists or when full custom control is required. Read the handler field: it defines the shape of code and custom_data. If the handler is SQL_BULK_I, SOAP, HANA, MONGODB, MCP, or TELEGRAM_BOT, call handler_documentation before building the payload. Use AppVar placeholders (\"$_VAR_NAME\") in code/custom_data only where the contract allows.\n3. To get handler details: use handler_documentation with the handler name in uppercase. The result includes markdown, examples, manifest, and payload shape.\n4. For logs and auditing: use get_system_logs. The log_level field is: 0=Disabled, 1=Basic, 2=Normal, 3=Full. Prefer trace_id to track a complete execution.\n5. Before updating an existing endpoint: always call read_endpoint_data first. Modify the current structure, do not build from scratch.\n6. Before assigning a json_schema to an endpoint, confirm the schema is a valid JSON Schema object with properties defined. Use 'handler_documentation' to verify expected payload shapes per handler.\n7. Do not send fields outside the inputSchema unless the contract allows (additionalProperties).\n8. If you have doubts about the shape of custom_data, code, or complex payloads, consult handler_documentation or the generated documentation in the seed.\n9. Never perform endpoint changes unless the user explicitly requested them or explicitly authorized them. Apply an even stricter rule for endpoints in the system application: do not change them without explicit user approval for that specific action.",
+              "summary": "Welcome to OpenFusionAPI. To get handler details, use /api/handler/documentation. To get handler skills and guidelines, use /api/handler/skill.",
               "links": {
                 "handler_documentation": "/api/handler/documentation",
+                "handler_skill": "/api/handler/skill",
                 "endpoint_upsert": "/api/endpoint",
                 "get_system_logs": "/api/system/logs"
               }
@@ -1560,7 +1561,7 @@ export const system_app = {
       "price_kb_request": 0,
       "price_kb_response": 0,
       "keywords": "onboarding,guide,agent,AI,best practices",
-      "code": "const trace_id = request?.headers?.['ofapi-trace-id'] || '';\n$_RETURN_DATA_ = {\n  summary: '1. Always inspect each tool description and input schema first; treat the system catalog as source of truth. 2. For endpoint creation/updates, choose handler first and match payload shape to that handler. Prefer specialized upsert_*_endpoint_handler tools (upsert_js_endpoint_handler, upsert_sql_endpoint_handler, upsert_fetch_endpoint_handler, upsert_text_endpoint_handler, etc.) and use endpoint_upsert only as fallback or when full custom control is needed. 3. Read current endpoint data before updates and patch incrementally. 4. Use handler_documentation to verify the expected shape of code and custom_data before publishing. 5. Use trace_id in logs to follow one execution path end to end. 6. Never perform endpoint changes unless the user explicitly requested them or explicitly authorized them. For endpoints in the system application, require explicit user approval for that exact change before proceeding.',\n  links: {\n    handler_documentation: '/api/handler/documentation',\n    endpoint_upsert: '/api/endpoint',\n    get_system_logs: '/api/system/logs'\n  },\n  trace_id\n};",
+      "code": "const trace_id = request?.headers?.['ofapi-trace-id'] || '';\n$_RETURN_DATA_ = {\n  summary: 'Welcome to OpenFusionAPI. To get handler details, use /api/handler/documentation. To get handler skills and guidelines, use /api/handler/skill.',\n  links: {\n    handler_documentation: '/api/handler/documentation',\n    handler_skill: '/api/handler/skill',\n    endpoint_upsert: '/api/endpoint',\n    get_system_logs: '/api/system/logs'\n  },\n  trace_id\n};",
       "cache_time": 3600,
       "createdAt": "2026-05-19T00:00:00.000Z",
       "updatedAt": "2026-05-19T00:00:00.000Z"
@@ -4674,6 +4675,117 @@ export const system_app = {
     {
       "ctrl": {
         "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "get_handler_skill",
+        "title": "Get Handler Skill",
+        "description": "Returns the AI agent skill instructions, role definition, templates, and constraints for a specific endpoint handler."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "handler": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 25,
+                "pattern": "^[A-Z_]+$",
+                "description": "Handler identifier in uppercase (e.g. JS, SQL, FETCH, TEXT, etc.)."
+              }
+            },
+            "additionalProperties": false,
+            "title": "GetHandlerSkill",
+            "required": [
+              "handler"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "handler",
+            "value": "JS",
+            "internal_hash_row": "c5c647b00670bea65a11ab75bf3c77407cc89d1e12a5a013b5fa8146d30f9368",
+            "_id": "gethandlerskillquery01",
+            "type": 1
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "{}",
+          "sizeKBResponse": -1
+        }
+      },
+      "idendpoint": "7a3721cf-71d5-45d2-97b7-6cb5b7d9b3d1",
+      "rowkey": 999,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/handler/skill",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "Get Handler Skill",
+      "description": "Returns AI agent skill guidelines for a supported handler.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "skill,mcp,ai,agent",
+      "code": "fnGetHandlerSkill",
+      "cache_time": 3600,
+      "createdAt": "2026-06-27T12:00:00.000Z",
+      "updatedAt": "2026-06-27T12:00:00.000Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
         "log": {}
       },
       "cors": {},
@@ -4888,7 +5000,7 @@ export const system_app = {
         "enabled": true,
         "name": "endpoint_upsert",
         "title": "Endpoint UPSERT",
-        "description": "Creates or updates an endpoint attached to an existing application. Prefer handler-specific wrappers when available (for example upsert_js_endpoint_handler, upsert_sql_endpoint_handler, upsert_fetch_endpoint_handler, upsert_text_endpoint_handler) and use this generic endpoint_upsert as fallback or for full custom control. Recommended workflow: create the application first, define reusable AppVars per environment (`dev`, `qa`, `prd`) with `appvar_upsert`, then create endpoints with this tool by choosing both the handler and the HTTP method explicitly. JS handler: assign `$_RETURN_DATA_` instead of using `return`. INSERT: omit `idendpoint`. UPDATE: include a valid `idendpoint` UUID. Call `read_endpoint_data` before modifying an existing endpoint. AppVar placeholders can be embedded as the string `\"$_VAR_NAME\"` in JSON payloads, including `code` and `custom_data` when handler contracts allow it. In JS handlers, `uFetch` and instances from `uFetchAutoEnv.create(...)` are primarily for fetch-style calls (`get/post/put/patch/delete`). For list/lote fan-out scenarios, use `batch({ url, method, items, headers, options, config: { concurrency, onProgress, responseParser, includeResponse } })` to split calls into controlled parallel blocks/workers; each result item has shape by default `{ isError, httpCode, data?, error? }` and includes `response` only when `includeResponse=true`."
+        "description": "Creates or updates an endpoint. For updates, retrieve the current endpoint state using `read_endpoint_data` first. Prefer handler-specific wrappers (such as `upsert_js_endpoint_handler`) over this generic endpoint."
       },
       "json_schema": {
         "in": {

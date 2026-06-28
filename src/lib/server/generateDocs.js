@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const OUTPUT_FILE = path.resolve(__dirname, "../../../docs/handlers/JS/api.generated.md");
+const OUTPUT_FILE = path.resolve(__dirname, "../../docs/handlers/JS/api.generated.md");
 
 /**
  * Normalizes the metadata object to a standard schema.

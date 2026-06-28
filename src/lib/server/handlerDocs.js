@@ -5,9 +5,19 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const HANDLER_DOCS_ROOT = path.resolve(__dirname, "../../../docs/handlers");
-export const HANDLER_DOC_REQUIRED_FILES = ["README.md", "manifest.json"];
+export const HANDLER_DOCS_ROOT = path.resolve(__dirname, "../../docs/handlers");
+export const HANDLER_DOC_REQUIRED_FILES = ["README.md", "manifest.json", "AI_SKILL.md"];
 export const HANDLER_DOC_OPTIONAL_FILES = ["examples.md", "examples.json", "api.generated.md"];
+
+export const readHandlerSkill = async (handler) => {
+  const dir = getHandlerDocDir(handler);
+  const skillPath = path.resolve(dir, "AI_SKILL.md");
+  const markdown = await readFileIfExists(skillPath);
+  return {
+    handler,
+    markdown: markdown || "No specific AI skill documentation found for this handler."
+  };
+};
 
 const readFileIfExists = async (filePath) => {
   try {

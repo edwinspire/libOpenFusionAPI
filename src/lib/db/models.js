@@ -690,7 +690,7 @@ export const Endpoint = dbsequelize.define(
     json_schema: {
       type: JSON_TYPE,
       allowNull: true,
-      defaultValue: default_json_schema,
+      defaultValue: IS_MSSQL ? JSON.stringify(default_json_schema) : default_json_schema,
       get() {
         return JSON_ADAPTER.getData(this, "json_schema", default_json_schema);
       },

@@ -87,12 +87,13 @@ export const getUUID = () => {
 };
 
 export function getIPFromRequest(req) {
+  if (!req) return null;
   const ip =
     req.ip ||
-    req.headers["x-forwarded-for"] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    (req.connection.socket ? req.connection.socket.remoteAddress : null);
+    (req.headers ? req.headers["x-forwarded-for"] : null) ||
+    (req.socket ? req.socket.remoteAddress : null) ||
+    (req.connection ? req.connection.remoteAddress : null) ||
+    (req.connection?.socket ? req.connection.socket.remoteAddress : null);
 
   // Puedes manipular la IP según tus necesidades
   return ip;

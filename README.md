@@ -77,9 +77,10 @@ For AI workflows, the speed gain is even more pronounced:
 
 ## 🧭 Documentation
 
-- [Creating Applications](./docs/App/README.md)
-- [Creating Endpoints](./docs/endpoint/README.md)
-- [Handler Reference](./docs/handlers/README.md)
+- [Creating Applications](./src/docs/App/README.md)
+- [Creating Endpoints](./src/docs/endpoint/README.md)
+- [Handler Reference](./src/docs/handlers/README.md)
+- [Documentation System Architecture](./src/docs/DOCUMENTATION_SYSTEM_REPORT.md)
 
 Each guide provides step-by-step instructions, screenshots, and best practices to ensure a smooth development experience.
 

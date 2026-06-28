@@ -338,50 +338,76 @@ export default class ServerAPI extends EventEmitter {
    * @param {boolean} buildDB
    */
   async buildDB() {
+    const logPath = path.join(process.cwd(), "temporales", "database_init.log");
+    const log = (msg, err = null) => {
+      const timestamp = new Date().toISOString();
+      const errStr = err ? `\nError: ${err.message || err}\nStack: ${err.stack || ""}` : "";
+      const line = `[${timestamp}] ${msg}${errStr}\n`;
+      console.log(msg, err || "");
+      try {
+        fs.appendFileSync(logPath, line, "utf8");
+      } catch (e) {
+        // ignore
+      }
+    };
+
     let buildDBEnv = process.env.BUILD_DB;
+    log(`DEBUG: buildDBEnv value is: ${buildDBEnv}`);
     let buildDB =
       buildDBEnv && buildDBEnv.toString().toUpperCase() == "TRUE"
         ? true
         : false;
 
     if (buildDB) {
-      console.log("Crea la base de datos");
+      log("Crea la base de datos");
 
       try {
         if (dbAPIs.getDialect() === "sqlite") {
           const appTable = prefixTableName("application");
           const backupTable = `${appTable}_backup`;
 
+          log("PRAGMA foreign_keys = OFF");
           await dbAPIs.query("PRAGMA foreign_keys = OFF;");
 
-          // SQLite + alter can leave stale backup tables on failed migrations.
+          log(`DROP TABLE IF EXISTS \`${backupTable}\``);
           await dbAPIs.query(`DROP TABLE IF EXISTS \`${backupTable}\`;`);
 
-          // Ensure app uniqueness before SQLite recreates table with UNIQUE(app).
-          // Keeps the first row per app (case-insensitive) and removes duplicates.
           try {
+            log("Ensuring app uniqueness by removing duplicate app entries");
             await dbAPIs.query(
               `DELETE FROM \`${appTable}\`
-                 WHERE rowid NOT IN (
-                   SELECT MIN(rowid)
-                   FROM \`${appTable}\`
-                   GROUP BY LOWER(app)
-                 );`,
+                  WHERE rowid NOT IN (
+                    SELECT MIN(rowid)
+                    FROM \`${appTable}\`
+                    GROUP BY LOWER(app)
+                  );`,
             );
           } catch (error) {
-            // First boot may not have the application table yet.
+            log("First boot may not have the application table yet (skipped uniqueness query).");
           }
         }
 
-        await dbAPIs.sync({ alter: true });
-        
-        if (dbAPIs.getDialect() === "sqlite") {
-            await dbAPIs.query("PRAGMA foreign_keys = ON;");
+        try {
+          log("Running dbAPIs.sync({ alter: true })...");
+          await dbAPIs.sync({ alter: true });
+          log("Database created or updated successfully with alter: true.");
+        } catch (alterError) {
+          log("WARNING: sync({ alter: true }) failed, attempting fallback sync().", alterError);
+          // Fallback to normal sync to ensure missing tables are created
+          await dbAPIs.sync();
+          log("Database tables created successfully using fallback sync().");
         }
-        console.log("Database created or updated successfully.");
       } catch (error) {
-        // Con sqlite es posible que haya errores al recrear las tablas
-        console.log(error);
+        log("Error creating database tables:", error);
+      } finally {
+        if (dbAPIs.getDialect() === "sqlite") {
+          try {
+            log("PRAGMA foreign_keys = ON");
+            await dbAPIs.query("PRAGMA foreign_keys = ON;");
+          } catch (err) {
+            log("Failed to restore foreign keys:", err);
+          }
+        }
       }
     }
 

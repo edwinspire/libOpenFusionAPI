@@ -1,5 +1,7 @@
 import { getServer, jsonSchemaToZod } from "../../mcp/server.js";
 import { getApplicationTreeByFilters } from "../../../db/app.js";
+import { Handlers } from "../../../handler/handler.js";
+import { readHandlerSkill } from "../../handlerDocs.js";
 import { internal_url_endpoint } from "../../utils_path.js";
 import * as z from "zod";
 //import uFetch from "@edwinspire/universal-fetch";
@@ -35,6 +37,57 @@ export const CreateMCPHandler = async (app_name, environment) => {
     tools: [],
     resources: []
   };
+
+  for (const handlerKey of Object.keys(Handlers)) {
+    const handlerKeyLower = handlerKey.toLowerCase();
+    const toolName = `get_handler_skill_${handlerKeyLower}`;
+    const resourceURI = `mcp://handlers/skills/${handlerKeyLower}`;
+
+    // Register Resource
+    _mcpConfig.resources.push({
+      name: `handler-skill-${handlerKeyLower}`,
+      uri: resourceURI,
+      info: {
+        description: `AI agent skill guide and persona instructions for endpoint handler ${handlerKey}`,
+        mimeType: "text/markdown",
+      },
+      handler: async (_uri, _extra) => {
+        const skill = await readHandlerSkill(handlerKey);
+        return {
+          contents: [
+            {
+              uri: resourceURI,
+              mimeType: "text/markdown",
+              text: skill.markdown
+            }
+          ]
+        };
+      }
+    });
+
+    // Register Tool
+    _mcpConfig.tools.push({
+      name: toolName,
+      info: {
+        title: `AI Agent Skill Instructions for ${handlerKey}`,
+        description: `Returns the expert persona, guidelines, constraints, and templates for creating or modifying endpoints of type ${handlerKey}.`,
+        inputSchema: {},
+        annotations: { readOnlyHint: true }
+      },
+      handler: async () => {
+        const skill = await readHandlerSkill(handlerKey);
+        return {
+          content: [
+            {
+              type: "text",
+              mimeType: "text/markdown",
+              text: skill.markdown
+            }
+          ]
+        };
+      }
+    });
+  }
 
   const getAccessLevelLabel = (access) => {
     switch (access) {

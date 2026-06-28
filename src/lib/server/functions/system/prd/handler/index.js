@@ -1,4 +1,5 @@
 import { getHandlerDoc, Handlers } from "../../../../../handler/handler.js";
+import { readHandlerSkill } from "../../../../handlerDocs.js";
 
 
 export async function fnGetHandler(params) {
@@ -47,3 +48,22 @@ export async function fnGetHandlerDocs(params) {
   }
   return r;
 }
+
+export async function fnGetHandlerSkill(params) {
+  let r = { code: 204, data: undefined };
+  try {
+    const handler = (params.request.query.handler || params.request.openfusionapi?.handler?.params?.custom_data?.handler || "").toUpperCase();
+    if (!handler) {
+      r.code = 400;
+      r.data = { error: "Parameter 'handler' is required." };
+    } else {
+      r.data = await readHandlerSkill(handler);
+      r.code = 200;
+    }
+  } catch (error) {
+    r.data = error;
+    r.code = 500;
+  }
+  return r;
+}
+
