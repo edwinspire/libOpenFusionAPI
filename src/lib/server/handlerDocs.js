@@ -94,3 +94,56 @@ export const readHandlerDocBundle = async (handler) => {
     },
   };
 };
+
+export const getHandlerLibraryDoc = async (handler, library) => {
+  const dir = getHandlerDocDir(handler);
+  const librariesDir = path.resolve(dir, "libraries");
+
+  // If library is not provided, read the directory and return available library names
+  if (!library) {
+    try {
+      const entries = await fs.readdir(librariesDir, { withFileTypes: true });
+      const libraries = entries
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "README.md")
+        .map((entry) => path.basename(entry.name, ".md"))
+        .sort();
+      return {
+        handler,
+        libraries
+      };
+    } catch (error) {
+      if (error.code === "ENOENT") {
+        return { handler, libraries: [] };
+      }
+      throw error;
+    }
+  }
+
+  // Sanitize the library parameter to protect against Path Traversal
+  const libraryClean = String(library).trim();
+  if (!/^[a-zA-Z0-9$_-]+$/.test(libraryClean)) {
+    throw new Error("Invalid library name format.");
+  }
+
+  const filePath = path.resolve(librariesDir, `${libraryClean}.md`);
+
+  // Double check that the file remains inside the libraries folder
+  const relativePath = path.relative(librariesDir, filePath);
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    throw new Error("Access denied (Invalid library path)");
+  }
+
+  try {
+    const markdown = await fs.readFile(filePath, "utf8");
+    return {
+      handler,
+      library: libraryClean,
+      markdown
+    };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      throw new Error(`Library '${libraryClean}' documentation not found for handler '${handler}'`);
+    }
+    throw error;
+  }
+};

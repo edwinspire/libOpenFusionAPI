@@ -44,8 +44,9 @@ When writing code for JavaScript handlers in OpenFusionAPI, you must strictly ad
 
 6. **Libraries & Modules Constraint**:
    - Use **only** the libraries and modules available or enabled by OpenFusionAPI.
-   - Refer to the companion file [api.generated.md](api.generated.md) in the same directory, which contains the complete list of available libraries and injected functions you can use to write code inside the JS endpoint.
-   - You must use the MCP tools or refer to `api.generated.md` to see the details of the available libraries instead of proposing third-party packages that are not installed.
+   - To discover and inspect available libraries and injected functions, call the MCP tool `handler_library_documentation` (or endpoint `GET /api/handler/js/libraries`) with parameter `handler=JS`.
+   - If you do not pass a `library` parameter, it returns the summary table of all available libraries and their recommended use cases.
+   - If you pass the `library` parameter (e.g. `handler=JS`, `library=createPDFFromHTML`), it returns the full detailed documentation, signatures, and examples for that specific library. Do not propose third-party packages that are not installed.
 
 ---
 

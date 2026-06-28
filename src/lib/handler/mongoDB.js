@@ -5,7 +5,7 @@ import {
   parseJsonConfig,
   replyException,
   sendHandlerError,
-  setCacheReply,
+  sendHandlerResponse,
   resolveAppVarPlaceholder,
 } from "./utils.js";
 
@@ -31,8 +31,10 @@ export const getMongoDBParams = (custom_data) => {
     };
   }
 
-  if (!paramsMongo.options) {
-    paramsMongo.options = {};
+  if (typeof paramsMongo === "object") {
+    if (!paramsMongo.options) {
+      paramsMongo.options = {};
+    }
   }
 
   return paramsMongo;
@@ -49,6 +51,12 @@ const connectionCache = new Map();
  * Genera una clave única para la configuración de conexión
  */
 function getConnectionKey(params) {
+  if (typeof params === "string") {
+    return params;
+  }
+  if (params.uri) {
+    return params.uri;
+  }
   return JSON.stringify({
     host: params.host,
     port: params.port,
@@ -74,22 +82,45 @@ async function getOrCreateConnection(paramsMongo) {
     connectionCache.delete(key);
   }
 
-  const conn = mongoose.createConnection(
-    `mongodb://${paramsMongo.host}:${paramsMongo.port}`,
-    {
-      dbName: paramsMongo.dbName,
-      user: paramsMongo.user || undefined,
-      pass: paramsMongo.pass || undefined,
-      ...paramsMongo.options,
+  let connectionString;
+  let connectionOptions = {};
+
+  if (typeof paramsMongo === "string") {
+    connectionString = paramsMongo;
+  } else if (paramsMongo.uri) {
+    connectionString = paramsMongo.uri;
+    connectionOptions = { ...paramsMongo.options };
+    if (paramsMongo.dbName !== undefined && paramsMongo.dbName !== null) {
+      connectionOptions.dbName = paramsMongo.dbName;
     }
-  );
+    if (paramsMongo.user) {
+      connectionOptions.user = paramsMongo.user;
+    }
+    if (paramsMongo.pass) {
+      connectionOptions.pass = paramsMongo.pass;
+    }
+  } else {
+    connectionString = `mongodb://${paramsMongo.host}:${paramsMongo.port}`;
+    connectionOptions = { ...paramsMongo.options };
+    if (paramsMongo.dbName !== undefined && paramsMongo.dbName !== null) {
+      connectionOptions.dbName = paramsMongo.dbName;
+    }
+    if (paramsMongo.user) {
+      connectionOptions.user = paramsMongo.user;
+    }
+    if (paramsMongo.pass) {
+      connectionOptions.pass = paramsMongo.pass;
+    }
+  }
+
+  const conn = mongoose.createConnection(connectionString, connectionOptions);
 
   // Limpiar cache si la conexión se cierra o hay error
   conn.on("disconnected", () => {
     connectionCache.delete(key);
   });
   conn.on("error", (err) => {
-    console.error(`MongoDB connection error (${paramsMongo.host}:${paramsMongo.port}/${paramsMongo.dbName}):`, err.message);
+    console.error(`MongoDB connection error (${connectionString}):`, err.message);
     connectionCache.delete(key);
   });
 
@@ -134,11 +165,14 @@ export const mongodbFunction = async (context) => {
 
     let fnresult = await method.jsFn(fnVars);
 
-    setCacheReply(reply, fnresult.data);
-
-    reply.code(200).send(fnresult.data);
+    sendHandlerResponse(reply, {
+      statusCode: 200,
+      data: fnresult.data,
+      headers: fnresult.headers,
+    });
 
   } catch (error) {
     replyException(request, reply, error);
   }
 };
+

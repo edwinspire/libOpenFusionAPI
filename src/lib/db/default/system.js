@@ -610,7 +610,21 @@ export const system_app = {
       },
       "cors": {},
       "mcp": {},
-      "json_schema": {},
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "restore": {
+                "type": "boolean",
+                "description": "Whether to force restore system endpoints from seed backups."
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
       "custom_data": {},
       "headers_test": {},
       "data_test": {},
@@ -1073,8 +1087,50 @@ export const system_app = {
                 "description": "JavaScript logic stored in endpoint_upsert.code for MONGODB handler."
               },
               "mongo_config": {
-                "$ref": "#/$defs/jsonValue",
-                "description": "MongoDB connection/config object stored in endpoint_upsert.custom_data."
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "uri": {
+                        "type": "string",
+                        "description": "MongoDB connection URI (e.g. mongodb+srv://user:pass@cluster.mongodb.net/database). If provided, host and port are ignored."
+                      },
+                      "host": {
+                        "type": "string",
+                        "description": "MongoDB server host (legacy, e.g. localhost)."
+                      },
+                      "port": {
+                        "type": [
+                          "integer",
+                          "string"
+                        ],
+                        "description": "MongoDB server port (legacy, e.g. 27017)."
+                      },
+                      "dbName": {
+                        "type": "string",
+                        "description": "Target database name."
+                      },
+                      "user": {
+                        "type": "string",
+                        "description": "Database username."
+                      },
+                      "pass": {
+                        "type": "string",
+                        "description": "Database password."
+                      },
+                      "options": {
+                        "type": "object",
+                        "description": "Additional Mongoose connection options (e.g. ssl)."
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "string",
+                    "description": "MongoDB connection URI string directly."
+                  }
+                ],
+                "description": "MongoDB connection configuration object or URI string."
               },
               "custom_data": {
                 "$ref": "#/$defs/jsonValue",
@@ -1194,11 +1250,7 @@ export const system_app = {
               "keywords": "mongodb,endpoint",
               "mongo_code": "const docs = await mongooseInstance.collection('users').find({}).toArray();\n$_RETURN_DATA_ = docs;",
               "mongo_config": {
-                "host": "localhost",
-                "port": 27017,
-                "dbName": "my_database",
-                "user": "",
-                "pass": "",
+                "uri": "mongodb://localhost:27017/my_database",
                 "options": {}
               }
             }
@@ -4671,6 +4723,123 @@ export const system_app = {
       "cache_time": 3600,
       "createdAt": "2025-11-21T22:04:52.722Z",
       "updatedAt": "2025-11-22T00:11:42.101Z"
+    },
+    {
+      "ctrl": {
+        "users": [],
+        "log": {
+          "status_info": 1,
+          "status_success": 1,
+          "status_redirect": 1,
+          "status_client_error": 2,
+          "status_server_error": 3
+        }
+      },
+      "cors": {},
+      "mcp": {
+        "enabled": true,
+        "name": "handler_library_documentation",
+        "title": "JS Handler Library Documentation",
+        "description": "Returns the detailed documentation for a specific library or helper function available in the JS handler sandbox (e.g., createPDFFromHTML, uFetch, luxon)."
+      },
+      "json_schema": {
+        "in": {
+          "enabled": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "handler": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 25,
+                "pattern": "^[A-Z_]+$",
+                "description": "Handler identifier in uppercase. Value: JS."
+              },
+              "library": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[a-zA-Z0-9$_-]+$",
+                "description": "Optional name of the library or variable to get the detailed markdown documentation. If omitted, returns the list of available libraries."
+              }
+            },
+            "additionalProperties": false,
+            "title": "HandlerLibraryDocumentation",
+            "required": [
+              "handler"
+            ]
+          }
+        },
+        "out": {
+          "enabled": false,
+          "schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "custom_data": {},
+      "headers_test": {},
+      "data_test": {
+        "query": [
+          {
+            "enabled": true,
+            "key": "handler",
+            "value": "JS",
+            "_id": "t1h2l3d4"
+          }
+        ],
+        "body": {
+          "selection": 0,
+          "json": {
+            "code": {}
+          },
+          "xml": {
+            "code": ""
+          },
+          "text": {
+            "value": ""
+          },
+          "form": [],
+          "urlencoded": []
+        },
+        "headers": [],
+        "auth": {
+          "selection": 0,
+          "basic": {
+            "username": "",
+            "password": ""
+          },
+          "bearer": {
+            "token": ""
+          }
+        },
+        "last_response": {
+          "data": "{\"handler\":\"JS\",\"libraries\":[]}",
+          "sizeKBResponse": "0.1"
+        }
+      },
+      "idendpoint": "24da7819-8823-4835-87c5-04b792bc594e",
+      "rowkey": 305,
+      "enabled": true,
+      "idapp": "cfcd2084-95d5-65ef-66e7-dff9f98764da",
+      "environment": "prd",
+      "timeout": 30,
+      "resource": "/api/handler/js/libraries",
+      "method": "GET",
+      "handler": "FUNCTION",
+      "access": 0,
+      "title": "JavaScript Handler Libraries",
+      "description": "Permite consultar la lista de librerías disponibles en el sandbox de JS o ver el detalle específico de una de ellas.",
+      "price_by_request": 1,
+      "price_kb_request": 1,
+      "price_kb_response": 1,
+      "keywords": "mcp,js,libraries,docs",
+      "code": "fnGetHandlerLibraryDocs",
+      "cache_time": 0,
+      "createdAt": "2026-06-28T04:20:00.000Z",
+      "updatedAt": "2026-06-28T04:20:00.000Z"
     },
     {
       "ctrl": {

@@ -13,11 +13,23 @@ You are an expert **MongoDB Database Administrator and NoSQL Architect**. You wr
       const docs = await mongooseInstance.collection('users').find({}).toArray();
       $_RETURN_DATA_ = docs;
       ```
-2.  **Connection Management (`custom_data`)**:
-    - Set your MongoDB connection URI and options inside `custom_data.config` or reference an Application Variable (recommended):
-      - *Example*: `"custom_data": "$_VAR_MONGO_DB"`
-    - Typical config properties: `uri` (e.g. `mongodb://host:port/database`) and `options`.
-3.  **JavaScript Environment Constraints**:
+2.  **Connection Management (`custom_data` / `mongo_config`)**:
+    - Set your MongoDB connection URI and options inside `custom_data.config` or directly as `custom_data` / `mongo_config` (which can be a connection string or an object with a `uri` parameter).
+    - Standard configuration object:
+      - `uri` (e.g. `mongodb+srv://host/database` or `mongodb://host:port/database`).
+      - `options` (optional database connection settings).
+      - Legacy support: `host`, `port`, `dbName`, `user`, `pass`.
+3.  **Custom Response Headers**:
+    - If the endpoint needs to return custom headers (e.g., download file formats like HTML, CSV, etc.), you can assign a `Map` to the global variable `$_CUSTOM_HEADERS_`.
+    - *Example*:
+      ```javascript
+      $_CUSTOM_HEADERS_ = new Map([
+        ['Content-Type', 'text/html; charset=utf-8'],
+        ['Content-Disposition', 'attachment; filename="data.html"']
+      ]);
+      $_RETURN_DATA_ = "<h1>My Report</h1>";
+      ```
+4.  **JavaScript Environment Constraints**:
     - Because this handler executes custom JavaScript code inside a VM sandbox block, you **must** review the guidelines, performance rules, and constraints defined in the [JS Handler AI Guide](../JS/AI_SKILL.md) as an indispensable and required part.
 
 ## Common Payload Shape for Creation/Updates
@@ -27,7 +39,7 @@ When using `upsert_mongodb_endpoint_handler` to create/update an endpoint:
 - `resource`: HTTP resource path.
 - `method`: HTTP Verb.
 - `mongo_code`: JavaScript source query block (stored in endpoint `code`).
-- `custom_data`: Either the MongoDB connection config object or a string reference like `"$_VAR_MONGO_DB"`.
+- `mongo_config` / `custom_data`: Either the MongoDB connection config object (with `uri`), a direct URI string, or a string reference like `"$_VAR_MONGO_DB"`.
 
 ## Minimal Working Example / Template
 * **Mongo Query (`code`)**:
@@ -43,3 +55,4 @@ const results = await mongooseInstance
 
 $_RETURN_DATA_ = results;
 ```
+

@@ -6,7 +6,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const OUTPUT_FILE = path.resolve(__dirname, "../../docs/handlers/JS/api.generated.md");
+const OLD_OUTPUT_FILE = path.resolve(__dirname, "../../docs/handlers/JS/api.generated.md");
+const OUTPUT_DIR = path.resolve(__dirname, "../../docs/handlers/JS/libraries");
 
 /**
  * Normalizes the metadata object to a standard schema.
@@ -63,97 +64,101 @@ function normalizeMetadata(key, raw) {
     };
 }
 
-function generateMarkdown(functions) {
-    let md = `# JS Handler API Reference\n\n`;
-    md += `> Auto-generated documentation for the JavaScript Handler environment.\n\n`;
+function generateLibraryMarkdown(key, fn) {
+    const meta = normalizeMetadata(key, fn);
+    let md = `# \`${meta.signature}\`\n\n`;
 
-    md += `## Table of Contents\n\n`;
+    if (meta.deprecated) {
+        md += `> **⚠️ DEPRECATED**\n\n`;
+    }
+
+    if (meta.url) {
+        md += `[External Documentation](${meta.url}) \n\n`;
+    }
+
+    md += `${meta.description}\n\n`;
+
+    if (meta.notes.length > 0) {
+        md += `**Notes**\n\n`;
+        meta.notes.forEach((note) => {
+            md += `- ${note}\n`;
+        });
+        md += `\n`;
+    }
+
+    if (meta.agentGuidance.length > 0) {
+        md += `**Agent Guidance**\n\n`;
+        meta.agentGuidance.forEach((note) => {
+            md += `- ${note}\n`;
+        });
+        md += `\n`;
+    }
+
+    if (meta.params.length > 0) {
+        md += `**Parameters**\n\n`;
+        meta.params.forEach((p) => {
+            const typeStr = p.type ? ` <${p.type}>` : "";
+            const reqStr = p.required ? "" : " **Optional**.";
+            const defStr = p.default !== null ? ` Default: \`${p.default}\`.` : "";
+            md += `*   \`${p.name}\`${typeStr}${reqStr}${defStr} ${p.description}\n`;
+        });
+        md += `\n`;
+    }
+
+    if (meta.returns) {
+        let returnType = "";
+        if (meta.returns.value_type) returnType = ` <${meta.returns.value_type}>`;
+        else if (meta.returns.type) returnType = ` <${meta.returns.type}>`;
+
+        md += `*   Returns:${returnType} ${meta.returns.info || meta.returns.description || ""}\n\n`;
+
+        // Handle complex object returns documentation if present
+        if (Array.isArray(meta.returns.object)) {
+            md += `    **Result Structure:**\n\n`;
+            meta.returns.object.forEach(prop => {
+                const pType = prop.value_type || prop.type || "any";
+                md += `    *   \`${prop.name}\` <${pType}> ${prop.info || prop.description || ""}\n`;
+            });
+            md += `\n`;
+        }
+    }
+
+    if (meta.example) {
+        md += `#### Example\n\n`;
+        md += `\`\`\`javascript\n${meta.example}\n\`\`\`\n\n`;
+    }
+
+    return md;
+}
+
+function generateIndexMarkdown(functions) {
+    let md = `# JS Handler Libraries Index\n\n`;
+    md += `Below is the index of available libraries and functions inside the JS handler VM sandbox.\n\n`;
+    md += `| Library / Variable | Signature | Description | Recommended Use Case |\n`;
+    md += `|---|---|---|---|\n`;
 
     const sortedKeys = Object.keys(functions).sort();
-
-    // TOC
-    sortedKeys.forEach((key) => {
-        // Escape $ for display to avoid math parsing issues
-        const displayKey = key.replace(/\$/g, "\\$");
-        // Standard Github-style slug: lowercase, remove non-alphanumeric (mostly)
-        // Actually, simply lowercasing and keeping it simple is safer if we match the header generation.
-        // However, if the header is `$_CUSTOM_HEADERS_`, GH makes it `#_custom_headers_` (removing $).
-        // Let's try to just remove $ from the anchor for now.
-        const anchor = key.toLowerCase().replace(/[^a-z0-9_]/g, '');
-        md += `- [${displayKey}](#${anchor})\n`;
-    });
-
-    md += `\n---\n\n`;
-
-    // Content
     sortedKeys.forEach((key) => {
         const fn = functions[key];
         const meta = normalizeMetadata(key, fn);
 
-        md += `### \`${meta.signature}\`\n\n`;
+        // Escape $ for table display
+        const displayKey = key.replace(/\$/g, "\\$");
+        // Get first sentence of description
+        const firstSentence = meta.description.split(/[.!?]/)[0].trim() + ".";
 
-        if (meta.deprecated) {
-            md += `> **⚠️ DEPRECATED**\n\n`;
-        }
-
-        if (meta.url) {
-            md += `[External Documentation](${meta.url}) \n\n`;
-        }
-
-        md += `${meta.description}\n\n`;
-
-        if (meta.notes.length > 0) {
-            md += `**Notes**\n\n`;
-            meta.notes.forEach((note) => {
-                md += `- ${note}\n`;
-            });
-            md += `\n`;
-        }
-
+        // Determine recommended use case
+        let useCase = "-";
         if (meta.agentGuidance.length > 0) {
-            md += `**Agent Guidance**\n\n`;
-            meta.agentGuidance.forEach((note) => {
-                md += `- ${note}\n`;
-            });
-            md += `\n`;
+            useCase = meta.agentGuidance[0];
+        } else if (meta.notes.length > 0) {
+            useCase = meta.notes[0];
         }
 
-        if (meta.params.length > 0) {
-            meta.params.forEach((p) => {
-                const typeStr = p.type ? ` <${p.type}>` : "";
-                const reqStr = p.required ? "" : " **Optional**.";
-                const defStr = p.default !== null ? ` Default: \`${p.default}\`.` : "";
-                md += `*   \`${p.name}\`${typeStr}${reqStr}${defStr} ${p.description}\n`;
-            });
-            md += `\n`;
-        }
-
-        if (meta.returns) {
-            let returnType = "";
-            if (meta.returns.value_type) returnType = ` <${meta.returns.value_type}>`;
-            else if (meta.returns.type) returnType = ` <${meta.returns.type}>`;
-
-            md += `*   Returns:${returnType} ${meta.returns.info || meta.returns.description || ""}\n\n`;
-
-            // Handle complex object returns documentation if present
-            if (Array.isArray(meta.returns.object)) {
-                md += `    **Result Structure:**\n\n`;
-                meta.returns.object.forEach(prop => {
-                    const pType = prop.value_type || prop.type || "any";
-                    md += `    *   \`${prop.name}\` <${pType}> ${prop.info || prop.description || ""}\n`;
-                });
-                md += `\n`;
-            }
-        }
-
-        if (meta.example) {
-            md += `#### Example\n\n`;
-            md += `\`\`\`javascript\n${meta.example}\n\`\`\`\n\n`;
-        }
-
-        md += `---\n\n`;
+        md += `| [${displayKey}](./${key}.md) | \`${meta.signature}\` | ${firstSentence} | ${useCase} |\n`;
     });
 
+    md += `\n> Auto-generated from \`src/lib/server/generateDocs.js\`.\n`;
     return md;
 }
 
@@ -162,16 +167,43 @@ async function main() {
         console.log("Generating documentation...");
         // Pass null/dummy arguments because listFunctionsVars expects them strictly for returning the function object,
         // but for metadata it returns the structure even with undefined.
-        // Actually, looking at the code: `request && reply ? ... : undefined`
-        // The metadata structure IS returned, but the `fn` property might be undefined.
-        // That's fine for documentation generation.
         const functions = listFunctionsVars(null, null, null);
 
-        const markdown = generateMarkdown(functions);
+        // Delete old output file if it exists
+        try {
+            await fs.unlink(OLD_OUTPUT_FILE);
+            console.log(`Deleted old consolidated documentation file at: ${OLD_OUTPUT_FILE}`);
+        } catch (error) {
+            if (error.code !== "ENOENT") throw error;
+        }
 
-        await fs.mkdir(path.dirname(OUTPUT_FILE), { recursive: true });
-        await fs.writeFile(OUTPUT_FILE, markdown, "utf-8");
-        console.log(`Documentation generated at: ${OUTPUT_FILE}`);
+        // Create libraries directory
+        await fs.mkdir(OUTPUT_DIR, { recursive: true });
+
+        // Clean out existing files in the directory to avoid stale docs
+        try {
+            const existingFiles = await fs.readdir(OUTPUT_DIR);
+            for (const file of existingFiles) {
+                await fs.unlink(path.join(OUTPUT_DIR, file));
+            }
+        } catch (error) {
+            if (error.code !== "ENOENT") throw error;
+        }
+
+        // Write index file
+        const indexMarkdown = generateIndexMarkdown(functions);
+        const indexFilePath = path.join(OUTPUT_DIR, "README.md");
+        await fs.writeFile(indexFilePath, indexMarkdown, "utf-8");
+        console.log(`Libraries index generated at: ${indexFilePath}`);
+
+        // Write individual files
+        const sortedKeys = Object.keys(functions).sort();
+        for (const key of sortedKeys) {
+            const libMarkdown = generateLibraryMarkdown(key, functions[key]);
+            const libFilePath = path.join(OUTPUT_DIR, `${key}.md`);
+            await fs.writeFile(libFilePath, libMarkdown, "utf-8");
+        }
+        console.log(`Generated ${sortedKeys.length} library detail files under: ${OUTPUT_DIR}`);
     } catch (error) {
         console.error("Error generating documentation:", error);
         process.exit(1);

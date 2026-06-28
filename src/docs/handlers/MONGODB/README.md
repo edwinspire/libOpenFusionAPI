@@ -20,9 +20,23 @@ When an endpoint is configured with the **MONGODB** handler:
 <details>
 <summary>⚙️ Endpoint Configuration</summary>
 
-The configuration must be a valid **JSON object** containing both the connection details (`config`) and the logic (`code`).
+La configuración del handler se puede estructurar de varias formas en el objeto de conexión (`config`/`custom_data`/`mongo_config`):
 
-**Structure**:
+1. **Usando una URI directa (Recomendado para MongoDB Atlas)**:
+```json
+{
+  "config": {
+    "uri": "mongodb+srv://user:password@cluster.mongodb.net/my_database?appName=Cluster0",
+    "options": {
+      "ssl": true
+    }
+  },
+  "code": " ... javascript logic ... "
+}
+```
+O directamente como una cadena si solo se requiere la URI de conexión.
+
+2. **Estructura por partes (Legacy)**:
 ```json
 {
   "config": {

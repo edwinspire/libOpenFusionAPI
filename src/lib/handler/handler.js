@@ -11,7 +11,7 @@ import { mcpFunction } from "./mcpFunction.js";
 import { botTelegramFunction } from "./botTelegramFunction.js";
 import { replyException } from "./utils.js";
 import { listFunctionsVars } from "../server/functionVars.js";
-import { readHandlerDocBundle } from "../server/handlerDocs.js";
+import { readHandlerDocBundle, getHandlerLibraryDoc as readHandlerLibraryDoc } from "../server/handlerDocs.js";
 
 export const Handlers = {
   JS: {
@@ -128,6 +128,11 @@ export const getHandlerDoc = async (handler) => {
 
   return doc;
 };
+
+export const getHandlerLibraryDoc = async (handler, library) => {
+  return await readHandlerLibraryDoc(handler, library);
+};
+
 
 /* ============================================================
    EJECUTAR HANDLER

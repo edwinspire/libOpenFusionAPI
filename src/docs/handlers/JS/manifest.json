@@ -6,7 +6,7 @@
   "docs": {
     "main": "README.md",
     "generated": [
-      "api.generated.md"
+      "libraries/README.md"
     ],
     "examples": []
   },
