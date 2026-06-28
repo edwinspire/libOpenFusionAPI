@@ -183,7 +183,7 @@ function makeString(schema) {
   if (schema.format) {
     switch (schema.format) {
       case "email": out = out.email(); break;
-      case "uuid": out = out.uuid(); break;
+      case "uuid": out = out.regex(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, { message: "Invalid UUID format" }); break;
       case "uri": out = out.url(); break;
       case "date-time": out = out.datetime(); break;
     }

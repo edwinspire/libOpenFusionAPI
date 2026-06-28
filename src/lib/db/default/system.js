@@ -6417,7 +6417,8 @@ export const system_app = {
                     "type": "boolean"
                   },
                   {
-                    "type": "object"
+                    "type": "object",
+                    "additionalProperties": true
                   },
                   {
                     "type": "array"

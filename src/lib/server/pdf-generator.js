@@ -91,15 +91,31 @@ async function loadPage({ page, html, url, baseUrl }) {
 /**
  * Create PDF
  */
-export const createPDF = async ({
-  html = null,
-  url = null,
-  baseUrl = null,
-  format = "A4",
-  landscape = false,
-  margin = "10mm",
-  printBackground = true,
-}) => {
+export const createPDF = async (optionsOrHtml, ...args) => {
+  let opts = {};
+  if (typeof optionsOrHtml === "string" || optionsOrHtml === null) {
+    opts = {
+      html: optionsOrHtml,
+      url: args[0] || null,
+      format: args[1] || "A4",
+      landscape: args[2] || false,
+      margin: args[3] || "10mm",
+      printBackground: args[4] !== undefined ? args[4] : true,
+    };
+  } else if (typeof optionsOrHtml === "object") {
+    opts = optionsOrHtml;
+  }
+
+  const {
+    html = null,
+    url = null,
+    baseUrl = null,
+    format = "A4",
+    landscape = false,
+    margin = "10mm",
+    printBackground = true,
+  } = opts;
+
   if (!html && !url) throw new Error("Debes pasar 'html' o 'url'");
 
   await waitForWorker();
@@ -140,14 +156,29 @@ export const createPDF = async ({
 /**
  * Create image from HTML or URL
  */
-export const createImage = async ({
-  html = null,
-  url = null,
-  baseUrl = null,
-  type = "png",
-  quality = 90,
-  fullPage = true,
-}) => {
+export const createImage = async (optionsOrHtml, ...args) => {
+  let opts = {};
+  if (typeof optionsOrHtml === "string" || optionsOrHtml === null) {
+    opts = {
+      html: optionsOrHtml,
+      url: args[0] || null,
+      type: args[1] || "png",
+      quality: args[2] !== undefined ? args[2] : 90,
+      fullPage: args[3] !== undefined ? args[3] : true,
+    };
+  } else if (typeof optionsOrHtml === "object") {
+    opts = optionsOrHtml;
+  }
+
+  const {
+    html = null,
+    url = null,
+    baseUrl = null,
+    type = "png",
+    quality = 90,
+    fullPage = true,
+  } = opts;
+
   if (!html && !url) throw new Error("Debes pasar 'html' o 'url'");
 
   await waitForWorker();

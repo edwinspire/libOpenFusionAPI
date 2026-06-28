@@ -7,6 +7,7 @@ Renders HTML content or a URL into an image buffer.
 **Notes**
 
 - Pass either html or url. If both are provided, your wrapper implementation defines precedence.
+- Supports both positional arguments style (html, url, type, quality, fullPage) and single object parameter style ({ html, url, type, quality, fullPage }).
 
 **Agent Guidance**
 

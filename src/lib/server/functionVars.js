@@ -1068,6 +1068,7 @@ $_RETURN_DATA_ = {
       return: "NodeJS.ArrayBufferView",
       notes: [
         "Pass either html or url. If both are provided, your wrapper implementation defines precedence.",
+        "Supports both positional arguments style (html, url, type, quality, fullPage) and single object parameter style ({ html, url, type, quality, fullPage }).",
       ],
       agentGuidance: [
         "Use this when the endpoint must return a screenshot-like image artifact generated on demand.",
@@ -1136,6 +1137,7 @@ $_RETURN_DATA_ = image;
       return: "NodeJS.ArrayBufferView",
       notes: [
         "Pass either html or url depending on whether the content is already available in memory.",
+        "Supports both positional arguments style (html, url, format, landscape, margin, printBackground) and single object parameter style ({ html, url, format, landscape, margin, printBackground }).",
       ],
       agentGuidance: [
         "Use this for report exports, tickets, or printable documents assembled inside the handler.",

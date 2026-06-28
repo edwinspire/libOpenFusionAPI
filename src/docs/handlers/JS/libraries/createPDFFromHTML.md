@@ -7,6 +7,7 @@ Generates a PDF document from an HTML string or a URL.
 **Notes**
 
 - Pass either html or url depending on whether the content is already available in memory.
+- Supports both positional arguments style (html, url, format, landscape, margin, printBackground) and single object parameter style ({ html, url, format, landscape, margin, printBackground }).
 
 **Agent Guidance**
 

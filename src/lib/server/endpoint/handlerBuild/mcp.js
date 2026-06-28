@@ -798,6 +798,13 @@ export const CreateMCPHandler = async (app_name, environment) => {
       if (Array.isArray(node)) return node.map(visit);
       if (!node || typeof node !== "object") return node;
 
+      // Simplifica referencias recursivas complejas de JSON a un tipo abierto serializable
+      if (node.$ref && (node.$ref === "#/$defs/jsonValue" || node.$ref.endsWith("jsonValue"))) {
+        return {
+          description: node.description || "Any JSON value"
+        };
+      }
+
       const out = {};
       for (const [key, value] of Object.entries(node)) {
         if (UNSUPPORTED_JSON_SCHEMA_KEYS.has(key)) continue;
@@ -1087,13 +1094,8 @@ ${endpointUpsertHandlerGuide}
 
     let zod_inputSchema = z.object({}).describe("Data to send to the endpoint.");
     let shouldUnwrapSingleValueInput = false;
-    const requiresPassthroughToolInput = isEndpointUpsertEndpoint(endpoint);
 
-    if (requiresPassthroughToolInput) {
-      zod_inputSchema = z.object({}).passthrough().describe(
-        "Structured input preserved as-is for endpoint_upsert because recursive and conditional endpoint payloads are not safely represented by the MCP validator.",
-      );
-    } else if (
+    if (
       endpoint?.json_schema?.in?.enabled &&
       endpoint?.json_schema?.in?.schema
     ) {

@@ -141,8 +141,22 @@ export const sqlFunction = async (context) => {
     let connection_json = undefined;
     let query_type = QueryTypes.SELECT;
 
-    if (paramsSQL.query_type && QueryTypes[paramsSQL.query_type]) {
+    if (paramsSQL.config && paramsSQL.config.query_type && QueryTypes[paramsSQL.config.query_type]) {
+      query_type = QueryTypes[paramsSQL.config.query_type];
+    } else if (paramsSQL.query_type && QueryTypes[paramsSQL.query_type]) {
       query_type = QueryTypes[paramsSQL.query_type];
+    } else if (paramsSQL.query) {
+      const cleanQuery = paramsSQL.query
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/--.*$/gm, "")
+        .trim();
+      const matchWord = cleanQuery.match(/^[a-zA-Z]+/);
+      if (matchWord) {
+        const verb = matchWord[0].toUpperCase();
+        if (QueryTypes[verb]) {
+          query_type = QueryTypes[verb];
+        }
+      }
     }
 
     if (request.method == "GET") {
