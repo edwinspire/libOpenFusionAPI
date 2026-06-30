@@ -13,6 +13,12 @@ import hana from "@sap/hana-client";
 const connections = new Map();
 const MAX_CONNECTIONS = 50;
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const RESERVED_HANA_REQUEST_KEYS = new Set([
+  "bind",
+  "replacements",
+  "params",
+  "config",
+]);
 
 /**
  * Obtiene un pool de conexiones HANA del caché o crea uno nuevo.
@@ -111,11 +117,15 @@ export const sqlHana = async (context) => {
 
     let data_request = {};
 
+    const requestQuery = request.query && typeof request.query === "object" ? request.query : {};
+    const requestBody = request.body && typeof request.body === "object" ? request.body : {};
+
     if (request.method == "GET") {
       // Compatibilidad: los query params del GET funcionan como bind
-      data_request.bind = request.query;
-    } else if (request.method == "POST") {
-      data_request = request.body || {}; // Se agrega un valor por default
+      data_request.bind = requestQuery;
+    } else {
+      // En métodos distintos de GET se soportan query + body, con body como prioridad.
+      data_request = mergeObjects(requestQuery, requestBody);
     }
 
     if (data_request) {
@@ -188,6 +198,12 @@ export const sqlHana = async (context) => {
             sendHandlerError(reply, 400, "Invalid JSON in params");
             return;
           }
+        } else if (data_request && typeof data_request === "object") {
+          bind_json = Object.fromEntries(
+            Object.entries(data_request).filter(
+              ([key]) => !RESERVED_HANA_REQUEST_KEYS.has(key),
+            ),
+          );
         }
 
         // Estandarizar keys: limpiar prefijos (:, $, @)

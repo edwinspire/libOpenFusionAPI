@@ -1,6 +1,6 @@
 {
   "name": "@edwinspire/libopenfusionapi",
-  "version": "5.1.2",
+  "version": "5.2.3",
   "description": "Library based on Fastify to create APIs quickly and easily from a web interface.",
   "scripts": {
     "test": "node ./dev/test/index.js",

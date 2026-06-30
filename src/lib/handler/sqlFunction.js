@@ -63,6 +63,8 @@ const isLiveAppVarsRefreshEnabled = () => {
   return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
 };
 
+const RESERVED_SQL_REQUEST_KEYS = new Set(["bind", "replacements", "connection"]);
+
 export const sqlFunction = async (context) => {
   const { request, reply, method, endpoint } = getHandlerExecutionContext(context);
   try {
@@ -159,11 +161,15 @@ export const sqlFunction = async (context) => {
       }
     }
 
+    const requestQuery = request.query && typeof request.query === "object" ? request.query : {};
+    const requestBody = request.body && typeof request.body === "object" ? request.body : {};
+
     if (request.method == "GET") {
       // Obtiene los datos del query
-      data_request.bind = request.query;
-    } else if (request.method == "POST") {
-      data_request = request.body || {}; // Se agrega un valor por default
+      data_request.bind = requestQuery;
+    } else {
+      // Para POST, PUT, PATCH, DELETE, OPTIONS y HEAD se prioriza el body y se conserva query como fallback.
+      data_request = mergeObjects(requestQuery, requestBody);
     }
 
     if (data_request) {
@@ -201,6 +207,10 @@ export const sqlFunction = async (context) => {
         sendHandlerError(reply, 400, "Invalid JSON in bind params");
         return;
       }
+    } else if (data_request && typeof data_request === "object") {
+      bind_json = Object.fromEntries(
+        Object.entries(data_request).filter(([key]) => !RESERVED_SQL_REQUEST_KEYS.has(key)),
+      );
     }
 
     // Procesar y estandarizar los parámetros del bind
@@ -212,8 +222,14 @@ export const sqlFunction = async (context) => {
           // Limpiar prefijos (:, $, @) para estandarizar las keys
           const key = param.replace(/^[:$@]/, '');
           const valor = bind_json[param];
-          data_bind[key] = (typeof valor === "object" && valor !== null)
-            ? JSON.stringify(valor) : valor;
+          if (Array.isArray(valor)) {
+            // Keep Fastify query semantics: repeated keys remain arrays.
+            data_bind[key] = valor;
+          } else {
+            data_bind[key] = (typeof valor === "object" && valor !== null)
+              ? JSON.stringify(valor)
+              : valor;
+          }
         }
       }
     }

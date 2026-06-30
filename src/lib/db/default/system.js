@@ -4214,7 +4214,7 @@ export const system_app = {
         "enabled": true,
         "name": "upsert_hana_endpoint_handler",
         "title": "UPSERT HANA Endpoint",
-        "description": "Creates or updates HANA endpoints using a simplified payload. Send `hana_code` and optional `hana_config`, and this wrapper maps them to endpoint_upsert with handler=HANA."
+        "description": "Creates or updates HANA endpoints using a simplified payload. Send `hana_code` and optional `hana_config`, and this wrapper maps them to endpoint_upsert with handler=HANA. Runtime note: repeated query-string keys follow Fastify semantics and are preserved as arrays."
       },
       "json_schema": {
         "in": {
@@ -9260,7 +9260,7 @@ export const system_app = {
         "enabled": true,
         "name": "upsert_sql_endpoint_handler",
         "title": "UPSERT SQL Endpoint",
-        "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize. Supports HTTP methods GET, POST, PUT, PATCH, DELETE, OPTIONS, and HEAD for the created endpoint."
+        "description": "Create or modify in OpenFusion API an endpoint that executes SQL statements (CRUD) on SQL databases supported by Sequelize. Supports HTTP methods GET, POST, PUT, PATCH, DELETE, OPTIONS, and HEAD for the created endpoint. Runtime note: repeated query-string keys follow Fastify semantics and are preserved as arrays."
       },
       "json_schema": {
         "in": {

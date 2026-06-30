@@ -137,6 +137,13 @@ In the SQL, access with `:account_name` and `:account_id`.
 - Avoid relying on `$param` list expansion semantics to be identical across all dialects.
 - For single scalar values, both styles can work; choose one style per endpoint and keep it consistent.
 
+**Repeated query keys (Fastify semantics)**:
+- OpenFusion preserves the value shape provided by Fastify for `request.query`.
+- A key sent once remains a scalar (for example `?status=ACTIVE` => `"ACTIVE"`).
+- A repeated key remains an array (for example `?id=1&id=2&id=1` => `["1","2","1"]`).
+- The SQL handler does not collapse repeated query values automatically; if your SQL expects a scalar, avoid repeating that key or validate it explicitly.
+- For list filters, prefer `IN (:param)` with `replacements`.
+
 </details>
 
 ---

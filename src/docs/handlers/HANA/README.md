@@ -75,6 +75,13 @@ If you send a parameter that is not present in the SQL you will receive an error
 - GET is suitable only for simple, parameterless queries or when parameters are passed as key/value pairs in the query string.  
 - POST (JSON body) is recommended for complex parameter sets and arrays.
 
+**Repeated query keys (Fastify semantics)**
+
+- OpenFusion preserves Fastify query parsing for HANA requests.
+- A repeated query key remains an array (for example `?id=1&id=2&id=1` => `["1","2","1"]`).
+- The HANA handler does not collapse repeated query keys automatically.
+- For list filters, write explicit list SQL such as `IN (:idList)` and pass/accept arrays.
+
 **Cross-dialect note**
 
 - The recent OpenFusion binding caveat about avoiding `DECLARE @field = $field` was reproduced in the generic SQL handler with MSSQL / T-SQL.

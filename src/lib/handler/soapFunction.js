@@ -215,15 +215,16 @@ export const soapFunction = async (context) => {
     //    console.log(SOAPParameters);
     let dataRequest = {};
 
+    const requestQuery = request.query && typeof request.query === "object" ? request.query : {};
+    const requestBody = request.body && typeof request.body === "object" ? request.body : {};
+
     if (request.method == "GET") {
       // Obtiene los datos del query
-      SOAPParameters.RequestArgs = request.query;
+      SOAPParameters.RequestArgs = requestQuery;
       dataRequest = SOAPParameters;
-    } else if (request.method == "POST") {
-      // Obtiene los datos del body
-      //console.log('>>>>>>>>>>>>>>>>' , request.body);
-      dataRequest = request.body;
-      //dataRequest = joinObj(SOAPParameters, dataRequest);
+    } else {
+      // Obtiene los datos del body y conserva query como fallback.
+      dataRequest = mergeObjects(requestQuery, requestBody);
       dataRequest = mergeObjects(dataRequest, SOAPParameters);
     }
 
